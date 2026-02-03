@@ -3,18 +3,19 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, Loader2, Mail, Lock } from "lucide-react"
+import { ShieldCheck, Loader2, Mail, Lock, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { useAuth, useUser } from "@/firebase"
 import { initiateEmailSignIn } from "@/firebase/non-blocking-login"
 import { useToast } from "@/hooks/use-toast"
-import Image from "next/image"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
+  // Preenchendo com as credenciais solicitadas para facilitar o teste
+  const [email, setEmail] = React.useState("nextcon@nextconsaude.com.br")
+  const [password, setPassword] = React.useState("2025")
   const [loading, setLoading] = React.useState(false)
   const { user, isUserLoading } = useUser()
   const auth = useAuth()
@@ -31,11 +32,10 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     
-    // Simulação de login não bloqueante conforme arquitetura Firebase Studio
+    // Inicia o processo de login no Firebase
     initiateEmailSignIn(auth, email, password)
     
-    // Como a operação é assíncrona e o estado muda via hook useUser,
-    // apenas aguardamos um pouco para feedback visual ou erro
+    // Feedback visual de carregamento
     setTimeout(() => {
       setLoading(false)
     }, 2000)
@@ -53,16 +53,13 @@ export default function LoginPage() {
     <div className="flex h-svh w-full flex-col items-center justify-center bg-muted/30 p-4">
       <div className="mb-8 flex flex-col items-center text-center">
         <div className="mb-4 flex items-center justify-center">
-          {/* Logo Placeholder - O usuário deve substituir pelo caminho real da imagem */}
-          <div className="relative h-16 w-64">
-             <div className="flex items-center gap-3">
-              <div className="size-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold shadow-lg">
-                N
-              </div>
-              <div className="flex flex-col items-start">
-                <span className="text-2xl font-black text-primary tracking-tighter leading-none">NEXTCON</span>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Saúde Empresarial</span>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="size-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold shadow-lg">
+              N
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-2xl font-black text-primary tracking-tighter leading-none">NEXTCON</span>
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Saúde Empresarial</span>
             </div>
           </div>
         </div>
@@ -70,15 +67,21 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-md border-none card-shadow">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold font-headline">Bem-vindo ao Sistema SST</CardTitle>
+          <CardTitle className="text-2xl font-bold font-headline">Acesso ao Sistema SST</CardTitle>
           <CardDescription>
-            Entre com suas credenciais para gerenciar sua segurança ocupacional.
+            Utilize suas credenciais para gerenciar a segurança ocupacional.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
+            <Alert className="bg-primary/5 border-primary/20 text-primary mb-4">
+              <AlertCircle className="size-4" />
+              <AlertDescription className="text-[10px] font-medium uppercase tracking-wider">
+                Lembre-se de criar este usuário no Console do Firebase.
+              </AlertDescription>
+            </Alert>
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm font-medium leading-none">
                 E-mail
               </label>
               <div className="relative">
@@ -95,7 +98,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                <label className="text-sm font-medium leading-none">
                   Senha
                 </label>
                 <Button variant="link" size="sm" className="px-0 font-normal">
