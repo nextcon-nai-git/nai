@@ -34,13 +34,14 @@ export default function LoginPage() {
     
     initiateEmailSignIn(auth, email, password, (error) => {
       setLoading(false)
-      console.error("Auth error:", error.code)
       
       let message = "Falha na autenticação. Verifique seus dados."
-      if (error.code === 'auth/invalid-credential') {
-        message = "Credenciais inválidas. Verifique se o usuário foi criado no Console do Firebase com a senha correta."
-      } else if (error.code === 'auth/user-not-found') {
-        message = "Usuário não encontrado. Crie-o no Console do Firebase."
+      
+      // Mapeamento de erros comuns do Firebase Auth
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        message = "E-mail ou senha incorretos. Verifique os dados ou crie o usuário no Console do Firebase."
+      } else if (error.code === 'auth/too-many-requests') {
+        message = "Muitas tentativas falhas. Tente novamente mais tarde."
       }
 
       setErrorMessage(message)
@@ -76,7 +77,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <Card className="w-full max-w-md border-none card-shadow">
+      <Card className="w-full max-w-md border-none shadow-2xl">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold font-headline">Acesso ao Sistema SST</CardTitle>
           <CardDescription>
@@ -87,13 +88,13 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <Alert className="bg-blue-50 border-blue-200 text-blue-800 mb-4">
               <AlertCircle className="size-4" />
-              <AlertDescription className="text-xs font-medium">
-                Configuração Obrigatória: Ative "Email/Password" no Firebase Console e adicione este usuário para liberar o acesso.
+              <AlertDescription className="text-[11px] font-medium">
+                Configuração: Certifique-se de que o usuário existe no Console do Firebase com o e-mail e senha abaixo.
               </AlertDescription>
             </Alert>
 
             {errorMessage && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="mb-4 animate-in fade-in slide-in-from-top-1">
                 <AlertCircle className="size-4" />
                 <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
               </Alert>
@@ -120,9 +121,6 @@ export default function LoginPage() {
                 <label className="text-sm font-medium leading-none">
                   Senha
                 </label>
-                <Button variant="link" size="sm" className="px-0 font-normal" type="button">
-                  Esqueceu a senha?
-                </Button>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 size-4 text-muted-foreground" />
@@ -141,14 +139,16 @@ export default function LoginPage() {
             <Button type="submit" className="w-full bg-primary py-6 text-lg font-bold" disabled={loading}>
               {loading ? <Loader2 className="size-5 animate-spin" /> : "Acessar Plataforma"}
             </Button>
-            <a 
-              href="https://console.firebase.google.com/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
-            >
-              <ExternalLink className="size-3" /> Ir para o Console do Firebase
-            </a>
+            <div className="flex flex-col items-center gap-2">
+              <a 
+                href="https://console.firebase.google.com/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+              >
+                <ExternalLink className="size-3" /> Abrir Console do Firebase
+              </a>
+            </div>
           </CardFooter>
         </form>
       </Card>
