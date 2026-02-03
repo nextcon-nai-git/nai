@@ -1,30 +1,31 @@
+
 {
   "entities": {
     "Client": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Client",
+      "title": "Cliente",
       "type": "object",
-      "description": "Represents a client using the NextCon SST application.",
+      "description": "Representa uma empresa cliente na plataforma NextCon SST.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Client entity."
+          "description": "Identificador único da empresa (UID do Firebase)."
         },
         "name": {
           "type": "string",
-          "description": "The name of the client."
+          "description": "Nome ou Razão Social da empresa."
         },
         "cnpj": {
           "type": "string",
-          "description": "The client's CNPJ (Brazilian business identifier)."
+          "description": "CNPJ da empresa cliente."
         },
         "address": {
           "type": "string",
-          "description": "The client's physical address."
+          "description": "Endereço físico da empresa."
         },
         "contactEmail": {
           "type": "string",
-          "description": "The client's primary contact email address.",
+          "description": "E-mail principal de contato.",
           "format": "email"
         }
       },
@@ -36,98 +37,30 @@
     },
     "Employee": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Employee",
+      "title": "Colaborador",
       "type": "object",
-      "description": "Represents an employee within the system.",
+      "description": "Representa um funcionário dentro do sistema.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Employee entity."
+          "description": "ID único do funcionário."
         },
         "clientId": {
           "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N Employee).  The client this employee belongs to."
+          "description": "ID do cliente (empresa) ao qual este funcionário pertence."
         },
         "name": {
           "type": "string",
-          "description": "The employee's full name."
+          "description": "Nome completo do funcionário."
         },
         "jobRole": {
           "type": "string",
-          "description": "The employee's job role or title."
+          "description": "Cargo ou função do funcionário."
         },
         "admissionDate": {
           "type": "string",
-          "description": "The date the employee was hired.",
+          "description": "Data de admissão.",
           "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "clientId",
-        "name"
-      ]
-    },
-    "Risk": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Risk",
-      "type": "object",
-      "description": "Represents a potential risk identified within the PGR (Risk Management) module.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Risk entity."
-        },
-        "jobRoleId": {
-          "type": "string",
-          "description": "Reference to JobRole. (Relationship: JobRole 1:N Risk). The job role this risk is associated with."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the risk."
-        },
-        "probability": {
-          "type": "number",
-          "description": "The probability of the risk occurring (e.g., 0.1 for 10%)."
-        },
-        "severity": {
-          "type": "number",
-          "description": "The severity of the risk if it occurs (e.g., 1-5 scale)."
-        },
-        "mitigationPlan": {
-          "type": "string",
-          "description": "A plan to mitigate the risk."
-        }
-      },
-      "required": [
-        "id",
-        "jobRoleId",
-        "description",
-        "probability",
-        "severity"
-      ]
-    },
-    "JobRole": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "JobRole",
-      "type": "object",
-      "description": "Represents a job role within a client's organization, used in Risk Management.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the JobRole entity."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N JobRole).  The client this job role belongs to."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the job role (e.g., 'Electrician', 'Welder')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the job role's responsibilities."
         }
       },
       "required": [
@@ -137,287 +70,36 @@
       ]
     },
     "MedicalExam": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MedicalExam",
+      "title": "Exame Médico",
       "type": "object",
-      "description": "Represents a medical exam scheduled or completed for an employee.",
+      "description": "Registro de exames do PCMSO.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the MedicalExam entity."
-        },
-        "employeeId": {
-          "type": "string",
-          "description": "Reference to Employee. (Relationship: Employee 1:N MedicalExam). The employee this exam is for."
-        },
-        "examType": {
-          "type": "string",
-          "description": "The type of medical exam (e.g., 'Admission', 'Periodic')."
-        },
-        "examDate": {
-          "type": "string",
-          "description": "The date the medical exam was conducted.",
-          "format": "date-time"
-        },
-        "expirationDate": {
-          "type": "string",
-          "description": "The date the medical exam result expires.",
-          "format": "date-time"
-        },
-        "result": {
-          "type": "string",
-          "description": "The result of the medical exam (e.g., 'Fit', 'Unfit', 'Pending')."
-        }
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "examType": { "type": "string" },
+        "examDate": { "type": "string", "format": "date-time" },
+        "result": { "type": "string" }
       },
-      "required": [
-        "id",
-        "employeeId",
-        "examType",
-        "examDate",
-        "expirationDate",
-        "result"
-      ]
-    },
-    "ActionPlan": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ActionPlan",
-      "type": "object",
-      "description": "Represents an action plan to address a specific issue or risk.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ActionPlan entity."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N ActionPlan).  The client this action plan belongs to."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the action plan."
-        },
-        "origin": {
-          "type": "string",
-          "description": "The origin of the action plan (e.g., 'PGR', 'CIPA', 'Ergonomics')."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the action plan (e.g., 'ToDo', 'InProgress', 'Done')."
-        },
-        "dueDate": {
-          "type": "string",
-          "description": "The date the action plan is due to be completed.",
-          "format": "date-time"
-        },
-        "assignedTo": {
-          "type": "string",
-          "description": "The user ID (from the authentication system) that this action plan is assigned to."
-        }
-      },
-      "required": [
-        "id",
-        "clientId",
-        "description",
-        "origin",
-        "status",
-        "dueDate"
-      ]
-    },
-    "LegalClaim": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "LegalClaim",
-      "type": "object",
-      "description": "Represents a legal claim or 'pericia' tracked in the Legal & Financial Module.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the LegalClaim entity."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N LegalClaim).  The client this legal claim belongs to."
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the legal claim."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current status of the legal claim (e.g., 'Open', 'In Progress', 'Closed')."
-        },
-        "amount": {
-          "type": "number",
-          "description": "The financial amount associated with the claim."
-        },
-        "dateFiled": {
-          "type": "string",
-          "description": "The date the legal claim was filed.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "clientId",
-        "description",
-        "status",
-        "amount",
-        "dateFiled"
-      ]
+      "required": ["id", "employeeId", "examType", "examDate", "result"]
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "password"
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/clients/{clientId}",
-        "definition": {
-          "entityName": "Client",
-          "schema": {
-            "$ref": "#/backend/entities/Client"
-          },
-          "description": "Represents a client using the NextCon SST application.  Root level collection for client data.  The clientId is used as the document ID.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/employees/{employeeId}",
-        "definition": {
-          "entityName": "Employee",
-          "schema": {
-            "$ref": "#/backend/entities/Employee"
-          },
-          "description": "Represents an employee within the system. Subcollection of clients. Includes denormalized 'clientId' for authorization independence.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "employeeId",
-              "description": "The unique identifier for the employee."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/employees/{employeeId}/medicalExams/{medicalExamId}",
-        "definition": {
-          "entityName": "MedicalExam",
-          "schema": {
-            "$ref": "#/backend/entities/MedicalExam"
-          },
-          "description": "Represents a medical exam scheduled or completed for an employee. Subcollection of employees. Includes denormalized 'clientId' for authorization independence (inherited from the employee document).",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "employeeId",
-              "description": "The unique identifier for the employee."
-            },
-            {
-              "name": "medicalExamId",
-              "description": "The unique identifier for the medical exam."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/jobRoles/{jobRoleId}",
-        "definition": {
-          "entityName": "JobRole",
-          "schema": {
-            "$ref": "#/backend/entities/JobRole"
-          },
-          "description": "Represents a job role within a client's organization. Subcollection of clients. Includes denormalized 'clientId' for authorization independence.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "jobRoleId",
-              "description": "The unique identifier for the job role."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/jobRoles/{jobRoleId}/risks/{riskId}",
-        "definition": {
-          "entityName": "Risk",
-          "schema": {
-            "$ref": "#/backend/entities/Risk"
-          },
-          "description": "Represents a potential risk identified within the PGR (Risk Management) module. Subcollection of JobRoles. Includes denormalized 'clientId' for authorization independence (inherited from the jobRole document).",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "jobRoleId",
-              "description": "The unique identifier for the job role."
-            },
-            {
-              "name": "riskId",
-              "description": "The unique identifier for the risk."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/actionPlans/{actionPlanId}",
-        "definition": {
-          "entityName": "ActionPlan",
-          "schema": {
-            "$ref": "#/backend/entities/ActionPlan"
-          },
-          "description": "Represents an action plan to address a specific issue or risk. Subcollection of clients. Includes denormalized 'clientId' for authorization independence.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "actionPlanId",
-              "description": "The unique identifier for the action plan."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/legalClaims/{legalClaimId}",
-        "definition": {
-          "entityName": "LegalClaim",
-          "schema": {
-            "$ref": "#/backend/entities/LegalClaim"
-          },
-          "description": "Represents a legal claim or 'pericia'. Subcollection of clients. Includes denormalized 'clientId' for authorization independence.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier for the client."
-            },
-            {
-              "name": "legalClaimId",
-              "description": "The unique identifier for the legal claim."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore data structure is designed to support the NextCon SST application's requirements, focusing on security, scalability, and ease of maintenance. The structure adheres to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n**Authorization Independence:**\nTo avoid hierarchical authorization dependencies and enable atomic operations, the structure denormalizes authorization context.  Specifically, the `clientId` is included in documents within subcollections of `/clients/{clientId}` (e.g. `/clients/{clientId}/employees/{employeeId}`) to allow rules to validate the relationship without needing to perform `get()` operations to the parent `client` document.\n\n**Structural Segregation:**\nThe structure maintains a homogeneous security posture by ensuring all documents within a collection share the same security requirements. Data with different access needs are segregated into separate collections.\n\n**Access Modeling:**\nThe design standardizes access modeling using consistent patterns:\n*   **Path-Based Ownership:** The `/clients/{clientId}` collection uses path-based ownership for client-specific data.\n*   **Hierarchical Paths for User-Owned Data:** The structure utilizes hierarchical paths to represent 1:N relationships between Clients and other entities (Employees, JobRoles, ActionPlans, and LegalClaims). This approach provides a straightforward and secure way to manage access control based on ownership.\n*   **Nested Data:**  Hierarchical paths extend further to represent nested relationships, such as an Employee having many Medical Exams ( `/clients/{clientId}/employees/{employeeId}/medicalExams/{medicalExamId}`).\n\n**QAPs (Rules are not Filters):**\nThe structure supports secure `list` operations through structural segregation. By placing client-specific data under the `/clients/{clientId}` path, it's possible to write security rules that allow listing documents only for the authenticated user's client, preventing unauthorized access to other clients' data.\n\n**Data Clarity and Predictability:**\n*   The structure promotes data clarity by using explicit naming conventions for collections and fields. The `status` field in `ActionPlan` and `LegalClaim` entities explicitly models the state of these entities.\n\nIn summary, this Firestore structure facilitates secure and scalable data management for the NextCon SST application, enabling robust security rules and efficient data access."
+    "/clients/{clientId}": {
+      "schema": "Client",
+      "description": "Dados mestres da empresa cliente."
+    },
+    "/clients/{clientId}/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Lista de colaboradores por empresa."
+    },
+    "/clients/{clientId}/employees/{employeeId}/medicalExams/{examId}": {
+      "schema": "MedicalExam",
+      "description": "Histórico de ASOs e exames complementares."
+    }
   }
 }
