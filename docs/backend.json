@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Agency": {
@@ -23,9 +22,24 @@
         "name": { "type": "string" },
         "cnpj": { "type": "string" },
         "sector": { "type": "string" },
-        "contactEmail": { "type": "string", "format": "email" }
+        "contactEmail": { "type": "string", "format": "email" },
+        "pgrExpiry": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
+    },
+    "Task": {
+      "title": "Plano de Ação",
+      "type": "object",
+      "description": "Tarefa de segurança ou conformidade.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" },
+        "deadline": { "type": "string" },
+        "createdAt": { "type": "string" }
+      }
     },
     "Employee": {
       "title": "Colaborador",
@@ -95,6 +109,10 @@
     "/clients/{agencyId}/managedCompanies/{companyId}": {
       "schema": "ManagedCompany",
       "description": "Empresas clientes gerenciadas pela empresa principal."
+    },
+    "/clients/{agencyId}/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Plano de ação global."
     },
     "/clients/{agencyId}/employees/{employeeId}": {
       "schema": "Employee",
