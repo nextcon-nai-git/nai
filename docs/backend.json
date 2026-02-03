@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Agency": {
@@ -54,48 +55,17 @@
       },
       "required": ["id", "name"]
     },
-    "Supplier": {
-      "title": "Fornecedor",
+    "PsychosocialSurvey": {
+      "title": "Pesquisa COPSOQ II",
       "type": "object",
-      "description": "Clínicas, laboratórios ou prestadores de serviço.",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "serviceType": { "type": "string" },
-        "cnpj": { "type": "string" },
-        "city": { "type": "string" }
-      },
-      "required": ["id", "name"]
-    },
-    "LegalExpertise": {
-      "title": "Perícia Judicial",
-      "type": "object",
-      "description": "Registro de perícias médicas ou técnicas de processos trabalhistas.",
-      "properties": {
-        "id": { "type": "string" },
-        "caseNumber": { "type": "string" },
-        "companyId": { "type": "string" },
-        "type": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["Agendado", "Em curso", "Vencido", "Concluído"] }
-      },
-      "required": ["id", "caseNumber", "status"]
-    },
-    "MedicalExam": {
-      "title": "Exame Médico (ASO)",
-      "type": "object",
-      "description": "Registro de exame de saúde ocupacional (NR-07).",
+      "description": "Avaliação de riscos psicossociais.",
       "properties": {
         "id": { "type": "string" },
         "employeeId": { "type": "string" },
-        "type": { "type": "string" },
         "date": { "type": "string" },
-        "validity": { "type": "string" },
-        "result": { "type": "string" },
-        "status": { "type": "string" },
-        "doctor": { "type": "string" }
-      },
-      "required": ["id", "employeeId", "type", "date"]
+        "answers": { "type": "object" },
+        "totalScore": { "type": "number" }
+      }
     }
   },
   "auth": {
@@ -118,17 +88,9 @@
       "schema": "Employee",
       "description": "Base global de colaboradores atendidos pela empresa."
     },
-    "/clients/{agencyId}/suppliers/{supplierId}": {
-      "schema": "Supplier",
-      "description": "Rede credenciada (clínicas e parceiros)."
-    },
-    "/clients/{agencyId}/legalExpertises/{expertiseId}": {
-      "schema": "LegalExpertise",
-      "description": "Histórico de perícias judiciais monitoradas pela empresa."
-    },
-    "/clients/{agencyId}/medicalExams/{examId}": {
-      "schema": "MedicalExam",
-      "description": "Histórico global de exames médicos (ASO)."
+    "/clients/{agencyId}/surveys/{surveyId}": {
+      "schema": "PsychosocialSurvey",
+      "description": "Resultados das pesquisas COPSOQ II."
     }
   }
 }

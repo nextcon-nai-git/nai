@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -17,7 +18,8 @@ import {
   Building2,
   Lock,
   Database,
-  Sparkles
+  Sparkles,
+  ClipboardList
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -54,7 +56,7 @@ const navItems = [
       { title: "Dashboard CFO", icon: LayoutDashboard, href: "/" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
-      { title: "Assistente de Normas", icon: Sparkles, href: "/knowledge-base" },
+      { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
   },
   {
@@ -70,6 +72,7 @@ const navItems = [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
+      { title: "Checklists & Pesquisas", icon: ClipboardList, href: "/checklists" },
     ]
   },
   {
