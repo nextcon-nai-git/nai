@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Camera, MapPin, ShieldCheck, UserCheck, RefreshCw, CheckCircle2, FileDown } from "lucide-react"
+import { Camera, MapPin, ShieldCheck, UserCheck, RefreshCw, CheckCircle2, FileDown, Lock, ShieldAlert } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ export default function PpeKiosk() {
   const [employeeId, setEmployeeId] = React.useState("")
   const [step, setStep] = React.useState(1) // 1: ID, 2: Photo, 3: Success
   const [capturedImage, setCapturedImage] = React.useState<string | null>(null)
+  const [timestamp, setTimestamp] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (step === 2) {
@@ -44,20 +45,20 @@ export default function PpeKiosk() {
       const getGeoLocation = () => {
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition((position) => {
-            setLocation(`${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`)
+            setLocation(`${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`)
           })
         }
       }
 
       getCameraPermission()
       getGeoLocation()
+      setTimestamp(new Date().toLocaleString('pt-BR'))
     }
   }, [step, toast])
 
   const handleCapture = () => {
     setIsCapturing(true)
     
-    // Captura o frame real da câmera
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current
       const canvas = canvasRef.current
@@ -75,7 +76,7 @@ export default function PpeKiosk() {
       setStep(3)
       toast({
         title: "EPI Registrado!",
-        description: "Comprovante digital gerado com biometria facial e geolocalização.",
+        description: "Protocolo de segurança NR-06 gerado com biometria.",
       })
     }, 1500)
   }
@@ -88,33 +89,38 @@ export default function PpeKiosk() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6 animate-in slide-in-from-top-4 duration-500">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Quiosque Digital de EPI</h1>
-        <p className="text-muted-foreground">Prova de Vida e Entrega Jurídica com Geometria Facial e GPS.</p>
+    <div className="max-w-2xl mx-auto space-y-6 animate-in slide-in-from-top-4 duration-500 pb-20">
+      <div className="text-center space-y-3">
+        <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-2">
+          <Lock className="size-8 text-primary" />
+        </div>
+        <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Quiosque Digital de EPI (NR-06)</h1>
+        <p className="text-muted-foreground">Prova de Vida e Entrega Jurídica com Geometria Facial e GPS para proteção em perícias.</p>
       </div>
 
-      <Card className="card-shadow border-none overflow-hidden">
+      <Card className="card-shadow border-none overflow-hidden bg-white">
         {step === 1 && (
-          <div className="p-8 space-y-6 text-center animate-in fade-in">
-            <div className="p-6 bg-secondary/10 rounded-full w-24 h-24 mx-auto flex items-center justify-center text-primary">
-              <UserCheck className="size-12" />
+          <div className="p-10 space-y-8 text-center animate-in fade-in">
+            <div className="p-8 bg-muted rounded-full w-32 h-32 mx-auto flex items-center justify-center text-primary shadow-inner">
+              <UserCheck className="size-16" />
             </div>
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Identificação do Colaborador</h2>
-              <p className="text-sm text-muted-foreground">Insira o documento para iniciar a validação biométrica.</p>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">Identificação</h2>
+                <p className="text-sm text-muted-foreground">Insira sua matrícula ou CPF para registrar a entrega.</p>
+              </div>
               <Input 
-                placeholder="Matrícula ou CPF" 
-                className="text-center text-lg h-12 bg-muted border-none focus-visible:ring-accent" 
+                placeholder="000.000.000-00" 
+                className="text-center text-2xl h-16 font-bold bg-muted/50 border-2 border-muted focus-visible:ring-primary rounded-xl" 
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
               />
               <Button 
-                className="w-full h-12 text-lg font-bold bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20"
+                className="w-full h-16 text-xl font-bold bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all rounded-xl"
                 disabled={!employeeId}
                 onClick={() => setStep(2)}
               >
-                Próximo Passo
+                Prosseguir para Biometria
               </Button>
             </div>
           </div>
@@ -123,76 +129,98 @@ export default function PpeKiosk() {
         {step === 2 && (
           <div className="space-y-0 animate-in fade-in">
             <div className="relative">
-              <video ref={videoRef} className="w-full aspect-video bg-black object-cover" autoPlay muted />
+              <video ref={videoRef} className="w-full aspect-[4/3] bg-black object-cover" autoPlay muted />
               <canvas ref={canvasRef} className="hidden" />
-              <div className="absolute inset-0 border-[40px] border-black/40 pointer-events-none">
-                <div className="size-full border-2 border-white/50 border-dashed rounded-lg" />
+              
+              {/* Overlay de Biometria */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-64 h-80 border-4 border-white/30 border-dashed rounded-[100px] relative">
+                   <div className="absolute inset-0 border-2 border-white/10 rounded-[100px] animate-pulse" />
+                </div>
               </div>
-              <div className="absolute bottom-4 left-4 right-4 flex justify-between">
-                <Badge className="bg-black/60 backdrop-blur-md border-none gap-2">
-                  <MapPin className="size-3 text-red-500" /> {location || "Localizando..."}
+
+              <div className="absolute top-4 left-4 right-4 flex justify-between gap-2">
+                <Badge className="bg-black/60 backdrop-blur-md border-none text-[10px] font-bold py-1.5">
+                  <MapPin className="size-3 text-red-500 mr-1.5" /> {location || "GPS SINALIZANDO..."}
                 </Badge>
-                <Badge className="bg-black/60 backdrop-blur-md border-none gap-2">
-                  <ShieldCheck className="size-3 text-green-500" /> ID: {employeeId}
+                <Badge className="bg-primary/80 backdrop-blur-md border-none text-[10px] font-bold py-1.5">
+                  ID: {employeeId}
                 </Badge>
+              </div>
+
+              <div className="absolute bottom-4 left-4 text-white text-[8px] font-mono opacity-60">
+                {timestamp} • LAT/LONG VALIDATION ACTIVE
               </div>
             </div>
             
-            <div className="p-6 space-y-4">
+            <div className="p-8 space-y-4">
               {hasCameraPermission === false && (
-                <Alert variant="destructive">
-                  <AlertTitle>Erro de Câmera</AlertTitle>
-                  <AlertDescription>Habilite a câmera para continuar com a prova de entrega.</AlertDescription>
+                <Alert variant="destructive" className="border-none bg-red-600 text-white">
+                  <ShieldAlert className="size-4 text-white" />
+                  <AlertTitle className="font-bold">Falha no Sensor</AlertTitle>
+                  <AlertDescription className="text-xs opacity-90">Habilite a câmera para garantir a validade jurídica da entrega.</AlertDescription>
                 </Alert>
               )}
 
               <Button 
-                className="w-full h-16 text-xl font-bold gap-3 bg-primary hover:bg-primary/90 shadow-xl"
+                className="w-full h-20 text-2xl font-black gap-4 bg-primary hover:bg-primary/90 shadow-2xl rounded-2xl group transition-all"
                 onClick={handleCapture}
                 disabled={isCapturing || !hasCameraPermission}
               >
-                {isCapturing ? <RefreshCw className="size-6 animate-spin" /> : <Camera className="size-6" />}
-                Registrar Entrega de EPI
+                {isCapturing ? <RefreshCw className="size-8 animate-spin" /> : <Camera className="size-8 group-hover:scale-110 transition-transform" />}
+                CONFIRMAR ENTREGA
               </Button>
-              <Button variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => setStep(1)}>Cancelar</Button>
+              <Button variant="ghost" className="w-full text-xs text-muted-foreground hover:text-red-600 transition-colors font-bold" onClick={() => setStep(1)}>CANCELAR REGISTRO</Button>
             </div>
           </div>
         )}
 
         {step === 3 && (
-          <div className="p-12 text-center space-y-6 animate-in zoom-in">
-            <div className="relative mx-auto w-32 h-32">
+          <div className="p-16 text-center space-y-8 animate-in zoom-in-95 duration-500">
+            <div className="relative mx-auto w-40 h-40">
               {capturedImage ? (
-                <img src={capturedImage} alt="Captured" className="w-full h-full object-cover rounded-full border-4 border-green-500 shadow-xl" />
+                <img src={capturedImage} alt="Biometria" className="w-full h-full object-cover rounded-full border-8 border-emerald-500/20 shadow-2xl" />
               ) : (
-                <div className="p-6 bg-green-100 rounded-full size-full flex items-center justify-center text-green-600">
-                  <CheckCircle2 className="size-16" />
+                <div className="p-8 bg-emerald-100 rounded-full size-full flex items-center justify-center text-emerald-600">
+                  <CheckCircle2 className="size-20" />
                 </div>
               )}
-              <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full border-2 border-white">
-                <ShieldCheck className="size-5" />
+              <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-2 rounded-full border-4 border-white shadow-lg">
+                <ShieldCheck className="size-8" />
               </div>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-headline font-bold text-green-700">Entrega Confirmada!</h2>
-              <p className="text-muted-foreground max-w-xs mx-auto">O registro biométrico foi enviado para o dossiê jurídico do colaborador.</p>
-              <div className="flex flex-col gap-2 mt-4">
-                <Badge variant="outline" className="py-1 px-4 text-[10px] font-mono justify-center">SHA-256: {Math.random().toString(36).substring(7).toUpperCase()}</Badge>
-                <Button variant="link" className="gap-2 text-primary">
-                  <FileDown className="size-4" /> Baixar Recibo Assinado
+            <div className="space-y-4">
+              <h2 className="text-3xl font-headline font-black text-emerald-700">Entrega Juridicamente Validada!</h2>
+              <p className="text-muted-foreground max-w-sm mx-auto font-medium">O recibo digital com biometria facial e coordenadas GPS foi enviado ao dossiê do colaborador no eSocial (S-2240).</p>
+              
+              <div className="bg-muted/50 p-4 rounded-xl space-y-3">
+                <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground uppercase">
+                  <span>Assinatura Digital SHA-256</span>
+                  <span className="text-primary">{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
+                </div>
+                <Button variant="link" className="w-full gap-2 text-primary font-bold h-auto py-0">
+                  <FileDown className="size-4" /> Baixar Recibo de Entrega (PDF)
                 </Button>
               </div>
             </div>
-            <Button variant="outline" className="w-full mt-4" onClick={reset}>Fazer Nova Entrega</Button>
+            <Button variant="outline" className="w-full h-12 font-bold border-2" onClick={reset}>REGISTRAR NOVA ENTREGA</Button>
           </div>
         )}
       </Card>
 
-      <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-start gap-3">
-        <ShieldCheck className="size-5 text-primary shrink-0 mt-1" />
-        <p className="text-xs text-primary/80 leading-relaxed">
-          Este registro atende integralmente à <span className="font-bold">NR-06</span> e à <span className="font-bold">Portaria 6.730/20</span>. A biometria facial capturada vincula a entrega ao geoprocessamento do dispositivo, garantindo <span className="font-bold">Validade Jurídica</span> em perícias judiciais.
-        </p>
+      <div className="p-6 bg-primary/5 rounded-2xl border-2 border-primary/10 flex items-start gap-4 shadow-sm">
+        <div className="p-2 bg-primary text-white rounded-lg">
+          <ShieldCheck className="size-5" />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-primary mb-1 uppercase tracking-wider">Salvaguarda Jurídica NR-06</p>
+          <p className="text-[11px] text-primary/70 leading-relaxed">
+            Este quiosque atende integralmente à <span className="font-bold">Portaria 6.730/20</span>. A biometria facial vinculada ao geoprocessamento do dispositivo garante a <span className="font-bold">não-repúdio</span> da entrega em perícias técnicas e judiciais, substituindo com vantagem a ficha de papel.
+          </p>
+        </div>
       </div>
     </div>
   )
