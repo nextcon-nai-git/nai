@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,6 +26,7 @@
     --ring: 222 47% 11%;
     --radius: 0.75rem;
     
+    /* Cores da Sidebar - Contraste Elevado */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 45 93% 47%;
@@ -85,4 +87,19 @@
 
 .card-shadow {
   box-shadow: 0 10px 30px -10px rgba(9, 14, 36, 0.08);
+}
+
+/* Fix para garantir visibilidade da Sidebar */
+[data-sidebar="sidebar"] {
+  z-index: 40;
+  display: flex !important;
+}
+
+@media (max-width: 767px) {
+  [data-sidebar="sidebar"] {
+    display: none !important;
+  }
+  [data-mobile="true"] [data-sidebar="sidebar"] {
+    display: flex !important;
+  }
 }
