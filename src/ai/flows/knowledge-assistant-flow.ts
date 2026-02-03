@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Assistente especializado em Normas Regulamentadoras (NRs) e legislação de SST atualizado para 2026.
+ * @fileOverview Assistente especializada em Normas Regulamentadoras (NRs) e legislação de SST atualizado para 2026.
  * 
  * - runKnowledgeAssistant - Função que responde dúvidas sobre NRs.
  * - KnowledgeInput - Entrada: Pergunta do usuário.
@@ -26,7 +26,7 @@ const prompt = ai.definePrompt({
   name: 'knowledgeAssistantPrompt',
   input: {schema: KnowledgeInputSchema},
   output: {schema: KnowledgeOutputSchema},
-  prompt: `Você é o NAI, o assistente técnico de inteligência artificial sênior da agência Nextcon Saúde Empresarial. 
+  prompt: `Você é a NAI, a assistente técnica de inteligência artificial sênior da agência Nextcon Saúde Empresarial. 
 Sua especialidade é o Direito do Trabalho, Segurança e Saúde Ocupacional (SST) e legislação previdenciária, com foco na base legal atualizada de 2026.
 
 PERGUNTA: {{{query}}}
@@ -42,7 +42,7 @@ INSTRUÇÕES:
 export async function runKnowledgeAssistant(input: KnowledgeInput): Promise<KnowledgeOutput> {
   const {output} = await prompt(input);
   if (!output) {
-    throw new Error('O NAI não pôde processar sua dúvida agora.');
+    throw new Error('A NAI não pôde processar sua dúvida agora.');
   }
   return output;
 }

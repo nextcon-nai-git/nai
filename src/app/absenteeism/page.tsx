@@ -63,7 +63,7 @@ export default function LimboSentinel() {
       toast({
         variant: "destructive",
         title: "Erro na NAI",
-        description: "O NAI não conseguiu gerar a contestação jurídica agora."
+        description: "A NAI não conseguiu gerar a contestação jurídica agora."
       })
     } finally {
       setIsGenerating(false)

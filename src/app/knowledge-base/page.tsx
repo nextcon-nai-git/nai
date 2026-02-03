@@ -22,7 +22,7 @@ export default function KnowledgeBase() {
   const [query, setQuery] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [messages, setMessages] = React.useState<Message[]>([
-    { role: 'ai', content: "Olá! Sou o NAI, a Inteligência Artificial da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST com base no cenário de 2026. Como posso ajudar sua agência hoje?" }
+    { role: 'ai', content: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST com base no cenário de 2026. Como posso ajudar sua agência hoje?" }
   ])
 
   const handleSend = async (e?: React.FormEvent) => {
@@ -45,7 +45,7 @@ export default function KnowledgeBase() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro no Assistente",
+        title: "Erro na NAI",
         description: error.message
       })
     } finally {
@@ -115,7 +115,7 @@ export default function KnowledgeBase() {
                   <div className="flex justify-start">
                     <div className="bg-muted/50 p-4 rounded-2xl rounded-tl-none animate-pulse flex items-center gap-2">
                       <Loader2 className="size-4 animate-spin" />
-                      <span className="text-xs font-bold uppercase tracking-widest">Consultando NRs...</span>
+                      <span className="text-xs font-bold uppercase tracking-widest">A NAI está consultando NRs...</span>
                     </div>
                   </div>
                 )}
@@ -170,7 +170,7 @@ export default function KnowledgeBase() {
             </CardHeader>
             <CardContent>
               <p className="text-[10px] leading-relaxed opacity-80">
-                O NAI utiliza modelos LLM de última geração treinados na base normativa brasileira projetada para 2026. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da agência.
+                A NAI utiliza modelos LLM de última geração treinados na base normativa brasileira projetada para 2026. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da agência.
               </p>
             </CardContent>
           </Card>
