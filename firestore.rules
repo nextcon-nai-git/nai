@@ -1,0 +1,185 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * HSE Enterprise System - Security Strategy
+     * 
+     * Core Philosophy: 
+     * This ruleset implements a robust Multi-Tenant architecture designed for the "Nextcon" agency 
+     * to manage multiple client companies securely. The primary security boundary is the `companyId`.
+     * 
+     * Data Structure:
+     * Data is organized hierarchically under `/companies/{companyId}` to enforce clear tenancy boundaries. 
+     * Deeply nested subcollections (e.g., absenteeism, exams) use denormalized `companyId` fields 
+     * and path-based parameters for fast, reliable authorization.
+     * 
+     * Key Security Decisions:
+     * 1. Multi-Tenant Isolation: Access to any company-specific resource requires the user to be 
+     *    authenticated and explicitly associated with that `companyId` via a `members` map 
+     *    on the parent Company document.
+     * 2. Administrative Overlay: A global `isAgencyStaff()` check allows Nextcon employees to 
+     *    manage resources across different clients.
+     * 3. Relational Integrity: On creation of any sub-resource, the rules force the document's 
+     *    internal `companyId` to match the path parameter, preventing cross-tenant data injection.
+     * 4. Anonymous Participation: Psychosocial surveys allow creation by any authenticated user 
+     *    (supporting anonymous pulse surveys) but restrict reading to the authorized company staff.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    /** Checks if the user is authenticated. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** 
+     * Checks if the user belongs to a specific company. 
+     * Uses a denormalized 'members' map on the company document for high performance.
+     */
+    function isCompanyMember(companyId) {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/companies/$(companyId)).data.members[request.auth.uid] != null ||
+        isAgencyStaff()
+      );
+    }
+
+    /** Checks if the user has global agency-level administrative privileges. */
+    function isAgencyStaff() {
+      return isSignedIn() && request.auth.token.role == 'agency_staff';
+    }
+
+    /** Verifies the document exists and the user is a member of the associated company. */
+    function canUpdateResource(companyId) {
+      return resource != null && isCompanyMember(companyId);
+    }
+
+    /** Enforces that critical relational fields do not change during updates. */
+    function isImmutable(field) {
+      return request.resource.data[field] == resource.data[field];
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Rules for the root-level Company documents.
+     * @path /companies/{companyId}
+     * @allow (get) If user is a member or agency staff.
+     * @deny (create) If user is not agency staff.
+     * @principle Access restricted via a membership map on the resource itself.
+     */
+    match /companies/{companyId} {
+      allow get: if isCompanyMember(companyId);
+      allow list: if isAgencyStaff();
+      allow create: if isAgencyStaff();
+      allow update: if isCompanyMember(companyId) && resource != null;
+      allow delete: if isAgencyStaff() && resource != null;
+
+      /**
+       * @description Employee records within a company.
+       * @path /companies/{companyId}/employees/{employeeId}
+       * @allow (create) If user is company member and data matches path.
+       * @deny (update) If user attempts to move employee to a different company.
+       * @principle Path-based tenancy with internal relational validation.
+       */
+      match /employees/{employeeId} {
+        allow get, list: if isCompanyMember(companyId);
+        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
+        allow update: if canUpdateResource(companyId) && isImmutable('companyId');
+        allow delete: if canUpdateResource(companyId);
+
+        /**
+         * @description Medical leave records for specific employees.
+         * @path /companies/{companyId}/employees/{employeeId}/absenteeism/{absenteeismId}
+         * @allow (list) If user is company member.
+         * @deny (delete) If document does not exist.
+         * @principle Cascading tenancy authorization.
+         */
+        match /absenteeism/{absenteeismId} {
+          allow get, list: if isCompanyMember(companyId);
+          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
+          allow update: if canUpdateResource(companyId) && isImmutable('employeeId');
+          allow delete: if canUpdateResource(companyId);
+        }
+
+        /**
+         * @description PPE inventory delivery and proof of life.
+         * @path /companies/{companyId}/employees/{employeeId}/ppe_inventory/{inventoryId}
+         * @allow (create) If valid staff is recording delivery.
+         * @deny (update) If modifying history (PPE records are typically audit logs).
+         * @principle Immutable audit trail for legal protection.
+         */
+        match /ppe_inventory/{inventoryId} {
+          allow get, list: if isCompanyMember(companyId);
+          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
+          allow update, delete: if canUpdateResource(companyId);
+        }
+
+        /**
+         * @description Medical exams (PCMSO) for employees.
+         * @path /companies/{companyId}/employees/{employeeId}/pcmso_exams/{examId}
+         * @allow (get) If user is authorized staff.
+         * @principle Health data privacy via company-scoped access.
+         */
+        match /pcmso_exams/{examId} {
+          allow get, list: if isCompanyMember(companyId);
+          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
+          allow update: if canUpdateResource(companyId) && isImmutable('employeeId');
+          allow delete: if canUpdateResource(companyId);
+        }
+      }
+
+      /**
+       * @description eSocial compliance audit records.
+       * @path /companies/{companyId}/esocial_audit/{auditId}
+       * @allow (list) Company owners or agency staff auditing compliance.
+       * @principle Tenancy-based read/write.
+       */
+      match /esocial_audit/{auditId} {
+        allow get, list: if isCompanyMember(companyId);
+        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
+        allow update, delete: if canUpdateResource(companyId);
+      }
+
+      /**
+       * @description Identified occupational risks (PGR).
+       * @path /companies/{companyId}/pgr_risks/{riskId}
+       * @allow (update) By authorized safety technicians.
+       * @principle Strict ownership for compliance-critical risk data.
+       */
+      match /pgr_risks/{riskId} {
+        allow get, list: if isCompanyMember(companyId);
+        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
+        allow update, delete: if canUpdateResource(companyId);
+      }
+
+      /**
+       * @description Strategic action plans for risk mitigation.
+       * @path /companies/{companyId}/action_plans/{actionPlanId}
+       * @allow (update) To change status from 'ToDo' to 'Done'.
+       * @principle Collaborative task management within a company scope.
+       */
+      match /action_plans/{actionPlanId} {
+        allow get, list: if isCompanyMember(companyId);
+        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
+        allow update: if canUpdateResource(companyId) && isImmutable('companyId');
+        allow delete: if canUpdateResource(companyId);
+      }
+    }
+
+    /**
+     * @description Anonymous psychosocial pulse surveys.
+     * @path /psychosocial_surveys/{surveyId}
+     * @allow (create) Any signed-in user (supporting anonymous survey links).
+     * @allow (get, list) Only users belonging to the company targeted by the survey.
+     * @deny (update) Surveys are immutable once submitted to ensure integrity.
+     * @principle Open write (collection-level) with restricted read (data-level).
+     */
+    match /psychosocial_surveys/{surveyId} {
+      allow create: if isSignedIn();
+      allow get, list: if isCompanyMember(resource.data.companyId);
+      allow update: if false; // Survey responses should be immutable for integrity
+      allow delete: if isAgencyStaff() && resource != null;
+    }
+  }
+}

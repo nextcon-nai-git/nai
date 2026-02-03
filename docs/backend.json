@@ -1,0 +1,549 @@
+{
+  "entities": {
+    "Company": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Company",
+      "type": "object",
+      "description": "Represents a client company.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the company."
+        },
+        "cnpj": {
+          "type": "string",
+          "description": "The company's CNPJ (Brazilian national registry)."
+        },
+        "cnae": {
+          "type": "string",
+          "description": "The company's CNAE (National Classification of Economic Activities)."
+        },
+        "riskDegree": {
+          "type": "number",
+          "description": "The company's risk degree (1-4)."
+        },
+        "fapFactor": {
+          "type": "number",
+          "description": "The company's FAP (Factor Acidentário de Prevenção) factor."
+        },
+        "name": {
+          "type": "string",
+          "description": "The company's name."
+        }
+      },
+      "required": [
+        "id",
+        "cnpj",
+        "cnae",
+        "riskDegree",
+        "fapFactor",
+        "name"
+      ]
+    },
+    "Employee": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Employee",
+      "type": "object",
+      "description": "Represents an employee.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the employee."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N Employee)"
+        },
+        "role": {
+          "type": "string",
+          "description": "The employee's job role."
+        },
+        "gheId": {
+          "type": "string",
+          "description": "The employee's GHE (Homogeneous Exposure Group) ID."
+        },
+        "biometricHash": {
+          "type": "string",
+          "description": "A hash of the employee's biometric data."
+        },
+        "name": {
+          "type": "string",
+          "description": "The employee's name."
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "role",
+        "gheId",
+        "biometricHash",
+        "name"
+      ]
+    },
+    "Absenteeism": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Absenteeism",
+      "type": "object",
+      "description": "Represents a period of employee absenteeism (medical leave).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the absenteeism record."
+        },
+        "employeeId": {
+          "type": "string",
+          "description": "Reference to Employee. (Relationship: Employee 1:N Absenteeism)"
+        },
+        "cidCode": {
+          "type": "string",
+          "description": "The CID (International Classification of Diseases) code for the medical leave."
+        },
+        "daysOff": {
+          "type": "number",
+          "description": "The number of days off for the medical leave."
+        },
+        "inssStatus": {
+          "type": "string",
+          "description": "The INSS (Brazilian social security) status of the medical leave."
+        },
+        "limboRiskScore": {
+          "type": "string",
+          "description": "The calculated limbo risk score for the medical leave."
+        }
+      },
+      "required": [
+        "id",
+        "employeeId",
+        "cidCode",
+        "daysOff",
+        "inssStatus",
+        "limboRiskScore"
+      ]
+    },
+    "PsychosocialSurvey": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PsychosocialSurvey",
+      "type": "object",
+      "description": "Represents a psychosocial survey response.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the survey response."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N PsychosocialSurvey)"
+        },
+        "sector": {
+          "type": "string",
+          "description": "The sector the employee belongs to."
+        },
+        "stressLevel": {
+          "type": "number",
+          "description": "The stress level reported in the survey."
+        },
+        "anonymizedFeedback": {
+          "type": "string",
+          "description": "Anonymized feedback from the survey."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of the survey submission.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "sector",
+        "stressLevel",
+        "anonymizedFeedback",
+        "timestamp"
+      ]
+    },
+    "EsocialAudit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "EsocialAudit",
+      "type": "object",
+      "description": "Represents an audit record for eSocial events.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the audit record."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N EsocialAudit)"
+        },
+        "event_type": {
+          "type": "string",
+          "description": "The type of eSocial event (e.g., S-2240, S-2220)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the eSocial event."
+        },
+        "validationErrors": {
+          "type": "string",
+          "description": "Any validation errors encountered during the audit."
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "event_type",
+        "status",
+        "validationErrors"
+      ]
+    },
+    "PpeInventory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PpeInventory",
+      "type": "object",
+      "description": "Represents the PPE inventory for an employee.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PPE inventory record."
+        },
+        "employeeId": {
+          "type": "string",
+          "description": "Reference to Employee. (Relationship: Employee 1:N PpeInventory)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp when the PPE was delivered.",
+          "format": "date-time"
+        },
+        "geolocation": {
+          "type": "string",
+          "description": "Geolocation of the PPE delivery."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL of the photo taken as proof of PPE delivery.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "employeeId",
+        "timestamp",
+        "geolocation",
+        "photoUrl"
+      ]
+    },
+    "PgrRisk": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PgrRisk",
+      "type": "object",
+      "description": "Represents a risk identified in the PGR (Risk Management Program).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the risk."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N PgrRisk)"
+        },
+        "jobRole": {
+          "type": "string",
+          "description": "The job role associated with the risk."
+        },
+        "riskDescription": {
+          "type": "string",
+          "description": "Description of the risk."
+        },
+        "probability": {
+          "type": "number",
+          "description": "The probability of the risk occurring."
+        },
+        "severity": {
+          "type": "number",
+          "description": "The severity of the risk if it occurs."
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "jobRole",
+        "riskDescription",
+        "probability",
+        "severity"
+      ]
+    },
+    "PcmsoExam": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PcmsoExam",
+      "type": "object",
+      "description": "Represents a medical exam recorded in the PCMSO (Occupational Health Program).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the exam record."
+        },
+        "employeeId": {
+          "type": "string",
+          "description": "Reference to Employee. (Relationship: Employee 1:N PcmsoExam)"
+        },
+        "examType": {
+          "type": "string",
+          "description": "Type of medical exam (e.g., Audiometry)."
+        },
+        "examDate": {
+          "type": "string",
+          "description": "Date the exam was performed.",
+          "format": "date-time"
+        },
+        "result": {
+          "type": "string",
+          "description": "Result of the medical exam."
+        }
+      },
+      "required": [
+        "id",
+        "employeeId",
+        "examType",
+        "examDate",
+        "result"
+      ]
+    },
+    "ActionPlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ActionPlan",
+      "type": "object",
+      "description": "Represents an action plan to be tracked.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the action plan."
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Reference to Company. (Relationship: Company 1:N ActionPlan)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the action to be taken."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the action plan (ToDo, In Progress, Done, Blocked)."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date for the action plan.",
+          "format": "date-time"
+        },
+        "responsibleEmployeeId": {
+          "type": "string",
+          "description": "Reference to Employee responsible for the action plan. (Relationship: Employee 1:N ActionPlan)"
+        }
+      },
+      "required": [
+        "id",
+        "companyId",
+        "description",
+        "status",
+        "dueDate",
+        "responsibleEmployeeId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/companies/{companyId}",
+        "definition": {
+          "entityName": "Company",
+          "schema": {
+            "$ref": "#/backend/entities/Company"
+          },
+          "description": "Stores company information.  Root level collection for company data.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/employees/{employeeId}",
+        "definition": {
+          "entityName": "Employee",
+          "schema": {
+            "$ref": "#/backend/entities/Employee"
+          },
+          "description": "Stores employee information. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "employeeId",
+              "description": "Unique identifier for the employee."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/employees/{employeeId}/absenteeism/{absenteeismId}",
+        "definition": {
+          "entityName": "Absenteeism",
+          "schema": {
+            "$ref": "#/backend/entities/Absenteeism"
+          },
+          "description": "Stores absenteeism records for employees. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "employeeId",
+              "description": "Unique identifier for the employee."
+            },
+            {
+              "name": "absenteeismId",
+              "description": "Unique identifier for the absenteeism record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/psychosocial_surveys/{surveyId}",
+        "definition": {
+          "entityName": "PsychosocialSurvey",
+          "schema": {
+            "$ref": "#/backend/entities/PsychosocialSurvey"
+          },
+          "description": "Stores psychosocial survey responses. Includes 'companyId' for access control.",
+          "params": [
+            {
+              "name": "surveyId",
+              "description": "Unique identifier for the survey response."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/esocial_audit/{auditId}",
+        "definition": {
+          "entityName": "EsocialAudit",
+          "schema": {
+            "$ref": "#/backend/entities/EsocialAudit"
+          },
+          "description": "Stores eSocial audit records. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "auditId",
+              "description": "Unique identifier for the audit record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/employees/{employeeId}/ppe_inventory/{inventoryId}",
+        "definition": {
+          "entityName": "PpeInventory",
+          "schema": {
+            "$ref": "#/backend/entities/PpeInventory"
+          },
+          "description": "Stores PPE inventory records. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "employeeId",
+              "description": "Unique identifier for the employee."
+            },
+            {
+              "name": "inventoryId",
+              "description": "Unique identifier for the PPE inventory record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/pgr_risks/{riskId}",
+        "definition": {
+          "entityName": "PgrRisk",
+          "schema": {
+            "$ref": "#/backend/entities/PgrRisk"
+          },
+          "description": "Stores PGR risk information. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "riskId",
+              "description": "Unique identifier for the risk."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/employees/{employeeId}/pcmso_exams/{examId}",
+        "definition": {
+          "entityName": "PcmsoExam",
+          "schema": {
+            "$ref": "#/backend/entities/PcmsoExam"
+          },
+          "description": "Stores PCMSO exam records for employees. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "employeeId",
+              "description": "Unique identifier for the employee."
+            },
+            {
+              "name": "examId",
+              "description": "Unique identifier for the exam record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/companies/{companyId}/action_plans/{actionPlanId}",
+        "definition": {
+          "entityName": "ActionPlan",
+          "schema": {
+            "$ref": "#/backend/entities/ActionPlan"
+          },
+          "description": "Stores action plans. Includes denormalized 'companyId' for authorization independence.",
+          "params": [
+            {
+              "name": "companyId",
+              "description": "Unique identifier for the company."
+            },
+            {
+              "name": "actionPlanId",
+              "description": "Unique identifier for the action plan."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to prioritize authorization independence, clarity, and scalability. It leverages denormalization to avoid hierarchical authorization dependencies and ensures that security rules can be written simply and robustly.  The structure uses path-based ownership for private data and membership maps for collaborative data where appropriate.  Collections are segregated based on access needs to ensure a homogeneous security posture.\n\n*   **Authorization Independence:** Denormalization is employed by including `companyId` in most subcollections (e.g., `/employees/{employeeId}`, `/absenteeism/{absenteeismId}`) to eliminate the need for `get()` calls to the `/companies/{companyId}` document.  The `PsychosocialSurvey` collection contains `companyId` to ensure that survey data can only be accessed within the scope of a company.\n\n*   **QAPs (Rules are not Filters):**  The structure facilitates secure `list` operations by using path-based ownership where possible (e.g., `/companies/{companyId}/employees/{employeeId}`). Segregation is used to separate data with different access requirements into different collections.  The `companyId` field is included as part of each collection, so rules can filter based on company ID, enabling secure listing of resources within a company. \n\n*   **DBAC (No Custom Claims):** Authorization relies on `request.auth.uid` and roles are stored in the database where needed via existence checks (e.g. for admins)."
+  }
+}
