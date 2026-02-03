@@ -19,7 +19,7 @@ import {
   Lock
 } from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 import {
   Sidebar,
@@ -33,6 +33,8 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useAuth } from "@/firebase"
+import { signOut } from "firebase/auth"
 
 const navItems = [
   {
@@ -76,17 +78,29 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const auth = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    router.push("/login")
+  }
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="p-4 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="size-8 rounded-lg bg-accent flex items-center justify-center text-white font-bold shadow-lg shadow-accent/20">
+          <div className="size-9 rounded-lg bg-accent flex items-center justify-center text-white font-bold shadow-lg shadow-accent/20">
             N
           </div>
-          <span className="font-headline font-bold text-white group-data-[collapsible=icon]:hidden text-lg tracking-tight">
-            NextCon <span className="text-accent">SST</span>
-          </span>
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-tight">
+            <span className="font-headline font-black text-white text-lg tracking-tighter">
+              NEXTCON
+            </span>
+            <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] -mt-1">
+              SST
+            </span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -131,7 +145,10 @@ export function AppSidebar() {
                 <span className="text-xs font-bold text-white">Rodrigo Silva</span>
                 <span className="text-[10px] text-sidebar-foreground/70">Consultor HSE</span>
               </div>
-              <button className="text-sidebar-foreground/50 hover:text-accent group-data-[collapsible=icon]:hidden">
+              <button 
+                onClick={handleLogout}
+                className="text-sidebar-foreground/50 hover:text-accent group-data-[collapsible=icon]:hidden"
+              >
                 <LogOut className="size-4" />
               </button>
             </div>
