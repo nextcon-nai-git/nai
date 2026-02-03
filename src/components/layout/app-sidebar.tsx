@@ -116,7 +116,7 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-r-0">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r-0 shadow-2xl">
       <SidebarHeader className="p-6 bg-primary/95">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-accent shrink-0">
@@ -138,7 +138,7 @@ export function AppSidebar() {
           
           return (
             <SidebarGroup key={group.label} className="px-3">
-              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-1">
+              <SidebarGroupLabel className="text-white/30 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-1">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>

@@ -26,9 +26,6 @@
     --radius: 0.75rem;
     --chart-1: 222 47% 11%;
     --chart-2: 45 93% 47%;
-    --chart-3: 199 89% 48%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 45 93% 47%;
@@ -65,8 +62,8 @@
 }
 
 .sidebar-glass {
-  background: rgba(9, 14, 36, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(9, 14, 36, 0.98);
+  backdrop-filter: blur(12px);
 }
 
 .animate-fade-in {
