@@ -40,7 +40,7 @@ import { doc } from "firebase/firestore"
 
 const navItems = [
   {
-    label: "Agência Nextcon",
+    label: "MAIN NEXTCON",
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
       { title: "Colaboradores", icon: Users, href: "/employees" },
