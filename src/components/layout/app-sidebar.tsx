@@ -113,13 +113,13 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-none bg-sidebar text-sidebar-foreground">
+    <Sidebar variant="sidebar" className="border-none bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-sidebar-primary shrink-0">
             <NextconLogo className="size-full" />
           </div>
-          <div className="flex flex-col leading-none overflow-hidden">
+          <div className="flex flex-col leading-none">
             <span className="font-headline font-black text-white text-xl tracking-tighter">
               NEXTCON
             </span>
@@ -148,7 +148,6 @@ export function AppSidebar() {
                       <SidebarMenuButton 
                         asChild 
                         isActive={isActive}
-                        tooltip={item.title}
                         className={cn(
                           "relative h-11 px-4 mb-1 transition-none rounded-lg",
                           isActive 
@@ -161,7 +160,9 @@ export function AppSidebar() {
                             "size-5",
                             isActive ? "text-sidebar-primary" : "text-white/40"
                           )} />
-                          <span className="font-medium tracking-wide text-sm whitespace-nowrap">{item.title}</span>
+                          <span className="font-medium tracking-wide text-sm whitespace-nowrap block">
+                            {item.title}
+                          </span>
                           {isActive && <div className="absolute left-0 w-1 h-6 bg-sidebar-primary rounded-r-full" />}
                         </Link>
                       </SidebarMenuButton>
@@ -182,7 +183,7 @@ export function AppSidebar() {
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-bold">{userInitial}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-xs font-bold text-white truncate">{userName}</span>
                 <span className="text-[9px] text-white/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
               </div>
