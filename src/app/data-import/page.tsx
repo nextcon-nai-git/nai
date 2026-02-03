@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { Upload, FileText, CheckCircle2, AlertTriangle, X } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
@@ -34,8 +34,8 @@ export default function DataImport() {
       } else {
         toast({
           variant: "destructive",
-          title: "Invalid file type",
-          description: "Please upload a CSV file."
+          title: "Tipo de arquivo inválido",
+          description: "Por favor, envie um arquivo CSV."
         })
       }
     }
@@ -47,8 +47,8 @@ export default function DataImport() {
       setUploading(false)
       setFile(null)
       toast({
-        title: "Import Successful",
-        description: "Your data has been parsed and synced to Firestore."
+        title: "Importação Concluída",
+        description: "Seus dados foram processados e sincronizados com sucesso."
       })
     }, 2000)
   }
@@ -56,15 +56,15 @@ export default function DataImport() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-headline font-bold text-primary">CSV Data Import</h1>
-        <p className="text-muted-foreground">Populate your system collections quickly by uploading standard CSV files.</p>
+        <h1 className="text-3xl font-headline font-bold text-primary">Importação de Dados CSV</h1>
+        <p className="text-muted-foreground">Povoar as coleções do sistema rapidamente através de arquivos CSV padrão.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {[
-          { title: "Clients.csv", desc: "Company registration data", icon: landmarkIcon },
-          { title: "Employees.csv", desc: "Collaborator list & roles", icon: usersIcon },
-          { title: "Risks.csv", desc: "PGR NR-01 risk inventory", icon: shieldIcon }
+          { title: "Clientes.csv", desc: "Dados cadastrais das empresas" },
+          { title: "Funcionarios.csv", desc: "Lista de colaboradores e cargos" },
+          { title: "Risks.csv", desc: "Inventário de riscos NR-01" }
         ].map((tpl) => (
           <Card key={tpl.title} className="card-shadow border-none hover:bg-primary/5 transition-colors cursor-pointer group">
             <CardContent className="pt-6 flex flex-col items-center text-center gap-2">
@@ -73,7 +73,7 @@ export default function DataImport() {
               </div>
               <p className="text-sm font-bold">{tpl.title}</p>
               <p className="text-xs text-muted-foreground">{tpl.desc}</p>
-              <Button variant="link" size="sm" className="text-accent h-auto p-0 font-bold">Download Template</Button>
+              <Button variant="link" size="sm" className="text-accent h-auto p-0 font-bold">Baixar Modelo</Button>
             </CardContent>
           </Card>
         ))}
@@ -94,8 +94,8 @@ export default function DataImport() {
                   <Upload className="size-12" />
                 </div>
                 <div className="text-center">
-                  <p className="text-lg font-headline font-bold">Drag and drop your file here</p>
-                  <p className="text-sm text-muted-foreground">or click to browse from your computer</p>
+                  <p className="text-lg font-headline font-bold">Arraste e solte seu arquivo aqui</p>
+                  <p className="text-sm text-muted-foreground">ou clique para procurar no seu computador</p>
                 </div>
                 <input 
                   type="file" 
@@ -105,7 +105,7 @@ export default function DataImport() {
                   onChange={(e) => e.target.files && setFile(e.target.files[0])}
                 />
                 <Button asChild variant="outline">
-                  <label htmlFor="file-upload" className="cursor-pointer">Select CSV File</label>
+                  <label htmlFor="file-upload" className="cursor-pointer">Selecionar Arquivo CSV</label>
                 </Button>
               </>
             ) : (
@@ -127,7 +127,7 @@ export default function DataImport() {
                   onClick={handleUpload}
                   disabled={uploading}
                 >
-                  {uploading ? "Processing..." : "Import Data Now"}
+                  {uploading ? "Processando..." : "Importar Dados Agora"}
                 </Button>
               </div>
             )}
@@ -138,17 +138,13 @@ export default function DataImport() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
           <CheckCircle2 className="size-5 text-primary shrink-0" />
-          <p className="text-xs text-primary/80">Firestore collections are updated in real-time. All active sessions will see the new data immediately after validation.</p>
+          <p className="text-xs text-primary/80">As coleções são atualizadas em tempo real. Todas as sessões ativas verão os novos dados imediatamente.</p>
         </div>
         <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-lg">
           <AlertTriangle className="size-5 text-accent shrink-0" />
-          <p className="text-xs text-accent/80">Duplicate records are identified by CPF (Employees) or CNPJ (Clients). Existing records will be updated if matches are found.</p>
+          <p className="text-xs text-accent/80">Registros duplicados são identificados por CPF ou CNPJ. Registros existentes serão atualizados se houver correspondência.</p>
         </div>
       </div>
     </div>
   )
 }
-
-const landmarkIcon = <Upload className="size-4" />
-const usersIcon = <Upload className="size-4" />
-const shieldIcon = <Upload className="size-4" />

@@ -13,8 +13,7 @@ import {
   Users, 
   FileText, 
   PieChart,
-  LogOut,
-  ChevronRight
+  LogOut
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -29,39 +28,38 @@ import {
   SidebarMenuItem,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navItems = [
   {
-    label: "Operational",
+    label: "Operacional",
     items: [
-      { title: "Dashboard", icon: LayoutDashboard, href: "/" },
-      { title: "Risk Management", icon: ShieldAlert, href: "/risk-management" },
-      { title: "Employees", icon: Users, href: "/employees" },
+      { title: "Painel Geral", icon: LayoutDashboard, href: "/" },
+      { title: "Gestão de Riscos", icon: ShieldAlert, href: "/risk-management" },
+      { title: "Colaboradores", icon: Users, href: "/employees" },
     ]
   },
   {
-    label: "Medical",
+    label: "Médico",
     items: [
-      { title: "Health Control", icon: Stethoscope, href: "/health-control" },
-      { title: "Medical Exams", icon: FileText, href: "/exams" },
+      { title: "Controle de Saúde", icon: Stethoscope, href: "/health-control" },
+      { title: "Exames Médicos", icon: FileText, href: "/exams" },
     ]
   },
   {
-    label: "Legal & Management",
+    label: "Jurídico e Gestão",
     items: [
-      { title: "Legal & Financial", icon: Gavel, href: "/legal-financial" },
-      { title: "Action Plans", icon: CheckSquare, href: "/action-plans" },
-      { title: "Data Import", icon: Upload, href: "/data-import" },
+      { title: "Jurídico e Financeiro", icon: Gavel, href: "/legal-financial" },
+      { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Importação de Dados", icon: Upload, href: "/data-import" },
     ]
   },
   {
-    label: "Admin",
+    label: "Administração",
     items: [
-      { title: "ESG Scorecard", icon: PieChart, href: "/esg" },
-      { title: "Settings", icon: Settings, href: "/settings" },
+      { title: "Indicadores ESG", icon: PieChart, href: "/esg" },
+      { title: "Configurações", icon: Settings, href: "/settings" },
     ]
   }
 ]
@@ -119,8 +117,8 @@ export function AppSidebar() {
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
               <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
-                <span className="text-xs font-bold text-white">Admin User</span>
-                <span className="text-[10px] text-sidebar-foreground/70">Safety Tech</span>
+                <span className="text-xs font-bold text-white">Usuário Admin</span>
+                <span className="text-[10px] text-sidebar-foreground/70">Téc. Segurança</span>
               </div>
               <button className="text-sidebar-foreground/50 hover:text-accent group-data-[collapsible=icon]:hidden">
                 <LogOut className="size-4" />

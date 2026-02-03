@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { ShieldAlert, Zap, Search, Info, CheckCircle2, Loader2 } from "lucide-react"
+import { ShieldAlert, Zap, Search, CheckCircle2, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,10 +19,10 @@ import { riskMitigationPlanGenerator } from "@/ai/flows/risk-mitigation-plan-gen
 import { useToast } from "@/hooks/use-toast"
 
 const risks = [
-  { id: 1, role: "Welder", hazard: "Fumes & UV", probability: 3, severity: 4, level: "High", environment: "Metal Workshop" },
-  { id: 2, role: "Warehouse Op", hazard: "Ergonomics", probability: 4, severity: 2, level: "Medium", environment: "Logistics Hub" },
-  { id: 3, role: "Admin", hazard: "Repetitive Strain", probability: 2, severity: 1, level: "Low", environment: "Office" },
-  { id: 4, role: "Driver", hazard: "Vibration", probability: 3, severity: 3, level: "Medium", environment: "Heavy Transport" },
+  { id: 1, role: "Soldador", hazard: "Fumos Metálicos e UV", probability: 3, severity: 4, level: "Alto", environment: "Oficina de Metalurgia" },
+  { id: 2, role: "Auxiliar de Almoxarifado", hazard: "Ergonômico (Levantamento de Peso)", probability: 4, severity: 2, level: "Médio", environment: "Hub Logístico" },
+  { id: 3, role: "Assistente Administrativo", hazard: "L.E.R./D.O.R.T.", probability: 2, severity: 1, level: "Baixo", environment: "Escritório Central" },
+  { id: 4, role: "Motorista de Caminhão", hazard: "Vibração de Corpo Inteiro", probability: 3, severity: 3, level: "Médio", environment: "Transporte Pesado" },
 ]
 
 export default function RiskManagement() {
@@ -36,15 +36,15 @@ export default function RiskManagement() {
     setSelectedRisk(risk)
     try {
       const result = await riskMitigationPlanGenerator({
-        identifiedRisks: `${risk.hazard} - Impact level ${risk.level}`,
+        identifiedRisks: `${risk.hazard} - Nível de impacto: ${risk.level}`,
         environment: risk.environment
       })
       setMitigationPlan(result.mitigationPlan)
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error generating plan",
-        description: "Could not fetch AI recommendations at this time."
+        title: "Erro ao gerar plano",
+        description: "Não foi possível obter as recomendações da IA neste momento."
       })
     } finally {
       setIsLoading(false)
@@ -55,11 +55,11 @@ export default function RiskManagement() {
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary">Risk Management (PGR)</h1>
-          <p className="text-muted-foreground">NR-01 compliant risk matrix and mitigation strategy.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary">Gestão de Riscos (PGR)</h1>
+          <p className="text-muted-foreground">Matriz de riscos e estratégias de mitigação conforme NR-01.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Input placeholder="Filter by job role..." className="w-64" />
+          <Input placeholder="Filtrar por cargo..." className="w-64" />
           <Button variant="outline" size="icon"><Search className="size-4" /></Button>
         </div>
       </div>
@@ -67,18 +67,18 @@ export default function RiskManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="lg:col-span-3 card-shadow border-none">
           <CardHeader>
-            <CardTitle className="text-lg">Inventory of Risks</CardTitle>
+            <CardTitle className="text-lg">Inventário de Riscos</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Job Role</TableHead>
-                  <TableHead>Hazard Identified</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead>Perigo Identificado</TableHead>
                   <TableHead className="text-center">Prob.</TableHead>
-                  <TableHead className="text-center">Sev.</TableHead>
-                  <TableHead>Risk Level</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                  <TableHead className="text-center">Grav.</TableHead>
+                  <TableHead>Nível de Risco</TableHead>
+                  <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,8 +90,8 @@ export default function RiskManagement() {
                     <TableCell className="text-center">{risk.severity}</TableCell>
                     <TableCell>
                       <Badge 
-                        variant={risk.level === 'High' ? 'destructive' : risk.level === 'Medium' ? 'default' : 'secondary'}
-                        className={risk.level === 'Medium' ? 'bg-accent hover:bg-accent/90' : ''}
+                        variant={risk.level === 'Alto' ? 'destructive' : risk.level === 'Médio' ? 'default' : 'secondary'}
+                        className={risk.level === 'Médio' ? 'bg-accent hover:bg-accent/90' : ''}
                       >
                         {risk.level}
                       </Badge>
@@ -104,7 +104,7 @@ export default function RiskManagement() {
                         onClick={() => generatePlan(risk)}
                       >
                         <Zap className="size-3 fill-current" />
-                        AI Plan
+                        Plano IA
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -116,8 +116,8 @@ export default function RiskManagement() {
 
         <Card className="card-shadow border-none">
           <CardHeader>
-            <CardTitle className="text-lg">Risk Matrix</CardTitle>
-            <CardDescription>Probability vs Severity</CardDescription>
+            <CardTitle className="text-lg">Matriz de Riscos</CardTitle>
+            <CardDescription>Probabilidade vs Gravidade</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-5 gap-1 aspect-square w-full">
@@ -141,8 +141,8 @@ export default function RiskManagement() {
               })}
             </div>
             <div className="mt-4 flex justify-between text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
-              <span>Low Risk</span>
-              <span>High Risk</span>
+              <span>Risco Baixo</span>
+              <span>Risco Crítico</span>
             </div>
           </CardContent>
         </Card>
@@ -153,15 +153,15 @@ export default function RiskManagement() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Zap className="size-5 text-accent animate-pulse" />
-              <CardTitle className="text-lg">AI Mitigation Strategy: {selectedRisk?.role}</CardTitle>
+              <CardTitle className="text-lg">Estratégia IA: {selectedRisk?.role}</CardTitle>
             </div>
-            <CardDescription className="text-white/70">Best practices for {selectedRisk?.hazard} in {selectedRisk?.environment}</CardDescription>
+            <CardDescription className="text-white/70">Melhores práticas para {selectedRisk?.hazard} em {selectedRisk?.environment}</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="size-8 animate-spin text-accent" />
-                <p className="text-sm">Analyzing work environment and regulatory standards...</p>
+                <p className="text-sm">Analisando ambiente de trabalho e normas regulamentadoras...</p>
               </div>
             ) : (
               <div className="space-y-4 animate-in fade-in duration-700">
@@ -170,7 +170,7 @@ export default function RiskManagement() {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="secondary" size="sm" className="gap-2">
-                    <CheckCircle2 className="size-3" /> Save to PGR
+                    <CheckCircle2 className="size-3" /> Salvar no PGR
                   </Button>
                 </div>
               </div>

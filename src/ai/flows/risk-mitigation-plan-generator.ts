@@ -1,23 +1,24 @@
+
 'use server';
 /**
- * @fileOverview Generates risk mitigation plans using generative AI based on identified risks and the environment.
+ * @fileOverview Gera planos de mitigação de riscos usando IA generativa com base nos riscos identificados e no ambiente.
  *
- * - riskMitigationPlanGenerator - A function that generates a risk mitigation plan.
- * - RiskMitigationPlanInput - The input type for the riskMitigationPlanGenerator function.
- * - RiskMitigationPlanOutput - The return type for the riskMitigationPlanGenerator function.
+ * - riskMitigationPlanGenerator - Função que gera um plano de mitigação de riscos.
+ * - RiskMitigationPlanInput - Tipo de entrada para a função.
+ * - RiskMitigationPlanOutput - Tipo de retorno da função.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const RiskMitigationPlanInputSchema = z.object({
-  identifiedRisks: z.string().describe('A detailed description of the identified risks.'),
-  environment: z.string().describe('A description of the work environment where the risks are present.'),
+  identifiedRisks: z.string().describe('Uma descrição detalhada dos riscos identificados.'),
+  environment: z.string().describe('Uma descrição do ambiente de trabalho onde os riscos estão presentes.'),
 });
 export type RiskMitigationPlanInput = z.infer<typeof RiskMitigationPlanInputSchema>;
 
 const RiskMitigationPlanOutputSchema = z.object({
-  mitigationPlan: z.string().describe('A comprehensive risk mitigation plan based on best practices.'),
+  mitigationPlan: z.string().describe('Um plano abrangente de mitigação de riscos baseado em melhores práticas e normas brasileiras (NRs).'),
 });
 export type RiskMitigationPlanOutput = z.infer<typeof RiskMitigationPlanOutputSchema>;
 
@@ -29,12 +30,12 @@ const prompt = ai.definePrompt({
   name: 'riskMitigationPlanPrompt',
   input: {schema: RiskMitigationPlanInputSchema},
   output: {schema: RiskMitigationPlanOutputSchema},
-  prompt: `You are an expert safety technician. Generate a best practice risk mitigation plan based on the identified risks and the environment.
+  prompt: `Você é um técnico ou engenheiro de segurança do trabalho especialista. Gere um plano de mitigação de riscos seguindo as melhores práticas e as Normas Regulamentadoras (NRs) do Brasil.
 
-Identified Risks: {{{identifiedRisks}}}
-Environment: {{{environment}}}
+Riscos Identificados: {{{identifiedRisks}}}
+Ambiente de Trabalho: {{{environment}}}
 
-Mitigation Plan:`,
+Plano de Mitigação (inclua medidas administrativas, de engenharia e EPIs se necessário):`,
 });
 
 const riskMitigationPlanFlow = ai.defineFlow(
