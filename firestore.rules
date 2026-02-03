@@ -3,183 +3,166 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * HSE Enterprise System - Security Strategy
-     * 
-     * Core Philosophy: 
-     * This ruleset implements a robust Multi-Tenant architecture designed for the "Nextcon" agency 
-     * to manage multiple client companies securely. The primary security boundary is the `companyId`.
-     * 
+     * NEXTCON SST SECURITY ARCHITECTURE
+     *
+     * Core Philosophy:
+     * This ruleset implements a strict Tenant-Ownership model. Access is governed by the 
+     * top-level {clientId} parameter in the document path. A user's authenticated identity 
+     * (UID) must match the {clientId} to interact with any data within that client's tree.
+     *
      * Data Structure:
-     * Data is organized hierarchically under `/companies/{companyId}` to enforce clear tenancy boundaries. 
-     * Deeply nested subcollections (e.g., absenteeism, exams) use denormalized `companyId` fields 
-     * and path-based parameters for fast, reliable authorization.
-     * 
+     * All application data is strictly hierarchical, nested under /clients/{clientId}.
+     * This includes Employees, Job Roles, Medical Exams, Risks, Action Plans, and Legal Claims.
+     * Subcollections utilize denormalized 'clientId' fields to ensure authorization 
+     * independence and relational integrity without requiring recursive lookups.
+     *
      * Key Security Decisions:
-     * 1. Multi-Tenant Isolation: Access to any company-specific resource requires the user to be 
-     *    authenticated and explicitly associated with that `companyId` via a `members` map 
-     *    on the parent Company document.
-     * 2. Administrative Overlay: A global `isAgencyStaff()` check allows Nextcon employees to 
-     *    manage resources across different clients.
-     * 3. Relational Integrity: On creation of any sub-resource, the rules force the document's 
-     *    internal `companyId` to match the path parameter, preventing cross-tenant data injection.
-     * 4. Anonymous Participation: Psychosocial surveys allow creation by any authenticated user 
-     *    (supporting anonymous pulse surveys) but restrict reading to the authorized company staff.
+     * 1. Path-Based Ownership: The {clientId} in the URL is the primary source of truth 
+     *    for authorization.
+     * 2. Relational Enforcement: During creation and updates, the rules enforce that the 
+     *    internal 'clientId' field matches the path to prevent data from being cross-linked 
+     *    between tenants.
+     * 3. Immutability: Critical relational links (like clientId and document IDs) are 
+     *    immutable once set.
+     * 4. Prototyping Flexibility: While authorization is strictly enforced, general data 
+     *    fields (names, descriptions, dates) are not validated for type or shape.
      */
 
     // --- HELPER FUNCTIONS ---
 
-    /** Checks if the user is authenticated. */
+    /** 
+     * Checks if the user is authenticated. 
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /** 
-     * Checks if the user belongs to a specific company. 
-     * Uses a denormalized 'members' map on the company document for high performance.
+     * Checks if the authenticated user matches the owner (clientId) of the path. 
      */
-    function isCompanyMember(companyId) {
-      return isSignedIn() && (
-        get(/databases/$(database)/documents/companies/$(companyId)).data.members[request.auth.uid] != null ||
-        isAgencyStaff()
-      );
+    function isOwner(clientId) {
+      return isSignedIn() && request.auth.uid == clientId;
     }
 
-    /** Checks if the user has global agency-level administrative privileges. */
-    function isAgencyStaff() {
-      return isSignedIn() && request.auth.token.role == 'agency_staff';
+    /** 
+     * Verifies ownership and ensures the document exists for state-changing operations. 
+     */
+    function isExistingOwner(clientId) {
+      return isOwner(clientId) && resource != null;
     }
 
-    /** Verifies the document exists and the user is a member of the associated company. */
-    function canUpdateResource(companyId) {
-      return resource != null && isCompanyMember(companyId);
+    /** 
+     * Validates that the data being written has a clientId matching the path. 
+     */
+    function isValidClientLink(clientId) {
+      return request.resource.data.clientId == clientId;
     }
 
-    /** Enforces that critical relational fields do not change during updates. */
-    function isImmutable(field) {
-      return request.resource.data[field] == resource.data[field];
+    /** 
+     * Validates that the data being written has an ID matching the path. 
+     */
+    function isValidIdLink(id) {
+      return request.resource.data.id == id;
     }
 
     // --- COLLECTION RULES ---
 
     /**
-     * @description Rules for the root-level Company documents.
-     * @path /companies/{companyId}
-     * @allow (get) If user is a member or agency staff.
-     * @deny (create) If user is not agency staff.
-     * @principle Access restricted via a membership map on the resource itself.
+     * @description Rules for the root Client document.
+     * @path /clients/{clientId}
+     * @allow (get, list, create, update) if UID matches clientId.
+     * @deny (all) if UID does not match clientId.
+     * @principle Implements self-creation and path-based ownership.
      */
-    match /companies/{companyId} {
-      allow get: if isCompanyMember(companyId);
-      allow list: if isAgencyStaff();
-      allow create: if isAgencyStaff();
-      allow update: if isCompanyMember(companyId) && resource != null;
-      allow delete: if isAgencyStaff() && resource != null;
+    match /clients/{clientId} {
+      allow get, list: if isOwner(clientId);
+      allow create: if isOwner(clientId) && isValidIdLink(clientId);
+      allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(clientId);
 
       /**
-       * @description Employee records within a company.
-       * @path /companies/{companyId}/employees/{employeeId}
-       * @allow (create) If user is company member and data matches path.
-       * @deny (update) If user attempts to move employee to a different company.
-       * @principle Path-based tenancy with internal relational validation.
+       * @description Rules for employees belonging to a client.
+       * @path /clients/{clientId}/employees/{employeeId}
+       * @allow (create) if user is client owner and data.clientId matches path.
+       * @deny (update) if attempting to change the clientId association.
+       * @principle Enforces relational integrity via denormalized clientId.
        */
       match /employees/{employeeId} {
-        allow get, list: if isCompanyMember(companyId);
-        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
-        allow update: if canUpdateResource(companyId) && isImmutable('companyId');
-        allow delete: if canUpdateResource(companyId);
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(employeeId);
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
+        allow delete: if isExistingOwner(clientId);
 
         /**
-         * @description Medical leave records for specific employees.
-         * @path /companies/{companyId}/employees/{employeeId}/absenteeism/{absenteeismId}
-         * @allow (list) If user is company member.
-         * @deny (delete) If document does not exist.
-         * @principle Cascading tenancy authorization.
+         * @description Rules for medical exams associated with an employee.
+         * @path /clients/{clientId}/employees/{employeeId}/medicalExams/{medicalExamId}
+         * @allow (list) if user is client owner.
+         * @deny (create) if internal employeeId does not match path.
+         * @principle Deeply nested ownership validation.
          */
-        match /absenteeism/{absenteeismId} {
-          allow get, list: if isCompanyMember(companyId);
-          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
-          allow update: if canUpdateResource(companyId) && isImmutable('employeeId');
-          allow delete: if canUpdateResource(companyId);
-        }
-
-        /**
-         * @description PPE inventory delivery and proof of life.
-         * @path /companies/{companyId}/employees/{employeeId}/ppe_inventory/{inventoryId}
-         * @allow (create) If valid staff is recording delivery.
-         * @deny (update) If modifying history (PPE records are typically audit logs).
-         * @principle Immutable audit trail for legal protection.
-         */
-        match /ppe_inventory/{inventoryId} {
-          allow get, list: if isCompanyMember(companyId);
-          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
-          allow update, delete: if canUpdateResource(companyId);
-        }
-
-        /**
-         * @description Medical exams (PCMSO) for employees.
-         * @path /companies/{companyId}/employees/{employeeId}/pcmso_exams/{examId}
-         * @allow (get) If user is authorized staff.
-         * @principle Health data privacy via company-scoped access.
-         */
-        match /pcmso_exams/{examId} {
-          allow get, list: if isCompanyMember(companyId);
-          allow create: if isCompanyMember(companyId) && request.resource.data.employeeId == employeeId;
-          allow update: if canUpdateResource(companyId) && isImmutable('employeeId');
-          allow delete: if canUpdateResource(companyId);
+        match /medicalExams/{medicalExamId} {
+          allow get, list: if isOwner(clientId);
+          allow create: if isOwner(clientId) && isValidIdLink(medicalExamId) && request.resource.data.employeeId == employeeId;
+          allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id && request.resource.data.employeeId == resource.data.employeeId;
+          allow delete: if isExistingOwner(clientId);
         }
       }
 
       /**
-       * @description eSocial compliance audit records.
-       * @path /companies/{companyId}/esocial_audit/{auditId}
-       * @allow (list) Company owners or agency staff auditing compliance.
-       * @principle Tenancy-based read/write.
+       * @description Rules for Job Roles defined by the client.
+       * @path /clients/{clientId}/jobRoles/{jobRoleId}
+       * @allow (get) if user is client owner.
+       * @deny (delete) if user is not client owner.
+       * @principle Path-based access control for organizational metadata.
        */
-      match /esocial_audit/{auditId} {
-        allow get, list: if isCompanyMember(companyId);
-        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
-        allow update, delete: if canUpdateResource(companyId);
+      match /jobRoles/{jobRoleId} {
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(jobRoleId);
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
+        allow delete: if isExistingOwner(clientId);
+
+        /**
+         * @description Rules for risks associated with a specific Job Role.
+         * @path /clients/{clientId}/jobRoles/{jobRoleId}/risks/{riskId}
+         * @allow (create) if jobRoleId in data matches path.
+         * @deny (update) if attempting to move a risk to a different job role.
+         * @principle Validates relational consistency between path and document data.
+         */
+        match /risks/{riskId} {
+          allow get, list: if isOwner(clientId);
+          allow create: if isOwner(clientId) && isValidIdLink(riskId) && request.resource.data.jobRoleId == jobRoleId;
+          allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id && request.resource.data.jobRoleId == resource.data.jobRoleId;
+          allow delete: if isExistingOwner(clientId);
+        }
       }
 
       /**
-       * @description Identified occupational risks (PGR).
-       * @path /companies/{companyId}/pgr_risks/{riskId}
-       * @allow (update) By authorized safety technicians.
-       * @principle Strict ownership for compliance-critical risk data.
+       * @description Rules for Action Plans within a client context.
+       * @path /clients/{clientId}/actionPlans/{actionPlanId}
+       * @allow (update) if client owner, ensuring clientId remains immutable.
+       * @deny (create) if clientId in payload does not match client tree.
+       * @principle Multi-tenant data isolation.
        */
-      match /pgr_risks/{riskId} {
-        allow get, list: if isCompanyMember(companyId);
-        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
-        allow update, delete: if canUpdateResource(companyId);
+      match /actionPlans/{actionPlanId} {
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(actionPlanId);
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
+        allow delete: if isExistingOwner(clientId);
       }
 
       /**
-       * @description Strategic action plans for risk mitigation.
-       * @path /companies/{companyId}/action_plans/{actionPlanId}
-       * @allow (update) To change status from 'ToDo' to 'Done'.
-       * @principle Collaborative task management within a company scope.
+       * @description Rules for Legal Claims and pericias.
+       * @path /clients/{clientId}/legalClaims/{legalClaimId}
+       * @allow (all) restricted to the specific client owner.
+       * @deny (list) if unauthorized user attempts to view claims.
+       * @principle Secure management of sensitive financial and legal data.
        */
-      match /action_plans/{actionPlanId} {
-        allow get, list: if isCompanyMember(companyId);
-        allow create: if isCompanyMember(companyId) && request.resource.data.companyId == companyId;
-        allow update: if canUpdateResource(companyId) && isImmutable('companyId');
-        allow delete: if canUpdateResource(companyId);
+      match /legalClaims/{legalClaimId} {
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(legalClaimId);
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
+        allow delete: if isExistingOwner(clientId);
       }
-    }
-
-    /**
-     * @description Anonymous psychosocial pulse surveys.
-     * @path /psychosocial_surveys/{surveyId}
-     * @allow (create) Any signed-in user (supporting anonymous survey links).
-     * @allow (get, list) Only users belonging to the company targeted by the survey.
-     * @deny (update) Surveys are immutable once submitted to ensure integrity.
-     * @principle Open write (collection-level) with restricted read (data-level).
-     */
-    match /psychosocial_surveys/{surveyId} {
-      allow create: if isSignedIn();
-      allow get, list: if isCompanyMember(resource.data.companyId);
-      allow update: if false; // Survey responses should be immutable for integrity
-      allow delete: if isAgencyStaff() && resource != null;
     }
   }
 }
