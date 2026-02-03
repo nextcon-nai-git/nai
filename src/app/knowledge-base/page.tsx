@@ -73,7 +73,7 @@ export default function KnowledgeBase() {
                 <Sparkles className="size-5 text-accent" />
               </div>
               <div>
-                <CardTitle className="text-lg">NAI AI Consultant</CardTitle>
+                <CardTitle className="text-lg">NAI - Nextcon AI</CardTitle>
                 <CardDescription>Respostas baseadas nas 38 NRs e Decretos Previdenciários atualizados.</CardDescription>
               </div>
             </div>
