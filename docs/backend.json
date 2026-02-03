@@ -28,7 +28,9 @@
         "cnpj": { "type": "string" },
         "sector": { "type": "string" },
         "contactEmail": { "type": "string", "format": "email" },
-        "pgrExpiry": { "type": "string" }
+        "pgrExpiry": { "type": "string" },
+        "address": { "type": "string", "description": "Endereço completo da empresa para geolocalização." },
+        "city": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
     },

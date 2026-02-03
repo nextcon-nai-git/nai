@@ -20,7 +20,8 @@ import {
   Database,
   Sparkles,
   ClipboardList,
-  UserCircle
+  UserCircle,
+  Map as MapIcon
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -50,6 +51,7 @@ const navGroups = [
     roles: ['admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
+      { title: "Mapa de Clientes", icon: MapIcon, href: "/agency/client-map" },
       { title: "Módulo de Importação", icon: Database, href: "/data-import" },
     ]
   },
