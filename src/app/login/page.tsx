@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -16,6 +15,7 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState("nextcon@nextconsaude.com.br")
   const [password, setPassword] = React.useState("2025")
   const [loading, setLoading] = React.useState(false)
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
   const { user, isUserLoading } = useUser()
   const auth = useAuth()
   const router = useRouter()
@@ -30,14 +30,26 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setErrorMessage(null)
     
-    // Inicia o processo de login no Firebase
-    initiateEmailSignIn(auth, email, password)
-    
-    // Feedback visual de carregamento
-    setTimeout(() => {
+    initiateEmailSignIn(auth, email, password, (error) => {
       setLoading(false)
-    }, 2000)
+      console.error("Auth error:", error.code)
+      
+      let message = "Falha na autenticação. Verifique seus dados."
+      if (error.code === 'auth/invalid-credential') {
+        message = "Credenciais inválidas. Verifique se o usuário foi criado no Console do Firebase com a senha correta."
+      } else if (error.code === 'auth/user-not-found') {
+        message = "Usuário não encontrado. Crie-o no Console do Firebase."
+      }
+
+      setErrorMessage(message)
+      toast({
+        variant: "destructive",
+        title: "Erro de Acesso",
+        description: message,
+      })
+    })
   }
 
   if (isUserLoading) {
@@ -76,9 +88,17 @@ export default function LoginPage() {
             <Alert className="bg-blue-50 border-blue-200 text-blue-800 mb-4">
               <AlertCircle className="size-4" />
               <AlertDescription className="text-xs font-medium">
-                Configuração: No Console Firebase, ative "Email/Password" em Authentication e crie o usuário solicitado para habilitar o acesso.
+                Configuração Obrigatória: Ative "Email/Password" no Firebase Console e adicione este usuário para liberar o acesso.
               </AlertDescription>
             </Alert>
+
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="size-4" />
+                <AlertDescription className="text-xs">{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none">
                 E-mail
@@ -100,7 +120,7 @@ export default function LoginPage() {
                 <label className="text-sm font-medium leading-none">
                   Senha
                 </label>
-                <Button variant="link" size="sm" className="px-0 font-normal">
+                <Button variant="link" size="sm" className="px-0 font-normal" type="button">
                   Esqueceu a senha?
                 </Button>
               </div>
