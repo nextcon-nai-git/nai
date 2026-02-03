@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -21,7 +20,8 @@ import {
   Sparkles,
   ClipboardList,
   UserCircle,
-  Map as MapIcon
+  Map as MapIcon,
+  ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -42,46 +42,47 @@ import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/fireb
 import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
 import { NextconLogo } from "@/components/ui/logo"
+import { cn } from "@/lib/utils"
 
 type Role = 'admin' | 'client' | 'employee'
 
 const navGroups = [
   {
-    label: "ADMINISTRAÇÃO NEXTCON",
+    label: "Administração Nextcon",
     roles: ['admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
       { title: "Mapa de Clientes", icon: MapIcon, href: "/agency/client-map" },
-      { title: "Módulo de Importação", icon: Database, href: "/data-import" },
+      { title: "Importação de Dados", icon: Database, href: "/data-import" },
     ]
   },
   {
-    label: "VISÃO DO CLIENTE",
+    label: "Gestão Estratégica",
     roles: ['admin', 'client'],
     items: [
       { title: "Dashboard Executivo", icon: LayoutDashboard, href: "/" },
-      { title: "Colaboradores", icon: Users, href: "/employees" },
+      { title: "Quadro de Colaboradores", icon: Users, href: "/employees" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
-      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
+      { title: "Vigilante eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
   },
   {
-    label: "OPERAÇÃO SST",
+    label: "Operação SST",
     roles: ['admin', 'client'],
     items: [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
-      { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
+      { title: "Vigilância Médica", icon: Stethoscope, href: "/health-control" },
       { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
       { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
     ]
   },
   {
-    label: "ÁREA DO COLABORADOR",
+    label: "Área do Colaborador",
     roles: ['admin', 'client', 'employee'],
     items: [
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Pesquisas & COPSOQ", icon: ClipboardList, href: "/checklists" },
+      { title: "Checklists & COPSOQ", icon: ClipboardList, href: "/checklists" },
       { title: "Termômetro Burnout", icon: Activity, href: "/psychosocial" },
     ]
   }
@@ -115,29 +116,29 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border/50">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r-0">
+      <SidebarHeader className="p-6 bg-primary/95">
         <div className="flex items-center gap-3">
-          <div className="size-10 flex items-center justify-center text-white shrink-0">
+          <div className="size-10 flex items-center justify-center text-accent shrink-0">
             <NextconLogo className="size-full" />
           </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-tight">
-            <span className="font-headline font-black text-white text-lg tracking-tighter">
+          <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-none">
+            <span className="font-headline font-black text-white text-xl tracking-tighter">
               NEXTCON
             </span>
-            <span className="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em] -mt-1">
-              SST
+            <span className="text-[9px] font-bold text-accent uppercase tracking-[0.25em] mt-1">
+              SAÚDE EMPRESARIAL
             </span>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-primary pt-2">
         {navGroups.map((group) => {
           if (!group.roles.includes(role)) return null
           
           return (
-            <SidebarGroup key={group.label}>
-              <SidebarGroupLabel className="text-sidebar-foreground/50 px-4 text-[10px] uppercase tracking-widest font-black">
+            <SidebarGroup key={group.label} className="px-3">
+              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-1">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>
@@ -150,11 +151,20 @@ export function AppSidebar() {
                         asChild 
                         isActive={isActive}
                         tooltip={item.title}
-                        className={`hover:bg-white/10 transition-all duration-200 py-6 ${isActive ? 'bg-white/10 text-white border-l-4 border-white' : ''}`}
+                        className={cn(
+                          "relative h-11 px-4 mb-1 transition-all duration-300 rounded-lg group-hover:pl-5",
+                          isActive 
+                            ? "bg-white/10 text-white shadow-lg" 
+                            : "text-white/60 hover:text-white hover:bg-white/5"
+                        )}
                       >
-                        <Link href={item.href}>
-                          <Icon className={`size-5 ${isActive ? 'text-white' : 'text-sidebar-foreground/60'}`} />
-                          <span className="font-medium">{item.title}</span>
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <Icon className={cn(
+                            "size-5 transition-transform duration-300",
+                            isActive ? "text-accent scale-110" : "text-white/40"
+                          )} />
+                          <span className="font-medium tracking-wide text-sm">{item.title}</span>
+                          {isActive && <div className="absolute left-0 w-1 h-6 bg-accent rounded-r-full" />}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -165,21 +175,22 @@ export function AppSidebar() {
           )
         })}
       </SidebarContent>
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 bg-primary border-t border-white/5">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
-              <Avatar className="size-9 border-2 border-white/20">
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
+              <Avatar className="size-9 border-2 border-accent/20">
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                <AvatarFallback className="bg-primary text-white">{userInitial}</AvatarFallback>
+                <AvatarFallback className="bg-accent text-primary font-bold">{userInitial}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
-                <span className="text-xs font-bold text-white truncate max-w-[120px]">{userName}</span>
-                <span className="text-[10px] text-sidebar-foreground/70 truncate max-w-[120px] uppercase font-bold">{userRoleLabel}</span>
+              <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden overflow-hidden">
+                <span className="text-xs font-bold text-white truncate">{userName}</span>
+                <span className="text-[9px] text-white/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="text-sidebar-foreground/50 hover:text-white group-data-[collapsible=icon]:hidden"
+                className="p-2 text-white/40 hover:text-accent hover:bg-white/5 rounded-lg transition-all group-data-[collapsible=icon]:hidden"
+                title="Sair do sistema"
               >
                 <LogOut className="size-4" />
               </button>
