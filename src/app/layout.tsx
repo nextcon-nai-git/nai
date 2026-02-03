@@ -26,7 +26,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
     }
   }, [user, isUserLoading, pathname, router, mounted]);
 
-  // Se não montou ou está carregando o usuário, mostra o loader tela cheia
   if (!mounted || isUserLoading) {
     return (
       <div className="flex h-svh w-full items-center justify-center bg-background">
@@ -35,27 +34,22 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Se não houver usuário e não for a página de login, evita renderizar o conteúdo
-  if (!user && pathname !== '/login') {
-    return null;
-  }
-
-  // Se for a página de login, renderiza limpo
   if (pathname === '/login') {
-    return <>{children}</>;
+    return <div className="min-h-svh w-full bg-background">{children}</div>;
   }
 
-  // Layout principal com Sidebar
+  if (!user) return null;
+
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex w-full min-h-svh bg-background overflow-hidden">
+      <div className="flex min-h-svh w-full bg-background overflow-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 bg-background relative">
           <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
             <SidebarTrigger>
               <Menu className="size-6 text-primary" />
             </SidebarTrigger>
-            <span className="ml-4 font-headline font-black text-primary text-sm tracking-tighter">NEXTCON</span>
+            <span className="ml-4 font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>
           </header>
           <main className="flex-1 overflow-auto p-6 md:p-8">
             <div className="max-w-7xl mx-auto">
@@ -74,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning className="light">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
