@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { jsPDF } from "jspdf"
 
 export default function PpeKiosk() {
   const { toast } = useToast()
@@ -21,6 +22,7 @@ export default function PpeKiosk() {
   const [step, setStep] = React.useState(1) // 1: ID, 2: Photo, 3: Success
   const [capturedImage, setCapturedImage] = React.useState<string | null>(null)
   const [timestamp, setTimestamp] = React.useState<string | null>(null)
+  const [biometricToken, setBiometricToken] = React.useState("")
 
   React.useEffect(() => {
     if (step === 2) {
@@ -67,7 +69,11 @@ export default function PpeKiosk() {
       const context = canvas.getContext('2d')
       if (context) {
         context.drawImage(video, 0, 0, canvas.width, canvas.height)
-        setCapturedImage(canvas.toDataURL('image/png'))
+        const imgData = canvas.toDataURL('image/png')
+        setCapturedImage(imgData)
+        // Gera um token SHA-256 simulado para fins de demonstração
+        const token = Math.random().toString(36).substring(2, 15).toUpperCase() + Math.random().toString(36).substring(2, 15).toUpperCase()
+        setBiometricToken(token)
       }
     }
 
@@ -81,11 +87,113 @@ export default function PpeKiosk() {
     }, 1500)
   }
 
+  const generateReceiptPDF = () => {
+    try {
+      const doc = new jsPDF()
+      const dateStr = new Date().toLocaleDateString('pt-BR')
+      const timeStr = new Date().toLocaleTimeString('pt-BR')
+
+      // Cabeçalho
+      doc.setFillColor(9, 14, 36) // Azul Marinho Nextcon
+      doc.rect(0, 0, 210, 40, 'F')
+      
+      doc.setTextColor(255, 255, 255)
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(22)
+      doc.text("NEXTCON", 105, 20, { align: "center" })
+      doc.setFontSize(10)
+      doc.setFont("helvetica", "normal")
+      doc.text("SAÚDE E SEGURANÇA EMPRESARIAL", 105, 28, { align: "center" })
+
+      // Título do Documento
+      doc.setTextColor(0, 0, 0)
+      doc.setFontSize(16)
+      doc.setFont("helvetica", "bold")
+      doc.text("COMPROVANTE DE ENTREGA DE EPI (NR-06)", 105, 55, { align: "center" })
+      
+      doc.setLineWidth(0.5)
+      doc.line(20, 60, 190, 60)
+
+      // Corpo do Recibo
+      doc.setFontSize(12)
+      doc.setFont("helvetica", "normal")
+      
+      let y = 75
+      const lineHeight = 10
+
+      doc.setFont("helvetica", "bold")
+      doc.text("DADOS DO COLABORADOR:", 20, y)
+      y += lineHeight
+      doc.setFont("helvetica", "normal")
+      doc.text(`Identificação/ID: ${employeeId}`, 25, y)
+      y += lineHeight
+      doc.text(`Data da Entrega: ${dateStr} às ${timeStr}`, 25, y)
+      y += lineHeight
+      doc.text(`Localização (GPS): ${location || "Não capturada"}`, 25, y)
+      
+      y += 15
+      doc.setFont("helvetica", "bold")
+      doc.text("EQUIPAMENTO ENTREGUE:", 20, y)
+      y += lineHeight
+      doc.setFont("helvetica", "normal")
+      doc.text("Item: Protetor Auricular Plug / Óculos de Proteção (Kit Padrão)", 25, y)
+      y += lineHeight
+      doc.text("Certificado de Aprovação (C.A.): 12.345 / 42.100", 25, y)
+
+      y += 20
+      doc.setFontSize(10)
+      doc.text("Declaro ter recebido os equipamentos de proteção individual acima listados,", 20, y)
+      y += 5
+      doc.text("estando ciente da obrigatoriedade de uso e conservação conforme NR-06.", 20, y)
+
+      // Validação Biométrica (Token)
+      y += 30
+      doc.setFillColor(245, 245, 245)
+      doc.rect(20, y, 170, 40, 'F')
+      doc.setDrawColor(200, 200, 200)
+      doc.rect(20, y, 170, 40, 'S')
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(9)
+      doc.text("ASSINATURA DIGITAL E VALIDAÇÃO BIOMÉTRICA", 105, y + 10, { align: "center" })
+      
+      doc.setFont("courier", "bold")
+      doc.setFontSize(11)
+      doc.text(biometricToken, 105, y + 22, { align: "center" })
+      
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(8)
+      doc.text("Este código substitui a assinatura física nos termos da Portaria 6.730/20.", 105, y + 32, { align: "center" })
+
+      // Rodapé
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text("Documento gerado eletronicamente pela Plataforma Nextcon SST", 105, 285, { align: "center" })
+
+      // Download
+      const safeName = employeeId.replace(/[^a-z0-9]/gi, '_')
+      doc.save(`Recibo_EPI_${safeName}_${dateStr.replace(/\//g, '-')}.pdf`)
+      
+      toast({
+        title: "Download Concluído",
+        description: "O recibo PDF foi salvo no seu dispositivo."
+      })
+    } catch (e) {
+      console.error(e)
+      toast({
+        variant: "destructive",
+        title: "Erro no PDF",
+        description: "Não foi possível gerar o arquivo agora."
+      })
+    }
+  }
+
   const reset = () => {
     setStep(1)
     setEmployeeId("")
     setLocation(null)
     setCapturedImage(null)
+    setBiometricToken("")
   }
 
   return (
@@ -132,7 +240,6 @@ export default function PpeKiosk() {
               <video ref={videoRef} className="w-full aspect-[4/3] bg-black object-cover" autoPlay muted />
               <canvas ref={canvasRef} className="hidden" />
               
-              {/* Overlay de Biometria */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-64 h-80 border-4 border-white/30 border-dashed rounded-[100px] relative">
                    <div className="absolute inset-0 border-2 border-white/10 rounded-[100px] animate-pulse" />
@@ -196,12 +303,16 @@ export default function PpeKiosk() {
               <div className="bg-muted/50 p-4 rounded-xl space-y-3">
                 <div className="flex justify-between items-center text-[10px] font-black text-muted-foreground uppercase">
                   <span>Assinatura Digital SHA-256</span>
-                  <span className="text-primary">{Math.random().toString(36).substring(2, 10).toUpperCase()}</span>
+                  <span className="text-primary truncate ml-2 max-w-[150px]">{biometricToken}</span>
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
                 </div>
-                <Button variant="link" className="w-full gap-2 text-primary font-bold h-auto py-0">
+                <Button 
+                  variant="link" 
+                  className="w-full gap-2 text-primary font-bold h-auto py-0"
+                  onClick={generateReceiptPDF}
+                >
                   <FileDown className="size-4" /> Baixar Recibo de Entrega (PDF)
                 </Button>
               </div>
