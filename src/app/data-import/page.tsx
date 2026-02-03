@@ -38,7 +38,6 @@ export default function UnifiedImportCenter() {
   const [uploading, setUploading] = React.useState(false)
   const [isDragging, setIsDragging] = React.useState(false)
 
-  // Função para configurar o perfil do usuário logado (Pablo, Kelly, etc)
   const setupMyProfile = async () => {
     if (!user || !db) return
     setUploading(true)
@@ -51,18 +50,35 @@ export default function UnifiedImportCenter() {
     if (user.email?.includes('nextcon@')) { name = "Rodrigo Silva"; role = "Consultor HSE" }
 
     try {
-      await setDoc(doc(db, "clients", user.uid), {
+      const batch = writeBatch(db)
+
+      // 1. Perfil da Agência
+      batch.set(doc(db, "clients", user.uid), {
         id: user.uid,
         name,
         role,
         email: user.email,
-        company: "Nextcon",
+        company: "Nextcon SST",
         updatedAt: new Date().toISOString()
       }, { merge: true })
 
+      // 2. Registro da própria Nextcon como Cliente
+      batch.set(doc(db, "clients", user.uid, "managedCompanies", "44337647000189"), {
+        id: "44337647000189",
+        name: "NXC SST EMPRESARIAL LTDA NEXTCON",
+        cnpj: "44.337.647/0001-89",
+        sector: "Consultoria SST",
+        city: "Curitiba - PR",
+        pgrExpiry: "2026-08-13",
+        contactEmail: "nextcon@nextconsaude.com.br",
+        updatedAt: new Date().toISOString()
+      }, { merge: true })
+
+      await batch.commit()
+
       toast({
-        title: "Perfil Configurado",
-        description: `Bem-vindo, ${name}! Seu perfil foi atualizado no sistema.`
+        title: "Setup Concluído",
+        description: `Bem-vindo, ${name}! Seu perfil e a empresa Nextcon foram cadastrados.`
       })
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao configurar perfil" })
@@ -144,7 +160,6 @@ export default function UnifiedImportCenter() {
           const val = values[i]
           if (!val) return
 
-          // Processamento específico por aba para evitar sobreposição de nomes (ex: Empresa sobrescrevendo Nome do Colaborador)
           if (activeTab === 'companies') {
             if (header.includes('nome') || header.includes('razão') || header.includes('empresa')) data.name = val
             if (header.includes('setor')) data.sector = val
@@ -155,13 +170,11 @@ export default function UnifiedImportCenter() {
           }
           
           if (activeTab === 'employees') {
-            // Mapeamento rigoroso para colaboradores - Nome deve ser prioritário
             if (header === 'nome' || header === 'colaborador' || header === 'funcionário' || header === 'nome do colaborador') {
               data.name = val
             }
             if (header.includes('cargo') || header.includes('função')) data.jobRole = val
             if (header.includes('admissão') || header.includes('data admissao')) data.admissionDate = val
-            // Para colaboradores, "empresa" deve ir para companyId, não para data.name
             if (header === 'empresa' || header === 'unidade' || header === 'empresa cliente' || header === 'cliente') {
               data.companyId = val
             }
@@ -199,14 +212,12 @@ export default function UnifiedImportCenter() {
           }
         })
 
-        // Garantir que sempre haja um ID
         if (!data.id) {
           if (activeTab === 'companies' && data.cnpj) data.id = data.cnpj
           else if (activeTab === 'expertises' && data.caseNumber) data.id = data.caseNumber.replace(/[^\w]/gi, '')
           else data.id = `import_${activeTab}_${index}_${Date.now()}`
         }
 
-        // Se por algum motivo o nome não foi preenchido mas temos outros dados, tentamos um fallback (exceto exames)
         if (!data.name && data.id && activeTab !== 'exams' && activeTab !== 'expertises') {
            data.name = "Registro Importado " + data.id
         }
@@ -250,12 +261,12 @@ export default function UnifiedImportCenter() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Centro de Importação de Dados</h1>
-          <p className="text-muted-foreground">Arraste seus arquivos CSV ou cole os dados diretamente.</p>
+          <p className="text-muted-foreground">Gerencie sua agência e alimente a base de dados.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-accent text-accent" onClick={setupMyProfile} disabled={uploading}>
             {uploading ? <Loader2 className="size-4 animate-spin" /> : <UserCircle className="size-4" />}
-            Configurar Meu Perfil
+            Configurar Meu Perfil e Nextcon
           </Button>
           <input type="file" id="file-upload" className="hidden" accept=".csv,.txt" onChange={handleFileSelect} />
           <Button variant="outline" className="gap-2" asChild>

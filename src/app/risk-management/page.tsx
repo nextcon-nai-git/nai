@@ -19,10 +19,39 @@ import { riskMitigationPlanGenerator } from "@/ai/flows/risk-mitigation-plan-gen
 import { useToast } from "@/hooks/use-toast"
 
 const risks = [
-  { id: 1, role: "Soldador", hazard: "Fumos Metálicos e UV", probability: 4, severity: 5, level: "Crítico", environment: "Oficina de Metalurgia", esocialStatus: "Bloqueado" },
-  { id: 2, role: "Auxiliar de Almoxarifado", hazard: "Ergonômico (Levantamento de Peso)", probability: 3, severity: 2, level: "Médio", environment: "Hub Logístico", esocialStatus: "Validado" },
-  { id: 3, role: "Assistente Administrativo", hazard: "L.E.R./D.O.R.T. (Teclado)", probability: 2, severity: 1, level: "Baixo", environment: "Escritório Central", esocialStatus: "Validado" },
-  { id: 4, role: "Motorista de Caminhão", hazard: "Vibração de Corpo Inteiro", probability: 3, severity: 3, level: "Médio", environment: "Transporte Pesado", esocialStatus: "Validado" },
+  { 
+    id: 1, 
+    role: "Estagiário(a) de SST; Estagiário(a) Comercial", 
+    hazard: "Ergonômico: Postura sentada por longos períodos", 
+    probability: 2, 
+    severity: 2, 
+    level: "Tolerável (PR4)", 
+    environment: "GES 01 - Administrativo", 
+    esocialStatus: "Validado",
+    recommendation: "Orientar sobre pausas e posturas conforme NR-17."
+  },
+  { 
+    id: 2, 
+    role: "Técnico(a) de SST; Gerente Comercial", 
+    hazard: "Ergonômico: Postura sentada por longos períodos", 
+    probability: 2, 
+    severity: 2, 
+    level: "Tolerável (PR4)", 
+    environment: "GES 02 - Admin/Operacional", 
+    esocialStatus: "Validado",
+    recommendation: "Orientar sobre pausas e posturas conforme NR-17."
+  },
+  { 
+    id: 3, 
+    role: "Técnico(a) de SST; Gerente Comercial", 
+    hazard: "Acidentes: Condução de veículo em vias públicas", 
+    probability: 2, 
+    severity: 2, 
+    level: "Tolerável (PR4)", 
+    environment: "GES 02 - Admin/Operacional", 
+    esocialStatus: "Validado",
+    recommendation: "Orientar os trabalhadores sobre direção defensiva."
+  }
 ]
 
 export default function RiskManagement() {
@@ -36,7 +65,7 @@ export default function RiskManagement() {
     setSelectedRisk(risk)
     try {
       const result = await riskMitigationPlanGenerator({
-        identifiedRisks: `${risk.hazard} - Nível de impacto: ${risk.level}`,
+        identifiedRisks: `${risk.hazard} - Recomendação atual: ${risk.recommendation}`,
         environment: risk.environment
       })
       setMitigationPlan(result.mitigationPlan)
@@ -57,7 +86,6 @@ export default function RiskManagement() {
         {Array.from({ length: 25 }).map((_, i) => {
           const row = Math.floor(i / 5);
           const col = i % 5;
-          // Lógica de Severidade (Vertical) x Probabilidade (Horizontal)
           const severity = 5 - row;
           const probability = col + 1;
           const score = severity * probability;
@@ -86,13 +114,12 @@ export default function RiskManagement() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Gestão de Riscos (NR-01 PGR)</h1>
-          <p className="text-muted-foreground">Inventário de riscos dinâmico com matriz de criticidade normativa.</p>
+          <p className="text-muted-foreground">Inventário de riscos da unidade NXC SST EMPRESARIAL LTDA.</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
-            <Input placeholder="Buscar por GHE ou Cargo..." className="w-64 pl-10 h-11 bg-white border-muted shadow-sm" />
-          </div>
+          <Badge variant="outline" className="bg-white border-primary text-primary font-bold px-4 h-11">
+            CNPJ: 44.337.647/0001-89
+          </Badge>
           <Button className="bg-primary h-11 px-6 font-bold shadow-lg shadow-primary/20">Novo Inventário</Button>
         </div>
       </div>
@@ -103,14 +130,11 @@ export default function RiskManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">Inventário de Riscos Ativos</CardTitle>
-                <CardDescription>Sincronização automática com eSocial S-2240</CardDescription>
+                <CardDescription>Visualização por Grupo de Exposição Similar (GES)</CardDescription>
               </div>
               <div className="flex gap-2">
                 <Badge className="bg-emerald-600 text-white border-none gap-1">
-                  <ShieldCheck className="size-3" /> 142 Validados
-                </Badge>
-                <Badge variant="destructive" className="animate-pulse gap-1 border-none shadow-md">
-                  <AlertTriangle className="size-3" /> 15 Bloqueados
+                  <ShieldCheck className="size-3" /> 3 Riscos Mapeados
                 </Badge>
               </div>
             </div>
@@ -119,12 +143,11 @@ export default function RiskManagement() {
             <Table>
               <TableHeader className="bg-muted/10">
                 <TableRow>
-                  <TableHead className="font-bold">Cargo / Unidade</TableHead>
-                  <TableHead className="font-bold">Perigo (Agente)</TableHead>
-                  <TableHead className="text-center font-bold">Matriz S x P</TableHead>
-                  <TableHead className="font-bold">Nível</TableHead>
-                  <TableHead className="font-bold">Compliance eSocial</TableHead>
-                  <TableHead className="text-right font-bold">Plano de Ação</TableHead>
+                  <TableHead className="font-bold">GES / Setor</TableHead>
+                  <TableHead className="font-bold">Agente de Risco</TableHead>
+                  <TableHead className="font-bold text-center">Nível (PR)</TableHead>
+                  <TableHead className="font-bold">Medida de Controle</TableHead>
+                  <TableHead className="text-right font-bold">Refinar IA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -132,44 +155,22 @@ export default function RiskManagement() {
                   <TableRow key={risk.id} className="hover:bg-primary/5 transition-colors group">
                     <TableCell>
                       <div>
-                        <p className="font-bold text-primary">{risk.role}</p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">GHE-00{risk.id} • {risk.environment}</p>
+                        <p className="font-bold text-primary">{risk.environment}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">{risk.role}</p>
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[200px]">
-                      <div className="flex flex-col gap-1">
-                        <span className="text-xs font-medium">{risk.hazard}</span>
-                        <Badge variant="outline" className="text-[8px] w-fit font-mono uppercase">Cód. eSocial: 01.01.001</Badge>
-                      </div>
+                      <span className="text-xs font-medium">{risk.hazard}</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <span className={`text-xs font-black p-1.5 rounded-lg border-2 ${risk.severity * risk.probability > 10 ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'}`}>
-                          {risk.severity}x{risk.probability}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        className={`font-black uppercase text-[10px] ${
-                          risk.level === 'Crítico' ? 'bg-red-600' : 
-                          risk.level === 'Médio' ? 'bg-orange-500' : 
-                          'bg-emerald-600'
-                        } border-none text-white`}
-                      >
+                      <Badge className="bg-emerald-600 border-none text-white text-[10px] font-black">
                         {risk.level}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <div className={`flex items-center gap-1.5 text-[10px] font-bold ${risk.esocialStatus === 'Bloqueado' ? 'text-red-600' : 'text-emerald-600'}`}>
-                          {risk.esocialStatus === 'Bloqueado' ? <AlertTriangle className="size-3" /> : <ShieldCheck className="size-3" />}
-                          {risk.esocialStatus}
-                        </div>
-                        {risk.esocialStatus === 'Bloqueado' && (
-                          <p className="text-[8px] text-muted-foreground uppercase">Falta CA vigente no S-2240</p>
-                        )}
-                      </div>
+                      <p className="text-[10px] leading-tight text-muted-foreground">
+                        {risk.recommendation}
+                      </p>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button 
@@ -179,7 +180,7 @@ export default function RiskManagement() {
                         onClick={() => generatePlan(risk)}
                       >
                         <Zap className="size-3 fill-current" />
-                        IA Estratégica
+                        IA
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -196,42 +197,28 @@ export default function RiskManagement() {
                 <BarChart4 className="size-4 text-primary" />
                 <CardTitle className="text-sm font-bold uppercase tracking-widest">Matriz Normativa</CardTitle>
               </div>
-              <CardDescription className="text-[10px]">Severidade vs Probabilidade (NR-01)</CardDescription>
+              <CardDescription className="text-[10px]">Análise de Criticidade NR-01</CardDescription>
             </CardHeader>
             <CardContent>
               {RiskMatrix}
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex justify-between text-[10px] text-muted-foreground font-black uppercase">
-                  <span>Inócuo</span>
-                  <span>Catastrófico</span>
-                </div>
-                <div className="p-3 bg-primary/5 rounded-xl border border-primary/10 space-y-2">
-                   <p className="text-[10px] font-black text-primary uppercase">Bloqueio Ativo</p>
-                   <p className="text-[10px] leading-tight text-primary/70">
-                     Riscos em <span className="font-bold text-red-600">Vermelho</span> exigem Plano de Mitigação imediato para liberação do eSocial.
-                   </p>
-                </div>
+              <div className="mt-4 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                 <p className="text-[10px] font-black text-primary uppercase">Diagnóstico</p>
+                 <p className="text-[10px] leading-tight text-primary/70 mt-1">
+                   Os riscos da Nextcon estão em zona <span className="font-bold text-emerald-600">Verde</span>. Monitoramento periódico recomendado.
+                 </p>
               </div>
             </CardContent>
           </Card>
 
           <Card className="card-shadow border-none gradient-primary text-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Status PGR 2024</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Vencimento PGR</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center py-2">
-                <h2 className="text-4xl font-bold">92%</h2>
-                <p className="text-[10px] font-medium text-white/60 uppercase">Conformidade Global</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-bold">
-                  <span>Ações Concluídas</span>
-                  <span>18/24</span>
-                </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-accent" style={{ width: '75%' }} />
-                </div>
+            <CardContent>
+              <h2 className="text-2xl font-bold">13/08/2026</h2>
+              <p className="text-[10px] font-medium text-white/60 uppercase mt-1">Status: Vigente (Curitiba/PR)</p>
+              <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden mt-4">
+                <div className="h-full bg-emerald-500" style={{ width: '85%' }} />
               </div>
             </CardContent>
           </Card>
@@ -246,8 +233,8 @@ export default function RiskManagement() {
                 <Zap className="size-6 text-accent animate-pulse" />
               </div>
               <div>
-                <CardTitle className="text-xl font-headline font-bold">Estratégia de Controle (NR-01/NR-09)</CardTitle>
-                <CardDescription className="text-white/60 font-medium">Mitigação de {selectedRisk?.hazard} para o GHE {selectedRisk?.role}</CardDescription>
+                <CardTitle className="text-xl font-headline font-bold">Refinamento IA - NR-17 / NR-01</CardTitle>
+                <CardDescription className="text-white/60 font-medium">Estratégia avançada para {selectedRisk?.environment}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -262,16 +249,11 @@ export default function RiskManagement() {
                 <div className="bg-white/5 p-6 rounded-2xl border border-white/10 whitespace-pre-wrap leading-relaxed text-sm font-body shadow-inner">
                   {mitigationPlan}
                 </div>
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-white/10">
-                  <p className="text-[10px] text-white/40 uppercase font-black tracking-widest flex items-center gap-2">
-                    <ShieldCheck className="size-3" /> Baseado na Portaria 6.730/2020
-                  </p>
-                  <div className="flex gap-2 w-full md:w-auto">
-                    <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => setMitigationPlan(null)}>Descartar</Button>
-                    <Button variant="secondary" className="gap-2 font-bold px-8 shadow-xl shadow-black/40">
-                      <CheckCircle2 className="size-4" /> Salvar e Atualizar eSocial
-                    </Button>
-                  </div>
+                <div className="flex justify-end gap-2 pt-4 border-t border-white/10">
+                  <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => setMitigationPlan(null)}>Fechar</Button>
+                  <Button variant="secondary" className="gap-2 font-bold px-8 shadow-xl shadow-black/40">
+                    <CheckCircle2 className="size-4" /> Aplicar ao PGR
+                  </Button>
                 </div>
               </div>
             )}

@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   MoreVertical,
   Plus,
-  Building2
+  Building2,
+  CalendarDays
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -27,15 +28,15 @@ interface KanbanAction {
 }
 
 const initialActions: KanbanAction[] = [
-  { id: 1, title: "Instalar Exaustor Bloco C", client: "Metalúrgica Silva", category: "PGR", status: "Para Fazer" },
-  { id: 2, title: "Renovação de PCMSO", client: "Transportes Rapidez", category: "Saúde", status: "Em Andamento" },
-  { id: 3, title: "Treinamento NR-35", client: "Construção Forte", category: "Treinamento", status: "Para Fazer" },
+  { id: 1, title: "Atualizar Inventário GES 01", client: "Nextcon SST", category: "PGR", status: "Para Fazer" },
+  { id: 2, title: "Treinamento Direção Defensiva", client: "Nextcon SST", category: "Treinamento", status: "Em Andamento" },
+  { id: 3, title: "Renovação de PCMSO", client: "Transportes Rapidez", category: "Saúde", status: "Para Fazer" },
   { id: 4, title: "Ata da CIPA Outubro", client: "Logística Express", category: "Gestão", status: "Concluído" },
   { id: 5, title: "Laudo de Insalubridade", client: "Química Norte", category: "LTCAT", status: "Bloqueado" },
 ]
 
 const redFlags = [
-  { id: 1, type: "CA Vencendo", client: "Metalúrgica Silva", item: "Protetor Auricular 3M", deadline: "Em 5 dias", status: "Crítico" },
+  { id: 1, type: "PGR Vencendo", client: "Nextcon SST", item: "Unidade Curitiba/PR", deadline: "13/08/2026", status: "Monitorar" },
   { id: 2, type: "Exame Atrasado", client: "Transportes Rapidez", item: "Audiometria - João S.", deadline: "Há 12 dias", status: "Alerta" },
   { id: 3, type: "Treinamento NR-35", client: "Construção Forte", item: "Trabalho em Altura", deadline: "Amanhã", status: "Crítico" },
 ]
@@ -90,28 +91,28 @@ export default function AgencyCommandCenter() {
         </div>
         <div className="flex gap-3">
           <Badge variant="outline" className="text-primary border-primary px-4 py-1.5 font-bold bg-white shadow-sm">
-            CLIENTES ATIVOS: 24
+            AGÊNCIA: NXC SST EMPRESARIAL LTDA
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-1 card-shadow border-none bg-red-50/50">
+        <Card className="lg:col-span-1 card-shadow border-none bg-blue-50/50">
           <CardHeader>
-            <CardTitle className="text-sm font-black text-red-900 uppercase tracking-widest flex items-center gap-2">
-              <ShieldAlert className="size-4" /> Red Flags (Urgente)
+            <CardTitle className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+              <CalendarDays className="size-4" /> Alertas de Vigência
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {redFlags.map((flag) => (
-              <div key={flag.id} className="p-3 bg-white rounded-xl border border-red-100 shadow-sm space-y-1 hover:shadow-md transition-all">
+              <div key={flag.id} className="p-3 bg-white rounded-xl border border-blue-100 shadow-sm space-y-1 hover:shadow-md transition-all">
                 <div className="flex justify-between items-start">
                   <p className="text-[10px] font-black text-primary uppercase tracking-tighter">{flag.client}</p>
-                  <Badge variant="destructive" className="text-[8px] px-1.5 h-4 font-black">{flag.status}</Badge>
+                  <Badge className={`text-[8px] px-1.5 h-4 font-black ${flag.status === 'Crítico' ? 'bg-red-600' : 'bg-primary'}`}>{flag.status}</Badge>
                 </div>
-                <p className="text-xs font-bold text-red-700 leading-tight">{flag.type}</p>
+                <p className="text-xs font-bold text-primary leading-tight">{flag.type}</p>
                 <p className="text-[10px] text-muted-foreground">{flag.item}</p>
-                <div className="flex items-center gap-1 text-[10px] text-red-600 font-black pt-1">
+                <div className="flex items-center gap-1 text-[10px] text-primary font-black pt-1">
                   <Clock className="size-3" /> {flag.deadline}
                 </div>
               </div>
@@ -123,7 +124,7 @@ export default function AgencyCommandCenter() {
           <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10">
             <div>
               <CardTitle className="text-lg font-headline font-bold text-primary">Kanban Unificado de Ações</CardTitle>
-              <CardDescription>Gerencie tarefas críticas de todos os clientes em um só lugar.</CardDescription>
+              <CardDescription>Tarefas operacionais da agência e dos clientes.</CardDescription>
             </div>
             <button className="p-2 hover:bg-muted rounded-full transition-colors bg-white shadow-sm border">
                <Plus className="size-5 text-primary" />
@@ -170,41 +171,6 @@ export default function AgencyCommandCenter() {
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="card-shadow border-none bg-primary text-white overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-            <CheckCircle2 className="size-20" />
-          </div>
-          <CardHeader>
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-white/60">S-2240 Pendentes</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-4">
-            <h2 className="text-5xl font-black tracking-tighter">82</h2>
-            <p className="text-[10px] text-white/60 mt-2 uppercase font-bold tracking-[0.2em]">Envios Críticos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow border-none bg-white overflow-hidden relative">
-          <CardHeader>
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-primary/60">Vencimento de PPRA/PGR</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-4">
-            <h2 className="text-5xl font-black tracking-tighter text-primary">14</h2>
-            <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-[0.2em]">Próximos 30 dias</p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow border-none bg-white overflow-hidden relative border-l-4 border-emerald-500">
-          <CardHeader>
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-600">Tickets de Suporte</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-4">
-            <h2 className="text-5xl font-black tracking-tighter text-emerald-600">03</h2>
-            <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-[0.2em]">Aguardando Resposta</p>
           </CardContent>
         </Card>
       </div>
