@@ -219,7 +219,7 @@ export default function RiskManagement() {
             <CardContent>
               <h2 className="text-2xl font-bold">13/08/2026</h2>
               <p className="text-[10px] font-medium text-white/60 uppercase mt-1">Status NAI: Atualizado</p>
-            </div>
+            </CardContent>
           </Card>
         </div>
       </div>
