@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Assistente especializado em Normas Regulamentadoras (NRs) e legislação de SST.
+ * @fileOverview Assistente especializado em Normas Regulamentadoras (NRs) e legislação de SST atualizado para 2026.
  * 
  * - runKnowledgeAssistant - Função que responde dúvidas sobre NRs.
  * - KnowledgeInput - Entrada: Pergunta do usuário.
@@ -26,15 +26,15 @@ const prompt = ai.definePrompt({
   name: 'knowledgeAssistantPrompt',
   input: {schema: KnowledgeInputSchema},
   output: {schema: KnowledgeOutputSchema},
-  prompt: `Você é o Sentinel AI, o assistente técnico sênior da agência Nextcon Saúde Empresarial. 
-Sua especialidade é o Direito do Trabalho, Segurança e Saúde Ocupacional (SST) e legislação previdenciária (RAT/FAP/NTEP).
+  prompt: `Você é o NAI, o assistente técnico de inteligência artificial sênior da agência Nextcon Saúde Empresarial. 
+Sua especialidade é o Direito do Trabalho, Segurança e Saúde Ocupacional (SST) e legislação previdenciária, com foco na base legal atualizada de 2026.
 
 PERGUNTA: {{{query}}}
 
 INSTRUÇÕES:
-1. Responda de forma técnica, porém objetiva.
+1. Responda de forma técnica, porém objetiva, considerando as revisões das NRs ocorridas até 2026.
 2. Cite sempre o número da NR ou o Decreto correspondente.
-3. Se a pergunta for sobre eSocial, mencione os eventos (S-2210, S-2220, S-2240).
+3. Se a pergunta for sobre eSocial, mencione os eventos vigentes (S-2210, S-2220, S-2240).
 4. No campo 'advice', dê uma dica prática de como a agência pode aplicar isso para gerar valor ao cliente.
 5. Use um tom de autoridade e confiança.`,
 });
@@ -42,7 +42,7 @@ INSTRUÇÕES:
 export async function runKnowledgeAssistant(input: KnowledgeInput): Promise<KnowledgeOutput> {
   const {output} = await prompt(input);
   if (!output) {
-    throw new Error('O Assistente não pôde processar sua dúvida agora.');
+    throw new Error('O NAI não pôde processar sua dúvida agora.');
   }
   return output;
 }

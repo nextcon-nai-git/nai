@@ -68,15 +68,15 @@ const financialMetrics = [
     trend: "neutral",
     icon: ShieldCheck, 
     color: "text-blue-800",
-    description: "Eventos eSocial (S-2240)"
+    description: "Eventos eSocial 2026"
   },
 ]
 
 const fapTrendData = [
-  { name: "2021", fap: 1.10, economia: 75000 },
-  { name: "2022", fap: 0.95, economia: 120000 },
   { name: "2023", fap: 0.82, economia: 180000 },
   { name: "2024", fap: 0.74, economia: 245000 },
+  { name: "2025", fap: 0.68, economia: 310000 },
+  { name: "2026", fap: 0.62, economia: 452800 },
 ]
 
 const riskRadarData = [
@@ -93,8 +93,8 @@ export default function CFODashboard() {
     <div className="space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-4xl font-headline font-bold text-primary tracking-tight">Dashboard CFO</h1>
-          <p className="text-muted-foreground text-lg">Inteligência Financeira e Gestão de Riscos Estratégicos</p>
+          <h1 className="text-4xl font-headline font-bold text-primary tracking-tight">Dashboard CFO 2026</h1>
+          <p className="text-muted-foreground text-lg">Inteligência Financeira NAI e Gestão de Riscos Estratégicos</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="gap-2">
@@ -136,8 +136,8 @@ export default function CFODashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-headline font-bold text-primary">Projeção FAP & Economia RAT</CardTitle>
-                <CardDescription>Retorno financeiro por redução de acidentalidade e gestão de nexo.</CardDescription>
+                <CardTitle className="text-xl font-headline font-bold text-primary">Projeção FAP & Economia RAT 2026</CardTitle>
+                <CardDescription>Retorno financeiro por redução de acidentalidade projetado pela NAI.</CardDescription>
               </div>
               <TrendingDown className="size-8 text-black opacity-20" />
             </div>
@@ -184,13 +184,13 @@ export default function CFODashboard() {
                   <ArrowUpRight className="size-5 text-black" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-primary">ROI Sentinel AI</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Previsão de redução tributária 2024</p>
+                  <p className="text-sm font-bold text-primary">ROI NAI Inteligência</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Previsão de redução tributária 2026</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-primary">R$ 245.000,00</p>
-                <p className="text-[10px] font-bold text-black uppercase tracking-widest leading-none">Salvaguarda Direta</p>
+                <p className="text-xl font-bold text-primary">R$ 452.800,00</p>
+                <p className="text-[10px] font-bold text-black uppercase tracking-widest leading-none">Salvaguarda Direta NAI</p>
               </div>
             </div>
           </CardContent>
@@ -199,8 +199,8 @@ export default function CFODashboard() {
         <div className="space-y-6">
           <Card className="card-shadow border-none bg-white">
             <CardHeader>
-              <CardTitle className="text-lg font-headline font-bold text-primary">Radar de Exposição 360º</CardTitle>
-              <CardDescription>Distribuição de riscos ativos na planta.</CardDescription>
+              <CardTitle className="text-lg font-headline font-bold text-primary">Radar de Exposição 2026</CardTitle>
+              <CardDescription>Distribuição de riscos ativos na planta (Análise NAI).</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -231,17 +231,17 @@ export default function CFODashboard() {
           <Card className="card-shadow border-none gradient-primary text-white">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Zap className="size-5 text-white" /> Insights de Gestão
+                <Zap className="size-5 text-white" /> Insights NAI
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-3 bg-white/10 rounded-xl border border-white/20">
-                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Alerta Tributário</p>
-                <p className="text-xs leading-relaxed">Sua taxa de acidentalidade em 2024 está 12% abaixo da média do CNAE. Potencial bônus FAP de 0,50 para 2025.</p>
+                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Alerta Previdenciário 2026</p>
+                <p className="text-xs leading-relaxed">Sua taxa de acidentalidade em 2026 está 15% abaixo da média do CNAE. Potencial bônus FAP de 0,50 mantido.</p>
               </div>
               <div className="p-3 bg-white/10 rounded-xl border border-white/20">
-                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Compliance eSocial</p>
-                <p className="text-xs leading-relaxed">Todos os eventos S-2240 do mês foram validados pela IA sem inconsistências de EPI.</p>
+                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Compliance NAI eSocial</p>
+                <p className="text-xs leading-relaxed">Todos os eventos S-2240 de 2026 foram auditados pela NAI sem falhas de cruzamento com exames.</p>
               </div>
             </CardContent>
           </Card>

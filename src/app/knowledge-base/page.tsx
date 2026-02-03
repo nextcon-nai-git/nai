@@ -22,7 +22,7 @@ export default function KnowledgeBase() {
   const [query, setQuery] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [messages, setMessages] = React.useState<Message[]>([
-    { role: 'ai', content: "Olá! Sou o Sentinel AI da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST. Como posso ajudar sua agência hoje?" }
+    { role: 'ai', content: "Olá! Sou o NAI, a Inteligência Artificial da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST com base no cenário de 2026. Como posso ajudar sua agência hoje?" }
   ])
 
   const handleSend = async (e?: React.FormEvent) => {
@@ -57,11 +57,11 @@ export default function KnowledgeBase() {
     <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Assistente de Normas</h1>
-          <p className="text-muted-foreground">Consultoria técnica imediata sobre NRs e legislação via IA.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Assistente de Normas NAI</h1>
+          <p className="text-muted-foreground">Consultoria técnica imediata sobre NRs e legislação via IA 2026.</p>
         </div>
         <Badge variant="outline" className="border-primary text-primary px-4 py-1.5 font-bold bg-white">
-          <ShieldCheck className="size-3 mr-2" /> BASE LEGAL ATUALIZADA 2024
+          <ShieldCheck className="size-3 mr-2" /> BASE LEGAL ATUALIZADA 2026
         </Badge>
       </div>
 
@@ -73,8 +73,8 @@ export default function KnowledgeBase() {
                 <Sparkles className="size-5 text-accent" />
               </div>
               <div>
-                <CardTitle className="text-lg">Sentinel AI Consultant</CardTitle>
-                <CardDescription>Respostas baseadas nas 38 NRs e Decretos Previdenciários.</CardDescription>
+                <CardTitle className="text-lg">NAI AI Consultant</CardTitle>
+                <CardDescription>Respostas baseadas nas 38 NRs e Decretos Previdenciários atualizados.</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -124,7 +124,7 @@ export default function KnowledgeBase() {
             
             <form onSubmit={handleSend} className="p-4 border-t bg-muted/10 flex gap-2">
               <Input 
-                placeholder="Ex: Qual a validade do treinamento de NR-35?" 
+                placeholder="Ex: Qual a validade do treinamento de NR-35 em 2026?" 
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="h-12 bg-white"
@@ -146,7 +146,7 @@ export default function KnowledgeBase() {
             </CardHeader>
             <CardContent className="space-y-2">
               {[
-                "Prazos do eSocial S-2240",
+                "Prazos do eSocial 2026",
                 "Mudanças na NR-01 (PGR)",
                 "CNAE vs Grau de Risco",
                 "NTEP em auxílio-doença"
@@ -170,7 +170,7 @@ export default function KnowledgeBase() {
             </CardHeader>
             <CardContent>
               <p className="text-[10px] leading-relaxed opacity-80">
-                O Sentinel AI utiliza modelos LLM de última geração treinados na base normativa brasileira. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da agência.
+                O NAI utiliza modelos LLM de última geração treinados na base normativa brasileira projetada para 2026. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da agência.
               </p>
             </CardContent>
           </Card>
