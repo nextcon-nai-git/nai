@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -41,7 +40,7 @@ const financialMetrics = [
     change: "+15%", 
     trend: "up",
     icon: DollarSign, 
-    color: "text-green-500",
+    color: "text-blue-900",
     description: "Multas e tributos evitados"
   },
   { 
@@ -59,7 +58,7 @@ const financialMetrics = [
     change: "+22%", 
     trend: "up",
     icon: Scale, 
-    color: "text-accent",
+    color: "text-black",
     description: "Nexo Técnico detectado"
   },
   { 
@@ -68,7 +67,7 @@ const financialMetrics = [
     change: "Estável", 
     trend: "neutral",
     icon: ShieldCheck, 
-    color: "text-blue-500",
+    color: "text-blue-800",
     description: "Eventos eSocial (S-2240)"
   },
 ]
@@ -101,7 +100,7 @@ export default function CFODashboard() {
           <Button variant="outline" className="gap-2">
             <BarChart3 className="size-4" /> Relatório Executivo
           </Button>
-          <Button className="bg-accent hover:bg-accent/90 gap-2 shadow-lg shadow-accent/20">
+          <Button className="bg-black hover:bg-black/90 text-white gap-2 shadow-lg shadow-black/20">
             <Calculator className="size-4" /> Simular RAT/FAP
           </Button>
         </div>
@@ -110,7 +109,7 @@ export default function CFODashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {financialMetrics.map((metric) => (
           <Card key={metric.label} className="card-shadow border-none overflow-hidden relative group">
-            <div className={`absolute top-0 left-0 w-1.5 h-full ${metric.color.replace('text', 'bg')}`} />
+            <div className={`absolute top-0 left-0 w-1.5 h-full bg-primary`} />
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -140,7 +139,7 @@ export default function CFODashboard() {
                 <CardTitle className="text-xl font-headline font-bold text-primary">Projeção FAP & Economia RAT</CardTitle>
                 <CardDescription>Retorno financeiro por redução de acidentalidade e gestão de nexo.</CardDescription>
               </div>
-              <TrendingDown className="size-8 text-green-500 opacity-20" />
+              <TrendingDown className="size-8 text-black opacity-20" />
             </div>
           </CardHeader>
           <CardContent>
@@ -149,8 +148,8 @@ export default function CFODashboard() {
                 <AreaChart data={fapTrendData}>
                   <defs>
                     <linearGradient id="colorEconomia" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00356B" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#00356B" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#090e24" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#090e24" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -162,7 +161,7 @@ export default function CFODashboard() {
                   <Area 
                     type="monotone" 
                     dataKey="economia" 
-                    stroke="#00356B" 
+                    stroke="#090e24" 
                     strokeWidth={4}
                     fillOpacity={1} 
                     fill="url(#colorEconomia)" 
@@ -171,9 +170,9 @@ export default function CFODashboard() {
                   <Line 
                     type="monotone" 
                     dataKey="fap" 
-                    stroke="#F77F00" 
+                    stroke="#000000" 
                     strokeWidth={3} 
-                    dot={{ r: 6, fill: "#F77F00", strokeWidth: 2, stroke: "#fff" }}
+                    dot={{ r: 6, fill: "#000000", strokeWidth: 2, stroke: "#fff" }}
                     name="Fator FAP"
                   />
                 </AreaChart>
@@ -181,8 +180,8 @@ export default function CFODashboard() {
             </div>
             <div className="mt-6 p-4 bg-primary/5 rounded-2xl flex items-center justify-between border border-primary/10">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/10 rounded-full">
-                  <ArrowUpRight className="size-5 text-green-600" />
+                <div className="p-2 bg-black/10 rounded-full">
+                  <ArrowUpRight className="size-5 text-black" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-primary">ROI Sentinel AI</p>
@@ -191,7 +190,7 @@ export default function CFODashboard() {
               </div>
               <div className="text-right">
                 <p className="text-xl font-bold text-primary">R$ 245.000,00</p>
-                <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest leading-none">Salvaguarda Direta</p>
+                <p className="text-[10px] font-bold text-black uppercase tracking-widest leading-none">Salvaguarda Direta</p>
               </div>
             </div>
           </CardContent>
@@ -212,15 +211,15 @@ export default function CFODashboard() {
                   <Radar
                     name="Atual"
                     dataKey="A"
-                    stroke="#00356B"
-                    fill="#00356B"
+                    stroke="#090e24"
+                    fill="#090e24"
                     fillOpacity={0.6}
                   />
                   <Radar
                     name="Ideal"
                     dataKey="B"
-                    stroke="#F77F00"
-                    fill="#F77F00"
+                    stroke="#000000"
+                    fill="#000000"
                     fillOpacity={0.3}
                   />
                   <Legend iconType="circle" />
@@ -232,16 +231,16 @@ export default function CFODashboard() {
           <Card className="card-shadow border-none gradient-primary text-white">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Zap className="size-5 text-accent" /> Insights de Gestão
+                <Zap className="size-5 text-white" /> Insights de Gestão
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-3 bg-white/10 rounded-xl border border-white/20">
-                <p className="text-[10px] font-black text-accent mb-1 uppercase tracking-widest">Alerta Tributário</p>
+                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Alerta Tributário</p>
                 <p className="text-xs leading-relaxed">Sua taxa de acidentalidade em 2024 está 12% abaixo da média do CNAE. Potencial bônus FAP de 0,50 para 2025.</p>
               </div>
               <div className="p-3 bg-white/10 rounded-xl border border-white/20">
-                <p className="text-[10px] font-black text-green-400 mb-1 uppercase tracking-widest">Compliance eSocial</p>
+                <p className="text-[10px] font-black text-white/80 mb-1 uppercase tracking-widest">Compliance eSocial</p>
                 <p className="text-xs leading-relaxed">Todos os eventos S-2240 do mês foram validados pela IA sem inconsistências de EPI.</p>
               </div>
             </CardContent>

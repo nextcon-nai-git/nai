@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -106,14 +105,14 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-4 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-accent flex items-center justify-center text-white font-bold shadow-lg shadow-accent/20">
+          <div className="size-9 rounded-lg bg-white flex items-center justify-center text-primary font-bold shadow-lg">
             N
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-tight">
             <span className="font-headline font-black text-white text-lg tracking-tighter">
               NEXTCON
             </span>
-            <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] -mt-1">
+            <span className="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em] -mt-1">
               SST
             </span>
           </div>
@@ -135,10 +134,10 @@ export function AppSidebar() {
                       asChild 
                       isActive={isActive}
                       tooltip={item.title}
-                      className={`hover:bg-sidebar-accent transition-all duration-200 py-6 ${isActive ? 'bg-sidebar-accent text-white border-l-4 border-accent' : ''}`}
+                      className={`hover:bg-white/10 transition-all duration-200 py-6 ${isActive ? 'bg-white/10 text-white border-l-4 border-white' : ''}`}
                     >
                       <Link href={item.href}>
-                        <Icon className={`size-5 ${isActive ? 'text-accent' : 'text-sidebar-foreground/60'}`} />
+                        <Icon className={`size-5 ${isActive ? 'text-white' : 'text-sidebar-foreground/60'}`} />
                         <span className="font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -152,10 +151,10 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-3 bg-sidebar-accent/30 rounded-xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
-              <Avatar className="size-9 border-2 border-accent/20">
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
+              <Avatar className="size-9 border-2 border-white/20">
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                <AvatarFallback>{userInitial}</AvatarFallback>
+                <AvatarFallback className="bg-primary text-white">{userInitial}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
                 <span className="text-xs font-bold text-white truncate max-w-[120px]">{userName}</span>
@@ -163,7 +162,7 @@ export function AppSidebar() {
               </div>
               <button 
                 onClick={handleLogout}
-                className="text-sidebar-foreground/50 hover:text-accent group-data-[collapsible=icon]:hidden"
+                className="text-sidebar-foreground/50 hover:text-white group-data-[collapsible=icon]:hidden"
               >
                 <LogOut className="size-4" />
               </button>
