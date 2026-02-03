@@ -2,7 +2,21 @@
 "use client"
 
 import * as React from "react"
-import { ShieldAlert, Zap, Search, CheckCircle2, Loader2, AlertTriangle, ShieldCheck, BarChart4 } from "lucide-react"
+import { 
+  ShieldAlert, 
+  Zap, 
+  Search, 
+  CheckCircle2, 
+  Loader2, 
+  AlertTriangle, 
+  ShieldCheck, 
+  BarChart4,
+  LayoutList,
+  Monitor,
+  Accessibility,
+  Ban,
+  ClipboardCheck
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,6 +29,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { riskMitigationPlanGenerator } from "@/ai/flows/risk-mitigation-plan-generator"
 import { useToast } from "@/hooks/use-toast"
 
@@ -54,6 +74,36 @@ const risks = [
   }
 ]
 
+const pgrChecklist = [
+  {
+    category: "Mobiliário e Equipamentos",
+    icon: Monitor,
+    items: [
+      "Uso de adaptador de altura para monitor e suporte para notebook.",
+      "Uso de apoio para os pés e suporte para antebraços.",
+      "Cadeira com regulagens e mesa confortável."
+    ]
+  },
+  {
+    category: "Postura e Pausas",
+    icon: Accessibility,
+    items: [
+      "Manter pescoço reto, ombros relaxados e lombar totalmente encostada na cadeira.",
+      "Evitar cruzar as pernas; mantê-las afastadas e apoiadas.",
+      "Realizar pequenas pausas, levantar-se e movimentar-se durante a jornada."
+    ]
+  },
+  {
+    category: "Proibições e Deveres",
+    icon: Ban,
+    items: [
+      "Proibido o uso de celular durante o horário de trabalho.",
+      "Proibido o consumo de bebida alcoólica durante toda a jornada (incluindo almoço).",
+      "Manter o ambiente limpo e organizado."
+    ]
+  }
+]
+
 export default function RiskManagement() {
   const [selectedRisk, setSelectedRisk] = React.useState<typeof risks[0] | null>(null)
   const [mitigationPlan, setMitigationPlan] = React.useState<string | null>(null)
@@ -65,7 +115,7 @@ export default function RiskManagement() {
     setSelectedRisk(risk)
     try {
       const result = await riskMitigationPlanGenerator({
-        identifiedRisks: `${risk.hazard} - Recomendação atual: ${risk.recommendation}`,
+        identifiedRisks: `${risk.hazard}. Contexto Nextcon: Mobiliário ergonômico, pausas NR-17 e proibição de distrações.`,
         environment: risk.environment
       })
       setMitigationPlan(result.mitigationPlan)
@@ -114,7 +164,7 @@ export default function RiskManagement() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Gestão de Riscos (NR-01 PGR)</h1>
-          <p className="text-muted-foreground">Inventário de riscos da unidade NXC SST EMPRESARIAL LTDA.</p>
+          <p className="text-muted-foreground">Inventário de riscos e diretrizes de mitigação NXC SST EMPRESARIAL LTDA.</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="bg-white border-primary text-primary font-bold px-4 h-11">
@@ -125,70 +175,104 @@ export default function RiskManagement() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-3 card-shadow border-none overflow-hidden">
-          <CardHeader className="bg-muted/30 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Inventário de Riscos Ativos</CardTitle>
-                <CardDescription>Visualização por Grupo de Exposição Similar (GES)</CardDescription>
+        <div className="lg:col-span-3 space-y-6">
+          <Card className="card-shadow border-none overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Inventário de Riscos Ativos</CardTitle>
+                  <CardDescription>Visualização por Grupo de Exposição Similar (GES)</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Badge className="bg-emerald-600 text-white border-none gap-1">
+                    <ShieldCheck className="size-3" /> 3 Riscos Mapeados
+                  </Badge>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Badge className="bg-emerald-600 text-white border-none gap-1">
-                  <ShieldCheck className="size-3" /> 3 Riscos Mapeados
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-muted/10">
-                <TableRow>
-                  <TableHead className="font-bold">GES / Setor</TableHead>
-                  <TableHead className="font-bold">Agente de Risco</TableHead>
-                  <TableHead className="font-bold text-center">Nível (PR)</TableHead>
-                  <TableHead className="font-bold">Medida de Controle</TableHead>
-                  <TableHead className="text-right font-bold">Refinar IA</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {risks.map((risk) => (
-                  <TableRow key={risk.id} className="hover:bg-primary/5 transition-colors group">
-                    <TableCell>
-                      <div>
-                        <p className="font-bold text-primary">{risk.environment}</p>
-                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">{risk.role}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[200px]">
-                      <span className="text-xs font-medium">{risk.hazard}</span>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge className="bg-emerald-600 border-none text-white text-[10px] font-black">
-                        {risk.level}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-[10px] leading-tight text-muted-foreground">
-                        {risk.recommendation}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="text-primary hover:bg-primary hover:text-white transition-all gap-2 font-bold group-hover:scale-105"
-                        onClick={() => generatePlan(risk)}
-                      >
-                        <Zap className="size-3 fill-current" />
-                        IA
-                      </Button>
-                    </TableCell>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-muted/10">
+                  <TableRow>
+                    <TableHead className="font-bold">GES / Setor</TableHead>
+                    <TableHead className="font-bold">Agente de Risco</TableHead>
+                    <TableHead className="font-bold text-center">Nível (PR)</TableHead>
+                    <TableHead className="font-bold">Medida de Controle</TableHead>
+                    <TableHead className="text-right font-bold">Refinar IA</TableHead>
                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {risks.map((risk) => (
+                    <TableRow key={risk.id} className="hover:bg-primary/5 transition-colors group">
+                      <TableCell>
+                        <div>
+                          <p className="font-bold text-primary">{risk.environment}</p>
+                          <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">{risk.role}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <span className="text-xs font-medium">{risk.hazard}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge className="bg-emerald-600 border-none text-white text-[10px] font-black">
+                          {risk.level}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <p className="text-[10px] leading-tight text-muted-foreground">
+                          {risk.recommendation}
+                        </p>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-primary hover:bg-primary hover:text-white transition-all gap-2 font-bold group-hover:scale-105"
+                          onClick={() => generatePlan(risk)}
+                        >
+                          <Zap className="size-3 fill-current" />
+                          IA
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card className="card-shadow border-none">
+            <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+              <div className="p-2 bg-primary text-white rounded-lg">
+                <ClipboardCheck className="size-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Diretrizes de Mitigação e OS</CardTitle>
+                <CardDescription>Critérios mandatórios para rotina diária e Ordens de Serviço.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {pgrChecklist.map((section) => (
+                  <div key={section.category} className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b">
+                      <section.icon className="size-4 text-primary" />
+                      <h3 className="text-xs font-black uppercase tracking-widest text-primary">{section.category}</h3>
+                    </div>
+                    <ul className="space-y-3">
+                      {section.items.map((item, idx) => (
+                        <li key={idx} className="flex gap-2 items-start">
+                          <div className="size-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                          <span className="text-xs leading-relaxed text-muted-foreground">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="space-y-6">
           <Card className="card-shadow border-none bg-white">
