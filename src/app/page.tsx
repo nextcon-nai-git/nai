@@ -10,12 +10,11 @@ import {
   Calculator,
   ArrowUpRight,
   BarChart3,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { 
-  LineChart, 
-  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -23,8 +22,13 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  BarChart,
-  Bar
+  Line,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  Legend
 } from "recharts"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -76,6 +80,15 @@ const fapTrendData = [
   { name: "2024", fap: 0.74, economia: 245000 },
 ]
 
+const riskRadarData = [
+  { subject: 'Físico', A: 120, B: 110, fullMark: 150 },
+  { subject: 'Químico', A: 98, B: 130, fullMark: 150 },
+  { subject: 'Biológico', A: 86, B: 130, fullMark: 150 },
+  { subject: 'Ergonômico', A: 99, B: 100, fullMark: 150 },
+  { subject: 'Acidente', A: 85, B: 90, fullMark: 150 },
+  { subject: 'Psicossocial', A: 65, B: 85, fullMark: 150 },
+]
+
 export default function CFODashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -88,7 +101,7 @@ export default function CFODashboard() {
           <Button variant="outline" className="gap-2">
             <BarChart3 className="size-4" /> Relatório Executivo
           </Button>
-          <Button className="bg-accent hover:bg-accent/90 gap-2">
+          <Button className="bg-accent hover:bg-accent/90 gap-2 shadow-lg shadow-accent/20">
             <Calculator className="size-4" /> Simular RAT/FAP
           </Button>
         </div>
@@ -97,19 +110,19 @@ export default function CFODashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {financialMetrics.map((metric) => (
           <Card key={metric.label} className="card-shadow border-none overflow-hidden relative group">
-            <div className={`absolute top-0 left-0 w-1 h-full ${metric.color.replace('text', 'bg')}`} />
+            <div className={`absolute top-0 left-0 w-1.5 h-full ${metric.color.replace('text', 'bg')}`} />
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{metric.label}</p>
-                  <h3 className="text-2xl font-bold tracking-tighter">{metric.value}</h3>
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{metric.label}</p>
+                  <h3 className="text-3xl font-bold tracking-tighter text-primary">{metric.value}</h3>
                 </div>
-                <div className={`p-3 rounded-xl bg-muted group-hover:bg-primary/5 transition-colors ${metric.color}`}>
+                <div className={`p-3 rounded-2xl bg-muted group-hover:bg-primary/5 transition-colors ${metric.color}`}>
                   <metric.icon className="size-5" />
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-2">
-                <Badge variant={metric.trend === 'down' ? 'secondary' : 'outline'} className="font-bold text-[10px]">
+                <Badge variant={metric.trend === 'down' ? 'secondary' : 'outline'} className="font-bold text-[10px] py-0 px-2">
                   {metric.change}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground leading-none">{metric.description}</span>
@@ -124,7 +137,7 @@ export default function CFODashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-headline font-bold">Projeção FAP & Economia RAT</CardTitle>
+                <CardTitle className="text-xl font-headline font-bold text-primary">Projeção FAP & Economia RAT</CardTitle>
                 <CardDescription>Retorno financeiro por redução de acidentalidade e gestão de nexo.</CardDescription>
               </div>
               <TrendingDown className="size-8 text-green-500 opacity-20" />
@@ -141,8 +154,8 @@ export default function CFODashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} className="text-[10px] font-bold" />
+                  <YAxis axisLine={false} tickLine={false} className="text-[10px] font-bold" />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
                   />
@@ -150,7 +163,7 @@ export default function CFODashboard() {
                     type="monotone" 
                     dataKey="economia" 
                     stroke="#00356B" 
-                    strokeWidth={3}
+                    strokeWidth={4}
                     fillOpacity={1} 
                     fill="url(#colorEconomia)" 
                     name="Economia Gerada (R$)"
@@ -166,72 +179,70 @@ export default function CFODashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-6 p-4 bg-muted/30 rounded-xl flex items-center justify-between">
+            <div className="mt-6 p-4 bg-primary/5 rounded-2xl flex items-center justify-between border border-primary/10">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/10 rounded-full">
                   <ArrowUpRight className="size-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">ROI Sentinel AI</p>
-                  <p className="text-xs text-muted-foreground">Previsão de redução tributária 2024</p>
+                  <p className="text-sm font-bold text-primary">ROI Sentinel AI</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Previsão de redução tributária 2024</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-primary">R$ 245.000,00</p>
-                <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">Salvaguarda Direta</p>
+                <p className="text-xl font-bold text-primary">R$ 245.000,00</p>
+                <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest leading-none">Salvaguarda Direta</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="card-shadow border-none gradient-primary text-white">
+          <Card className="card-shadow border-none bg-white">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calculator className="size-5 text-accent" /> Calculadora de ROI
-              </CardTitle>
+              <CardTitle className="text-lg font-headline font-bold text-primary">Radar de Exposição 360º</CardTitle>
+              <CardDescription>Distribuição de riscos ativos na planta.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Passivo Jurídico Evitado</span>
-                  <span className="font-bold">R$ 320k</span>
-                </div>
-                <Progress value={92} className="h-1.5 bg-white/20" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Redução de FAP (Tax)</span>
-                  <span className="font-bold">R$ 84k</span>
-                </div>
-                <Progress value={85} className="h-1.5 bg-white/20" />
-              </div>
-              <div className="pt-4 border-t border-white/10">
-                <p className="text-xs text-white/60 mb-1 tracking-widest uppercase">ECONOMIA NO TRIMESTRE</p>
-                <h2 className="text-4xl font-bold tracking-tighter">R$ 404k</h2>
-              </div>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={riskRadarData}>
+                  <PolarGrid stroke="#f0f0f0" />
+                  <PolarAngleAxis dataKey="subject" className="text-[10px] font-bold text-primary" />
+                  <PolarRadiusAxis angle={30} domain={[0, 150]} className="hidden" />
+                  <Radar
+                    name="Atual"
+                    dataKey="A"
+                    stroke="#00356B"
+                    fill="#00356B"
+                    fillOpacity={0.6}
+                  />
+                  <Radar
+                    name="Ideal"
+                    dataKey="B"
+                    stroke="#F77F00"
+                    fill="#F77F00"
+                    fillOpacity={0.3}
+                  />
+                  <Legend iconType="circle" />
+                </RadarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card className="card-shadow border-none">
+          <Card className="card-shadow border-none gradient-primary text-white">
             <CardHeader>
-              <CardTitle className="text-lg">Radar de Riscos eSocial</CardTitle>
-              <CardDescription>Gaps de conformidade detectados</CardDescription>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Zap className="size-5 text-accent" /> Insights de Gestão
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-100">
-                <AlertCircle className="size-5 text-red-500 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-red-900 leading-tight">12 Riscos sem ASO</p>
-                  <p className="text-[10px] text-red-700">Multa potencial eSocial: R$ 48.000</p>
-                </div>
+              <div className="p-3 bg-white/10 rounded-xl border border-white/20">
+                <p className="text-[10px] font-black text-accent mb-1 uppercase tracking-widest">Alerta Tributário</p>
+                <p className="text-xs leading-relaxed">Sua taxa de acidentalidade em 2024 está 12% abaixo da média do CNAE. Potencial bônus FAP de 0,50 para 2025.</p>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
-                <AlertCircle className="size-5 text-orange-500 shrink-0" />
-                <div>
-                  <p className="text-xs font-bold text-orange-900 leading-tight">5 NTEP não contestados</p>
-                  <p className="text-[10px] text-orange-700">Risco de aumento de FAP para 2025.</p>
-                </div>
+              <div className="p-3 bg-white/10 rounded-xl border border-white/20">
+                <p className="text-[10px] font-black text-green-400 mb-1 uppercase tracking-widest">Compliance eSocial</p>
+                <p className="text-xs leading-relaxed">Todos os eventos S-2240 do mês foram validados pela IA sem inconsistências de EPI.</p>
               </div>
             </CardContent>
           </Card>
