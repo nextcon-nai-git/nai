@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Analisador de conformidade eSocial (S-2240 vs S-2220) usando Gemini.
@@ -29,10 +28,6 @@ const EsocialAuditOutputSchema = z.object({
 });
 export type EsocialAuditOutput = z.infer<typeof EsocialAuditOutputSchema>;
 
-export async function runEsocialAudit(input: EsocialAuditInput): Promise<EsocialAuditOutput> {
-  return esocialAuditFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'esocialAuditPrompt',
   input: {schema: EsocialAuditInputSchema},
@@ -40,24 +35,39 @@ const prompt = ai.definePrompt({
   prompt: `Você é um auditor sênior de SST e eSocial. Analise o cruzamento entre os Riscos do PGR e os Exames do PCMSO para o setor {{{sector}}}.
 
 DADOS:
-- Riscos Identificados: {{#each riskList}} - {{{this}}} {{/each}}
-- Exames Encontrados: {{#each examList}} - {{{this}}} {{/each}}
+- Riscos Identificados: 
+{{#each riskList}} 
+- {{this}} 
+{{/each}}
+
+- Exames Encontrados: 
+{{#each examList}} 
+- {{this}} 
+{{/each}}
 
 INSTRUÇÕES:
-1. Identifique se existe algum risco que exige um exame obrigatório pela NR-07 (ex: Ruído exige Audiometria, Poeiras exigem RX Tórax).
-2. Se o exame estiver faltando, aponte como "Gap Crítico".
-3. Calcule o Score de Compliance (100% se todos os riscos tiverem exames correspondentes).
-4. Cite o impacto jurídico (multas eSocial) no campo legalImpact.`,
+1. Verifique se os riscos identificados (Ruído, Poeira, Fumos, etc) possuem os exames médicos correspondentes exigidos pela NR-07.
+2. Se faltar um exame obrigatório para um risco específico, liste como um gap crítico.
+3. Estipule o impacto jurídico baseado nas multas do eSocial.
+4. Forneça um Insight Estratégico para o gestor de SST.
+5. Calcule o Score de Compliance (0-100).`,
 });
 
-const esocialAuditFlow = ai.defineFlow(
+export async function runEsocialAudit(input: EsocialAuditInput): Promise<EsocialAuditOutput> {
+  const {output} = await prompt(input);
+  if (!output) {
+    throw new Error('A IA não retornou um relatório válido.');
+  }
+  return output;
+}
+
+ai.defineFlow(
   {
     name: 'esocialAuditFlow',
     inputSchema: EsocialAuditInputSchema,
     outputSchema: EsocialAuditOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    return runEsocialAudit(input);
   }
 );
