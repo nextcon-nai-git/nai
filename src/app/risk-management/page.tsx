@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { ShieldAlert, Zap, Search, CheckCircle2, Loader2 } from "lucide-react"
+import { ShieldAlert, Zap, Search, CheckCircle2, Loader2, AlertTriangle, ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -19,10 +19,10 @@ import { riskMitigationPlanGenerator } from "@/ai/flows/risk-mitigation-plan-gen
 import { useToast } from "@/hooks/use-toast"
 
 const risks = [
-  { id: 1, role: "Soldador", hazard: "Fumos Metálicos e UV", probability: 3, severity: 4, level: "Alto", environment: "Oficina de Metalurgia" },
-  { id: 2, role: "Auxiliar de Almoxarifado", hazard: "Ergonômico (Levantamento de Peso)", probability: 4, severity: 2, level: "Médio", environment: "Hub Logístico" },
-  { id: 3, role: "Assistente Administrativo", hazard: "L.E.R./D.O.R.T.", probability: 2, severity: 1, level: "Baixo", environment: "Escritório Central" },
-  { id: 4, role: "Motorista de Caminhão", hazard: "Vibração de Corpo Inteiro", probability: 3, severity: 3, level: "Médio", environment: "Transporte Pesado" },
+  { id: 1, role: "Soldador", hazard: "Fumos Metálicos e UV", probability: 3, severity: 4, level: "Alto", environment: "Oficina de Metalurgia", esocialStatus: "Bloqueado" },
+  { id: 2, role: "Auxiliar de Almoxarifado", hazard: "Ergonômico (Levantamento de Peso)", probability: 4, severity: 2, level: "Médio", environment: "Hub Logístico", esocialStatus: "Validado" },
+  { id: 3, role: "Assistente Administrativo", hazard: "L.E.R./D.O.R.T.", probability: 2, severity: 1, level: "Baixo", environment: "Escritório Central", esocialStatus: "Validado" },
+  { id: 4, role: "Motorista de Caminhão", hazard: "Vibração de Corpo Inteiro", probability: 3, severity: 3, level: "Médio", environment: "Transporte Pesado", esocialStatus: "Validado" },
 ]
 
 export default function RiskManagement() {
@@ -79,9 +79,9 @@ export default function RiskManagement() {
   return (
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+        <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-primary">Gestão de Riscos (PGR)</h1>
-          <p className="text-muted-foreground">Matriz de riscos e estratégias de mitigação conforme NR-01.</p>
+          <p className="text-muted-foreground">Inventário de riscos e sincronização automática com o eSocial S-2240.</p>
         </div>
         <div className="flex items-center gap-2">
           <Input placeholder="Filtrar por cargo..." className="w-64" />
@@ -91,34 +91,58 @@ export default function RiskManagement() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="lg:col-span-3 card-shadow border-none">
-          <CardHeader>
-            <CardTitle className="text-lg">Inventário de Riscos</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Inventário de Riscos Ativos</CardTitle>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="text-emerald-600 bg-emerald-50 border-emerald-100 gap-1">
+                <ShieldCheck className="size-3" /> 142 Validados
+              </Badge>
+              <Badge variant="outline" className="text-red-600 bg-red-50 border-red-100 gap-1">
+                <AlertTriangle className="size-3" /> 15 Bloqueados
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead>Cargo</TableHead>
+                  <TableHead>Cargo / GHE</TableHead>
                   <TableHead>Perigo Identificado</TableHead>
-                  <TableHead className="text-center">Prob.</TableHead>
-                  <TableHead className="text-center">Grav.</TableHead>
-                  <TableHead>Nível de Risco</TableHead>
+                  <TableHead className="text-center">Matriz</TableHead>
+                  <TableHead>Nível</TableHead>
+                  <TableHead>Status Vigilante</TableHead>
                   <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {risks.map((risk) => (
                   <TableRow key={risk.id}>
-                    <TableCell className="font-medium">{risk.role}</TableCell>
-                    <TableCell>{risk.hazard}</TableCell>
-                    <TableCell className="text-center">{risk.probability}</TableCell>
-                    <TableCell className="text-center">{risk.severity}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-bold text-primary">{risk.role}</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black">GHE-00{risk.id}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[200px] text-sm">{risk.hazard}</TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-xs font-bold text-muted-foreground">{risk.probability}x{risk.severity}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Badge 
                         variant={risk.level === 'Alto' ? 'destructive' : risk.level === 'Médio' ? 'default' : 'secondary'}
                         className={risk.level === 'Médio' ? 'bg-accent hover:bg-accent/90' : ''}
                       >
                         {risk.level}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={`gap-1 ${risk.esocialStatus === 'Bloqueado' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'} border-none`}
+                      >
+                        {risk.esocialStatus === 'Bloqueado' ? <AlertTriangle className="size-3" /> : <ShieldCheck className="size-3" />}
+                        {risk.esocialStatus}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -150,6 +174,12 @@ export default function RiskManagement() {
               <span>Risco Baixo</span>
               <span>Risco Crítico</span>
             </div>
+            <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/10">
+               <p className="text-[10px] font-black text-primary uppercase mb-2">Atenção eSocial</p>
+               <p className="text-xs text-primary/80 leading-relaxed">
+                 Riscos de nível <span className="font-bold">Alto</span> sem mitigação (EPI) ou exame médico bloqueiam automaticamente o envio S-2240 via Módulo Vigilante.
+               </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -176,7 +206,7 @@ export default function RiskManagement() {
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="secondary" size="sm" className="gap-2">
-                    <CheckCircle2 className="size-3" /> Salvar no PGR
+                    <CheckCircle2 className="size-3" /> Salvar no PGR e Sincronizar eSocial
                   </Button>
                 </div>
               </div>
