@@ -51,8 +51,33 @@ export default function RiskManagement() {
     }
   }
 
+  const RiskMatrix = React.useMemo(() => {
+    return (
+      <div className="grid grid-cols-5 gap-1 aspect-square w-full">
+        {Array.from({ length: 25 }).map((_, i) => {
+          const row = Math.floor(i / 5);
+          const col = i % 5;
+          const intensity = (4 - row) + col;
+          let bgClass = "bg-green-100";
+          if (intensity > 6) bgClass = "bg-red-500";
+          else if (intensity > 4) bgClass = "bg-orange-400";
+          else if (intensity > 2) bgClass = "bg-yellow-300";
+
+          return (
+            <div 
+              key={i} 
+              className={`${bgClass} rounded-sm flex items-center justify-center text-[8px] font-bold text-black/40`}
+            >
+              {intensity}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }, []);
+
   return (
-    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary">Gestão de Riscos (PGR)</h1>
@@ -120,26 +145,7 @@ export default function RiskManagement() {
             <CardDescription>Probabilidade vs Gravidade</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-5 gap-1 aspect-square w-full">
-              {Array.from({ length: 25 }).map((_, i) => {
-                const row = Math.floor(i / 5);
-                const col = i % 5;
-                const intensity = (4-row) + col;
-                let bgClass = "bg-green-100";
-                if (intensity > 6) bgClass = "bg-red-500";
-                else if (intensity > 4) bgClass = "bg-orange-400";
-                else if (intensity > 2) bgClass = "bg-yellow-300";
-
-                return (
-                  <div 
-                    key={i} 
-                    className={`${bgClass} rounded-sm flex items-center justify-center text-[8px] font-bold text-black/40`}
-                  >
-                    {intensity}
-                  </div>
-                )
-              })}
-            </div>
+            {RiskMatrix}
             <div className="mt-4 flex justify-between text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">
               <span>Risco Baixo</span>
               <span>Risco Crítico</span>
@@ -164,7 +170,7 @@ export default function RiskManagement() {
                 <p className="text-sm">Analisando ambiente de trabalho e normas regulamentadoras...</p>
               </div>
             ) : (
-              <div className="space-y-4 animate-in fade-in duration-700">
+              <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="bg-white/10 p-4 rounded-lg border border-white/20 whitespace-pre-wrap leading-relaxed text-sm">
                   {mitigationPlan}
                 </div>

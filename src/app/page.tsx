@@ -49,15 +49,18 @@ const esgData = [
 ]
 
 export default function Dashboard() {
+  const memoStats = React.useMemo(() => stats, []);
+  const memoEsgData = React.useMemo(() => esgData, []);
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-300">
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-headline font-bold text-primary">Visão Geral Operacional</h1>
         <p className="text-muted-foreground">Bem-vindo de volta, aqui está o resumo do dia no SST.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {memoStats.map((stat) => (
           <Card key={stat.label} className="card-shadow border-none">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -126,7 +129,7 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-4">
-              {esgData.map((item) => (
+              {memoEsgData.map((item) => (
                 <div key={item.name} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="flex items-center gap-1.5">
