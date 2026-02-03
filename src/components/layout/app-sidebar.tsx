@@ -42,6 +42,7 @@ const navItems = [
     label: "Agência Nextcon",
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
+      { title: "Colaboradores", icon: Users, href: "/employees" },
       { title: "Módulo de Importação", icon: Database, href: "/data-import" },
     ]
   },
