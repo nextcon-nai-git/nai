@@ -2,9 +2,11 @@
 "use client"
 
 import * as React from "react"
-import { Upload, FileText, CheckCircle2, AlertTriangle, X, Database } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Upload, FileText, CheckCircle2, AlertTriangle, X, Database, ClipboardPaste, Save, Loader2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
 import { doc, collection, writeBatch } from "firebase/firestore"
@@ -15,6 +17,7 @@ export default function DataImport() {
   const db = useFirestore()
   const [dragActive, setDragActive] = React.useState(false)
   const [file, setFile] = React.useState<File | null>(null)
+  const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
 
   const handleDrag = (e: React.DragEvent) => {
@@ -45,15 +48,71 @@ export default function DataImport() {
     }
   }
 
-  // Simulação de semente de dados real vinculada ao UID do usuário
+  const processCSV = async (text: string) => {
+    if (!user || !db) return
+    setUploading(true)
+
+    try {
+      const lines = text.split('\n').filter(line => line.trim() !== '')
+      if (lines.length < 2) throw new Error("O CSV deve conter cabeçalho e pelo menos uma linha de dados.")
+
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+      const batch = writeBatch(db)
+
+      // Criar documento do cliente se não existir
+      const clientRef = doc(db, "clients", user.uid)
+      batch.set(clientRef, {
+        id: user.uid,
+        updatedAt: new Date().toISOString()
+      }, { merge: true })
+
+      lines.slice(1).forEach((line, index) => {
+        const values = line.split(',').map(v => v.trim())
+        const data: any = { clientId: user.uid, id: `imp_${index}_${Date.now()}` }
+        
+        headers.forEach((header, i) => {
+          // Mapeamento inteligente de campos
+          if (header.includes('nome')) data.name = values[i]
+          if (header.includes('cargo') || header.includes('função')) data.jobRole = values[i]
+          if (header.includes('data') || header.includes('admissão')) data.admissionDate = values[i]
+          if (header.includes('cpf') || header.includes('id')) data.employeeId = values[i]
+        })
+
+        if (data.name) {
+          const empRef = doc(db, "clients", user.uid, "employees", data.id)
+          batch.set(empRef, data)
+        }
+      })
+
+      await batch.commit()
+      toast({
+        title: "Importação Concluída",
+        description: `${lines.length - 1} registros foram processados com sucesso.`
+      })
+      setPastedData("")
+      setFile(null)
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro no Processamento",
+        description: error.message || "Verifique o formato do seu CSV."
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileUpload = async () => {
+    if (!file) return
+    const text = await file.text()
+    processCSV(text)
+  }
+
   const seedDemoData = async () => {
     if (!user || !db) return
-
     setUploading(true)
     try {
       const batch = writeBatch(db)
-      
-      // Criar documento do cliente
       const clientRef = doc(db, "clients", user.uid)
       batch.set(clientRef, {
         id: user.uid,
@@ -63,11 +122,10 @@ export default function DataImport() {
         contactEmail: user.email
       })
 
-      // Criar alguns funcionários
       const employees = [
-        { id: "emp1", name: "João Silva", jobRole: "Soldador", admissionDate: "10/01/2023" },
-        { id: "emp2", name: "Maria Oliveira", jobRole: "Engenheira de Segurança", admissionDate: "15/03/2022" },
-        { id: "emp3", name: "Carlos Santos", jobRole: "Auxiliar Administrativo", admissionDate: "05/06/2024" }
+        { id: "emp1", name: "João Silva", jobRole: "Soldador", admissionDate: "2023-01-10" },
+        { id: "emp2", name: "Maria Oliveira", jobRole: "Engenheira de Segurança", admissionDate: "2022-03-15" },
+        { id: "emp3", name: "Carlos Santos", jobRole: "Auxiliar Administrativo", admissionDate: "2024-06-05" }
       ]
 
       employees.forEach(emp => {
@@ -76,117 +134,136 @@ export default function DataImport() {
       })
 
       await batch.commit()
-
-      toast({
-        title: "Dados Gerados!",
-        description: "Dados de demonstração foram vinculados ao seu perfil com sucesso."
-      })
+      toast({ title: "Dados Gerados!", description: "Estrutura demo criada com sucesso." })
     } catch (error) {
-      console.error(error)
-      toast({
-        variant: "destructive",
-        title: "Erro ao inicializar",
-        description: "Verifique suas regras de segurança no Firestore."
-      })
+      toast({ variant: "destructive", title: "Erro", description: "Falha ao inicializar dados." })
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-headline font-bold text-primary">Importação de Dados</h1>
-        <p className="text-muted-foreground">Povoar as coleções do sistema rapidamente através de arquivos CSV ou dados de demonstração.</p>
+    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-end">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-headline font-bold text-primary">Importação de Dados</h1>
+          <p className="text-muted-foreground text-sm">Povoar as coleções do sistema rapidamente através de CSV ou dados reais.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={seedDemoData} disabled={uploading} className="gap-2">
+          <Database className="size-4" /> Gerar Dados Demo
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <Card className="card-shadow border-none hover:bg-primary/5 transition-colors cursor-pointer group p-6" onClick={seedDemoData}>
-           <div className="flex flex-col items-center text-center gap-4">
-              <div className="p-4 rounded-full bg-primary/10 text-primary">
-                <Database className="size-8" />
-              </div>
-              <div>
-                <h3 className="font-bold">Inicializar Dados de Teste</h3>
-                <p className="text-sm text-muted-foreground">Clique aqui para criar uma estrutura básica para o seu UID ({user?.uid.substring(0,8)}...)</p>
-              </div>
-              <Button variant="outline" disabled={uploading} className="w-full">
-                {uploading ? "Gerando..." : "Gerar Estrutura Demo"}
-              </Button>
-           </div>
-        </Card>
+      <Tabs defaultValue="paste" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-xl h-12">
+          <TabsTrigger value="paste" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <ClipboardPaste className="size-4 mr-2" /> Colar Planilha
+          </TabsTrigger>
+          <TabsTrigger value="upload" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <Upload className="size-4 mr-2" /> Upload de Arquivo
+          </TabsTrigger>
+        </TabsList>
 
-        <Card className="card-shadow border-none p-6">
-           <div className="flex flex-col items-center text-center gap-4">
-              <div className="p-4 rounded-full bg-secondary/20 text-primary">
-                <FileText className="size-8" />
-              </div>
-              <div>
-                <h3 className="font-bold">Modelos CSV</h3>
-                <p className="text-sm text-muted-foreground">Baixe os templates para importar seus próprios dados.</p>
-              </div>
-              <div className="flex gap-2 w-full">
-                <Button variant="link" size="sm" className="flex-1">Clientes.csv</Button>
-                <Button variant="link" size="sm" className="flex-1">Funcionarios.csv</Button>
-              </div>
-           </div>
-        </Card>
-      </div>
-
-      <Card 
-        className={`card-shadow border-2 border-dashed transition-all ${dragActive ? 'border-accent bg-accent/5' : 'border-muted'}`}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-      >
-        <CardContent className="py-16">
-          <div className="flex flex-col items-center justify-center gap-4">
-            {!file ? (
-              <>
-                <div className="p-6 rounded-full bg-muted text-muted-foreground">
-                  <Upload className="size-12" />
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-headline font-bold">Arraste e solte seu arquivo aqui</p>
-                  <p className="text-sm text-muted-foreground">ou clique para procurar no seu computador</p>
-                </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  id="file-upload" 
-                  accept=".csv"
-                  onChange={(e) => e.target.files && setFile(e.target.files[0])}
-                />
-                <Button asChild variant="outline">
-                  <label htmlFor="file-upload" className="cursor-pointer">Selecionar Arquivo CSV</label>
-                </Button>
-              </>
-            ) : (
-              <div className="w-full max-w-sm space-y-6">
-                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
-                  <div className="flex items-center gap-3">
-                    <FileText className="size-8 text-primary" />
-                    <div>
-                      <p className="text-sm font-bold">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setFile(null)} className="text-muted-foreground hover:text-red-500">
-                    <X className="size-5" />
-                  </button>
-                </div>
+        <TabsContent value="paste" className="mt-6">
+          <Card className="card-shadow border-none">
+            <CardHeader>
+              <CardTitle className="text-lg">Colar do Excel / CSV</CardTitle>
+              <CardDescription>Cole o conteúdo da sua planilha abaixo. Certifique-se de que a primeira linha contém os nomes das colunas.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea 
+                placeholder="nome, cargo, data_admissao&#10;João Silva, Soldador, 2023-05-12&#10;Maria Santos, Tec. Segurança, 2024-01-10"
+                className="min-h-[300px] font-mono text-xs bg-muted/20 border-none focus-visible:ring-accent"
+                value={pastedData}
+                onChange={(e) => setPastedData(e.target.value)}
+              />
+              <div className="flex justify-end gap-3">
+                <Button variant="ghost" onClick={() => setPastedData("")} disabled={uploading}>Limpar</Button>
                 <Button 
-                  className="w-full bg-accent hover:bg-accent/90 py-6 text-lg font-bold"
-                  disabled={uploading}
+                  className="bg-accent hover:bg-accent/90 gap-2 px-8" 
+                  disabled={!pastedData || uploading}
+                  onClick={() => processCSV(pastedData)}
                 >
-                  {uploading ? "Processando..." : "Importar Dados Agora"}
+                  {uploading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  Processar e Salvar no Firestore
                 </Button>
               </div>
-            )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="upload" className="mt-6">
+          <Card 
+            className={`card-shadow border-2 border-dashed transition-all ${dragActive ? 'border-accent bg-accent/5' : 'border-muted'}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <CardContent className="py-20">
+              <div className="flex flex-col items-center justify-center gap-4">
+                {!file ? (
+                  <>
+                    <div className="p-6 rounded-full bg-muted text-muted-foreground group-hover:bg-primary/5 transition-colors">
+                      <Upload className="size-12" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-headline font-bold">Arraste seu arquivo CSV</p>
+                      <p className="text-sm text-muted-foreground">ou clique para selecionar do computador</p>
+                    </div>
+                    <input type="file" className="hidden" id="file-upload" accept=".csv" onChange={(e) => e.target.files && setFile(e.target.files[0])} />
+                    <Button asChild variant="outline">
+                      <label htmlFor="file-upload" className="cursor-pointer">Selecionar Arquivo</label>
+                    </Button>
+                  </>
+                ) : (
+                  <div className="w-full max-w-md space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
+                      <div className="flex items-center gap-3">
+                        <FileText className="size-8 text-primary" />
+                        <div>
+                          <p className="text-sm font-bold">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setFile(null)} className="text-muted-foreground hover:text-red-500">
+                        <X className="size-5" />
+                      </button>
+                    </div>
+                    <Button className="w-full bg-accent hover:bg-accent/90 py-6 text-lg font-bold" disabled={uploading} onClick={handleFileUpload}>
+                      {uploading ? <Loader2 className="size-5 animate-spin" /> : "Iniciar Importação"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
+          <AlertTriangle className="size-5 text-blue-600 mt-1" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-blue-900">Formato Esperado</p>
+            <p className="text-[10px] text-blue-800 leading-tight">Use vírgulas como separador. O sistema reconhece automaticamente colunas como: nome, cargo, função, admissão e cpf.</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="size-5 text-emerald-600 mt-1" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-emerald-900">Destino Seguro</p>
+            <p className="text-[10px] text-emerald-800 leading-tight">Os dados serão salvos na sua coleção privada (/clients/{user?.uid.substring(0,6)}.../employees).</p>
+          </div>
+        </div>
+        <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
+          <Database className="size-5 text-amber-600 mt-1" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-amber-900">Performance</p>
+            <p className="text-[10px] text-amber-800 leading-tight">Para grandes volumes (mais de 500 linhas), recomendamos usar a aba de upload de arquivo.</p>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
