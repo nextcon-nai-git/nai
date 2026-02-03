@@ -14,7 +14,8 @@ import {
   Gavel,
   FileUp,
   X,
-  HeartPulse
+  HeartPulse,
+  UserCircle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
-import { doc, writeBatch } from "firebase/firestore"
+import { doc, writeBatch, setDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 type ImportType = 'companies' | 'employees' | 'suppliers' | 'expertises' | 'exams'
@@ -36,6 +37,39 @@ export default function UnifiedImportCenter() {
   const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
   const [isDragging, setIsDragging] = React.useState(false)
+
+  // Função para configurar o perfil do usuário logado (Pablo, Kelly, etc)
+  const setupMyProfile = async () => {
+    if (!user || !db) return
+    setUploading(true)
+    
+    let name = "Usuário Nextcon"
+    let role = "Consultor"
+
+    if (user.email?.includes('relacionamento')) { name = "Pablo"; role = "Comercial" }
+    if (user.email?.includes('sso')) { name = "Kelly"; role = "Admin" }
+    if (user.email?.includes('nextcon@')) { name = "Rodrigo Silva"; role = "Consultor HSE" }
+
+    try {
+      await setDoc(doc(db, "clients", user.uid), {
+        id: user.uid,
+        name,
+        role,
+        email: user.email,
+        company: "Nextcon",
+        updatedAt: new Date().toISOString()
+      }, { merge: true })
+
+      toast({
+        title: "Perfil Configurado",
+        description: `Bem-vindo, ${name}! Seu perfil foi atualizado no sistema.`
+      })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro ao configurar perfil" })
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -95,7 +129,6 @@ export default function UnifiedImportCenter() {
       const batch = writeBatch(db)
       let count = 0
 
-      // Processa em blocos de 500 (limite do Firestore batch)
       const dataRows = lines.slice(1)
       
       dataRows.forEach((line, index) => {
@@ -111,7 +144,6 @@ export default function UnifiedImportCenter() {
           const val = values[i]
           if (!val) return
 
-          // Mapeamento Inteligente
           if (header.includes('nome') || header.includes('razão') || header.includes('empresa')) data.name = val
           if (header.includes('processo') || header.includes('número')) data.caseNumber = val
           if (header.includes('evento')) data.id = val
@@ -177,11 +209,7 @@ export default function UnifiedImportCenter() {
       })
       setPastedData("")
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro no Processamento",
-        description: error.message
-      })
+      toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
     } finally {
       setUploading(false)
     }
@@ -205,13 +233,11 @@ export default function UnifiedImportCenter() {
           <p className="text-muted-foreground">Arraste seus arquivos CSV ou cole os dados diretamente.</p>
         </div>
         <div className="flex gap-2">
-          <input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            accept=".csv,.txt"
-            onChange={handleFileSelect}
-          />
+          <Button variant="outline" className="gap-2 border-accent text-accent" onClick={setupMyProfile} disabled={uploading}>
+            {uploading ? <Loader2 className="size-4 animate-spin" /> : <UserCircle className="size-4" />}
+            Configurar Meu Perfil
+          </Button>
+          <input type="file" id="file-upload" className="hidden" accept=".csv,.txt" onChange={handleFileSelect} />
           <Button variant="outline" className="gap-2" asChild>
             <label htmlFor="file-upload" className="cursor-pointer">
               <FileUp className="size-4" /> Selecionar Arquivo
@@ -247,8 +273,8 @@ export default function UnifiedImportCenter() {
                   {activeTab === 'expertises' ? <Gavel /> : activeTab === 'exams' ? <HeartPulse /> : <Upload />}
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Importar {activeTab === 'expertises' ? 'Perícias Judiciais' : activeTab === 'exams' ? 'Exames PCMSO' : 'Dados'}</CardTitle>
-                  <CardDescription>O sistema processa CSV, TXT e colagens do Excel.</CardDescription>
+                  <CardTitle className="text-xl">Importar {activeTab === 'expertises' ? 'Perícias' : activeTab === 'exams' ? 'Exames' : 'Dados'}</CardTitle>
+                  <CardDescription>Processamento de CSV e colagens do Excel.</CardDescription>
                 </div>
               </div>
               {pastedData && (

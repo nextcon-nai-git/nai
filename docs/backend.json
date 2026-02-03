@@ -2,12 +2,15 @@
 {
   "entities": {
     "Agency": {
-      "title": "Agência Nextcon",
+      "title": "Perfil de Usuário (Agência)",
       "type": "object",
-      "description": "Dados da agência de SST que gerencia múltiplos clientes.",
+      "description": "Dados do usuário/agência logado no sistema.",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string" }
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string" },
+        "company": { "type": "string" }
       },
       "required": ["id", "name"]
     },
@@ -87,7 +90,7 @@
   "firestore": {
     "/clients/{agencyId}": {
       "schema": "Agency",
-      "description": "Perfil da agência logada."
+      "description": "Perfil da agência/usuário logado."
     },
     "/clients/{agencyId}/managedCompanies/{companyId}": {
       "schema": "ManagedCompany",

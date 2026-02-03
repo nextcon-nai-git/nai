@@ -34,8 +34,9 @@ import {
   SidebarGroupLabel,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useAuth } from "@/firebase"
+import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
 import { signOut } from "firebase/auth"
+import { doc } from "firebase/firestore"
 
 const navItems = [
   {
@@ -80,12 +81,26 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname()
   const auth = useAuth()
+  const db = useFirestore()
+  const { user } = useUser()
   const router = useRouter()
+
+  // Busca perfil dinâmico do Firestore
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, "clients", user.uid)
+  }, [db, user])
+
+  const { data: profile } = useDoc(profileRef)
 
   const handleLogout = async () => {
     await signOut(auth)
     router.push("/login")
   }
+
+  const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
+  const userRole = profile?.role || "Equipe Nextcon"
+  const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -139,12 +154,12 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <div className="flex items-center gap-3 p-3 bg-sidebar-accent/30 rounded-xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
               <Avatar className="size-9 border-2 border-accent/20">
-                <AvatarImage src="https://picsum.photos/seed/user1/40/40" />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
+                <AvatarFallback>{userInitial}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
-                <span className="text-xs font-bold text-white">Rodrigo Silva</span>
-                <span className="text-[10px] text-sidebar-foreground/70">Consultor HSE</span>
+                <span className="text-xs font-bold text-white truncate max-w-[120px]">{userName}</span>
+                <span className="text-[10px] text-sidebar-foreground/70 truncate max-w-[120px] uppercase font-bold">{userRole}</span>
               </div>
               <button 
                 onClick={handleLogout}
