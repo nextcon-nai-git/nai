@@ -15,7 +15,10 @@ import {
   PieChart,
   LogOut,
   TrendingUp,
-  SearchCheck
+  SearchCheck,
+  Camera,
+  Activity,
+  AlertTriangle
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -43,25 +46,26 @@ const navItems = [
     ]
   },
   {
+    label: "Sentinelas de Risco",
+    items: [
+      { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Termômetro Burnout", icon: Activity, href: "/psychosocial" },
+    ]
+  },
+  {
     label: "Operacional (SST)",
     items: [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
+      { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
       { title: "Colaboradores", icon: Users, href: "/employees" },
     ]
   },
   {
     label: "Gestão de Ação",
     items: [
-      { title: "Planos de Ação (Kanban)", icon: CheckSquare, href: "/action-plans" },
+      { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
       { title: "Importação CSV", icon: Upload, href: "/data-import" },
-    ]
-  },
-  {
-    label: "Configurações",
-    items: [
-      { title: "Indicadores ESG", icon: PieChart, href: "/esg" },
-      { title: "Ajustes do Sistema", icon: Settings, href: "/settings" },
     ]
   }
 ]
