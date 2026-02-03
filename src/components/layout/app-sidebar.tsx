@@ -41,7 +41,7 @@ const navItems = [
     label: "Agência Nextcon",
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
-      { title: "Gestão de Clientes", icon: Building2, href: "/data-import" },
+      { title: "Gestão de Clientes", icon: Building2, href: "/agency/clients" },
     ]
   },
   {
@@ -65,7 +65,8 @@ const navItems = [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Colaboradores", icon: "/employees", iconRef: Users, href: "/employees" },
+      { title: "Colaboradores", icon: Users, href: "/employees" },
+      { title: "Importar Dados", icon: Upload, href: "/data-import" },
     ]
   },
   {
@@ -112,7 +113,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {group.items.map((item) => {
                 const isActive = pathname === item.href
-                const Icon = item.iconRef || item.icon
+                const Icon = item.icon
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
