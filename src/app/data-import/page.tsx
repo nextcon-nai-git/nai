@@ -13,7 +13,8 @@ import {
   Stethoscope, 
   Gavel,
   FileUp,
-  X
+  X,
+  HeartPulse
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,7 @@ import { useUser, useFirestore } from "@/firebase"
 import { doc, writeBatch } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
-type ImportType = 'companies' | 'employees' | 'suppliers' | 'expertises'
+type ImportType = 'companies' | 'employees' | 'suppliers' | 'expertises' | 'exams'
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
@@ -94,7 +95,10 @@ export default function UnifiedImportCenter() {
       const batch = writeBatch(db)
       let count = 0
 
-      lines.slice(1).forEach((line, index) => {
+      // Processa em blocos de 500 (limite do Firestore batch)
+      const dataRows = lines.slice(1)
+      
+      dataRows.forEach((line, index) => {
         const values = line.split(separator).map(v => v.trim())
         if (values.length < 1) return
 
@@ -110,25 +114,27 @@ export default function UnifiedImportCenter() {
           // Mapeamento Inteligente
           if (header.includes('nome') || header.includes('razão') || header.includes('empresa')) data.name = val
           if (header.includes('processo') || header.includes('número')) data.caseNumber = val
+          if (header.includes('evento')) data.id = val
           
           if (activeTab === 'companies') {
             if (header.includes('setor')) data.sector = val
             if (header.includes('email')) data.contactEmail = val
             if (header.includes('cnpj')) data.cnpj = val.replace(/[^\w]/gi, '')
-            data.id = data.cnpj || `comp_${index}_${Date.now()}`
+            if (!data.id) data.id = data.cnpj || `comp_${index}_${Date.now()}`
           }
           
           if (activeTab === 'employees') {
             if (header.includes('cargo')) data.jobRole = val
             if (header.includes('admissão')) data.admissionDate = val
-            if (header.includes('unidade')) data.companyId = val
-            data.id = val.replace(/[^\w]/gi, '') || `emp_${index}_${Date.now()}`
+            if (header.includes('unidade') || header.includes('empresa')) data.companyId = val
+            if (header.includes('id_colaborador') || header.includes('matrícula')) data.id = val
+            if (!data.id) data.id = `emp_${index}_${Date.now()}`
           }
 
           if (activeTab === 'suppliers') {
             if (header.includes('serviço')) data.serviceType = val
             if (header.includes('cidade')) data.city = val
-            data.id = `sup_${index}_${Date.now()}`
+            if (!data.id) data.id = `sup_${index}_${Date.now()}`
           }
 
           if (activeTab === 'expertises') {
@@ -136,7 +142,18 @@ export default function UnifiedImportCenter() {
             if (header.includes('data')) data.date = val
             if (header.includes('status')) data.status = val
             if (header.includes('empresa')) data.companyId = val
-            data.id = data.caseNumber?.replace(/[^\w]/gi, '') || `exp_${index}_${Date.now()}`
+            if (!data.id) data.id = data.caseNumber?.replace(/[^\w]/gi, '') || `exp_${index}_${Date.now()}`
+          }
+
+          if (activeTab === 'exams') {
+            if (header.includes('colaborador')) data.employeeId = val
+            if (header.includes('tipo')) data.type = val
+            if (header.includes('data_realizacao') || header.includes('realização')) data.date = val
+            if (header.includes('data_validade') || header.includes('validade')) data.validity = val
+            if (header.includes('apto_inapto') || header.includes('resultado')) data.result = val
+            if (header.includes('status')) data.status = val
+            if (header.includes('médico') || header.includes('medico')) data.doctor = val
+            if (!data.id) data.id = `exam_${index}_${Date.now()}`
           }
         })
 
@@ -145,7 +162,8 @@ export default function UnifiedImportCenter() {
         const collectionPath = 
           activeTab === 'companies' ? "managedCompanies" : 
           activeTab === 'employees' ? "employees" : 
-          activeTab === 'suppliers' ? "suppliers" : "legalExpertises"
+          activeTab === 'suppliers' ? "suppliers" : 
+          activeTab === 'expertises' ? "legalExpertises" : "medicalExams"
 
         const docRef = doc(db, "clients", user.uid, collectionPath, data.id)
         batch.set(docRef, data, { merge: true })
@@ -175,6 +193,7 @@ export default function UnifiedImportCenter() {
       case 'employees': return "Nome, Cargo, Matrícula, Admissão\nJoão Silva, Soldador, 12345, 10/05/2023"
       case 'suppliers': return "Nome, Especialidade, Cidade\nClínica Saúde, Audiometria, São Paulo"
       case 'expertises': return "Processo, Tipo, Data, Status, Empresa\n4829/2024, Insalubridade, 2024-05-20, Agendado, Metalúrgica Silva"
+      case 'exams': return "ID_Evento, ID_Colaborador, Tipo_Exame, Data_Realizacao, Status\nEXA100, COL1001, Admissional, 14/01/2026, Concluído"
     }
   }
 
@@ -202,7 +221,7 @@ export default function UnifiedImportCenter() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ImportType)} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
+        <TabsList className="grid w-full grid-cols-5 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="companies" className="rounded-lg">
             <Building2 className="size-4 mr-2" /> 1. Empresas
           </TabsTrigger>
@@ -215,6 +234,9 @@ export default function UnifiedImportCenter() {
           <TabsTrigger value="expertises" className="rounded-lg">
             <Gavel className="size-4 mr-2" /> 4. Perícias
           </TabsTrigger>
+          <TabsTrigger value="exams" className="rounded-lg">
+            <HeartPulse className="size-4 mr-2" /> 5. Exames
+          </TabsTrigger>
         </TabsList>
 
         <Card className="mt-6 card-shadow border-none">
@@ -222,10 +244,10 @@ export default function UnifiedImportCenter() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-accent/10 rounded-xl text-accent">
-                  {activeTab === 'expertises' ? <Gavel /> : <Upload />}
+                  {activeTab === 'expertises' ? <Gavel /> : activeTab === 'exams' ? <HeartPulse /> : <Upload />}
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Importar {activeTab === 'expertises' ? 'Perícias Judiciais' : 'Dados'}</CardTitle>
+                  <CardTitle className="text-xl">Importar {activeTab === 'expertises' ? 'Perícias Judiciais' : activeTab === 'exams' ? 'Exames PCMSO' : 'Dados'}</CardTitle>
                   <CardDescription>O sistema processa CSV, TXT e colagens do Excel.</CardDescription>
                 </div>
               </div>

@@ -63,6 +63,22 @@
         "status": { "type": "string", "enum": ["Agendado", "Em curso", "Vencido", "Concluído"] }
       },
       "required": ["id", "caseNumber", "status"]
+    },
+    "MedicalExam": {
+      "title": "Exame Médico (ASO)",
+      "type": "object",
+      "description": "Registro de exame de saúde ocupacional (NR-07).",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "type": { "type": "string" },
+        "date": { "type": "string" },
+        "validity": { "type": "string" },
+        "result": { "type": "string" },
+        "status": { "type": "string" },
+        "doctor": { "type": "string" }
+      },
+      "required": ["id", "employeeId", "type", "date"]
     }
   },
   "auth": {
@@ -88,6 +104,10 @@
     "/clients/{agencyId}/legalExpertises/{expertiseId}": {
       "schema": "LegalExpertise",
       "description": "Histórico de perícias judiciais monitoradas pela agência."
+    },
+    "/clients/{agencyId}/medicalExams/{examId}": {
+      "schema": "MedicalExam",
+      "description": "Histórico global de exames médicos (ASO)."
     }
   }
 }

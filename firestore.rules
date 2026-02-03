@@ -17,15 +17,14 @@ service cloud.firestore {
       }
       match /employees/{employeeId} {
         allow get, list, create, update, delete: if isOwner(agencyId);
-        
-        match /medicalExams/{examId} {
-          allow get, list, create, update, delete: if isOwner(agencyId);
-        }
       }
       match /suppliers/{supplierId} {
         allow get, list, create, update, delete: if isOwner(agencyId);
       }
       match /legalExpertises/{expertiseId} {
+        allow get, list, create, update, delete: if isOwner(agencyId);
+      }
+      match /medicalExams/{examId} {
         allow get, list, create, update, delete: if isOwner(agencyId);
       }
     }
