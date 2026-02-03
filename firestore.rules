@@ -25,6 +25,9 @@ service cloud.firestore {
       match /suppliers/{supplierId} {
         allow get, list, create, update, delete: if isOwner(agencyId);
       }
+      match /legalExpertises/{expertiseId} {
+        allow get, list, create, update, delete: if isOwner(agencyId);
+      }
     }
   }
 }

@@ -50,18 +50,19 @@
       },
       "required": ["id", "name"]
     },
-    "MedicalExam": {
-      "title": "Exame Médico",
+    "LegalExpertise": {
+      "title": "Perícia Judicial",
       "type": "object",
-      "description": "Registro de exames do PCMSO.",
+      "description": "Registro de perícias médicas ou técnicas de processos trabalhistas.",
       "properties": {
         "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "examType": { "type": "string" },
-        "examDate": { "type": "string", "format": "date-time" },
-        "result": { "type": "string" }
+        "caseNumber": { "type": "string" },
+        "companyId": { "type": "string" },
+        "type": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Agendado", "Em curso", "Vencido", "Concluído"] }
       },
-      "required": ["id", "employeeId", "examType", "examDate", "result"]
+      "required": ["id", "caseNumber", "status"]
     }
   },
   "auth": {
@@ -83,6 +84,10 @@
     "/clients/{agencyId}/suppliers/{supplierId}": {
       "schema": "Supplier",
       "description": "Rede credenciada (clínicas e parceiros)."
+    },
+    "/clients/{agencyId}/legalExpertises/{expertiseId}": {
+      "schema": "LegalExpertise",
+      "description": "Histórico de perícias judiciais monitoradas pela agência."
     }
   }
 }
