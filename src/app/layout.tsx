@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { Metadata } from 'next';
@@ -15,14 +16,16 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setMounted(true);
     if (!isUserLoading && !user && pathname !== '/login') {
       router.push('/login');
     }
   }, [user, isUserLoading, pathname, router]);
 
-  if (isUserLoading) {
+  if (!mounted || isUserLoading) {
     return (
       <div className="flex h-svh w-full items-center justify-center bg-background">
         <Loader2 className="size-8 animate-spin text-primary" />
@@ -43,7 +46,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
       <div className="flex w-full min-h-svh overflow-hidden bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0">
+          <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
             <SidebarTrigger>
               <Menu className="size-6 text-primary" />
             </SidebarTrigger>

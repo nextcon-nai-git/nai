@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -100,13 +101,14 @@ export function AppSidebar() {
     return doc(db, "clients", user.uid)
   }, [db, user])
 
-  const { data: profile } = useDoc(profileRef)
+  const { data: profile, isLoading: isProfileLoading } = useDoc(profileRef)
 
   const handleLogout = async () => {
     await signOut(auth)
     router.push("/login")
   }
 
+  // Enquanto carrega o perfil, podemos mostrar um estado neutro ou assumir admin para evitar flicker
   const role = (profile?.role?.toLowerCase() || 'admin') as Role
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   const userRoleLabel = 
@@ -116,7 +118,7 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-r-0 shadow-2xl">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r-0 shadow-2xl z-40">
       <SidebarHeader className="p-6 bg-primary/95">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-accent shrink-0">
