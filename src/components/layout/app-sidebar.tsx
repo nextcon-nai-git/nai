@@ -66,7 +66,6 @@ const navItems = [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Colaboradores", icon: Users, href: "/employees" },
     ]
   },
   {
