@@ -6,19 +6,17 @@ import {
   LayoutDashboard, 
   ShieldAlert, 
   Stethoscope, 
-  Gavel, 
   CheckSquare, 
   Upload, 
-  Settings, 
   Users, 
-  FileText, 
-  PieChart,
   LogOut,
   TrendingUp,
   SearchCheck,
   Camera,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  Lock
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -38,11 +36,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navItems = [
   {
-    label: "Estratégico & Financeiro",
+    label: "Agência Nextcon",
+    items: [
+      { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
+      { title: "Gestão de Clientes", icon: Building2, href: "/data-import" },
+    ]
+  },
+  {
+    label: "Visão Estratégica",
     items: [
       { title: "Dashboard CFO", icon: LayoutDashboard, href: "/" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
-      { title: "Pré-Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
+      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
     ]
   },
   {
@@ -58,14 +63,13 @@ const navItems = [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Colaboradores", icon: Users, href: "/employees" },
+      { title: "Colaboradores", icon: "/employees", iconRef: Users, href: "/employees" },
     ]
   },
   {
     label: "Gestão de Ação",
     items: [
       { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
-      { title: "Importação CSV", icon: Upload, href: "/data-import" },
     ]
   }
 ]
@@ -94,6 +98,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {group.items.map((item) => {
                 const isActive = pathname === item.href
+                const Icon = item.iconRef || item.icon
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
@@ -103,7 +108,7 @@ export function AppSidebar() {
                       className={`hover:bg-sidebar-accent transition-all duration-200 py-6 ${isActive ? 'bg-sidebar-accent text-white border-l-4 border-accent' : ''}`}
                     >
                       <Link href={item.href}>
-                        <item.icon className={`size-5 ${isActive ? 'text-accent' : 'text-sidebar-foreground/60'}`} />
+                        <Icon className={`size-5 ${isActive ? 'text-accent' : 'text-sidebar-foreground/60'}`} />
                         <span className="font-medium">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -124,7 +129,7 @@ export function AppSidebar() {
               </Avatar>
               <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
                 <span className="text-xs font-bold text-white">Rodrigo Silva</span>
-                <span className="text-[10px] text-sidebar-foreground/70">Diretor de HSE</span>
+                <span className="text-[10px] text-sidebar-foreground/70">Consultor HSE</span>
               </div>
               <button className="text-sidebar-foreground/50 hover:text-accent group-data-[collapsible=icon]:hidden">
                 <LogOut className="size-4" />
