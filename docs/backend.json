@@ -2,22 +2,26 @@
 {
   "entities": {
     "Agency": {
-      "title": "Perfil de Usuário (Empresa)",
+      "title": "Perfil de Usuário (Multinível)",
       "type": "object",
-      "description": "Dados do usuário/empresa logado no sistema.",
+      "description": "Dados do usuário logado, definindo seu nível de acesso (admin, client, employee).",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string" },
+        "role": { 
+          "type": "string",
+          "enum": ["admin", "client", "employee"],
+          "description": "Papel do usuário no sistema: admin (Nextcon), client (Gestor da Empresa), employee (Funcionário)."
+        },
         "company": { "type": "string" }
       },
-      "required": ["id", "name"]
+      "required": ["id", "name", "role"]
     },
     "ManagedCompany": {
       "title": "Empresa Cliente",
       "type": "object",
-      "description": "Empresa atendida pela empresa consultora.",
+      "description": "Empresa atendida pela consultoria Nextcon.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -31,7 +35,7 @@
     "Task": {
       "title": "Plano de Ação",
       "type": "object",
-      "description": "Tarefa de segurança ou conformidade.",
+      "description": "Tarefa de segurança ou conformidade do PGR/CIPA.",
       "properties": {
         "id": { "type": "string" },
         "title": { "type": "string" },
@@ -45,7 +49,7 @@
     "Employee": {
       "title": "Colaborador",
       "type": "object",
-      "description": "Funcionário de uma empresa cliente.",
+      "description": "Funcionário de uma empresa cliente gerenciada.",
       "properties": {
         "id": { "type": "string" },
         "companyId": { "type": "string" },
@@ -58,7 +62,7 @@
     "PsychosocialSurvey": {
       "title": "Pesquisa COPSOQ II",
       "type": "object",
-      "description": "Avaliação de riscos psicossociais.",
+      "description": "Avaliação de riscos psicossociais realizada pelo colaborador ou psicólogo.",
       "properties": {
         "id": { "type": "string" },
         "employeeId": { "type": "string" },
@@ -74,23 +78,23 @@
   "firestore": {
     "/clients/{agencyId}": {
       "schema": "Agency",
-      "description": "Perfil da empresa/usuário logado."
+      "description": "Perfil central do usuário logado (pode ser admin, cliente ou colaborador)."
     },
     "/clients/{agencyId}/managedCompanies/{companyId}": {
       "schema": "ManagedCompany",
-      "description": "Empresas clientes gerenciadas pela empresa principal."
+      "description": "Empresas clientes gerenciadas (visível para Admin)."
     },
     "/clients/{agencyId}/tasks/{taskId}": {
       "schema": "Task",
-      "description": "Plano de ação global."
+      "description": "Plano de ação global do cliente (visível para Admin/Cliente)."
     },
     "/clients/{agencyId}/employees/{employeeId}": {
       "schema": "Employee",
-      "description": "Base global de colaboradores atendidos pela empresa."
+      "description": "Base global de colaboradores (visível para Admin/Cliente)."
     },
     "/clients/{agencyId}/surveys/{surveyId}": {
       "schema": "PsychosocialSurvey",
-      "description": "Resultados das pesquisas COPSOQ II."
+      "description": "Resultados das pesquisas (visível para Admin/Cliente)."
     }
   }
 }

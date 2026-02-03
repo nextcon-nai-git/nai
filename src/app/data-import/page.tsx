@@ -15,7 +15,9 @@ import {
   FileUp,
   X,
   HeartPulse,
-  UserCircle
+  UserCircle,
+  ShieldAlert,
+  UserCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,47 +40,45 @@ export default function UnifiedImportCenter() {
   const [uploading, setUploading] = React.useState(false)
   const [isDragging, setIsDragging] = React.useState(false)
 
-  const setupMyProfile = async () => {
+  const setupProfileByRole = async (targetRole: 'admin' | 'client' | 'employee') => {
     if (!user || !db) return
     setUploading(true)
     
-    let name = "Usuário Nextcon"
-    let role = "Consultor"
-
-    if (user.email?.includes('relacionamento')) { name = "Pablo"; role = "Comercial" }
-    if (user.email?.includes('sso')) { name = "Kelly"; role = "Admin" }
-    if (user.email?.includes('nextcon@')) { name = "Rodrigo Silva"; role = "Consultor HSE" }
+    let name = user.email?.split('@')[0] || "Usuário"
+    let companyName = targetRole === 'admin' ? "Nextcon SST" : "Empresa Cliente Exemplo"
 
     try {
       const batch = writeBatch(db)
 
-      // 1. Perfil da Empresa (Consultora)
+      // 1. Perfil do Usuário Logado
       batch.set(doc(db, "clients", user.uid), {
         id: user.uid,
-        name,
-        role,
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        role: targetRole,
         email: user.email,
-        company: "Nextcon SST",
+        company: companyName,
         updatedAt: new Date().toISOString()
       }, { merge: true })
 
-      // 2. Registro da própria Nextcon como Cliente
-      batch.set(doc(db, "clients", user.uid, "managedCompanies", "44337647000189"), {
-        id: "44337647000189",
-        name: "NXC SST EMPRESARIAL LTDA NEXTCON",
-        cnpj: "44.337.647/0001-89",
-        sector: "Consultoria SST",
-        city: "Curitiba - PR",
-        pgrExpiry: "2026-08-13",
-        contactEmail: "nextcon@nextconsaude.com.br",
-        updatedAt: new Date().toISOString()
-      }, { merge: true })
+      // 2. Se for admin, garante que a Nextcon existe como ManagedCompany
+      if (targetRole === 'admin') {
+        batch.set(doc(db, "clients", user.uid, "managedCompanies", "44337647000189"), {
+          id: "44337647000189",
+          name: "NXC SST EMPRESARIAL LTDA NEXTCON",
+          cnpj: "44.337.647/0001-89",
+          sector: "Consultoria SST",
+          city: "Curitiba - PR",
+          pgrExpiry: "2026-08-13",
+          contactEmail: "nextcon@nextconsaude.com.br",
+          updatedAt: new Date().toISOString()
+        }, { merge: true })
+      }
 
       await batch.commit()
 
       toast({
-        title: "Setup Concluído",
-        description: `Bem-vindo, ${name}! Seu perfil e a empresa Nextcon foram cadastrados.`
+        title: "Perfil Atualizado",
+        description: `Seu acesso foi configurado como ${targetRole.toUpperCase()}.`
       })
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao configurar perfil" })
@@ -218,10 +218,6 @@ export default function UnifiedImportCenter() {
           else data.id = `import_${activeTab}_${index}_${Date.now()}`
         }
 
-        if (!data.name && data.id && activeTab !== 'exams' && activeTab !== 'expertises') {
-           data.name = "Registro Importado " + data.id
-        }
-
         const collectionPath = 
           activeTab === 'companies' ? "managedCompanies" : 
           activeTab === 'employees' ? "employees" : 
@@ -246,33 +242,22 @@ export default function UnifiedImportCenter() {
     }
   }
 
-  const getPlaceholder = () => {
-    switch(activeTab) {
-      case 'companies': return "Nome da Empresa, CNPJ, Setor\nMetalúrgica Silva, 12.345.678/0001-99, Industrial"
-      case 'employees': return "Nome, Cargo, Matrícula, Admissão, Empresa\nJoão Silva, Soldador, 12345, 10/05/2023, Metalúrgica Silva"
-      case 'suppliers': return "Nome, Especialidade, Cidade\nClínica Saúde, Audiometria, São Paulo"
-      case 'expertises': return "Processo, Tipo, Data, Status, Empresa\n4829/2024, Insalubridade, 2024-05-20, Agendado, Metalúrgica Silva"
-      case 'exams': return "ID_Evento, ID_Colaborador, Tipo_Exame, Data_Realizacao, Status\nEXA100, COL1001, Admissional, 14/01/2026, Concluído"
-    }
-  }
-
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Centro de Importação de Dados</h1>
-          <p className="text-muted-foreground">Gerencie sua empresa e alimente a base de dados.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Centro de Importação e Perfis</h1>
+          <p className="text-muted-foreground">Gerencie sua empresa e alterne entre níveis de acesso para testes.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-accent text-accent" onClick={setupMyProfile} disabled={uploading}>
-            {uploading ? <Loader2 className="size-4 animate-spin" /> : <UserCircle className="size-4" />}
-            Configurar Meu Perfil e Nextcon
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="gap-2 border-primary text-primary" onClick={() => setupProfileByRole('admin')} disabled={uploading}>
+            <ShieldAlert className="size-4" /> Virar Admin
           </Button>
-          <input type="file" id="file-upload" className="hidden" accept=".csv,.txt" onChange={handleFileSelect} />
-          <Button variant="outline" className="gap-2" asChild>
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <FileUp className="size-4" /> Selecionar Arquivo
-            </label>
+          <Button variant="outline" size="sm" className="gap-2 border-accent text-accent" onClick={() => setupProfileByRole('client')} disabled={uploading}>
+            <Building2 className="size-4" /> Virar Cliente
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2 border-muted-foreground" onClick={() => setupProfileByRole('employee')} disabled={uploading}>
+            <UserCheck className="size-4" /> Virar Colaborador
           </Button>
         </div>
       </div>
@@ -304,8 +289,8 @@ export default function UnifiedImportCenter() {
                   {activeTab === 'expertises' ? <Gavel /> : activeTab === 'exams' ? <HeartPulse /> : <Upload />}
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Importar {activeTab === 'expertises' ? 'Perícias' : activeTab === 'exams' ? 'Exames' : 'Dados'}</CardTitle>
-                  <CardDescription>Processamento de CSV e colagens do Excel.</CardDescription>
+                  <CardTitle className="text-xl">Importar Dados</CardTitle>
+                  <CardDescription>Processamento de CSV e colagens do Excel para a base operacional.</CardDescription>
                 </div>
               </div>
               {pastedData && (
@@ -326,8 +311,8 @@ export default function UnifiedImportCenter() {
               )}
             >
               <Textarea 
-                placeholder={getPlaceholder()}
-                className="min-h-[400px] font-mono text-xs bg-transparent border-none focus-visible:ring-0 p-6"
+                placeholder="Cole aqui seus dados ou arraste um CSV..."
+                className="min-h-[350px] font-mono text-xs bg-transparent border-none focus-visible:ring-0 p-6"
                 value={pastedData}
                 onChange={(e) => setPastedData(e.target.value)}
               />
@@ -340,7 +325,7 @@ export default function UnifiedImportCenter() {
                 onClick={processImport}
               >
                 {uploading ? <Loader2 className="size-5 animate-spin mr-2" /> : <Save className="size-5 mr-2" />}
-                Confirmar e Salvar
+                Processar Lote
               </Button>
             </div>
           </CardContent>

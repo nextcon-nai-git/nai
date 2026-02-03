@@ -19,7 +19,8 @@ import {
   Lock,
   Database,
   Sparkles,
-  ClipboardList
+  ClipboardList,
+  UserCircle
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -41,44 +42,45 @@ import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
 import { NextconLogo } from "@/components/ui/logo"
 
-const navItems = [
+type Role = 'admin' | 'client' | 'employee'
+
+const navGroups = [
   {
-    label: "MAIN NEXTCON",
+    label: "ADMINISTRAÇÃO NEXTCON",
+    roles: ['admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
-      { title: "Colaboradores", icon: Users, href: "/employees" },
       { title: "Módulo de Importação", icon: Database, href: "/data-import" },
     ]
   },
   {
-    label: "Visão Estratégica",
+    label: "VISÃO DO CLIENTE",
+    roles: ['admin', 'client'],
     items: [
-      { title: "Dashboard CFO", icon: LayoutDashboard, href: "/" },
+      { title: "Dashboard Executivo", icon: LayoutDashboard, href: "/" },
+      { title: "Colaboradores", icon: Users, href: "/employees" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
   },
   {
-    label: "Sentinelas de Risco",
-    items: [
-      { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
-      { title: "Termômetro Burnout", icon: Activity, href: "/psychosocial" },
-    ]
-  },
-  {
-    label: "Operacional (SST)",
+    label: "OPERAÇÃO SST",
+    roles: ['admin', 'client'],
     items: [
       { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
-      { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Checklists & Pesquisas", icon: ClipboardList, href: "/checklists" },
+      { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
     ]
   },
   {
-    label: "Gestão de Ação",
+    label: "ÁREA DO COLABORADOR",
+    roles: ['admin', 'client', 'employee'],
     items: [
-      { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
+      { title: "Pesquisas & COPSOQ", icon: ClipboardList, href: "/checklists" },
+      { title: "Termômetro Burnout", icon: Activity, href: "/psychosocial" },
     ]
   }
 ]
@@ -90,7 +92,6 @@ export function AppSidebar() {
   const { user } = useUser()
   const router = useRouter()
 
-  // Busca perfil dinâmico do Firestore
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "clients", user.uid)
@@ -103,8 +104,12 @@ export function AppSidebar() {
     router.push("/login")
   }
 
+  const role = (profile?.role?.toLowerCase() || 'admin') as Role
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
-  const userRole = profile?.role || "Equipe Nextcon"
+  const userRoleLabel = 
+    role === 'admin' ? "Administrador Nextcon" : 
+    role === 'client' ? "Gestor de Empresa" : "Colaborador"
+    
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
@@ -125,34 +130,38 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {navItems.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 px-4 text-[10px] uppercase tracking-widest font-black">
-              {group.label}
-            </SidebarGroupLabel>
-            <SidebarMenu>
-              {group.items.map((item) => {
-                const isActive = pathname === item.href
-                const Icon = item.icon
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      isActive={isActive}
-                      tooltip={item.title}
-                      className={`hover:bg-white/10 transition-all duration-200 py-6 ${isActive ? 'bg-white/10 text-white border-l-4 border-white' : ''}`}
-                    >
-                      <Link href={item.href}>
-                        <Icon className={`size-5 ${isActive ? 'text-white' : 'text-sidebar-foreground/60'}`} />
-                        <span className="font-medium">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroup>
-        ))}
+        {navGroups.map((group) => {
+          if (!group.roles.includes(role)) return null
+          
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel className="text-sidebar-foreground/50 px-4 text-[10px] uppercase tracking-widest font-black">
+                {group.label}
+              </SidebarGroupLabel>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href
+                  const Icon = item.icon
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton 
+                        asChild 
+                        isActive={isActive}
+                        tooltip={item.title}
+                        className={`hover:bg-white/10 transition-all duration-200 py-6 ${isActive ? 'bg-white/10 text-white border-l-4 border-white' : ''}`}
+                      >
+                        <Link href={item.href}>
+                          <Icon className={`size-5 ${isActive ? 'text-white' : 'text-sidebar-foreground/60'}`} />
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
       <SidebarFooter className="p-4">
         <SidebarMenu>
@@ -164,7 +173,7 @@ export function AppSidebar() {
               </Avatar>
               <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden">
                 <span className="text-xs font-bold text-white truncate max-w-[120px]">{userName}</span>
-                <span className="text-[10px] text-sidebar-foreground/70 truncate max-w-[120px] uppercase font-bold">{userRole}</span>
+                <span className="text-[10px] text-sidebar-foreground/70 truncate max-w-[120px] uppercase font-bold">{userRoleLabel}</span>
               </div>
               <button 
                 onClick={handleLogout}
