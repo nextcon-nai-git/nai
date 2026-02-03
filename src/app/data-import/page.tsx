@@ -52,7 +52,7 @@ export default function UnifiedImportCenter() {
     try {
       const batch = writeBatch(db)
 
-      // 1. Perfil da Agência
+      // 1. Perfil da Empresa (Consultora)
       batch.set(doc(db, "clients", user.uid), {
         id: user.uid,
         name,
@@ -261,7 +261,7 @@ export default function UnifiedImportCenter() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Centro de Importação de Dados</h1>
-          <p className="text-muted-foreground">Gerencie sua agência e alimente a base de dados.</p>
+          <p className="text-muted-foreground">Gerencie sua empresa e alimente a base de dados.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-accent text-accent" onClick={setupMyProfile} disabled={uploading}>

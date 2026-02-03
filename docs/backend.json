@@ -2,9 +2,9 @@
 {
   "entities": {
     "Agency": {
-      "title": "Perfil de Usuário (Agência)",
+      "title": "Perfil de Usuário (Empresa)",
       "type": "object",
-      "description": "Dados do usuário/agência logado no sistema.",
+      "description": "Dados do usuário/empresa logado no sistema.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -17,7 +17,7 @@
     "ManagedCompany": {
       "title": "Empresa Cliente",
       "type": "object",
-      "description": "Empresa atendida pela agência.",
+      "description": "Empresa atendida pela empresa consultora.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -90,15 +90,15 @@
   "firestore": {
     "/clients/{agencyId}": {
       "schema": "Agency",
-      "description": "Perfil da agência/usuário logado."
+      "description": "Perfil da empresa/usuário logado."
     },
     "/clients/{agencyId}/managedCompanies/{companyId}": {
       "schema": "ManagedCompany",
-      "description": "Empresas clientes gerendiadas pela agência."
+      "description": "Empresas clientes gerenciadas pela empresa principal."
     },
     "/clients/{agencyId}/employees/{employeeId}": {
       "schema": "Employee",
-      "description": "Base global de colaboradores atendidos pela agência."
+      "description": "Base global de colaboradores atendidos pela empresa."
     },
     "/clients/{agencyId}/suppliers/{supplierId}": {
       "schema": "Supplier",
@@ -106,7 +106,7 @@
     },
     "/clients/{agencyId}/legalExpertises/{expertiseId}": {
       "schema": "LegalExpertise",
-      "description": "Histórico de perícias judiciais monitoradas pela agência."
+      "description": "Histórico de perícias judiciais monitoradas pela empresa."
     },
     "/clients/{agencyId}/medicalExams/{examId}": {
       "schema": "MedicalExam",

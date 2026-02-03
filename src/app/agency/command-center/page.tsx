@@ -87,11 +87,11 @@ export default function AgencyCommandCenter() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Centro de Comando NEXTCON</h1>
-          <p className="text-muted-foreground">Visão unificada da agência para gestão de múltiplos clientes.</p>
+          <p className="text-muted-foreground">Visão unificada da empresa para gestão de múltiplos clientes.</p>
         </div>
         <div className="flex gap-3">
           <Badge variant="outline" className="text-primary border-primary px-4 py-1.5 font-bold bg-white shadow-sm">
-            AGÊNCIA: NXC SST EMPRESARIAL LTDA
+            EMPRESA: NXC SST EMPRESARIAL LTDA
           </Badge>
         </div>
       </div>
@@ -124,7 +124,7 @@ export default function AgencyCommandCenter() {
           <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10">
             <div>
               <CardTitle className="text-lg font-headline font-bold text-primary">Kanban Unificado de Ações</CardTitle>
-              <CardDescription>Tarefas operacionais da agência e dos clientes.</CardDescription>
+              <CardDescription>Tarefas operacionais da empresa e dos clientes.</CardDescription>
             </div>
             <button className="p-2 hover:bg-muted rounded-full transition-colors bg-white shadow-sm border">
                <Plus className="size-5 text-primary" />

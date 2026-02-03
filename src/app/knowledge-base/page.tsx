@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -22,7 +23,7 @@ export default function KnowledgeBase() {
   const [query, setQuery] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
   const [messages, setMessages] = React.useState<Message[]>([
-    { role: 'ai', content: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST com base no cenário de 2026. Como posso ajudar sua agência hoje?" }
+    { role: 'ai', content: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Posso tirar qualquer dúvida sobre as NRs ou legislação de SST com base no cenário de 2026. Como posso ajudar sua empresa hoje?" }
   ])
 
   const handleSend = async (e?: React.FormEvent) => {
@@ -170,7 +171,7 @@ export default function KnowledgeBase() {
             </CardHeader>
             <CardContent>
               <p className="text-[10px] leading-relaxed opacity-80">
-                A NAI utiliza modelos LLM de última geração treinados na base normativa brasileira projetada para 2026. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da agência.
+                A NAI utiliza modelos LLM de última geração treinados na base normativa brasileira projetada para 2026. No entanto, sempre valide decisões críticas com o corpo técnico ou jurídico da empresa.
               </p>
             </CardContent>
           </Card>
