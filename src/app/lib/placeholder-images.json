@@ -1,0 +1,23 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "safety-officer",
+      "description": "Professional safety officer in work environment",
+      "imageUrl": "https://picsum.photos/seed/safety1/800/600",
+      "imageHint": "safety officer"
+    },
+    {
+      "id": "industrial-site",
+      "description": "Modern industrial facility showing safety markings",
+      "imageUrl": "https://picsum.photos/seed/site2/800/600",
+      "imageHint": "industrial safety"
+    },
+    {
+      "id": "medical-checkup",
+      "description": "Occupational health checkup in progress",
+      "imageUrl": "https://picsum.photos/seed/health3/800/600",
+      "imageHint": "medical occupational"
+    }
+  ]
+}
