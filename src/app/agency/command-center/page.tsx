@@ -10,19 +10,29 @@ import {
   AlertTriangle,
   LayoutDashboard,
   MoreVertical,
-  Plus
+  Plus,
+  Building2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { useToast } from "@/hooks/use-toast"
+import { Separator } from "@/components/ui/separator"
+
+interface KanbanAction {
+  id: number
+  title: string
+  client: string
+  category: string
+  status: string
+}
+
+const initialActions: KanbanAction[] = [
+  { id: 1, title: "Instalar Exaustor Bloco C", client: "Metalúrgica Silva", category: "PGR", status: "Para Fazer" },
+  { id: 2, title: "Renovação de PCMSO", client: "Transportes Rapidez", category: "Saúde", status: "Em Andamento" },
+  { id: 3, title: "Treinamento NR-35", client: "Construção Forte", category: "Treinamento", status: "Para Fazer" },
+  { id: 4, title: "Ata da CIPA Outubro", client: "Logística Express", category: "Gestão", status: "Concluído" },
+  { id: 5, title: "Laudo de Insalubridade", client: "Química Norte", category: "LTCAT", status: "Bloqueado" },
+]
 
 const redFlags = [
   { id: 1, type: "CA Vencendo", client: "Metalúrgica Silva", item: "Protetor Auricular 3M", deadline: "Em 5 dias", status: "Crítico" },
@@ -31,70 +41,131 @@ const redFlags = [
 ]
 
 export default function AgencyCommandCenter() {
+  const { toast } = useToast()
+  const [actions, setActions] = React.useState<KanbanAction[]>(initialActions)
+  const [draggedId, setDraggedId] = React.useState<number | null>(null)
+
   const columns = ["Para Fazer", "Em Andamento", "Bloqueado", "Concluído"]
 
+  const onDragStart = (e: React.DragEvent, id: number) => {
+    setDraggedId(id)
+    e.dataTransfer.setData("text/plain", id.toString())
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "0.5"
+    }
+  }
+
+  const onDragEnd = (e: React.DragEvent) => {
+    setDraggedId(null)
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = "1"
+    }
+  }
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onDrop = (e: React.DragEvent, newStatus: string) => {
+    e.preventDefault()
+    const id = Number(e.dataTransfer.getData("text/plain"))
+    
+    setActions(prev => prev.map(action => 
+      action.id === id ? { ...action, status: newStatus } : action
+    ))
+
+    const actionTitle = actions.find(a => a.id === id)?.title
+    toast({
+      title: "Status Atualizado",
+      description: `"${actionTitle}" movido para ${newStatus}.`,
+    })
+  }
+
   return (
-    <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Centro de Comando Nextcon</h1>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Centro de Comando NEXTCON</h1>
           <p className="text-muted-foreground">Visão unificada da agência para gestão de múltiplos clientes.</p>
         </div>
         <div className="flex gap-3">
-          <Badge variant="outline" className="text-primary border-primary px-4 py-1.5 font-bold">
+          <Badge variant="outline" className="text-primary border-primary px-4 py-1.5 font-bold bg-white shadow-sm">
             CLIENTES ATIVOS: 24
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-1 card-shadow border-none bg-red-50">
+        <Card className="lg:col-span-1 card-shadow border-none bg-red-50/50">
           <CardHeader>
-            <CardTitle className="text-sm font-bold text-red-900 uppercase tracking-widest">🚨 Red Flags (Urgente)</CardTitle>
+            <CardTitle className="text-sm font-black text-red-900 uppercase tracking-widest flex items-center gap-2">
+              <ShieldAlert className="size-4" /> Red Flags (Urgente)
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {redFlags.map((flag) => (
-              <div key={flag.id} className="p-3 bg-white rounded-lg border-l-4 border-red-500 shadow-sm space-y-1">
+              <div key={flag.id} className="p-3 bg-white rounded-xl border border-red-100 shadow-sm space-y-1 hover:shadow-md transition-all">
                 <div className="flex justify-between items-start">
-                  <p className="text-xs font-bold text-primary">{flag.client}</p>
-                  <Badge variant="destructive" className="text-[8px] px-1.5 h-4">{flag.status}</Badge>
+                  <p className="text-[10px] font-black text-primary uppercase tracking-tighter">{flag.client}</p>
+                  <Badge variant="destructive" className="text-[8px] px-1.5 h-4 font-black">{flag.status}</Badge>
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">{flag.type}: {flag.item}</p>
-                <div className="flex items-center gap-1 text-[10px] text-red-600 font-bold">
-                  <Clock className="size-2" /> {flag.deadline}
+                <p className="text-xs font-bold text-red-700 leading-tight">{flag.type}</p>
+                <p className="text-[10px] text-muted-foreground">{flag.item}</p>
+                <div className="flex items-center gap-1 text-[10px] text-red-600 font-black pt-1">
+                  <Clock className="size-3" /> {flag.deadline}
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3 card-shadow border-none overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="lg:col-span-3 card-shadow border-none overflow-hidden bg-white">
+          <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10">
             <div>
-              <CardTitle className="text-lg">Kanban Unificado de Ações</CardTitle>
-              <CardDescription>Planos de ação críticos de todas as empresas clientes.</CardDescription>
+              <CardTitle className="text-lg font-headline font-bold text-primary">Kanban Unificado de Ações</CardTitle>
+              <CardDescription>Gerencie tarefas críticas de todos os clientes em um só lugar.</CardDescription>
             </div>
-            <button className="p-2 hover:bg-muted rounded-full transition-colors">
+            <button className="p-2 hover:bg-muted rounded-full transition-colors bg-white shadow-sm border">
                <Plus className="size-5 text-primary" />
             </button>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 min-h-[400px]">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 min-h-[500px]">
               {columns.map((col) => (
-                <div key={col} className="flex flex-col gap-3">
+                <div 
+                  key={col} 
+                  className="flex flex-col gap-3"
+                  onDragOver={onDragOver}
+                  onDrop={(e) => onDrop(e, col)}
+                >
                   <div className="flex items-center justify-between px-2">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{col}</span>
-                    <Badge variant="secondary" className="text-[10px]">2</Badge>
+                    <span className="text-[10px] font-black uppercase text-primary/60 tracking-widest">{col}</span>
+                    <Badge variant="secondary" className="text-[10px] font-bold bg-primary/5 text-primary">
+                      {actions.filter(a => a.status === col).length}
+                    </Badge>
                   </div>
-                  <div className="flex-1 bg-muted/30 rounded-xl p-2 border border-dashed border-muted flex flex-col gap-2">
-                    <div className="p-3 bg-white rounded-lg shadow-sm border border-muted space-y-2 cursor-grab">
-                      <div className="flex justify-between items-start">
-                        <Badge className="text-[8px] bg-primary/10 text-primary border-none">PGR</Badge>
-                        <MoreVertical className="size-3 text-muted-foreground" />
+                  
+                  <div className={`flex-1 rounded-2xl p-2 border-2 border-dashed transition-all duration-200 flex flex-col gap-3 ${draggedId !== null ? 'border-primary/20 bg-primary/5 scale-[0.98]' : 'border-muted bg-muted/20'}`}>
+                    {actions.filter(a => a.status === col).map((action) => (
+                      <div 
+                        key={action.id} 
+                        draggable
+                        onDragStart={(e) => onDragStart(e, action.id)}
+                        onDragEnd={onDragEnd}
+                        className="p-4 bg-white rounded-xl shadow-sm border border-muted space-y-3 cursor-grab active:cursor-grabbing hover:ring-2 ring-primary/10 transition-all group"
+                      >
+                        <div className="flex justify-between items-start">
+                          <Badge className="text-[8px] font-black bg-primary text-white border-none uppercase">
+                            {action.category}
+                          </Badge>
+                          <MoreVertical className="size-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <p className="text-xs font-bold leading-snug text-primary">{action.title}</p>
+                        <div className="pt-2 border-t flex items-center gap-1.5 text-[9px] font-black text-muted-foreground uppercase">
+                          <Building2 className="size-3" /> {action.client}
+                        </div>
                       </div>
-                      <p className="text-xs font-bold leading-tight">Instalar Exaustor Bloco C</p>
-                      <p className="text-[10px] text-muted-foreground">Metalúrgica Silva</p>
-                    </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -104,31 +175,36 @@ export default function AgencyCommandCenter() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="card-shadow border-none">
+        <Card className="card-shadow border-none bg-primary text-white overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+            <CheckCircle2 className="size-20" />
+          </div>
           <CardHeader>
-            <CardTitle className="text-sm font-bold">S-2240 Pendentes</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-white/60">S-2240 Pendentes</CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-6">
-            <h2 className="text-4xl font-bold text-primary">82</h2>
-            <p className="text-xs text-muted-foreground mt-1 uppercase font-bold">Envios Críticos</p>
+          <CardContent className="text-center py-4">
+            <h2 className="text-5xl font-black tracking-tighter">82</h2>
+            <p className="text-[10px] text-white/60 mt-2 uppercase font-bold tracking-[0.2em]">Envios Críticos</p>
           </CardContent>
         </Card>
-        <Card className="card-shadow border-none">
+
+        <Card className="card-shadow border-none bg-white overflow-hidden relative">
           <CardHeader>
-            <CardTitle className="text-sm font-bold">Vencimento de PPRA/PGR</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-primary/60">Vencimento de PPRA/PGR</CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-6">
-            <h2 className="text-4xl font-bold text-accent">14</h2>
-            <p className="text-xs text-muted-foreground mt-1 uppercase font-bold">Nos próximos 30 dias</p>
+          <CardContent className="text-center py-4">
+            <h2 className="text-5xl font-black tracking-tighter text-primary">14</h2>
+            <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-[0.2em]">Próximos 30 dias</p>
           </CardContent>
         </Card>
-        <Card className="card-shadow border-none">
+
+        <Card className="card-shadow border-none bg-white overflow-hidden relative border-l-4 border-emerald-500">
           <CardHeader>
-            <CardTitle className="text-sm font-bold">Tickets de Suporte</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-emerald-600">Tickets de Suporte</CardTitle>
           </CardHeader>
-          <CardContent className="text-center py-6">
-            <h2 className="text-4xl font-bold text-green-600">03</h2>
-            <p className="text-xs text-muted-foreground mt-1 uppercase font-bold">Aguardando Resposta</p>
+          <CardContent className="text-center py-4">
+            <h2 className="text-5xl font-black tracking-tighter text-emerald-600">03</h2>
+            <p className="text-[10px] text-muted-foreground mt-2 uppercase font-bold tracking-[0.2em]">Aguardando Resposta</p>
           </CardContent>
         </Card>
       </div>
