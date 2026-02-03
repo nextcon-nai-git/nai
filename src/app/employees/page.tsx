@@ -64,12 +64,17 @@ export default function EmployeesPage() {
   const filteredEmployees = React.useMemo(() => {
     if (!employees) return []
     return employees.filter(emp => {
-      const matchesSearch = 
-        emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.jobRole?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.id?.toLowerCase().includes(searchTerm.toLowerCase())
+      const name = emp.name || "N/I"
+      const role = emp.jobRole || ""
+      const id = emp.id || ""
+      const companyId = emp.companyId || ""
       
-      const matchesCompany = selectedCompanyId === "all" || emp.companyId === selectedCompanyId
+      const matchesSearch = 
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        id.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesCompany = selectedCompanyId === "all" || companyId === selectedCompanyId
       
       return matchesSearch && matchesCompany
     })
@@ -151,14 +156,16 @@ export default function EmployeesPage() {
                 filteredEmployees.map((employee) => (
                   <TableRow key={employee.id} className="group hover:bg-primary/5 transition-colors">
                     <TableCell>
-                      <p className="font-bold text-primary">{employee.name}</p>
-                      <p className="text-[9px] text-muted-foreground uppercase font-black">Admissão: {employee.admissionDate || "---"}</p>
+                      <div>
+                        <p className="font-bold text-primary">{employee.name || "N/I"}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-black">Admissão: {employee.admissionDate || "---"}</p>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Building2 className="size-3 text-muted-foreground" />
                         <span className="text-sm font-medium">
-                          {companyMap[employee.companyId] || "Empresa não vinculada"}
+                          {companyMap[employee.companyId] || employee.companyId || "Não vinculada"}
                         </span>
                       </div>
                     </TableCell>

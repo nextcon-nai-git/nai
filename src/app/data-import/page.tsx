@@ -144,52 +144,72 @@ export default function UnifiedImportCenter() {
           const val = values[i]
           if (!val) return
 
-          if (header.includes('nome') || header.includes('razão') || header.includes('empresa')) data.name = val
-          if (header.includes('processo') || header.includes('número')) data.caseNumber = val
-          if (header.includes('evento')) data.id = val
-          
+          // Processamento específico por aba para evitar sobreposição de nomes (ex: Empresa sobrescrevendo Nome do Colaborador)
           if (activeTab === 'companies') {
+            if (header.includes('nome') || header.includes('razão') || header.includes('empresa')) data.name = val
             if (header.includes('setor')) data.sector = val
             if (header.includes('email')) data.contactEmail = val
             if (header.includes('cnpj')) data.cnpj = val.replace(/[^\w]/gi, '')
+            if (header === 'id' || header === 'código') data.id = val
             if (!data.id) data.id = data.cnpj || `comp_${index}_${Date.now()}`
           }
           
           if (activeTab === 'employees') {
-            if (header.includes('cargo')) data.jobRole = val
-            if (header.includes('admissão')) data.admissionDate = val
-            if (header.includes('unidade') || header.includes('empresa')) data.companyId = val
-            if (header.includes('id_colaborador') || header.includes('matrícula')) data.id = val
-            if (!data.id) data.id = `emp_${index}_${Date.now()}`
+            // Mapeamento rigoroso para colaboradores - Nome deve ser prioritário
+            if (header === 'nome' || header === 'colaborador' || header === 'funcionário' || header === 'nome do colaborador') {
+              data.name = val
+            }
+            if (header.includes('cargo') || header.includes('função')) data.jobRole = val
+            if (header.includes('admissão') || header.includes('data admissao')) data.admissionDate = val
+            // Para colaboradores, "empresa" deve ir para companyId, não para data.name
+            if (header === 'empresa' || header === 'unidade' || header === 'empresa cliente' || header === 'cliente') {
+              data.companyId = val
+            }
+            if (header.includes('id_colaborador') || header.includes('matrícula') || header === 'id' || header === 'registro') {
+              data.id = val
+            }
           }
 
           if (activeTab === 'suppliers') {
-            if (header.includes('serviço')) data.serviceType = val
+            if (header.includes('nome') || header.includes('clínica') || header.includes('fornecedor')) data.name = val
+            if (header.includes('serviço') || header.includes('tipo')) data.serviceType = val
             if (header.includes('cidade')) data.city = val
-            if (!data.id) data.id = `sup_${index}_${Date.now()}`
+            if (header.includes('cnpj')) data.cnpj = val.replace(/[^\w]/gi, '')
+            if (header === 'id') data.id = val
           }
 
           if (activeTab === 'expertises') {
+            if (header.includes('processo') || header.includes('número')) data.caseNumber = val
             if (header.includes('tipo')) data.type = val
             if (header.includes('data')) data.date = val
             if (header.includes('status')) data.status = val
             if (header.includes('empresa')) data.companyId = val
-            if (!data.id) data.id = data.caseNumber?.replace(/[^\w]/gi, '') || `exp_${index}_${Date.now()}`
+            if (header === 'id') data.id = val
           }
 
           if (activeTab === 'exams') {
-            if (header.includes('colaborador')) data.employeeId = val
-            if (header.includes('tipo')) data.type = val
-            if (header.includes('data_realizacao') || header.includes('realização')) data.date = val
+            if (header.includes('colaborador') || header === 'id_colaborador') data.employeeId = val
+            if (header.includes('tipo') || header === 'tipo_exame') data.type = val
+            if (header.includes('data_realizacao') || header.includes('realização') || header === 'data') data.date = val
             if (header.includes('data_validade') || header.includes('validade')) data.validity = val
             if (header.includes('apto_inapto') || header.includes('resultado')) data.result = val
             if (header.includes('status')) data.status = val
             if (header.includes('médico') || header.includes('medico')) data.doctor = val
-            if (!data.id) data.id = `exam_${index}_${Date.now()}`
+            if (header.includes('id_evento') || header === 'id') data.id = val
           }
         })
 
-        if (!data.id) data.id = `import_${activeTab}_${index}_${Date.now()}`
+        // Garantir que sempre haja um ID
+        if (!data.id) {
+          if (activeTab === 'companies' && data.cnpj) data.id = data.cnpj
+          else if (activeTab === 'expertises' && data.caseNumber) data.id = data.caseNumber.replace(/[^\w]/gi, '')
+          else data.id = `import_${activeTab}_${index}_${Date.now()}`
+        }
+
+        // Se por algum motivo o nome não foi preenchido mas temos outros dados, tentamos um fallback (exceto exames)
+        if (!data.name && data.id && activeTab !== 'exams' && activeTab !== 'expertises') {
+           data.name = "Registro Importado " + data.id
+        }
 
         const collectionPath = 
           activeTab === 'companies' ? "managedCompanies" : 
@@ -218,7 +238,7 @@ export default function UnifiedImportCenter() {
   const getPlaceholder = () => {
     switch(activeTab) {
       case 'companies': return "Nome da Empresa, CNPJ, Setor\nMetalúrgica Silva, 12.345.678/0001-99, Industrial"
-      case 'employees': return "Nome, Cargo, Matrícula, Admissão\nJoão Silva, Soldador, 12345, 10/05/2023"
+      case 'employees': return "Nome, Cargo, Matrícula, Admissão, Empresa\nJoão Silva, Soldador, 12345, 10/05/2023, Metalúrgica Silva"
       case 'suppliers': return "Nome, Especialidade, Cidade\nClínica Saúde, Audiometria, São Paulo"
       case 'expertises': return "Processo, Tipo, Data, Status, Empresa\n4829/2024, Insalubridade, 2024-05-20, Agendado, Metalúrgica Silva"
       case 'exams': return "ID_Evento, ID_Colaborador, Tipo_Exame, Data_Realizacao, Status\nEXA100, COL1001, Admissional, 14/01/2026, Concluído"
