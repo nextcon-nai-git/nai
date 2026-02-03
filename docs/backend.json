@@ -1,73 +1,54 @@
 
 {
   "entities": {
-    "Client": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Cliente",
+    "Agency": {
+      "title": "Agência Nextcon",
       "type": "object",
-      "description": "Representa uma empresa cliente na plataforma NextCon SST.",
+      "description": "Dados da agência de SST que gerencia múltiplos clientes.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Identificador único da empresa (UID do Firebase)."
-        },
-        "name": {
-          "type": "string",
-          "description": "Nome ou Razão Social da empresa."
-        },
-        "cnpj": {
-          "type": "string",
-          "description": "CNPJ da empresa cliente."
-        },
-        "address": {
-          "type": "string",
-          "description": "Endereço físico da empresa."
-        },
-        "contactEmail": {
-          "type": "string",
-          "description": "E-mail principal de contato.",
-          "format": "email"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name",
-        "cnpj"
-      ]
+      "required": ["id", "name"]
+    },
+    "ManagedCompany": {
+      "title": "Empresa Cliente",
+      "type": "object",
+      "description": "Empresa atendida pela agência.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "cnpj": { "type": "string" },
+        "sector": { "type": "string" },
+        "contactEmail": { "type": "string", "format": "email" }
+      },
+      "required": ["id", "name", "cnpj"]
     },
     "Employee": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Colaborador",
       "type": "object",
-      "description": "Representa um funcionário dentro do sistema.",
+      "description": "Funcionário de uma empresa cliente.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "ID único do funcionário."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "ID do cliente (empresa) ao qual este funcionário pertence."
-        },
-        "name": {
-          "type": "string",
-          "description": "Nome completo do funcionário."
-        },
-        "jobRole": {
-          "type": "string",
-          "description": "Cargo ou função do funcionário."
-        },
-        "admissionDate": {
-          "type": "string",
-          "description": "Data de admissão.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "jobRole": { "type": "string" },
+        "admissionDate": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "clientId",
-        "name"
-      ]
+      "required": ["id", "name"]
+    },
+    "Supplier": {
+      "title": "Fornecedor",
+      "type": "object",
+      "description": "Clínicas, laboratórios ou prestadores de serviço.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "serviceType": { "type": "string" },
+        "cnpj": { "type": "string" },
+        "city": { "type": "string" }
+      },
+      "required": ["id", "name"]
     },
     "MedicalExam": {
       "title": "Exame Médico",
@@ -84,22 +65,24 @@
     }
   },
   "auth": {
-    "providers": [
-      "password"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
-    "/clients/{clientId}": {
-      "schema": "Client",
-      "description": "Dados mestres da empresa cliente."
+    "/clients/{agencyId}": {
+      "schema": "Agency",
+      "description": "Perfil da agência logada."
     },
-    "/clients/{clientId}/employees/{employeeId}": {
+    "/clients/{agencyId}/managedCompanies/{companyId}": {
+      "schema": "ManagedCompany",
+      "description": "Empresas clientes gerendiadas pela agência."
+    },
+    "/clients/{agencyId}/employees/{employeeId}": {
       "schema": "Employee",
-      "description": "Lista de colaboradores por empresa."
+      "description": "Base global de colaboradores atendidos pela agência."
     },
-    "/clients/{clientId}/employees/{employeeId}/medicalExams/{examId}": {
-      "schema": "MedicalExam",
-      "description": "Histórico de ASOs e exames complementares."
+    "/clients/{agencyId}/suppliers/{supplierId}": {
+      "schema": "Supplier",
+      "description": "Rede credenciada (clínicas e parceiros)."
     }
   }
 }

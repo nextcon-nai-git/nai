@@ -16,7 +16,8 @@ import {
   Activity,
   AlertTriangle,
   Building2,
-  Lock
+  Lock,
+  Database
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -41,7 +42,7 @@ const navItems = [
     label: "Agência Nextcon",
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
-      { title: "Gestão de Clientes", icon: Building2, href: "/agency/clients" },
+      { title: "Módulo de Importação", icon: Database, href: "/data-import" },
     ]
   },
   {
@@ -66,7 +67,6 @@ const navItems = [
       { title: "Controle de Saúde (PCMSO)", icon: Stethoscope, href: "/health-control" },
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
       { title: "Colaboradores", icon: Users, href: "/employees" },
-      { title: "Importar Dados", icon: Upload, href: "/data-import" },
     ]
   },
   {

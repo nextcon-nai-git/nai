@@ -1,167 +1,29 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * NEXTCON SST SECURITY ARCHITECTURE
-     *
-     * Core Philosophy:
-     * This ruleset implements a strict Tenant-Ownership model. Access is governed by the 
-     * top-level {clientId} parameter in the document path. A user's authenticated identity 
-     * (UID) must match the {clientId} to interact with any data within that client's tree.
-     *
-     * Data Structure:
-     * All application data is strictly hierarchical, nested under /clients/{clientId}.
-     * This includes Employees, Job Roles, Medical Exams, Risks, Action Plans, and Legal Claims.
-     * Subcollections utilize denormalized 'clientId' fields to ensure authorization 
-     * independence and relational integrity without requiring recursive lookups.
-     *
-     * Key Security Decisions:
-     * 1. Path-Based Ownership: The {clientId} in the URL is the primary source of truth 
-     *    for authorization.
-     * 2. Relational Enforcement: During creation and updates, the rules enforce that the 
-     *    internal 'clientId' field matches the path to prevent data from being cross-linked 
-     *    between tenants.
-     * 3. Immutability: Critical relational links (like clientId and document IDs) are 
-     *    immutable once set.
-     * 4. Prototyping Flexibility: While authorization is strictly enforced, general data 
-     *    fields (names, descriptions, dates) are not validated for type or shape.
-     */
-
-    // --- HELPER FUNCTIONS ---
-
-    /** 
-     * Checks if the user is authenticated. 
-     */
     function isSignedIn() {
       return request.auth != null;
     }
-
-    /** 
-     * Checks if the authenticated user matches the owner (clientId) of the path. 
-     */
-    function isOwner(clientId) {
-      return isSignedIn() && request.auth.uid == clientId;
+    function isOwner(agencyId) {
+      return isSignedIn() && request.auth.uid == agencyId;
     }
 
-    /** 
-     * Verifies ownership and ensures the document exists for state-changing operations. 
-     */
-    function isExistingOwner(clientId) {
-      return isOwner(clientId) && resource != null;
-    }
+    match /clients/{agencyId} {
+      allow get, list, create, update: if isOwner(agencyId);
 
-    /** 
-     * Validates that the data being written has a clientId matching the path. 
-     */
-    function isValidClientLink(clientId) {
-      return request.resource.data.clientId == clientId;
-    }
-
-    /** 
-     * Validates that the data being written has an ID matching the path. 
-     */
-    function isValidIdLink(id) {
-      return request.resource.data.id == id;
-    }
-
-    // --- COLLECTION RULES ---
-
-    /**
-     * @description Rules for the root Client document.
-     * @path /clients/{clientId}
-     * @allow (get, list, create, update) if UID matches clientId.
-     * @deny (all) if UID does not match clientId.
-     * @principle Implements self-creation and path-based ownership.
-     */
-    match /clients/{clientId} {
-      allow get, list: if isOwner(clientId);
-      allow create: if isOwner(clientId) && isValidIdLink(clientId);
-      allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(clientId);
-
-      /**
-       * @description Rules for employees belonging to a client.
-       * @path /clients/{clientId}/employees/{employeeId}
-       * @allow (create) if user is client owner and data.clientId matches path.
-       * @deny (update) if attempting to change the clientId association.
-       * @principle Enforces relational integrity via denormalized clientId.
-       */
+      match /managedCompanies/{companyId} {
+        allow get, list, create, update, delete: if isOwner(agencyId);
+      }
       match /employees/{employeeId} {
-        allow get, list: if isOwner(clientId);
-        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(employeeId);
-        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
-        allow delete: if isExistingOwner(clientId);
-
-        /**
-         * @description Rules for medical exams associated with an employee.
-         * @path /clients/{clientId}/employees/{employeeId}/medicalExams/{medicalExamId}
-         * @allow (list) if user is client owner.
-         * @deny (create) if internal employeeId does not match path.
-         * @principle Deeply nested ownership validation.
-         */
-        match /medicalExams/{medicalExamId} {
-          allow get, list: if isOwner(clientId);
-          allow create: if isOwner(clientId) && isValidIdLink(medicalExamId) && request.resource.data.employeeId == employeeId;
-          allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id && request.resource.data.employeeId == resource.data.employeeId;
-          allow delete: if isExistingOwner(clientId);
+        allow get, list, create, update, delete: if isOwner(agencyId);
+        
+        match /medicalExams/{examId} {
+          allow get, list, create, update, delete: if isOwner(agencyId);
         }
       }
-
-      /**
-       * @description Rules for Job Roles defined by the client.
-       * @path /clients/{clientId}/jobRoles/{jobRoleId}
-       * @allow (get) if user is client owner.
-       * @deny (delete) if user is not client owner.
-       * @principle Path-based access control for organizational metadata.
-       */
-      match /jobRoles/{jobRoleId} {
-        allow get, list: if isOwner(clientId);
-        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(jobRoleId);
-        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
-        allow delete: if isExistingOwner(clientId);
-
-        /**
-         * @description Rules for risks associated with a specific Job Role.
-         * @path /clients/{clientId}/jobRoles/{jobRoleId}/risks/{riskId}
-         * @allow (create) if jobRoleId in data matches path.
-         * @deny (update) if attempting to move a risk to a different job role.
-         * @principle Validates relational consistency between path and document data.
-         */
-        match /risks/{riskId} {
-          allow get, list: if isOwner(clientId);
-          allow create: if isOwner(clientId) && isValidIdLink(riskId) && request.resource.data.jobRoleId == jobRoleId;
-          allow update: if isExistingOwner(clientId) && request.resource.data.id == resource.data.id && request.resource.data.jobRoleId == resource.data.jobRoleId;
-          allow delete: if isExistingOwner(clientId);
-        }
-      }
-
-      /**
-       * @description Rules for Action Plans within a client context.
-       * @path /clients/{clientId}/actionPlans/{actionPlanId}
-       * @allow (update) if client owner, ensuring clientId remains immutable.
-       * @deny (create) if clientId in payload does not match client tree.
-       * @principle Multi-tenant data isolation.
-       */
-      match /actionPlans/{actionPlanId} {
-        allow get, list: if isOwner(clientId);
-        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(actionPlanId);
-        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
-        allow delete: if isExistingOwner(clientId);
-      }
-
-      /**
-       * @description Rules for Legal Claims and pericias.
-       * @path /clients/{clientId}/legalClaims/{legalClaimId}
-       * @allow (all) restricted to the specific client owner.
-       * @deny (list) if unauthorized user attempts to view claims.
-       * @principle Secure management of sensitive financial and legal data.
-       */
-      match /legalClaims/{legalClaimId} {
-        allow get, list: if isOwner(clientId);
-        allow create: if isOwner(clientId) && isValidClientLink(clientId) && isValidIdLink(legalClaimId);
-        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId && request.resource.data.id == resource.data.id;
-        allow delete: if isExistingOwner(clientId);
+      match /suppliers/{supplierId} {
+        allow get, list, create, update, delete: if isOwner(agencyId);
       }
     }
   }
