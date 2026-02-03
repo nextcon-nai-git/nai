@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -36,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
+import { NextconLogo } from "@/components/ui/logo"
 
 const navItems = [
   {
@@ -105,8 +107,8 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="p-4 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-lg bg-white flex items-center justify-center text-primary font-bold shadow-lg">
-            N
+          <div className="size-10 flex items-center justify-center text-white shrink-0">
+            <NextconLogo className="size-full" />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-tight">
             <span className="font-headline font-black text-white text-lg tracking-tighter">

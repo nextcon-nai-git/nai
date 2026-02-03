@@ -11,6 +11,7 @@ import { useAuth, useUser } from "@/firebase"
 import { initiateEmailSignIn } from "@/firebase/non-blocking-login"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { NextconLogo } from "@/components/ui/logo"
 
 const SUGGESTED_USERS = [
   { email: "relacionamento@nextconsaude.com.br", name: "Pablo (Comercial)" },
@@ -71,12 +72,12 @@ export default function LoginPage() {
     <div className="flex min-h-svh w-full flex-col items-center justify-center bg-muted/30 p-4 py-12">
       <div className="mb-8 flex flex-col items-center text-center">
         <div className="mb-4 flex items-center justify-center">
-          <div className="flex items-center gap-3">
-            <div className="size-12 rounded-lg bg-primary flex items-center justify-center text-white font-bold shadow-lg">
-              N
+          <div className="flex items-center gap-4">
+            <div className="size-16 flex items-center justify-center text-primary drop-shadow-xl">
+              <NextconLogo className="size-full" />
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-2xl font-black text-primary tracking-tighter leading-none">NEXTCON</span>
+              <span className="text-3xl font-black text-primary tracking-tighter leading-none">NEXTCON</span>
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-[0.2em]">Saúde Empresarial</span>
             </div>
           </div>
