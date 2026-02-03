@@ -7,7 +7,6 @@ import {
   ShieldAlert, 
   Stethoscope, 
   CheckSquare, 
-  Upload, 
   Users, 
   LogOut,
   TrendingUp,
@@ -15,12 +14,10 @@ import {
   Camera,
   Activity,
   AlertTriangle,
-  Building2,
   Lock,
   Database,
   Sparkles,
   ClipboardList,
-  UserCircle,
   Map as MapIcon
 } from "lucide-react"
 import Link from "next/link"
@@ -116,14 +113,14 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-none shadow-2xl bg-sidebar text-sidebar-foreground">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-none bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-sidebar-primary shrink-0">
             <NextconLogo className="size-full" />
           </div>
-          <div className="flex flex-col group-data-[collapsible=icon]:hidden leading-none">
-            <span className="font-headline font-black text-sidebar-foreground text-xl tracking-tighter">
+          <div className="flex flex-col leading-none overflow-hidden">
+            <span className="font-headline font-black text-white text-xl tracking-tighter">
               NEXTCON
             </span>
             <span className="text-[9px] font-bold text-sidebar-primary uppercase tracking-[0.25em] mt-1">
@@ -139,7 +136,7 @@ export function AppSidebar() {
           
           return (
             <SidebarGroup key={group.label} className="px-3">
-              <SidebarGroupLabel className="text-sidebar-foreground/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-1">
+              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-2">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>
@@ -153,18 +150,18 @@ export function AppSidebar() {
                         isActive={isActive}
                         tooltip={item.title}
                         className={cn(
-                          "relative h-11 px-4 mb-1 transition-all duration-300 rounded-lg group-hover:pl-5",
+                          "relative h-11 px-4 mb-1 transition-none rounded-lg",
                           isActive 
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-lg" 
-                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                            ? "bg-white/10 text-white" 
+                            : "text-white/70 hover:text-white hover:bg-white/5"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3">
                           <Icon className={cn(
-                            "size-5 transition-transform duration-300",
-                            isActive ? "text-sidebar-primary scale-110" : "text-sidebar-foreground/40"
+                            "size-5",
+                            isActive ? "text-sidebar-primary" : "text-white/40"
                           )} />
-                          <span className="font-medium tracking-wide text-sm">{item.title}</span>
+                          <span className="font-medium tracking-wide text-sm whitespace-nowrap">{item.title}</span>
                           {isActive && <div className="absolute left-0 w-1 h-6 bg-sidebar-primary rounded-r-full" />}
                         </Link>
                       </SidebarMenuButton>
@@ -177,21 +174,21 @@ export function AppSidebar() {
         })}
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
+      <SidebarFooter className="p-4 border-t border-white/10">
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-3 bg-sidebar-accent/30 rounded-2xl group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:bg-transparent">
+            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
               <Avatar className="size-9 border-2 border-sidebar-primary/20">
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-bold">{userInitial}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col flex-1 group-data-[collapsible=icon]:hidden overflow-hidden">
-                <span className="text-xs font-bold text-sidebar-foreground truncate">{userName}</span>
-                <span className="text-[9px] text-sidebar-foreground/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <span className="text-xs font-bold text-white truncate">{userName}</span>
+                <span className="text-[9px] text-white/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
               </div>
               <button 
                 onClick={handleLogout}
-                className="p-2 text-sidebar-foreground/40 hover:text-sidebar-primary hover:bg-sidebar-accent/50 rounded-lg transition-all group-data-[collapsible=icon]:hidden"
+                className="p-2 text-white/40 hover:text-sidebar-primary transition-colors"
                 title="Sair do sistema"
               >
                 <LogOut className="size-4" />
