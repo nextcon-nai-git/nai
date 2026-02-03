@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { ShieldCheck, Loader2, Mail, Lock, AlertCircle } from "lucide-react"
+import { ShieldCheck, Loader2, Mail, Lock, AlertCircle, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
-  // Preenchendo com as credenciais solicitadas para facilitar o teste
   const [email, setEmail] = React.useState("nextcon@nextconsaude.com.br")
   const [password, setPassword] = React.useState("2025")
   const [loading, setLoading] = React.useState(false)
@@ -74,10 +73,10 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
-            <Alert className="bg-primary/5 border-primary/20 text-primary mb-4">
+            <Alert className="bg-blue-50 border-blue-200 text-blue-800 mb-4">
               <AlertCircle className="size-4" />
-              <AlertDescription className="text-[10px] font-medium uppercase tracking-wider">
-                Lembre-se de criar este usuário no Console do Firebase.
+              <AlertDescription className="text-xs font-medium">
+                Configuração: No Console Firebase, ative "Email/Password" em Authentication e crie o usuário solicitado para habilitar o acesso.
               </AlertDescription>
             </Alert>
             <div className="space-y-2">
@@ -122,9 +121,14 @@ export default function LoginPage() {
             <Button type="submit" className="w-full bg-primary py-6 text-lg font-bold" disabled={loading}>
               {loading ? <Loader2 className="size-5 animate-spin" /> : "Acessar Plataforma"}
             </Button>
-            <div className="text-center text-xs text-muted-foreground">
-              Acesso restrito a colaboradores e clientes autorizados.
-            </div>
+            <a 
+              href="https://console.firebase.google.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+            >
+              <ExternalLink className="size-3" /> Ir para o Console do Firebase
+            </a>
           </CardFooter>
         </form>
       </Card>
