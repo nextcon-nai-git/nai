@@ -1,3 +1,4 @@
+"use client"
 
 import * as React from "react"
 
@@ -8,12 +9,15 @@ export function useIsMobile() {
 
   React.useEffect(() => {
     const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
+    const checkIsMobile = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+    
+    // Initial check
+    checkIsMobile()
+    
+    mql.addEventListener("change", checkIsMobile)
+    return () => mql.removeEventListener("change", checkIsMobile)
   }, [])
 
   return isMobile

@@ -26,6 +26,40 @@
     --radius: 0.75rem;
     --chart-1: 222 47% 11%;
     --chart-2: 45 93% 47%;
+    
+    /* Sidebar Variables explicitly set */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 45 93% 47%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 45 93% 47%;
+  }
+
+  /* Force same variables for dark mode to prevent visual disappearance */
+  .dark {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 222 47% 11%; 
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 45 93% 47%; 
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222 47% 11%;
+    
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 45 93% 47%;
@@ -59,11 +93,6 @@
 
 .card-shadow {
   box-shadow: 0 10px 30px -10px rgba(9, 14, 36, 0.08);
-}
-
-.sidebar-glass {
-  background: rgba(9, 14, 36, 0.98);
-  backdrop-filter: blur(12px);
 }
 
 .animate-fade-in {

@@ -1,7 +1,5 @@
-
 "use client"
 
-import type { Metadata } from 'next';
 import './globals.css';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
@@ -20,11 +18,15 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     setMounted(true);
-    if (!isUserLoading && !user && pathname !== '/login') {
+  }, []);
+
+  React.useEffect(() => {
+    if (mounted && !isUserLoading && !user && pathname !== '/login') {
       router.push('/login');
     }
-  }, [user, isUserLoading, pathname, router]);
+  }, [user, isUserLoading, pathname, router, mounted]);
 
+  // Se não montou ou está carregando o usuário, mostra o loader tela cheia
   if (!mounted || isUserLoading) {
     return (
       <div className="flex h-svh w-full items-center justify-center bg-background">
@@ -33,17 +35,20 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Se não houver usuário e não for a página de login, evita renderizar o conteúdo
   if (!user && pathname !== '/login') {
     return null;
   }
 
+  // Se for a página de login, renderiza limpo
   if (pathname === '/login') {
     return <>{children}</>;
   }
 
+  // Layout principal com Sidebar
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex w-full min-h-svh overflow-hidden bg-background">
+      <div className="flex w-full min-h-svh bg-background overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
@@ -69,14 +74,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <title>NextCon SST - Gestão Ocupacional</title>
       </head>
-      <body className="font-body antialiased min-h-svh">
+      <body className="font-body antialiased min-h-svh bg-background text-foreground">
         <FirebaseClientProvider>
           <AppContent>{children}</AppContent>
           <Toaster />
