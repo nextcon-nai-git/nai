@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -17,7 +16,8 @@ import {
   AlertTriangle,
   Building2,
   Lock,
-  Database
+  Database,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -54,6 +54,7 @@ const navItems = [
       { title: "Dashboard CFO", icon: LayoutDashboard, href: "/" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
+      { title: "Assistente de Normas", icon: Sparkles, href: "/knowledge-base" },
     ]
   },
   {

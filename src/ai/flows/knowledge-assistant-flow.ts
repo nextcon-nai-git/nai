@@ -1,0 +1,59 @@
+'use server';
+/**
+ * @fileOverview Assistente especializado em Normas Regulamentadoras (NRs) e legislação de SST.
+ * 
+ * - runKnowledgeAssistant - Função que responde dúvidas sobre NRs.
+ * - KnowledgeInput - Entrada: Pergunta do usuário.
+ * - KnowledgeOutput - Saída: Resposta fundamentada com citações das normas.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const KnowledgeInputSchema = z.object({
+  query: z.string().describe('A dúvida técnica sobre SST ou NRs.'),
+});
+export type KnowledgeInput = z.infer<typeof KnowledgeInputSchema>;
+
+const KnowledgeOutputSchema = z.object({
+  answer: z.string().describe('Resposta detalhada e técnica.'),
+  references: z.array(z.string()).describe('Lista de NRs, itens ou decretos citados.'),
+  advice: z.string().describe('Conselho estratégico para a agência Nextcon.'),
+});
+export type KnowledgeOutput = z.infer<typeof KnowledgeOutputSchema>;
+
+const prompt = ai.definePrompt({
+  name: 'knowledgeAssistantPrompt',
+  input: {schema: KnowledgeInputSchema},
+  output: {schema: KnowledgeOutputSchema},
+  prompt: `Você é o Sentinel AI, o assistente técnico sênior da agência Nextcon Saúde Empresarial. 
+Sua especialidade é o Direito do Trabalho, Segurança e Saúde Ocupacional (SST) e legislação previdenciária (RAT/FAP/NTEP).
+
+PERGUNTA: {{{query}}}
+
+INSTRUÇÕES:
+1. Responda de forma técnica, porém objetiva.
+2. Cite sempre o número da NR ou o Decreto correspondente.
+3. Se a pergunta for sobre eSocial, mencione os eventos (S-2210, S-2220, S-2240).
+4. No campo 'advice', dê uma dica prática de como a agência pode aplicar isso para gerar valor ao cliente.
+5. Use um tom de autoridade e confiança.`,
+});
+
+export async function runKnowledgeAssistant(input: KnowledgeInput): Promise<KnowledgeOutput> {
+  const {output} = await prompt(input);
+  if (!output) {
+    throw new Error('O Assistente não pôde processar sua dúvida agora.');
+  }
+  return output;
+}
+
+ai.defineFlow(
+  {
+    name: 'knowledgeAssistantFlow',
+    inputSchema: KnowledgeInputSchema,
+    outputSchema: KnowledgeOutputSchema,
+  },
+  async input => {
+    return runKnowledgeAssistant(input);
+  }
+);

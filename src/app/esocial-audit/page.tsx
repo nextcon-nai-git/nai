@@ -15,7 +15,9 @@ import {
   ExternalLink,
   Ban,
   Sparkles,
-  Loader2
+  Loader2,
+  History,
+  Save
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,11 +33,27 @@ import {
 } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { runEsocialAudit, type EsocialAuditOutput } from "@/ai/flows/esocial-audit-flow"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
 
 export default function EsocialAudit() {
   const { toast } = useToast()
+  const { user } = useUser()
+  const db = useFirestore()
   const [isAuditing, setIsAuditing] = React.useState(false)
   const [aiReport, setAiReport] = React.useState<EsocialAuditOutput | null>(null)
+
+  // Busca histórico de auditorias
+  const historyQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(
+      collection(db, "clients", user.uid, "auditHistory"),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    )
+  }, [db, user])
+
+  const { data: history } = useCollection(historyQuery)
 
   const handleRunAiAudit = async () => {
     setIsAuditing(true)
@@ -49,9 +67,19 @@ export default function EsocialAudit() {
       })
       
       setAiReport(result)
+      
+      // Salva no histórico se houver banco e usuário
+      if (db && user) {
+        await addDoc(collection(db, "clients", user.uid, "auditHistory"), {
+          ...result,
+          sector: "Produção e Metalurgia",
+          createdAt: new Date().toISOString()
+        })
+      }
+
       toast({
         title: "Auditoria Finalizada",
-        description: "A IA Gemini analisou as inconsistências do seu eSocial com sucesso.",
+        description: "A IA Gemini analisou as inconsistências e o relatório foi salvo no histórico.",
       })
     } catch (error: any) {
       console.error(error)
@@ -185,17 +213,33 @@ export default function EsocialAudit() {
         <div className="space-y-6">
           <Card className="card-shadow border-none bg-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-black uppercase text-muted-foreground tracking-widest">Resumo do Lote</CardTitle>
+              <CardTitle className="text-xs font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                <History className="size-3" /> Histórico Recente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {history?.map((audit) => (
+                  <div key={audit.id} className="p-3 space-y-1 hover:bg-muted/30 transition-colors cursor-default">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-primary">{new Date(audit.createdAt).toLocaleDateString()}</span>
+                      <Badge className="h-4 text-[8px] bg-emerald-600">{audit.complianceScore}%</Badge>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate">{audit.sector}</p>
+                  </div>
+                ))}
+                {!history?.length && (
+                  <div className="p-4 text-center text-[10px] text-muted-foreground uppercase font-bold">Sem registros</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-shadow border-none bg-white">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-black uppercase text-muted-foreground tracking-widest">Ações</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Prontos para envio:</span>
-                <span className="font-bold text-emerald-600">142</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Bloqueios Críticos:</span>
-                <span className="font-bold text-red-600">{aiReport ? aiReport.criticalGaps.length : "0"}</span>
-              </div>
               <Button className="w-full bg-accent hover:bg-accent/90 h-12 font-bold shadow-lg" disabled={!aiReport || aiReport.criticalGaps.length > 0}>
                 Transmitir Validado
               </Button>
