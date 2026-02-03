@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -113,13 +112,13 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" className="border-none bg-sidebar text-sidebar-foreground">
+    <Sidebar variant="sidebar" className="border-none bg-sidebar text-sidebar-foreground w-[260px]">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-sidebar-primary shrink-0">
             <NextconLogo className="size-full" />
           </div>
-          <div className="flex flex-col leading-none">
+          <div className="flex flex-col leading-none overflow-hidden">
             <span className="font-headline font-black text-white text-xl tracking-tighter">
               NEXTCON
             </span>
@@ -155,12 +154,12 @@ export function AppSidebar() {
                             : "text-white/70 hover:text-white hover:bg-white/5"
                         )}
                       >
-                        <Link href={item.href} className="flex items-center gap-3">
+                        <Link href={item.href} className="flex items-center gap-3 w-full">
                           <Icon className={cn(
-                            "size-5",
+                            "size-5 shrink-0",
                             isActive ? "text-sidebar-primary" : "text-white/40"
                           )} />
-                          <span className="font-medium tracking-wide text-sm whitespace-nowrap block">
+                          <span className="font-medium tracking-wide text-sm whitespace-nowrap">
                             {item.title}
                           </span>
                           {isActive && <div className="absolute left-0 w-1 h-6 bg-sidebar-primary rounded-r-full" />}
@@ -179,17 +178,19 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
-              <Avatar className="size-9 border-2 border-sidebar-primary/20">
+              <Avatar className="size-9 border-2 border-sidebar-primary/20 shrink-0">
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
                 <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-bold">{userInitial}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col flex-1 min-w-0">
+              
+              <div className="flex flex-col flex-1 overflow-hidden">
                 <span className="text-xs font-bold text-white truncate">{userName}</span>
                 <span className="text-[9px] text-white/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
               </div>
+              
               <button 
                 onClick={handleLogout}
-                className="p-2 text-white/40 hover:text-sidebar-primary transition-colors"
+                className="p-2 text-white/40 hover:text-sidebar-primary transition-colors shrink-0"
                 title="Sair do sistema"
               >
                 <LogOut className="size-4" />
