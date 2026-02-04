@@ -2,14 +2,13 @@
 "use client"
 
 import './globals.css';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { useUser } from '@/firebase';
 import { usePathname, useRouter } from 'next/navigation';
-import { Loader2, Menu } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import * as React from 'react';
+import { TopNav } from '@/components/layout/top-nav';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -42,21 +41,23 @@ function AppContent({ children }: { children: React.ReactNode }) {
   if (!user) return null;
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex h-svh w-full bg-background overflow-hidden">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
-          <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
-            <span className="font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>
-          </header>
-          <main className="flex-1 overflow-auto p-4 md:p-8">
-            <div className="max-w-7xl mx-auto w-full">
-              {children}
-            </div>
-          </main>
+    <div className="min-h-svh flex flex-col bg-background">
+      <TopNav />
+      <main className="flex-1 overflow-auto p-4 md:p-8">
+        <div className="max-w-7xl mx-auto w-full">
+          {children}
         </div>
-      </div>
-    </SidebarProvider>
+      </main>
+      <footer className="py-6 border-t bg-muted/30">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+          <p>© 2024 NEXTCON SAÚDE EMPRESARIAL</p>
+          <div className="flex gap-4">
+            <span className="text-primary/40">Suporte Técnico</span>
+            <span className="text-primary/40">Privacidade</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
 
