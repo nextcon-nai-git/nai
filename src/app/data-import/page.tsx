@@ -10,7 +10,8 @@ import {
   Users, 
   ShieldAlert, 
   UserCheck, 
-  Zap
+  Stethoscope,
+  HeartPulse
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -20,7 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
 import { doc, writeBatch } from "firebase/firestore"
 
-type ImportType = 'companies' | 'employees' | 'exams'
+type ImportType = 'companies' | 'employees' | 'exams' | 'providers'
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
@@ -31,7 +32,7 @@ export default function UnifiedImportCenter() {
   const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
 
-  const setupProfileByRole = async (targetRole: 'SUPER_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE') => {
+  const setupProfileByRole = async (targetRole: 'SUPER_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE' | 'PROVIDER') => {
     if (!user || !db) return
     setUploading(true)
     
@@ -73,7 +74,7 @@ export default function UnifiedImportCenter() {
       if (lines.length < 2) throw new Error("O arquivo deve conter o cabeçalho e pelo menos uma linha de dados.")
 
       const separator = lines[0].includes(';') ? ';' : ','
-      const headers = lines[0].split(separator).map(h => h.trim().toLowerCase())
+      const headers = lines[0].split(separator).map(h => h.trim())
       
       const batch = writeBatch(db)
       let count = 0
@@ -82,25 +83,52 @@ export default function UnifiedImportCenter() {
         const values = line.split(separator).map(v => v.trim())
         if (values.length < 1) return
 
-        const data: any = { updatedAt: new Date().toISOString() }
-        headers.forEach((header, i) => {
-          if (values[i]) data[header] = values[i]
-        })
+        let data: any = { updatedAt: new Date().toISOString() }
 
-        // Caminho Multi-Tenant: clientes/{adminUid}/colecao
+        if (activeTab === 'providers') {
+          // Mapeamento específico solicitado pelo usuário para Prestadores
+          const row: any = {}
+          headers.forEach((h, i) => row[h] = values[i])
+
+          data = {
+            legacyId: row["Código Original"] || row["legacyId"] || `L${index}`,
+            displayName: row["Nome Completo"] || row["displayName"] || "Sem Nome",
+            email: row["email"] || `prestador_${index}@nai.com.br`,
+            role: "PROVIDER",
+            professionalId: {
+              number: row["Número do Conselho"] || "N/I",
+              type: row["Conselho"] || "CRM"
+            },
+            status: row["Ativo"] === "Sim" || row["status"] === "ACTIVE" ? "ACTIVE" : "INACTIVE",
+            permissions: {
+              canIssueASO: row["ASO"] === "Sim" || row["canIssueASO"] === "true",
+              canManage: row["Gere"] === "Sim" || row["canManage"] === "true",
+              canExam: row["Exam"] === "Sim" || row["canExam"] === "true",
+              canSchedule: row["Agen"] === "Sim" || row["canSchedule"] === "true"
+            },
+            updatedAt: new Date().toISOString()
+          }
+        } else {
+          headers.forEach((header, i) => {
+            if (values[i]) data[header.toLowerCase()] = values[i]
+          })
+        }
+
+        // Caminho Multi-Tenant
         const collectionPath = 
           activeTab === 'companies' ? `clients/${user.uid}/managedCompanies` : 
           activeTab === 'employees' ? `clients/${user.uid}/employees` : 
+          activeTab === 'providers' ? `providers` :
           `clients/${user.uid}/sst_events`;
 
-        const docId = data.id || data.cnpj || `import_${index}_${Date.now()}`
+        const docId = data.id || data.cnpj || data.legacyId || `import_${index}_${Date.now()}`
         const docRef = doc(db, collectionPath, docId)
         batch.set(docRef, data, { merge: true })
         count++
       })
 
       await batch.commit()
-      toast({ title: "Importação Finalizada", description: `${count} registros importados para seu ambiente.` })
+      toast({ title: "Importação Finalizada", description: `${count} registros processados.` })
       setPastedData("")
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
@@ -110,39 +138,45 @@ export default function UnifiedImportCenter() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
+    <div className="max-w-6xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight">Arquitetura NEXTCON SST 2026</h1>
           <p className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Alternar Perfis e Importar Dados</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2 border-[#090e24] text-[#090e24] hover:bg-[#090e24] hover:text-white" onClick={() => setupProfileByRole('SUPER_ADMIN')} disabled={uploading}>
+          <Button variant="outline" size="sm" className="gap-2 border-[#090e24] text-[#090e24]" onClick={() => setupProfileByRole('SUPER_ADMIN')} disabled={uploading}>
             <ShieldAlert className="size-4" /> SUPER ADMIN
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 border-[#f59e0b] text-[#f59e0b] hover:bg-[#f59e0b] hover:text-[#090e24]" onClick={() => setupProfileByRole('CLIENT_ADMIN')} disabled={uploading}>
+          <Button variant="outline" size="sm" className="gap-2 border-[#f59e0b] text-[#f59e0b]" onClick={() => setupProfileByRole('CLIENT_ADMIN')} disabled={uploading}>
             <Building2 className="size-4" /> CLIENT ADMIN
           </Button>
-          <Button variant="outline" size="sm" className="gap-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white" onClick={() => setupProfileByRole('EMPLOYEE')} disabled={uploading}>
+          <Button variant="outline" size="sm" className="gap-2 border-emerald-600 text-emerald-600" onClick={() => setupProfileByRole('EMPLOYEE')} disabled={uploading}>
             <UserCheck className="size-4" /> EMPLOYEE
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2 border-blue-600 text-blue-600" onClick={() => setupProfileByRole('PROVIDER')} disabled={uploading}>
+            <HeartPulse className="size-4" /> PROVIDER
           </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ImportType)} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
+        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="companies" className="rounded-lg gap-2">
             <Building2 className="size-4" /> Empresas
           </TabsTrigger>
           <TabsTrigger value="employees" className="rounded-lg gap-2">
             <Users className="size-4" /> Funcionários
           </TabsTrigger>
+          <TabsTrigger value="providers" className="rounded-lg gap-2">
+            <Stethoscope className="size-4" /> Prestadores
+          </TabsTrigger>
           <TabsTrigger value="exams" className="rounded-lg gap-2">
-            <Zap className="size-4" /> Eventos SST
+            <HeartPulse className="size-4" /> Eventos SST
           </TabsTrigger>
         </TabsList>
 
-        <Card className="mt-6 card-shadow border-none bg-white">
+        <Card className="mt-6 border-none shadow-xl bg-white">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -151,14 +185,18 @@ export default function UnifiedImportCenter() {
                 </div>
                 <div>
                   <CardTitle className="text-xl">Importador em Lote</CardTitle>
-                  <CardDescription>Cole dados CSV para popular seu ambiente exclusivo.</CardDescription>
+                  <CardDescription>
+                    {activeTab === 'providers' 
+                      ? "Colunas: Código Original; Nome Completo; Ativo; ASO; Gere; Exam; Agen" 
+                      : "Cole dados CSV para popular seu ambiente exclusivo."}
+                  </CardDescription>
                 </div>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea 
-              placeholder="Cole aqui seus dados (Cabeçalho;Dado1;Dado2)..."
+              placeholder="Cole aqui seus dados..."
               className="min-h-[350px] font-mono text-xs bg-muted/20 p-6"
               value={pastedData}
               onChange={(e) => setPastedData(e.target.value)}

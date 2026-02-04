@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -71,6 +72,12 @@ export function TopNav() {
       { label: "Segurança", href: "/risk-management", icon: ShieldAlert },
       { label: "Saúde (PCMSO)", href: "/client/exams", icon: HeartPulse },
       { label: "eSocial", href: "/esocial-audit", icon: SearchCheck },
+      { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
+    ],
+    PROVIDER: [
+      { label: "Início", href: "/", icon: LayoutDashboard },
+      { label: "Atendimento", href: "/client/exams", icon: HeartPulse },
+      { label: "Agenda", href: "/health-control", icon: CalendarDays },
       { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
     ],
     EMPLOYEE: [

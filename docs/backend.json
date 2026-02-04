@@ -10,8 +10,8 @@
         "email": { "type": "string", "format": "email" },
         "role": { 
           "type": "string",
-          "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "EMPLOYEE"],
-          "description": "Papel do usuário: SUPER_ADMIN (Nextcon), CLIENT_ADMIN (Gestor Empresa), EMPLOYEE (Funcionário)."
+          "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "EMPLOYEE", "PROVIDER"],
+          "description": "Papel do usuário: SUPER_ADMIN (Nextcon), CLIENT_ADMIN (Gestor Empresa), EMPLOYEE (Funcionário), PROVIDER (Clínica/Médico)."
         },
         "companyId": { "type": "string", "description": "Referência para a empresa do cliente." },
         "linkedEmployeeId": { "type": "string", "description": "Referência para o cadastro de funcionário se for EMPLOYEE." },
@@ -22,7 +22,7 @@
     "Company": {
       "title": "Empresa Cliente",
       "type": "object",
-      "description": "Empresa atendida pela plataforma NAI.",
+      "description": "Empresa atendida pela plataforma NEXTCON.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -46,6 +46,35 @@
         "status": { "type": "string" }
       },
       "required": ["id", "name", "companyId"]
+    },
+    "Provider": {
+      "title": "Prestador de Serviço",
+      "type": "object",
+      "description": "Entidade que representa uma clínica ou profissional da rede credenciada.",
+      "properties": {
+        "legacyId": { "type": "string", "description": "Código Original do sistema antigo." },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["PROVIDER"] },
+        "professionalId": {
+          "type": "object",
+          "properties": {
+            "number": { "type": "string" },
+            "type": { "type": "string", "enum": ["CRM", "CREA", "MTE"] }
+          }
+        },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "permissions": {
+          "type": "object",
+          "properties": {
+            "canIssueASO": { "type": "boolean" },
+            "canManage": { "type": "boolean" },
+            "canExam": { "type": "boolean" },
+            "canSchedule": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["legacyId", "displayName", "email", "status"]
     }
   },
   "auth": {
@@ -63,6 +92,10 @@
     "/employees/{employeeId}": {
       "schema": "Employee",
       "description": "Base global de vidas gerenciadas."
+    },
+    "/providers/{providerId}": {
+      "schema": "Provider",
+      "description": "Rede credenciada de clínicas e médicos."
     }
   }
 }
