@@ -1,237 +1,143 @@
+'use client';
 
-"use client"
-
-import * as React from "react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
-  LogOut, 
   Menu, 
-  ChevronDown,
+  X, 
   LayoutDashboard, 
+  Users, 
   ShieldAlert, 
   Stethoscope, 
-  CheckSquare, 
-  Users, 
-  TrendingUp,
-  SearchCheck,
-  Camera,
-  Activity,
-  AlertTriangle,
-  Lock,
+  SearchCheck, 
+  LogOut,
   Database,
+  Lock,
   Sparkles,
-  ClipboardList,
-  Map as MapIcon
-} from "lucide-react"
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
-import { signOut } from "firebase/auth"
-import { doc } from "firebase/firestore"
-import { NextconLogo } from "@/components/ui/logo"
-import { cn } from "@/lib/utils"
-
-type Role = 'admin' | 'client' | 'employee'
-
-const navGroups = [
-  {
-    label: "Admin",
-    roles: ['admin'],
-    items: [
-      { title: "Comando", icon: Lock, href: "/agency/command-center" },
-      { title: "Mapa", icon: MapIcon, href: "/agency/client-map" },
-      { title: "Importar", icon: Database, href: "/data-import" },
-    ]
-  },
-  {
-    label: "Estratégico",
-    roles: ['admin', 'client'],
-    items: [
-      { title: "Dashboard", icon: LayoutDashboard, href: "/" },
-      { title: "Equipe", icon: Users, href: "/employees" },
-      { title: "ROI", icon: TrendingUp, href: "/legal-financial" },
-      { title: "eSocial", icon: SearchCheck, href: "/esocial-audit" },
-      { title: "NAI", icon: Sparkles, href: "/knowledge-base" },
-    ]
-  },
-  {
-    label: "Operacional",
-    roles: ['admin', 'client'],
-    items: [
-      { title: "PGR", icon: ShieldAlert, href: "/risk-management" },
-      { title: "Saúde", icon: Stethoscope, href: "/health-control" },
-      { title: "Limbo", icon: AlertTriangle, href: "/absenteeism" },
-      { title: "Ações", icon: CheckSquare, href: "/action-plans" },
-    ]
-  },
-  {
-    label: "Colaborador",
-    roles: ['admin', 'client', 'employee'],
-    items: [
-      { title: "EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Checklists", icon: ClipboardList, href: "/checklists" },
-      { title: "Burnout", icon: Activity, href: "/psychosocial" },
-    ]
-  }
-]
+  TrendingUp,
+  Activity,
+  ClipboardList
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { NextconLogo } from '@/components/ui/logo';
+import { cn } from '@/lib/utils';
 
 export function TopNav() {
-  const pathname = usePathname()
-  const auth = useAuth()
-  const db = useFirestore()
-  const { user } = useUser()
-  const router = useRouter()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const pathname = usePathname();
+  const { user } = useUser();
+  const auth = useAuth();
+  const [isOpen, setIsOpen] = React.useState(false);
 
-  const profileRef = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return doc(db, "clients", user.uid)
-  }, [db, user])
+  const menuItems = [
+    { title: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { title: 'Equipe', href: '/employees', icon: Users },
+    { title: 'PGR', href: '/risk-management', icon: ShieldAlert },
+    { title: 'PCMSO', href: '/health-control', icon: Stethoscope },
+    { title: 'eSocial', href: '/esocial-audit', icon: SearchCheck },
+    { title: 'NAI', href: '/knowledge-base', icon: Sparkles },
+    { title: 'Importação', href: '/data-import', icon: Database },
+  ];
 
-  const { data: profile } = useDoc(profileRef)
-
-  const handleLogout = async () => {
-    await signOut(auth)
-    router.push("/login")
-  }
-
-  const role = (profile?.role?.toLowerCase() || 'admin') as Role
-  const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
-  const userRoleLabel = 
-    role === 'admin' ? "Administrador" : 
-    role === 'client' ? "Gestor" : "Colaborador"
-  const userInitial = userName.substring(0, 2).toUpperCase()
+  const handleLogout = () => {
+    signOut(auth);
+  };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#090e24] text-white shadow-xl">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="size-8 text-[#f59e0b] shrink-0">
-              <NextconLogo className="size-full" />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-headline font-black text-white text-lg tracking-tighter uppercase">
-                NEXTCON
-              </span>
-              <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest leading-none">
-                SST
-              </span>
-            </div>
-          </Link>
+    <nav className="bg-[#090e24] text-white sticky top-0 z-50 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="h-8 w-8 text-[#f59e0b]">
+                <NextconLogo className="h-full w-full" />
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="font-black text-lg tracking-tighter uppercase font-headline">NEXTCON</span>
+                <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest">Saúde Empresarial</span>
+              </div>
+            </Link>
 
-          <nav className="hidden lg:flex items-center gap-1">
-            {navGroups.map((group) => {
-              if (!group.roles.includes(role)) return null
-              return (
-                <DropdownMenu key={group.label}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
-                      {group.label} <ChevronDown className="size-3 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48 p-1">
-                    {group.items.map((item) => (
-                      <DropdownMenuItem key={item.title} asChild>
-                        <Link href={item.href} className={cn(
-                          "flex items-center gap-2 cursor-pointer p-2 text-sm font-medium",
-                          pathname === item.href ? "bg-primary/10 text-primary font-bold" : "text-foreground"
-                        )}>
-                          <item.icon className="size-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )
-            })}
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-3 pr-2 border-r border-white/10">
-            <div className="text-right">
-              <p className="text-xs font-bold text-white leading-none">{userName}</p>
-              <p className="text-[9px] text-[#f59e0b] font-black uppercase tracking-tighter">{userRoleLabel}</p>
+            {/* Desktop Menu */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "px-3 py-2 rounded-md text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2",
+                    pathname === item.href 
+                      ? "bg-[#f59e0b] text-[#090e24]" 
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.title}
+                </Link>
+              ))}
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="size-8 cursor-pointer border border-white/20 hover:border-[#f59e0b] transition-colors">
-                  <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                  <AvatarFallback className="bg-[#f59e0b] text-[#090e24] font-bold text-xs">{userInitial}</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 p-2">
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer gap-2">
-                  <LogOut className="size-4" />
-                  Sair do Sistema
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
 
-          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-white/10">
-                <Menu className="size-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] p-0 bg-[#090e24] border-none text-white">
-              <SheetHeader className="p-6 border-b border-white/10 text-left">
-                <SheetTitle className="flex items-center gap-2 text-white">
-                   <div className="size-8 text-[#f59e0b]"><NextconLogo className="size-full" /></div>
-                   <span className="font-headline font-black tracking-tighter uppercase">NEXTCON</span>
-                </SheetTitle>
-              </SheetHeader>
-              <div className="overflow-y-auto p-4 space-y-6">
-                {navGroups.map((group) => {
-                  if (!group.roles.includes(role)) return null
-                  return (
-                    <div key={group.label} className="space-y-3">
-                      <h3 className="text-[10px] font-black uppercase text-[#f59e0b] tracking-[0.2em] px-4">{group.label}</h3>
-                      <div className="grid grid-cols-1 gap-1">
-                        {group.items.map((item) => (
-                          <Link
-                            key={item.title}
-                            href={item.href}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={cn(
-                              "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                              pathname === item.href ? "bg-[#f59e0b] text-[#090e24] font-bold" : "text-white/70 hover:bg-white/5 hover:text-white"
-                            )}
-                          >
-                            <item.icon className="size-5" />
-                            <span className="text-sm">{item.title}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-                <div className="pt-4 border-t border-white/10">
-                  <Button variant="ghost" className="w-full justify-start text-red-400 hover:bg-red-400/10 hover:text-red-400 gap-3 px-4" onClick={handleLogout}>
-                    <LogOut className="size-5" /> Sair
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="hidden lg:flex items-center gap-4">
+            <div className="text-right mr-2 hidden xl:block">
+              <p className="text-[10px] font-bold text-white/50 uppercase leading-none">Usuário Conectado</p>
+              <p className="text-xs font-bold text-[#f59e0b]">{user?.email}</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="text-white hover:bg-red-500/20 hover:text-red-400 gap-2 font-bold"
+            >
+              <LogOut className="h-4 w-4" />
+              Sair
+            </Button>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 focus:outline-none"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
-    </header>
-  )
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="lg:hidden bg-[#090e24] border-t border-white/10 animate-in slide-in-from-top-2">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsOpen(false)}
+                className={cn(
+                  "block px-3 py-3 rounded-md text-sm font-bold uppercase tracking-wider flex items-center gap-3",
+                  pathname === item.href 
+                    ? "bg-[#f59e0b] text-[#090e24]" 
+                    : "text-white/70 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.title}
+              </Link>
+            ))}
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-3 py-3 rounded-md text-sm font-bold uppercase tracking-wider text-red-400 hover:bg-red-400/10 flex items-center gap-3"
+            >
+              <LogOut className="h-5 w-5" />
+              Sair do Sistema
+            </button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
 }

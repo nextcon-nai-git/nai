@@ -1,5 +1,4 @@
-
-"use client"
+'use client';
 
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -16,6 +15,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
 
+  // Garante que o componente só renderize no cliente após a hidratação
   React.useEffect(() => {
     setMounted(true);
   }, []);
@@ -28,34 +28,31 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   if (!mounted || isUserLoading) {
     return (
-      <div className="flex h-svh w-full items-center justify-center bg-[#090e24] text-white">
-        <Loader2 className="size-8 animate-spin" />
+      <div className="flex h-screen w-full items-center justify-center bg-[#090e24]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#f59e0b]" />
       </div>
     );
   }
 
+  // Se estiver na tela de login, não mostra o menu
   if (pathname === '/login') {
-    return <div className="min-h-svh w-full bg-background">{children}</div>;
+    return <div className="min-h-screen w-full bg-white">{children}</div>;
   }
 
-  if (!user) return null;
+  // Se não houver usuário e não estiver carregando, redireciona (acima), 
+  // mas evita flash de conteúdo
+  if (!user && pathname !== '/login') return null;
 
   return (
-    <div className="min-h-svh flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <TopNav />
       <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-500">
           {children}
         </div>
       </main>
-      <footer className="py-6 border-t bg-muted/30">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-          <p>© 2024 NEXTCON SAÚDE EMPRESARIAL</p>
-          <div className="flex gap-4">
-            <span className="text-primary/40">Suporte Técnico</span>
-            <span className="text-primary/40">Privacidade</span>
-          </div>
-        </div>
+      <footer className="py-6 border-t bg-[#090e24] text-white/40 text-center text-[10px] font-bold tracking-widest uppercase">
+        © 2024 NEXTCON SAÚDE EMPRESARIAL - SISTEMA DE GESTÃO SST
       </footer>
     </div>
   );
@@ -67,14 +64,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className="light">
+    <html lang="pt-BR">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <title>NextCon SST - Gestão Ocupacional</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+        <title>NextCon - SST Intelligence</title>
       </head>
-      <body className="font-body antialiased min-h-svh bg-background text-foreground">
+      <body>
         <FirebaseClientProvider>
           <AppContent>{children}</AppContent>
           <Toaster />
