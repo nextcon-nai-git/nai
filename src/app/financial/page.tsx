@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -5,7 +6,6 @@ import {
   DollarSign, 
   Receipt, 
   Tags, 
-  BarChart3, 
   ArrowUpRight, 
   ArrowDownLeft, 
   Database, 
@@ -14,12 +14,11 @@ import {
   Download,
   Plus,
   Search,
-  CheckCircle2,
   AlertCircle,
-  Building2,
-  FileText,
   CreditCard,
-  History
+  History,
+  CheckCircle2,
+  RefreshCw
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
+import { cn } from "@/lib/utils"
 
 export default function FinancialModule() {
   const [activeTab, setActiveTab] = React.useState("billing")
@@ -46,6 +46,13 @@ export default function FinancialModule() {
     { title: "Ticket Médio/Vida", amount: "R$ 18,40", trend: "+3%", icon: DollarSign, color: "text-amber-600", bg: "bg-amber-50" },
   ]
 
+  const erpConnectors = [
+    { name: "Conta Azul", status: "Online", color: "bg-emerald-500" },
+    { name: "Omie", status: "Online", color: "bg-emerald-500" },
+    { name: "Senior", status: "Pendente", color: "bg-amber-500" },
+    { name: "Questor", status: "Online", color: "bg-emerald-500" },
+  ]
+
   const recentInvoices = [
     { id: "INV-2025-001", client: "Transportes Rapidez", date: "10/02/2025", amount: "R$ 4.250,00", status: "Pago" },
     { id: "INV-2025-002", client: "Metalúrgica Norte", date: "12/02/2025", amount: "R$ 8.900,00", status: "Pendente" },
@@ -55,15 +62,15 @@ export default function FinancialModule() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Módulo Financeiro NEXTCON</h1>
-          <p className="text-muted-foreground">Gestão de faturamento, precificação e integração ERP.</p>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Módulo Financeiro (Billing)</h1>
+          <p className="text-muted-foreground">Faturamento, precificação e conectores ERP em tempo real.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-primary text-primary">
+          <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6">
             <Download className="size-4" /> Exportar Tabelas
           </Button>
-          <Button className="bg-accent hover:bg-accent/90 gap-2 shadow-lg shadow-accent/20">
+          <Button className="bg-[#f59e0b] text-[#090e24] hover:bg-[#f59e0b]/90 gap-2 h-11 px-6 shadow-lg font-bold">
             <Plus className="size-4" /> Nova Fatura
           </Button>
         </div>
@@ -105,40 +112,38 @@ export default function FinancialModule() {
         <TabsContent value="billing" className="mt-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 border-none shadow-lg bg-white overflow-hidden">
-              <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between">
+              <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between py-4">
                 <div>
-                  <CardTitle className="text-lg">Gestão de Cobrança</CardTitle>
-                  <CardDescription>Faturas emitidas e status de recebimento.</CardDescription>
+                  <CardTitle className="text-lg font-bold text-primary">Faturas Recentes</CardTitle>
+                  <CardDescription>Histórico de cobranças e faturamentos emitidos.</CardDescription>
                 </div>
                 <div className="relative w-64">
                   <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input placeholder="Buscar fatura ou cliente..." className="pl-9 bg-white" />
+                  <Input placeholder="Buscar fatura..." className="pl-9 bg-white text-xs h-10" />
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-gray-50/50 text-[10px] uppercase font-black tracking-widest">
                     <TableRow>
-                      <TableHead className="font-black text-[10px] uppercase">Fatura</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase">Cliente</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase">Vencimento</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase">Valor</TableHead>
-                      <TableHead className="font-black text-[10px] uppercase">Status</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Vencimento</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recentInvoices.map((inv) => (
-                      <TableRow key={inv.id}>
-                        <TableCell className="font-mono text-xs">{inv.id}</TableCell>
-                        <TableCell className="font-bold">{inv.client}</TableCell>
-                        <TableCell className="text-xs">{inv.date}</TableCell>
-                        <TableCell className="font-bold">{inv.amount}</TableCell>
+                      <TableRow key={inv.id} className="hover:bg-gray-50">
+                        <TableCell className="font-bold text-xs">{inv.client}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{inv.date}</TableCell>
+                        <TableCell className="font-black text-xs">{inv.amount}</TableCell>
                         <TableCell>
-                          <Badge className={
-                            inv.status === 'Pago' ? 'bg-emerald-100 text-emerald-700 border-none' :
-                            inv.status === 'Pendente' ? 'bg-amber-100 text-amber-700 border-none' :
-                            'bg-red-100 text-red-700 border-none'
-                          }>
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase border-none",
+                            inv.status === 'Pago' ? 'bg-emerald-100 text-emerald-700' :
+                            inv.status === 'Pendente' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                          )}>
                             {inv.status}
                           </Badge>
                         </TableCell>
@@ -146,12 +151,17 @@ export default function FinancialModule() {
                     ))}
                   </TableBody>
                 </Table>
+                <div className="p-4 bg-gray-50 border-t">
+                  <Button className="w-full bg-[#090e24] text-white font-black uppercase text-[10px] tracking-widest h-10">
+                    Gerar Faturamento em Lote
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
             <Card className="border-none shadow-lg bg-[#090e24] text-white">
               <CardHeader>
-                <CardTitle className="text-sm font-black uppercase text-accent tracking-widest">Auditoria de Contas</CardTitle>
+                <CardTitle className="text-sm font-black uppercase text-[#f59e0b] tracking-widest">Auditoria de Contas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -168,162 +178,103 @@ export default function FinancialModule() {
                   </div>
                   <Progress value={79} className="h-1.5 bg-white/10" />
                 </div>
-                <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-2">
-                  <p className="text-[10px] text-accent font-black uppercase">Pendência de Auditoria</p>
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-2">
+                  <p className="text-[10px] text-[#f59e0b] font-black uppercase">Pronto para Faturar</p>
                   <p className="text-xs leading-relaxed opacity-80 italic">
                     Existem 258 eventos de saúde do mês anterior que ainda não foram convertidos em faturas.
                   </p>
-                  <Button variant="outline" className="w-full text-[10px] font-black h-8 mt-2 text-white border-white/20 hover:bg-white/10">
-                    Conciliar Agora
+                  <Button variant="outline" className="w-full text-[10px] font-black h-10 mt-2 text-white border-white/20 hover:bg-white/10 gap-2">
+                    <RefreshCw className="size-3" /> Conciliar Agora
                   </Button>
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="integrations" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {erpConnectors.map((erp) => (
+              <Card key={erp.name} className="border-none shadow-lg hover:ring-2 ring-primary/10 transition-all bg-white">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="size-12 bg-primary/5 rounded-2xl flex items-center justify-center font-black text-primary border border-primary/10">
+                      {erp.name.substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={cn("size-2.5 rounded-full shadow-sm", erp.color, erp.status === 'Online' && 'animate-pulse')}></div>
+                      <span className="text-[10px] font-black uppercase tracking-tighter opacity-60">{erp.status}</span>
+                    </div>
+                  </div>
+                  <h3 className="font-black text-primary uppercase text-sm">{erp.name}</h3>
+                  <p className="text-[10px] text-muted-foreground mt-1 mb-6">Conector ERP oficial NEXTCON.</p>
+                  <Button variant="outline" className="w-full h-10 text-[10px] font-black uppercase tracking-widest border-primary/10 hover:bg-primary/5">
+                    Configurar
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </TabsContent>
 
         <TabsContent value="pricing" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg bg-white">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Tags className="size-5 text-accent" /> Tabelas de Preço (Venda)
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-primary">
+                  <Tags className="size-5 text-[#f59e0b]" /> Tabelas de Preço (Venda)
                 </CardTitle>
-                <CardDescription>Configure quanto seus clientes pagam por serviço.</CardDescription>
+                <CardDescription>Defina quanto seus clientes pagam por vida ou serviço.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 border rounded-xl hover:bg-muted/30 transition-all cursor-pointer group">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-bold">Tabela Padrão Nextcon 2025</p>
-                      <p className="text-[10px] text-muted-foreground uppercase">Global • 42 Itens</p>
-                    </div>
-                    <Button variant="ghost" size="icon"><ArrowUpRight className="size-4" /></Button>
+                <div className="p-4 border rounded-2xl hover:bg-gray-50 transition-all cursor-pointer flex justify-between items-center group">
+                  <div>
+                    <p className="font-bold text-sm text-[#090e24]">Tabela Padrão Nextcon 2025</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black">Global • 42 Itens</p>
                   </div>
+                  <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-[#f59e0b]" />
                 </div>
-                <div className="p-4 border rounded-xl border-accent bg-accent/5 hover:bg-accent/10 transition-all cursor-pointer">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-bold">Acordo Especial: Transportes Rapidez</p>
-                      <p className="text-[10px] text-muted-foreground uppercase">Cliente VIP • 12 Itens Customizados</p>
-                    </div>
-                    <Badge className="bg-accent text-white border-none">Personalizada</Badge>
+                <div className="p-4 border rounded-2xl border-[#f59e0b] bg-[#f59e0b]/5 flex justify-between items-center">
+                  <div>
+                    <p className="font-bold text-sm text-[#090e24]">Acordo VIP: Transportes Rapidez</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black">Especial • 12 Itens</p>
                   </div>
+                  <Badge className="bg-[#f59e0b] text-[#090e24] font-black text-[8px]">Personalizada</Badge>
                 </div>
-                <Button className="w-full bg-primary font-bold h-12 gap-2">
-                  <Percent className="size-4" /> Reajuste em Massa (IGPM/IPCA)
+                <Button className="w-full bg-[#090e24] font-black h-12 gap-2 uppercase text-[10px] tracking-widest">
+                  <Percent className="size-4" /> Reajuste em Massa (IPCA)
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg">
+            <Card className="border-none shadow-lg bg-white">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg flex items-center gap-2 font-bold text-primary">
                   <CreditCard className="size-5 text-primary" /> Custo de Exames (Compra)
                 </CardTitle>
-                <CardDescription>Quanto você paga para a rede credenciada.</CardDescription>
+                <CardDescription>Monitoramento de custos da rede credenciada.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-[10px] uppercase font-black">Serviço</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black">Custo Médio</TableHead>
-                      <TableHead className="text-[10px] uppercase font-black text-right">Margem</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="text-xs">Exame Clínico (ASO)</TableCell>
-                      <TableCell className="font-bold">R$ 25,00</TableCell>
-                      <TableCell className="text-right text-emerald-600 font-bold">120%</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-xs">Audiometria</TableCell>
-                      <TableCell className="font-bold">R$ 18,00</TableCell>
-                      <TableCell className="text-right text-emerald-600 font-bold">85%</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-xs">PGR Anual</TableCell>
-                      <TableCell className="font-bold">R$ 450,00</TableCell>
-                      <TableCell className="text-right text-emerald-600 font-bold">210%</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground">Exame Clínico (ASO)</span>
+                    <span className="font-black text-sm">R$ 25,00</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground">Audiometria Tonal</span>
+                    <span className="font-black text-sm">R$ 18,00</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-xs font-bold text-muted-foreground">PGR (Anual / Unidade)</span>
+                    <span className="font-black text-sm">R$ 450,00</span>
+                  </div>
+                </div>
+                <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                  <p className="text-[10px] text-emerald-700 font-black uppercase tracking-widest">Margem Operacional</p>
+                  <p className="text-lg font-black text-emerald-600">82% <span className="text-[10px] font-medium">(Média do Mês)</span></p>
+                </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="cadastros" className="mt-6">
-          <Card className="border-none shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Catálogo de Produtos e Serviços</CardTitle>
-                <CardDescription>Definição base de entregáveis da Nextcon.</CardDescription>
-              </div>
-              <Button className="bg-[#090e24] gap-2">
-                <Plus className="size-4" /> Novo Item
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-black text-[10px] uppercase">Grupo</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase">Nome do Serviço</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase">Descrição</TableHead>
-                    <TableHead className="font-black text-[10px] uppercase text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell><Badge variant="outline">Saúde</Badge></TableCell>
-                    <TableCell className="font-bold">PCMSO (NR-07)</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">Programa de Controle Médico de Saúde Ocupacional.</TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><History className="size-4" /></Button></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell><Badge variant="outline">Engenharia</Badge></TableCell>
-                    <TableCell className="font-bold">LTCAT</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">Laudo Técnico das Condições Ambientais de Trabalho.</TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><History className="size-4" /></Button></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { name: "Conta Azul", logo: "CA", desc: "Sincronize faturamento e status de pagamento.", status: "Conectado" },
-              { name: "Omie", logo: "OM", desc: "Integração total com ERP Omie.", status: "Disponível" },
-              { name: "Questor", logo: "QS", desc: "Envio automático de eventos financeiros.", status: "Pendente" },
-            ].map((app) => (
-              <Card key={app.name} className="border-none shadow-lg hover:ring-2 ring-primary/10 transition-all">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="size-12 bg-primary/5 rounded-xl flex items-center justify-center font-black text-primary border border-primary/10">
-                      {app.logo}
-                    </div>
-                    <div>
-                      <h3 className="font-bold">{app.name}</h3>
-                      <Badge className={app.status === 'Conectado' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}>
-                        {app.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-                    {app.desc}
-                  </p>
-                  <Button variant={app.status === 'Conectado' ? 'outline' : 'default'} className="w-full">
-                    {app.status === 'Conectado' ? 'Configurar' : 'Conectar'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </TabsContent>
       </Tabs>
