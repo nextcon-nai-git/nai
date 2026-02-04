@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,7 +26,6 @@
     --ring: 222 47% 11%;
     --radius: 0.75rem;
     
-    /* Sidebar Nextcon - Estabilidade de Cor */
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 45 93% 47%;

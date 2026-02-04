@@ -1,7 +1,8 @@
+
 "use client"
 
 import './globals.css';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
@@ -28,8 +29,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   if (!mounted || isUserLoading) {
     return (
-      <div className="flex h-svh w-full items-center justify-center bg-background">
-        <Loader2 className="size-8 animate-spin text-primary" />
+      <div className="flex h-svh w-full items-center justify-center bg-background text-primary">
+        <Loader2 className="size-8 animate-spin" />
       </div>
     );
   }
@@ -46,10 +47,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
           <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
-            <SidebarTrigger className="h-10 w-10">
-              <Menu className="size-6 text-primary" />
-            </SidebarTrigger>
-            <span className="ml-4 font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>
+            <span className="font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>
           </header>
           <main className="flex-1 overflow-auto p-4 md:p-8">
             <div className="max-w-7xl mx-auto w-full">
