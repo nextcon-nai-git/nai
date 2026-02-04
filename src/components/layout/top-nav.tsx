@@ -20,13 +20,14 @@ import {
   Activity,
   ClipboardList,
   Building2,
-  CalendarDays,
   ChevronDown,
   Settings,
-  ShieldCheck,
   BadgeCheck,
   FileText,
-  UserCircle
+  UserCircle,
+  HeartPulse,
+  CalendarDays,
+  FolderOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
@@ -56,26 +57,26 @@ export function TopNav() {
   }, [db, user]);
 
   const { data: profile } = useDoc(profileRef);
-  const role = profile?.role || 'CLIENT_ADMIN'; // Default para não quebrar no primeiro acesso
+  const role = profile?.role || 'CLIENT_ADMIN';
 
   const navStructure = {
     SUPER_ADMIN: [
-      { label: "Admin Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Dashboard", href: "/", icon: LayoutDashboard },
       { label: "Empresas", href: "/agency/client-map", icon: Building2 },
+      { label: "Financeiro", href: "/legal-financial", icon: TrendingUp },
       { label: "Importação", href: "/data-import", icon: Database },
-      { label: "Logs", href: "/agency/command-center", icon: Lock },
     ],
     CLIENT_ADMIN: [
-      { label: "Home", href: "/", icon: LayoutDashboard },
-      { label: "Funcionários", href: "/employees", icon: Users },
-      { label: "PGR", href: "/risk-management", icon: ShieldAlert },
-      { label: "PCMSO", href: "/health-control", icon: Stethoscope },
+      { label: "Visão Geral", href: "/", icon: LayoutDashboard },
+      { label: "Vidas", href: "/employees", icon: Users },
+      { label: "Segurança", href: "/risk-management", icon: ShieldAlert },
+      { label: "Saúde (PCMSO)", href: "/client/exams", icon: HeartPulse },
       { label: "eSocial", href: "/esocial-audit", icon: SearchCheck },
-      { label: "NAI", href: "/knowledge-base", icon: Sparkles },
+      { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
     ],
     EMPLOYEE: [
       { label: "Meu Crachá", href: "/ppe-kiosk", icon: BadgeCheck },
-      { label: "Documentos", href: "/checklists", icon: FileText },
+      { label: "Documentos", href: "/checklists", icon: FolderOpen },
       { label: "Saúde", href: "/psychosocial", icon: Activity },
     ]
   };
@@ -101,7 +102,6 @@ export function TopNav() {
               </div>
             </Link>
 
-            {/* Desktop Menu */}
             <div className="hidden lg:flex items-center space-x-1">
               {currentMenu.map((item) => (
                 <Link
@@ -149,7 +149,6 @@ export function TopNav() {
             </DropdownMenu>
           </div>
 
-          {/* Mobile menu button */}
           <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -161,9 +160,8 @@ export function TopNav() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-[#090e24] border-t border-white/10 animate-in slide-in-from-top-2">
+        <div className="lg:hidden bg-[#090e24] border-t border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {currentMenu.map((item) => (
               <Link
@@ -182,8 +180,6 @@ export function TopNav() {
               </Link>
             ))}
             <div className="pt-4 mt-4 border-t border-white/10 px-3 pb-4">
-              <p className="text-[10px] font-black text-white/40 uppercase mb-2">Conectado como</p>
-              <p className="text-xs font-bold text-[#f59e0b] truncate mb-4">{user?.email}</p>
               <Button
                 variant="destructive"
                 className="w-full justify-start gap-3 h-12"
