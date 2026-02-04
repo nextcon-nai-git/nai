@@ -19,7 +19,8 @@ import {
   ShieldAlert,
   Brain,
   Plus,
-  FileText
+  FileText,
+  ArrowRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,7 +39,6 @@ const CHECKLIST_CATALOG = [
   { id: "epi", category: "Operacional", title: "06 - EPIs (Inspeção)", icon: HardHat, color: "text-emerald-600" },
   { id: "amb", category: "Saúde", title: "Checklist - Ambulância", icon: Truck, color: "text-red-600" },
   { id: "rss", category: "Saúde", title: "Resíduos de Saúde (RSS)", icon: Trash2, color: "text-purple-600" },
-  { id: "ergo", category: "Ergonomia", title: "Diagrama Corlett", icon: Activity, color: "text-indigo-600" },
 ]
 
 const ERGO_METHODS = [
@@ -302,7 +302,22 @@ export default function ChecklistsPage() {
                 <CardTitle className="text-lg font-bold text-primary uppercase">Métodos de Avaliação NR-17</CardTitle>
                 <CardDescription>Selecione o método para iniciar a análise técnica do posto de trabalho.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Destaque para o Diagrama de Corlett */}
+                <div 
+                  className="p-6 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-300 transition-all cursor-pointer group flex items-center gap-6"
+                  onClick={() => setSelectedChecklist("ergo")}
+                >
+                  <div className="p-4 bg-indigo-600 text-white rounded-xl shadow-lg">
+                    <Activity size={32} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-black text-indigo-900 text-xl">Diagrama de Corlett</h4>
+                    <p className="text-sm text-indigo-700/70 font-medium italic">Ferramenta diagnóstica de dor e fadiga osteomuscular (Mapa de Intensidade).</p>
+                  </div>
+                  <ArrowRight className="size-6 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ERGO_METHODS.map((m) => (
                     <div key={m.id} className="p-4 border rounded-2xl hover:bg-muted/30 transition-all cursor-pointer group">
