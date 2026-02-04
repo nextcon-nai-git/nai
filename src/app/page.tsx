@@ -12,7 +12,9 @@ import {
   SearchCheck,
   Sparkles,
   Clock,
-  Loader2
+  Loader2,
+  ClipboardCheck,
+  Stethoscope
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +59,6 @@ export default function Dashboard() {
   // Agenda Real (Eventos SST)
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    // Busca eventos ordenados por data (mostrando os mais próximos)
     return query(
       collection(db, "clients", user.uid, "sst_events"), 
       orderBy("date", "asc"), 
@@ -169,23 +170,38 @@ export default function Dashboard() {
                 </div>
               )}
               
-              <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary">
-                Ver Agenda Completa <ChevronRight className="size-3 ml-1" />
+              <Button asChild variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary">
+                <Link href="/health-control">Ver Agenda Completa <ChevronRight className="size-3 ml-1" /></Link>
               </Button>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link href="/esocial-audit">
               <Card className="border-none shadow-sm hover:ring-2 ring-emerald-500/20 transition-all cursor-pointer bg-white h-full group">
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col items-center text-center gap-3">
                     <div className="p-3 rounded-xl bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
                       <SearchCheck className="size-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#090e24] mb-1">Vigilante eSocial</h4>
-                      <p className="text-xs text-muted-foreground leading-tight">Auditoria automática de riscos e exames via IA.</p>
+                      <h4 className="font-bold text-[#090e24] text-sm">Vigilante eSocial</h4>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Auditoria automática via IA.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/checklists">
+              <Card className="border-none shadow-sm hover:ring-2 ring-blue-500/20 transition-all cursor-pointer bg-white h-full group">
+                <CardContent className="p-6">
+                  <div className="flex flex-col items-center text-center gap-3">
+                    <div className="p-3 rounded-xl bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                      <ClipboardCheck className="size-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#090e24] text-sm">Checklists & Corlett</h4>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Inspeções e Diagrama Interativo.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -194,13 +210,13 @@ export default function Dashboard() {
             <Link href="/absenteeism">
               <Card className="border-none shadow-sm hover:ring-2 ring-amber-500/20 transition-all cursor-pointer bg-white h-full group">
                 <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col items-center text-center gap-3">
                     <div className="p-3 rounded-xl bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all">
                       <AlertTriangle className="size-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#090e24] mb-1">Sentinela NTEP</h4>
-                      <p className="text-xs text-muted-foreground leading-tight">Gestão de afastamentos e contestações jurídicas.</p>
+                      <h4 className="font-bold text-[#090e24] text-sm">Sentinela NTEP</h4>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Gestão de afastamentos.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -230,7 +246,7 @@ export default function Dashboard() {
               </div>
               <div className="p-4 bg-[#f59e0b] rounded-xl">
                 <p className="text-[10px] font-black text-[#090e24] uppercase tracking-widest mb-1">Dica Estratégica</p>
-                <p className="text-xs font-bold text-[#090e24]">O GHE 01 (Soldador) apresenta o maior índice de riscos. Agende uma inspeção técnica.</p>
+                <p className="text-xs font-bold text-[#090e24]">O Diagrama de Corlett está disponível em Checklists para detectar fadiga precoce.</p>
               </div>
             </CardContent>
           </Card>

@@ -27,7 +27,8 @@ import {
   CalendarDays,
   FolderOpen,
   Bell,
-  DollarSign
+  DollarSign,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
@@ -58,7 +59,9 @@ export function TopNav() {
   }, [db, user]);
 
   const { data: profile } = useDoc(profileRef);
-  const role = profile?.role || 'CLIENT_ADMIN';
+  
+  // Normaliza o role para maiúsculas para evitar erros de mapeamento
+  const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
 
   // Notificações em tempo real
   const notificationsQuery = useMemoFirebase(() => {
@@ -77,27 +80,28 @@ export function TopNav() {
     SUPER_ADMIN: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
       { label: "Financeiro", href: "/financial", icon: DollarSign },
+      { label: "Checklists", href: "/checklists", icon: ClipboardCheck },
       { label: "Empresas", href: "/agency/client-map", icon: Building2 },
-      { label: "Relatórios", href: "/reports", icon: FileText },
       { label: "Importação", href: "/data-import", icon: Database },
     ],
     CLIENT_ADMIN: [
       { label: "Visão Geral", href: "/", icon: LayoutDashboard },
       { label: "Vidas", href: "/employees", icon: Users },
+      { label: "Checklists", href: "/checklists", icon: ClipboardCheck },
       { label: "Segurança", href: "/risk-management", icon: ShieldAlert },
-      { label: "Relatórios", href: "/reports", icon: FileText },
       { label: "eSocial", href: "/esocial-audit", icon: SearchCheck },
       { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
     ],
     PROVIDER: [
       { label: "Início", href: "/", icon: LayoutDashboard },
       { label: "Atendimento", href: "/client/exams", icon: HeartPulse },
+      { label: "Checklists", href: "/checklists", icon: ClipboardCheck },
       { label: "Agenda", href: "/health-control", icon: CalendarDays },
-      { label: "Relatórios", href: "/reports", icon: FileText },
     ],
     EMPLOYEE: [
       { label: "Meu Crachá", href: "/ppe-kiosk", icon: BadgeCheck },
-      { label: "Documentos", href: "/checklists", icon: FolderOpen },
+      { label: "Checklists", href: "/checklists", icon: ClipboardCheck },
+      { label: "Documentos", href: "/reports", icon: FolderOpen },
       { label: "Saúde", href: "/psychosocial", icon: Activity },
     ]
   };
