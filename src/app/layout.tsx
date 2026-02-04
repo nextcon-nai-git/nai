@@ -1,4 +1,3 @@
-
 "use client"
 
 import './globals.css';
@@ -17,19 +16,16 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
 
-  // Garante que o componente só renderize no cliente após a montagem
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Gerencia o redirecionamento de forma estável
   React.useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/login') {
       router.push('/login');
     }
   }, [user, isUserLoading, pathname, router, mounted]);
 
-  // Enquanto carrega ou não está montado, mostra o loader centralizado
   if (!mounted || isUserLoading) {
     return (
       <div className="flex h-svh w-full items-center justify-center bg-background">
@@ -38,12 +34,10 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Layout específico para a página de login
   if (pathname === '/login') {
     return <div className="min-h-svh w-full bg-background">{children}</div>;
   }
 
-  // Se não houver usuário após o carregamento, não renderiza nada (o useEffect cuidará do redirect)
   if (!user) return null;
 
   return (
@@ -51,14 +45,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
       <div className="flex h-svh w-full bg-background overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
-          {/* Header Mobile - Visível apenas em telas pequenas */}
           <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
             <SidebarTrigger className="h-10 w-10">
               <Menu className="size-6 text-primary" />
             </SidebarTrigger>
             <span className="ml-4 font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>
           </header>
-          {/* Conteúdo Principal com scroll independente */}
           <main className="flex-1 overflow-auto p-4 md:p-8">
             <div className="max-w-7xl mx-auto w-full">
               {children}
