@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -32,6 +33,7 @@ import { riskMitigationPlanGenerator } from "@/ai/flows/risk-mitigation-plan-gen
 import { useToast } from "@/hooks/use-toast"
 import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
+import { cn } from "@/lib/utils"
 
 const initialRisks = [
   { 

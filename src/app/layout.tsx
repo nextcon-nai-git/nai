@@ -1,3 +1,4 @@
+
 'use client';
 
 import './globals.css';
@@ -15,7 +16,6 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
 
-  // Garante que o componente só renderize no cliente após a hidratação
   React.useEffect(() => {
     setMounted(true);
   }, []);
@@ -34,20 +34,17 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Se estiver na tela de login, não mostra o menu
   if (pathname === '/login') {
     return <div className="min-h-screen w-full bg-white">{children}</div>;
   }
 
-  // Se não houver usuário e não estiver carregando, redireciona (acima), 
-  // mas evita flash de conteúdo
   if (!user && pathname !== '/login') return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <TopNav />
       <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-500">
+        <div className="max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>
