@@ -113,7 +113,7 @@ export default function UnifiedImportCenter() {
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight">Arquitetura NAI SST 2026</h1>
+          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight">Arquitetura NEXTCON SST 2026</h1>
           <p className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Alternar Perfis e Importar Dados</p>
         </div>
         <div className="flex flex-wrap gap-2">

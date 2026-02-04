@@ -97,7 +97,7 @@ export function TopNav() {
                 <NextconLogo className="h-full w-full" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="font-black text-lg tracking-tighter uppercase font-headline">NAI SST</span>
+                <span className="font-black text-lg tracking-tighter uppercase font-headline">NEXTCON</span>
                 <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest">Saúde Empresarial</span>
               </div>
             </Link>

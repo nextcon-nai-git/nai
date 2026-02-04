@@ -35,15 +35,15 @@ import {
 import { cn } from "@/lib/utils"
 
 const EXAMS_DATA = [
-  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "DEM", date: "22/01/2025", exam: "Audiometria Tonal Ocupacional", result: "ALTERADO", doctor: "PATRICIA MENDES", provider: "SOCNET - Working", city: "Curitiba" },
-  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "DEM", date: "22/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "CAROLINE ROMANO ZAFALON", provider: "SOCNET - Working", city: "Curitiba" },
-  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "ADM", date: "14/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "LAURA ZATTAR OLIVEIRA", provider: "SOCNET - Working", city: "Curitiba" },
-  { company: "ATLAS CONSULTORIA", id: "1783413", type: "ADM", date: "20/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "PATRICIA MENDES", provider: "SOCNET - Working", city: "Curitiba" },
-  { company: "Barabach & Knopp Engenharia", id: "1781158", type: "ADM", date: "28/01/2025", exam: "Avaliação Clínica Ocupacional", result: "NORMAL", doctor: "LAURA ZATTAR OLIVEIRA", provider: "SOCNET - Working", city: "Curitiba" },
+  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "DEM", date: "22/01/2025", exam: "Audiometria Tonal Ocupacional", result: "ALTERADO", doctor: "PATRICIA MENDES", provider: "Working Segurança", city: "Curitiba" },
+  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "DEM", date: "22/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "CAROLINE ROMANO ZAFALON", provider: "Working Segurança", city: "Curitiba" },
+  { company: "AC2 CORRETORA DE SEGUROS LTDA", id: "1164016", type: "ADM", date: "14/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "LAURA ZATTAR OLIVEIRA", provider: "Working Segurança", city: "Curitiba" },
+  { company: "ATLAS CONSULTORIA", id: "1783413", type: "ADM", date: "20/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "PATRICIA MENDES", provider: "Working Segurança", city: "Curitiba" },
+  { company: "Barabach & Knopp Engenharia", id: "1781158", type: "ADM", date: "28/01/2025", exam: "Avaliação Clínica Ocupacional", result: "NORMAL", doctor: "LAURA ZATTAR OLIVEIRA", provider: "Working Segurança", city: "Curitiba" },
   { company: "Biavatti Sao Paulo", id: "1845468", type: "DEM", date: "22/01/2025", exam: "Acuidade Visual - Avaliação", result: "NORMAL", doctor: "N/I", provider: "ATEM CLINICA", city: "São Paulo" },
-  { company: "CDA STEEL FABRICACAO", id: "1250739", type: "RETT", date: "14/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "THELMA ELISA AUFFINGER", provider: "SOCNET - Working", city: "Curitiba" },
+  { company: "CDA STEEL FABRICACAO", id: "1250739", type: "RETT", date: "14/01/2025", exam: "Consulta Clinica", result: "NORMAL", doctor: "THELMA ELISA AUFFINGER", provider: "Working Segurança", city: "Curitiba" },
   { company: "CENTRAL TURBOS PARANA", id: "1655589", type: "ADM", date: "14/01/2025", exam: "Eletrocardiograma - ECG", result: "ALTERADO", doctor: "Edilamar Moro Dach", provider: "Clinica SQV", city: "Curitiba" },
-  { company: "INCORPORADORA GRAN-PARA", id: "1177322", type: "PER", date: "07/01/2025", exam: "Audiometria Tonal Ocupacional", result: "ALTERADO", doctor: "ARIEL BRASIL DE OLIVEIRA", provider: "SOCNET - Working", city: "Curitiba" },
+  { company: "INCORPORADORA GRAN-PARA", id: "1177322", type: "PER", date: "07/01/2025", exam: "Audiometria Tonal Ocupacional", result: "ALTERADO", doctor: "ARIEL BRASIL DE OLIVEIRA", provider: "Working Segurança", city: "Curitiba" },
   { company: "L L M CALCAMENTOS", id: "1266284", type: "PER", date: "07/01/2025", exam: "Espirometria", result: "ALTERADO", doctor: "João Ricardo Rebouças", provider: "Clinica SQV", city: "Curitiba" },
   { company: "Noxi Quimica LTDA", id: "2121259", type: "PER", date: "02/12/2025", exam: "Audiometria tonal ocupacional", result: "ALTERADO", doctor: "Sarah Fernanda Tiburcio", provider: "Clinica SQV", city: "Curitiba" },
   { company: "Noxi Quimica LTDA", id: "2121259", type: "PER", date: "02/12/2025", exam: "Eletrocardiograma - ECG", result: "ALTERADO", doctor: "Edilamar Moro Dach", provider: "Clinica SQV", city: "Curitiba" },
@@ -70,7 +70,7 @@ export default function ExamsHistoryPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-black text-[#090e24] tracking-tight uppercase">Exames & ASO (Histórico)</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Monitoramento NAI de exames realizados - Dez/Jan 2025</p>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Monitoramento NEXTCON de exames realizados - Dez/Jan 2025</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-[#090e24] text-[#090e24]">
@@ -226,7 +226,7 @@ export default function ExamsHistoryPage() {
               <div className="p-2 bg-emerald-600 rounded-lg text-white">
                 <Building2 className="size-4" />
               </div>
-              <p className="text-xs font-bold text-emerald-900">SOCNET & Clinica SQV</p>
+              <p className="text-xs font-bold text-emerald-900">Clinica SQV & Parceiros</p>
             </div>
             <p className="text-[10px] text-emerald-700 font-medium">Principais prestadores ativos no período Curitiba/PR.</p>
           </CardContent>
