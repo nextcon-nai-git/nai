@@ -14,18 +14,18 @@ import {
   DatabaseZap,
   MapPin,
   FileUp,
-  CalendarDays
+  CalendarDays,
+  Trash2,
+  Database
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
-import { doc, writeBatch, collection, query, orderBy, addDoc } from "firebase/firestore"
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
-import { DEMO_PROVIDERS } from "@/lib/demo-providers"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { doc, writeBatch, collection, query, orderBy, getDocs, deleteDoc } from "firebase/firestore"
+import { REAL_EMPLOYEES, REAL_COMPANIES } from "@/lib/real-data"
 
 type ImportType = 'companies' | 'employees' | 'exams' | 'providers' | 'files'
 
@@ -33,15 +33,9 @@ export default function UnifiedImportCenter() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  const storage = useStorage()
   
   const [activeTab, setActiveTab] = React.useState<ImportType>('companies')
-  const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
-
-  const [selectedCompanyId, setSelectedCompanyId] = React.useState("")
-  const [selectedReportType, setSelectedReportType] = React.useState("pgr")
-  const [fileToUpload, setFileToUpload] = React.useState<File | null>(null)
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -65,7 +59,7 @@ export default function UnifiedImportCenter() {
         name: name.charAt(0).toUpperCase() + name.slice(1),
         role: targetRole,
         email: user.email,
-        companyId: targetRole === 'CLIENT_ADMIN' ? "demo_construction_123" : null,
+        companyId: targetRole === 'CLIENT_ADMIN' ? "CLI129" : null,
         updatedAt: new Date().toISOString()
       }, { merge: true })
 
@@ -77,6 +71,56 @@ export default function UnifiedImportCenter() {
       })
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao configurar perfil" })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleRealBaseImport = async () => {
+    if (!user || !db) return
+    setUploading(true)
+    
+    try {
+      // 1. Limpar Colaboradores Atuais
+      const empRef = collection(db, "clients", user.uid, "employees")
+      const empSnap = await getDocs(empRef)
+      const clearBatch = writeBatch(db)
+      empSnap.docs.forEach(d => clearBatch.delete(d.ref))
+      await clearBatch.commit()
+
+      // 2. Importar Empresas Reais (ManagedCompanies)
+      const compBatch = writeBatch(db)
+      REAL_COMPANIES.forEach(comp => {
+        const docRef = doc(db, "clients", user.uid, "managedCompanies", comp.id)
+        compBatch.set(docRef, {
+          ...comp,
+          status: "ACTIVE",
+          updatedAt: new Date().toISOString()
+        }, { merge: true })
+      })
+      await compBatch.commit()
+
+      // 3. Importar Colaboradores Reais
+      const empBatch = writeBatch(db)
+      REAL_EMPLOYEES.forEach((emp, i) => {
+        const empId = `real_emp_${i}`
+        const docRef = doc(db, "clients", user.uid, "employees", empId)
+        empBatch.set(docRef, {
+          ...emp,
+          id: empId,
+          status: "ACTIVE",
+          createdAt: new Date().toISOString()
+        })
+      })
+      await empBatch.commit()
+
+      toast({
+        title: "Carga Massiva Concluída",
+        description: `${REAL_EMPLOYEES.length} colaboradores e ${REAL_COMPANIES.length} empresas importados.`
+      })
+    } catch (e) {
+      console.error(e)
+      toast({ variant: "destructive", title: "Erro na Carga Real" })
     } finally {
       setUploading(false)
     }
@@ -125,8 +169,8 @@ export default function UnifiedImportCenter() {
         const docRef = doc(db, "clients", user.uid, "sst_events", eventId)
         batch.set(docRef, {
           id: eventId,
-          type: i % 2 === 0 ? "Inspeção NR-18" : "Exame Clínico",
-          time: "09:00",
+          type: i % 2 === 0 ? "Inspeção Técnica" : "Exame Clínico (ASO)",
+          time: i % 2 === 0 ? "14:30" : "09:00",
           companyName: company.name,
           location: company.city,
           date: new Date().toISOString(),
@@ -163,9 +207,9 @@ export default function UnifiedImportCenter() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
           <TabsList className="grid w-full md:w-[700px] grid-cols-5 bg-muted/50 p-1 rounded-xl h-14">
             <TabsTrigger value="companies" className="rounded-lg gap-2">Empresas</TabsTrigger>
-            <TabsTrigger value="employees" className="rounded-lg gap-2">Vidas</TabsTrigger>
+            <TabsTrigger value="employees" className="rounded-lg gap-2">Colaboradores</TabsTrigger>
             <TabsTrigger value="providers" className="rounded-lg gap-2">Rede</TabsTrigger>
-            <TabsTrigger value="exams" className="rounded-lg gap-2">Eventos</TabsTrigger>
+            <TabsTrigger value="exams" className="rounded-lg gap-2">Agenda</TabsTrigger>
             <TabsTrigger value="files" className="rounded-lg gap-2">Docs</TabsTrigger>
           </TabsList>
           
@@ -173,6 +217,12 @@ export default function UnifiedImportCenter() {
             {activeTab === 'companies' && (
               <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 gap-2 h-14 rounded-xl font-bold" onClick={seedSegmentedCompanies}>
                 <DatabaseZap className="size-5" /> Seed: Empresas por Setor
+              </Button>
+            )}
+            {activeTab === 'employees' && (
+              <Button className="bg-[#090e24] text-white hover:bg-[#090e24]/90 gap-2 h-14 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl" onClick={handleRealBaseImport} disabled={uploading}>
+                {uploading ? <Loader2 className="size-4 animate-spin" /> : <Database className="size-4 text-[#f59e0b]" />}
+                Carga de Dados Reais 2026
               </Button>
             )}
             {activeTab === 'exams' && (
@@ -189,7 +239,14 @@ export default function UnifiedImportCenter() {
             <CardDescription>Gerencie dados dinâmicos do seu sistema.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea placeholder="Cole CSV aqui..." className="min-h-[300px] font-mono text-xs bg-muted/20" />
+            {uploading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="size-12 animate-spin text-primary" />
+                <p className="text-sm font-black uppercase tracking-widest animate-pulse">NAI Processando Base Real...</p>
+              </div>
+            ) : (
+              <Textarea placeholder="Cole CSV aqui ou use os botões de carga automática acima..." className="min-h-[300px] font-mono text-xs bg-muted/20" />
+            )}
           </CardContent>
         </Card>
       </Tabs>
