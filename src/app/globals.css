@@ -35,10 +35,11 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
   }
-  /* Força visibilidade e impede animações que quebram o texto */
+  /* Força visibilidade permanente para textos e botões */
   span, p, h1, h2, h3, a, button {
     opacity: 1 !important;
     visibility: visible !important;
+    transition: none !important;
   }
 }
 

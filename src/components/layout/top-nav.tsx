@@ -114,7 +114,7 @@ export function TopNav() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-[#090e24] text-white shadow-xl">
+    <header className="sticky top-0 z-50 w-full bg-[#090e24] text-white shadow-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
@@ -122,7 +122,7 @@ export function TopNav() {
               <NextconLogo className="size-full" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-headline font-black text-white text-lg tracking-tighter uppercase group-hover:text-[#f59e0b] transition-colors">
+              <span className="font-headline font-black text-white text-lg tracking-tighter uppercase">
                 NEXTCON
               </span>
               <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest leading-none">
@@ -131,14 +131,13 @@ export function TopNav() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - Texto Branco Fixo */}
           <nav className="hidden lg:flex items-center gap-1">
             {navGroups.map((group) => {
               if (!group.roles.includes(role)) return null
               return (
                 <DropdownMenu key={group.label}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
+                    <Button variant="ghost" className="text-white hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
                       {group.label} <ChevronDown className="size-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -147,7 +146,7 @@ export function TopNav() {
                       <DropdownMenuItem key={item.title} asChild>
                         <Link href={item.href} className={cn(
                           "flex items-center gap-2 cursor-pointer p-2 text-sm font-medium",
-                          pathname === item.href ? "bg-primary/5 text-primary font-bold" : "text-foreground"
+                          pathname === item.href ? "bg-primary/10 text-primary font-bold" : "text-foreground"
                         )}>
                           <item.icon className="size-4" />
                           <span>{item.title}</span>

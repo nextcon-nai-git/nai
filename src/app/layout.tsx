@@ -42,15 +42,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-svh flex flex-col bg-background">
-      {/* Menu Superior Fixo e Estável */}
       <TopNav />
-      
-      <main className="flex-1 overflow-auto p-4 md:p-8">
+      <main className="flex-1 p-4 md:p-8">
         <div className="max-w-7xl mx-auto w-full">
           {children}
         </div>
       </main>
-
       <footer className="py-6 border-t bg-muted/30">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-muted-foreground uppercase font-black tracking-widest">
           <p>© 2024 NEXTCON SAÚDE EMPRESARIAL</p>
