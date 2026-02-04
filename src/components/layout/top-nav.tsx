@@ -10,7 +10,6 @@ import {
   LayoutDashboard, 
   Users, 
   ShieldAlert, 
-  Stethoscope, 
   SearchCheck, 
   LogOut,
   Database,
@@ -63,14 +62,14 @@ export function TopNav() {
     SUPER_ADMIN: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
       { label: "Empresas", href: "/agency/client-map", icon: Building2 },
-      { label: "Financeiro", href: "/legal-financial", icon: TrendingUp },
+      { label: "Relatórios", href: "/reports", icon: FileText },
       { label: "Importação", href: "/data-import", icon: Database },
     ],
     CLIENT_ADMIN: [
       { label: "Visão Geral", href: "/", icon: LayoutDashboard },
       { label: "Vidas", href: "/employees", icon: Users },
       { label: "Segurança", href: "/risk-management", icon: ShieldAlert },
-      { label: "Saúde (PCMSO)", href: "/client/exams", icon: HeartPulse },
+      { label: "Relatórios", href: "/reports", icon: FileText },
       { label: "eSocial", href: "/esocial-audit", icon: SearchCheck },
       { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
     ],
@@ -78,7 +77,7 @@ export function TopNav() {
       { label: "Início", href: "/", icon: LayoutDashboard },
       { label: "Atendimento", href: "/client/exams", icon: HeartPulse },
       { label: "Agenda", href: "/health-control", icon: CalendarDays },
-      { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
+      { label: "Relatórios", href: "/reports", icon: FileText },
     ],
     EMPLOYEE: [
       { label: "Meu Crachá", href: "/ppe-kiosk", icon: BadgeCheck },
