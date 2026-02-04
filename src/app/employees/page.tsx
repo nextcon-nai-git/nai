@@ -1,8 +1,7 @@
-
 "use client"
 
 import * as React from "react"
-import { Users, UserPlus, Search, Filter, MoreHorizontal, FileText, Calendar, Loader2, Building2 } from "lucide-react"
+import { Users, UserPlus, Search, Filter, MoreHorizontal, FileText, Calendar, Loader2, Building2, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
+import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 
 export default function EmployeesPage() {
   const { user } = useUser()
@@ -79,6 +79,12 @@ export default function EmployeesPage() {
       return matchesSearch && matchesCompany
     })
   }, [employees, searchTerm, selectedCompanyId])
+
+  const handleContactWhatsApp = (employee: any) => {
+    const phone = employee.phone || "11999999999"; // Placeholder se não houver
+    const message = `Olá ${employee.name}, a Nextcon Saúde Empresarial gostaria de entrar em contato sobre seu cadastro SST.`;
+    window.open(getWhatsAppLink(phone, message), '_blank');
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-10">
@@ -176,9 +182,20 @@ export default function EmployeesPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{employee.id}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-green-600 hover:bg-green-50"
+                          onClick={() => handleContactWhatsApp(employee)}
+                          title="Falar no WhatsApp"
+                        >
+                          <MessageSquare className="size-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="group-hover:text-primary transition-colors">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

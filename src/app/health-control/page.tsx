@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { HeartPulse, Clock, FileWarning, Loader2, Search, User, Stethoscope, Calendar as CalendarIcon, TrendingUp, AlertCircle, Bell } from "lucide-react"
+import { HeartPulse, Clock, FileWarning, Loader2, Search, User, Stethoscope, Calendar as CalendarIcon, TrendingUp, AlertCircle, Bell, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
@@ -15,18 +15,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useUser, useFirestore } from "@/firebase"
+import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
 
 const upcomingAlerts = [
-  { company: "LAVIERS ARTIGOS MASCULINOS E CONFECCOES LTDA", id: "#1164165", date: "10/01/2026", type: "Exame Clínico" },
-  { company: "LAVIERS ARTIGOS MASCULINOS E CONFECCOES LTDA", id: "#1164165", date: "01/01/2026", type: "ASO" },
-  { company: "NXC SST EMPRESARIAL LTDA", id: "#1005519", date: "30/01/2026", type: "EXAMES" },
-  { company: "INCORPORADORA GRAN-PARA LTDA", id: "#1177322", date: "01/01/2026", type: "EXAMES" },
+  { company: "LAVIERS ARTIGOS MASCULINOS E CONFECCOES LTDA", id: "#1164165", date: "10/01/2026", type: "Exame Clínico", phone: "11999999999" },
+  { company: "LAVIERS ARTIGOS MASCULINOS E CONFECCOES LTDA", id: "#1164165", date: "01/01/2026", type: "ASO", phone: "11999999999" },
+  { company: "NXC SST EMPRESARIAL LTDA", id: "#1005519", date: "30/01/2026", type: "EXAMES", phone: "11888888888" },
+  { company: "INCORPORADORA GRAN-PARA LTDA", id: "#1177322", date: "01/01/2026", type: "EXAMES", phone: "11777777777" },
 ]
 
 export default function HealthControl() {
   const { user } = useUser()
   const db = useFirestore()
   const [date, setDate] = React.useState<Date | undefined>(new Date())
+
+  const handleWhatsAppAlert = (alert: typeof upcomingAlerts[0]) => {
+    const message = MSG_TEMPLATES.AVISO_GESTOR(alert.company, "Colaborador " + alert.id, alert.type);
+    window.open(getWhatsAppLink(alert.phone, message), '_blank');
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -52,12 +58,20 @@ export default function HealthControl() {
             </CardHeader>
             <CardContent className="space-y-3">
               {upcomingAlerts.map((alert, i) => (
-                <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors group">
                   <div className="flex justify-between items-start mb-1">
-                    <p className="text-[9px] font-black text-white truncate max-w-[180px]">{alert.company}</p>
+                    <p className="text-[9px] font-black text-white truncate max-w-[150px]">{alert.company}</p>
                     <Badge className="bg-[#f59e0b] text-[#090e24] text-[8px] px-1.5 h-4 font-black">{alert.date}</Badge>
                   </div>
-                  <p className="text-[10px] text-white/60 font-medium uppercase">{alert.type} {alert.id}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] text-white/60 font-medium uppercase">{alert.type} {alert.id}</p>
+                    <button 
+                      onClick={() => handleWhatsAppAlert(alert)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-green-500 rounded text-white"
+                    >
+                      <MessageSquare className="size-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </CardContent>
@@ -84,7 +98,7 @@ export default function HealthControl() {
               <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Dossiê de Exames a Vencer</CardTitle>
               <CardDescription className="font-medium">Filtrado por criticidade e conformidade NR-07</CardDescription>
             </div>
-            <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px]">4 Registros Críticos</Badge>
+            <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px]">{upcomingAlerts.length} Registros Críticos</Badge>
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <Table>
@@ -93,7 +107,7 @@ export default function HealthControl() {
                   <TableHead className="font-black text-[10px] uppercase tracking-widest">Empresa Cliente / ID</TableHead>
                   <TableHead className="font-black text-[10px] uppercase tracking-widest">Natureza do Exame</TableHead>
                   <TableHead className="font-black text-[10px] uppercase tracking-widest">Vencimento</TableHead>
-                  <TableHead className="text-right font-black text-[10px] uppercase tracking-widest">Status</TableHead>
+                  <TableHead className="text-right font-black text-[10px] uppercase tracking-widest">Aviso WhatsApp</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -112,9 +126,14 @@ export default function HealthControl() {
                     </TableCell>
                     <TableCell className="text-xs font-black text-[#090e24]">{alert.date}</TableCell>
                     <TableCell className="text-right">
-                      <Badge className="bg-[#f59e0b] text-[#090e24] text-[9px] font-black uppercase shadow-sm">
-                        A VENCER
-                      </Badge>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100 gap-2 h-8 text-[10px] font-black uppercase"
+                        onClick={() => handleWhatsAppAlert(alert)}
+                      >
+                        <MessageSquare className="size-3" /> Notificar
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -124,7 +143,7 @@ export default function HealthControl() {
               <div className="flex items-center gap-3 text-amber-700 bg-amber-50 p-4 rounded-xl border border-amber-200">
                 <AlertCircle className="size-5" />
                 <p className="text-[11px] font-medium leading-relaxed">
-                  Atenção: Os exames acima ultrapassam o prazo de 30 dias para renovação. A NAI recomenda o agendamento imediato para evitar multas no evento S-2220 do eSocial.
+                  Atenção: Os exames acima ultrapassam o prazo de 30 dias para renovação. Utilize o botão de WhatsApp para notificar os gestores ou colaboradores imediatamente.
                 </p>
               </div>
             </div>

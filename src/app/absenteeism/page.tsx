@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { AlertTriangle, ShieldCheck, History, Search, FileText, Gavel, Loader2, Sparkles, FileDown, Copy } from "lucide-react"
+import { AlertTriangle, ShieldCheck, History, Search, FileText, Gavel, Loader2, Sparkles, FileDown, Copy, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { generateNtepContestation } from "@/ai/flows/ntep-contestation-generator"
+import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
 
 const NTEP_MAPPING: Record<string, string[]> = {
   "25.3": ["M54", "G56", "S62"],
@@ -32,9 +33,9 @@ const NTEP_MAPPING: Record<string, string[]> = {
 }
 
 const initialRecords = [
-  { id: 1, employee: "João Silva", role: "Soldador", cid: "M54.5", days: 18, status: "Afastado (INSS)", cnae: "25.3", environment: "Oficina de Metalurgia" },
-  { id: 2, employee: "Ana Costa", role: "Motorista", cid: "F32.1", days: 45, status: "Aguardando Perícia", cnae: "49.3", environment: "Transporte de Cargas" },
-  { id: 3, employee: "Carlos Oliveira", role: "Auxiliar", cid: "S62.0", days: 5, status: "Retorno", cnae: "25.3", environment: "Depósito" },
+  { id: 1, employee: "João Silva", role: "Soldador", cid: "M54.5", days: 18, status: "Afastado (INSS)", cnae: "25.3", environment: "Oficina de Metalurgia", phone: "11999999999" },
+  { id: 2, employee: "Ana Costa", role: "Motorista", cid: "F32.1", days: 45, status: "Aguardando Perícia", cnae: "49.3", environment: "Transporte de Cargas", phone: "11988888888" },
+  { id: 3, employee: "Carlos Oliveira", role: "Auxiliar", cid: "S62.0", days: 5, status: "Retorno", cnae: "25.3", environment: "Depósito", phone: "11977777777" },
 ]
 
 export default function LimboSentinel() {
@@ -70,11 +71,9 @@ export default function LimboSentinel() {
     }
   }
 
-  const handleExportPDF = () => {
-    toast({
-      title: "PDF Gerado",
-      description: "O rascunho jurídico foi exportado com sucesso."
-    })
+  const handleNotifyWhatsApp = (record: typeof initialRecords[0]) => {
+    const message = MSG_TEMPLATES.ALERTA_LIMBO(record.employee);
+    window.open(getWhatsAppLink(record.phone, message), '_blank');
   }
 
   return (
@@ -134,55 +133,67 @@ export default function LimboSentinel() {
                       </TableCell>
                       <TableCell className="font-medium">{record.days} dias</TableCell>
                       <TableCell className="text-right">
-                        {isNtep && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="gap-2 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => handleGenerateContestation(record)}>
-                                <Sparkles className="size-3" /> NAI Defesa
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
-                              <DialogHeader className="p-6 bg-primary text-white">
-                                <DialogTitle className="flex items-center gap-2 text-xl font-headline">
-                                  <Gavel className="size-6 text-accent" /> 
-                                  Rascunho Jurídico NAI - Contestação NTEP
-                                </DialogTitle>
-                                <DialogDescription className="text-white/70">
-                                  Defesa fundamentada pela IA NAI para o colaborador {record.employee}.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="flex-1 overflow-y-auto p-6 bg-muted/20">
-                                {isGenerating ? (
-                                  <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                    <div className="relative">
-                                      <Loader2 className="size-12 animate-spin text-primary" />
-                                      <Sparkles className="absolute -top-2 -right-2 size-6 text-accent animate-pulse" />
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="bg-green-50 text-green-700 border-green-200"
+                            onClick={() => handleNotifyWhatsApp(record)}
+                            title="Notificar via WhatsApp"
+                          >
+                            <MessageSquare className="size-3" />
+                          </Button>
+                          
+                          {isNtep && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => handleGenerateContestation(record)}>
+                                  <Sparkles className="size-3" /> NAI Defesa
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+                                <DialogHeader className="p-6 bg-primary text-white">
+                                  <DialogTitle className="flex items-center gap-2 text-xl font-headline">
+                                    <Gavel className="size-6 text-accent" /> 
+                                    Rascunho Jurídico NAI - Contestação NTEP
+                                  </DialogTitle>
+                                  <DialogDescription className="text-white/70">
+                                    Defesa fundamentada pela IA NAI para o colaborador {record.employee}.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="flex-1 overflow-y-auto p-6 bg-muted/20">
+                                  {isGenerating ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                      <div className="relative">
+                                        <Loader2 className="size-12 animate-spin text-primary" />
+                                        <Sparkles className="absolute -top-2 -right-2 size-6 text-accent animate-pulse" />
+                                      </div>
+                                      <p className="text-sm font-black text-primary animate-pulse uppercase tracking-widest">NAI Consultando base legal 2026...</p>
                                     </div>
-                                    <p className="text-sm font-black text-primary animate-pulse uppercase tracking-widest">NAI Consultando base legal 2026...</p>
-                                  </div>
-                                ) : aiDraft ? (
-                                  <div className="bg-white p-8 rounded-xl border shadow-inner whitespace-pre-wrap text-sm leading-relaxed font-body">
-                                    {aiDraft}
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-10 text-muted-foreground">Erro ao carregar rascunho NAI.</div>
-                                )}
-                              </div>
-                              <div className="p-4 bg-white border-t flex justify-between items-center">
-                                <div className="text-[10px] text-muted-foreground uppercase font-black">Powered by NAI AI Legal 2026</div>
-                                <div className="flex gap-2">
-                                  <Button variant="ghost" onClick={() => setAiDraft(null)}>Descartar</Button>
-                                  <Button variant="outline" className="gap-2" onClick={handleExportPDF}>
-                                    <FileDown className="size-4" /> Exportar PDF
-                                  </Button>
-                                  <Button className="bg-primary gap-2">
-                                    <Copy className="size-4" /> Copiar Texto
-                                  </Button>
+                                  ) : aiDraft ? (
+                                    <div className="bg-white p-8 rounded-xl border shadow-inner whitespace-pre-wrap text-sm leading-relaxed font-body">
+                                      {aiDraft}
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-10 text-muted-foreground">Erro ao carregar rascunho NAI.</div>
+                                  )}
                                 </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        )}
+                                <div className="p-4 bg-white border-t flex justify-between items-center">
+                                  <div className="text-[10px] text-muted-foreground uppercase font-black">Powered by NAI AI Legal 2026</div>
+                                  <div className="flex gap-2">
+                                    <Button variant="ghost" onClick={() => setAiDraft(null)}>Descartar</Button>
+                                    <Button variant="outline" className="gap-2">
+                                      <FileDown className="size-4" /> Exportar PDF
+                                    </Button>
+                                    <Button className="bg-primary gap-2">
+                                      <Copy className="size-4" /> Copiar Texto
+                                    </Button>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
