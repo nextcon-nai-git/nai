@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -74,14 +73,12 @@ export default function ReportsCenter() {
   const [activeTab, setActiveTab] = React.useState("legal")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState("all")
 
-  // Busca Empresas para o filtro
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
   }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
 
-  // Busca Relatórios Reais carregados
   const uploadedReportsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     let q = query(collection(db, "clients", user.uid, "reports"), orderBy("createdAt", "desc"))
@@ -169,12 +166,13 @@ export default function ReportsCenter() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {reports.map((report) => {
                 const realFile = uploadedReports?.find(r => r.reportType === report.id);
+                const ReportIcon = report.icon;
                 return (
                   <Card key={report.id} className={`card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white ${realFile ? 'border-l-4 border-l-[#f59e0b]' : ''}`}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
                         <div className={`p-2 rounded-lg transition-colors ${realFile ? 'bg-[#f59e0b] text-[#090e24]' : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'}`}>
-                          <report.icon className="size-5" />
+                          <ReportIcon className="size-5" />
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-tighter">
@@ -219,7 +217,7 @@ export default function ReportsCenter() {
                       </div>
                     </CardContent>
                   </Card>
-                )
+                );
               })}
             </div>
           </TabsContent>

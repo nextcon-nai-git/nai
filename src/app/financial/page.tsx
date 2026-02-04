@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -77,20 +76,23 @@ export default function FinancialModule() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summary.map((item) => (
-          <Card key={item.title} className="border-none shadow-sm bg-white">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2 rounded-lg ${item.bg}`}>
-                  <item.icon className={`h-5 w-5 ${item.color}`} />
+        {summary.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Card key={item.title} className="border-none shadow-sm bg-white">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-2 rounded-lg ${item.bg}`}>
+                    <Icon className={`h-5 w-5 ${item.color}`} />
+                  </div>
+                  <Badge variant="outline" className="text-[8px] font-black">{item.trend}</Badge>
                 </div>
-                <Badge variant="outline" className="text-[8px] font-black">{item.trend}</Badge>
-              </div>
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{item.title}</p>
-              <h2 className="text-xl font-bold text-primary">{item.amount}</h2>
-            </CardContent>
-          </Card>
-        ))}
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{item.title}</p>
+                <h2 className="text-xl font-bold text-primary">{item.amount}</h2>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

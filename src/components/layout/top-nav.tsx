@@ -125,21 +125,24 @@ export function TopNav() {
             </Link>
 
             <div className="hidden lg:flex items-center space-x-1">
-              {currentMenu.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
-                    pathname === item.href 
-                      ? "bg-[#f59e0b] text-[#090e24] shadow-lg shadow-[#f59e0b]/20" 
-                      : "text-white/70 hover:text-white hover:bg-white/10"
-                  )}
-                >
-                  <item.icon className="h-3.5 w-3.5" />
-                  {item.label}
-                </Link>
-              ))}
+              {currentMenu.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                      pathname === item.href 
+                        ? "bg-[#f59e0b] text-[#090e24] shadow-lg shadow-[#f59e0b]/20" 
+                        : "text-white/70 hover:text-white hover:bg-white/10"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
@@ -218,22 +221,25 @@ export function TopNav() {
       {isOpen && (
         <div className="lg:hidden bg-[#090e24] border-t border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {currentMenu.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className={cn(
-                  "block px-3 py-3 rounded-md text-sm font-bold uppercase tracking-wider flex items-center gap-3",
-                  pathname === item.href 
-                    ? "bg-[#f59e0b] text-[#090e24]" 
-                    : "text-white/70 hover:text-white hover:bg-white/5"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            ))}
+            {currentMenu.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "block px-3 py-3 rounded-md text-sm font-bold uppercase tracking-wider flex items-center gap-3",
+                    pathname === item.href 
+                      ? "bg-[#f59e0b] text-[#090e24]" 
+                      : "text-white/70 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              );
+            })}
             <div className="pt-4 mt-4 border-t border-white/10 px-3 pb-4">
               <Button
                 variant="destructive"

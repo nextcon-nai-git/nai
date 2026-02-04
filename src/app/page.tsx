@@ -31,14 +31,12 @@ export default function Dashboard() {
   const [saudacao, setSaudacao] = React.useState('');
   const [dataAtual, setDataAtual] = React.useState('');
 
-  // Perfil do Usuário
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, "users", user.uid);
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
 
-  // Busca dados da Empresa para o Segmento
   const companyRef = useMemoFirebase(() => {
     if (!db || !user || !profile?.companyId) return null;
     return doc(db, "clients", user.uid, "managedCompanies", profile.companyId);
@@ -47,14 +45,12 @@ export default function Dashboard() {
 
   const segment = company?.segment || "GENERAL";
 
-  // Busca Clientes (Empresas) para o contador
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, "clients", user.uid, "managedCompanies"));
   }, [db, user]);
   const { data: companiesData } = useCollection(companiesQuery);
 
-  // Filtra empresas com nomes inválidos (apenas números ou vazios)
   const validCompanies = React.useMemo(() => {
     if (!companiesData) return [];
     return companiesData.filter(c => {
@@ -71,7 +67,6 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: audits } = useCollection(auditsQuery);
 
-  // Agenda Real
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -136,6 +131,7 @@ export default function Dashboard() {
   };
 
   const focus = getSegmentFocus();
+  const FocusIcon = focus.icon;
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
@@ -179,10 +175,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
         
-        {/* Card Adaptativo por Segmento */}
         <Card className={cn("border-none shadow-md lg:col-span-2 overflow-hidden relative", focus.bg)}>
           <div className="absolute right-0 top-0 p-4 opacity-10">
-            <focus.icon size={100} className={focus.color} />
+            <FocusIcon size={100} className={focus.color} />
           </div>
           <CardContent className="p-6">
             <div className="flex flex-col h-full justify-between">
@@ -242,7 +237,7 @@ export default function Dashboard() {
               )}
               
               <Button asChild variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary">
-                <Link href="/health-control">Ver Agenda Completa <ChevronRight className="size-3 ml-1" /></Link>
+                <Link href="/health-control" className="flex items-center justify-center">Ver Agenda Completa <ChevronRight className="size-3 ml-1" /></Link>
               </Button>
             </CardContent>
           </Card>

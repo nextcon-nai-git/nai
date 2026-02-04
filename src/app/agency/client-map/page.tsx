@@ -45,19 +45,16 @@ export default function ClientMapPage() {
 
   const { data: companies, isLoading } = useCollection(companiesQuery)
 
-  // Função para validar se um nome é "lixo" ou apenas números
   const isInvalidName = (name: string) => {
     if (!name) return true;
     const cleanName = name.trim();
     if (cleanName.length < 3) return true;
-    // Verifica se o nome é composto apenas por dígitos (CNPJ inserido no campo nome, por exemplo)
     if (/^\d+$/.test(cleanName.replace(/[\.\-\/]/g, ''))) return true;
     return false;
   }
 
   const filteredCompanies = React.useMemo(() => {
     if (!companies) return []
-    // Filtra nomes inválidos e aplica busca
     return companies.filter(c => {
       const name = c.name || "";
       if (isInvalidName(name)) return false;
@@ -76,7 +73,6 @@ export default function ClientMapPage() {
       
       const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
       
-      // Se a confiança for muito baixa, o registro pode estar tão errado que não vale manter
       if (result.confidence < 10 && !result.dataEnriched) {
         deleteDocumentNonBlocking(companyRef)
         setSelectedCompany(null)
@@ -117,7 +113,6 @@ export default function ClientMapPage() {
   const handleBulkEnrich = async () => {
     if (!user || !db || !filteredCompanies.length) return
     
-    // Pega os que ainda não foram enriquecidos
     const toEnrich = filteredCompanies.filter(c => !c.dataEnriched)
     if (toEnrich.length === 0) {
       toast({ title: "Tudo em ordem!", description: "Todos os registros válidos já foram processados." })
@@ -140,7 +135,6 @@ export default function ClientMapPage() {
         
         const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
         
-        // Critério de expurgo: Baixa confiança ou sem enriquecimento
         if (result.confidence < 10 && !result.dataEnriched) {
           deleteDocumentNonBlocking(companyRef)
           eliminated++

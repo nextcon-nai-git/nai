@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -153,23 +152,26 @@ export default function KnowledgeBase() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {suggestedSkills.map((skill) => (
-                <button 
-                  key={skill.label}
-                  onClick={() => setQuery(skill.query)}
-                  className="w-full text-left p-3 hover:bg-white rounded-xl transition-all border border-transparent hover:border-primary/10 group shadow-sm bg-white/40"
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <skill.icon className="size-3 text-primary/40 group-hover:text-primary" />
-                    <span className="text-[10px] font-black uppercase text-primary/60 group-hover:text-primary tracking-tighter">
-                      {skill.label}
-                    </span>
-                  </div>
-                  <p className="text-[10px] leading-tight text-muted-foreground group-hover:text-primary/80 line-clamp-2 italic">
-                    "{skill.query}"
-                  </p>
-                </button>
-              ))}
+              {suggestedSkills.map((skill) => {
+                const SkillIcon = skill.icon;
+                return (
+                  <button 
+                    key={skill.label}
+                    onClick={() => setQuery(skill.query)}
+                    className="w-full text-left p-3 hover:bg-white rounded-xl transition-all border border-transparent hover:border-primary/10 group shadow-sm bg-white/40"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <SkillIcon className="size-3 text-primary/40 group-hover:text-primary" />
+                      <span className="text-[10px] font-black uppercase text-primary/60 group-hover:text-primary tracking-tighter">
+                        {skill.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] leading-tight text-muted-foreground group-hover:text-primary/80 line-clamp-2 italic">
+                      "{skill.query}"
+                    </p>
+                  </button>
+                );
+              })}
             </CardContent>
           </Card>
 

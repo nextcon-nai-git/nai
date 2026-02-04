@@ -262,25 +262,28 @@ export default function ChecklistsPage() {
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCatalog.map((item) => (
-              <Card 
-                key={item.id} 
-                className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all cursor-pointer group bg-white"
-                onClick={() => setSelectedChecklist(item.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl bg-muted/50 ${item.color} group-hover:bg-primary group-hover:text-white transition-all shadow-inner`}>
-                      <item.icon className="size-6" />
+            {filteredCatalog.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card 
+                  key={item.id} 
+                  className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all cursor-pointer group bg-white"
+                  onClick={() => setSelectedChecklist(item.id)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl bg-muted/50 ${item.color} group-hover:bg-primary group-hover:text-white transition-all shadow-inner`}>
+                        <Icon className="size-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[9px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
+                        <h3 className="text-sm font-bold text-primary">{item.title}</h3>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-[9px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
-                      <h3 className="text-sm font-bold text-primary">{item.title}</h3>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
@@ -303,7 +306,6 @@ export default function ChecklistsPage() {
                 <CardDescription>Selecione o método para iniciar a análise técnica do posto de trabalho.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Destaque para o Diagrama de Corlett */}
                 <div 
                   className="p-6 border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-300 transition-all cursor-pointer group flex items-center gap-6"
                   onClick={() => setSelectedChecklist("ergo")}
@@ -344,7 +346,7 @@ export default function ChecklistsPage() {
                   <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Análises Realizadas</p>
                   <p className="text-2xl font-black">14</p>
                 </div>
-                <Button className="w-full bg-accent text-primary hover:bg-accent/90 font-bold uppercase text-[10px]">
+                <Button className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-bold uppercase text-[10px]">
                   Emitir Laudo Ergonômico (AET)
                 </Button>
               </CardContent>
