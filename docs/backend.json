@@ -1,5 +1,21 @@
+
 {
   "entities": {
+    "SstEvent": {
+      "title": "SstEvent",
+      "description": "Representa um evento de SST na agenda (exame, visita, treinamento).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "description": "Tipo do evento (Exame Admissional, PGR, etc)" },
+        "time": { "type": "string", "description": "Horário formatado (HH:MM)" },
+        "date": { "type": "string", "format": "date-time" },
+        "companyName": { "type": "string", "description": "Nome da empresa cliente" },
+        "location": { "type": "string", "description": "Local ou unidade" },
+        "status": { "type": "string", "enum": ["SCHEDULED", "COMPLETED", "CANCELED"] }
+      },
+      "required": ["id", "type", "date", "companyName"]
+    },
     "ProductService": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ProductService",
@@ -368,6 +384,18 @@
   "firestore": {
     "structure": [
       {
+        "path": "/clients/{clientId}/sst_events/{eventId}",
+        "definition": {
+          "entityName": "SstEvent",
+          "schema": { "$ref": "#/backend/entities/SstEvent" },
+          "description": "Armazena eventos de agenda para cada cliente.",
+          "params": [
+            { "name": "clientId", "description": "ID da agência/usuário" },
+            { "name": "eventId", "description": "ID do evento" }
+          ]
+        }
+      },
+      {
         "path": "/product_services/{productServiceId}",
         "definition": {
           "entityName": "ProductService",
@@ -572,6 +600,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the financial module's features while adhering to the principles of Authorization Independence, Clarity of Intent, DBAC, QAPs, and Invariants.  It uses structural segregation to group data with similar security needs, and denormalization to avoid complex security rules that depend on hierarchical data. Path-based ownership is favored where applicable (e.g., client-owned data). The membership map pattern is not applicable in this scenario.\n\n*   `/product_services`: Stores the products and services offered. This collection doesn't require special authorization beyond basic authenticated access, as it represents catalog data. \n*   `/service_groups`: Stores service groups for reporting. Similar to `product_services`, it mainly requires authenticated access. \n*   `/price_tables`: Stores price tables. To ensure QAPs, `clientId` is used as the document id if its a client specific price table. If its standard, then the document Id will be 'standard'.\n*   `/price_tables/{priceTableId}/price_table_items`: Stores price table items for each price table.  Authorization depends on the parent price table (either client-owned or standard).\n*   `/exam_costs`: Stores the cost of exams.  Requires authentication to access.\n*   `/credentialed_networks`: Stores credentialed networks (clinics). Requires authentication to access.\n*   `/clients/{clientId}/invoices`: Stores invoices for each client. Uses path-based ownership for clear authorization.  \n*   `/clients/{clientId}/invoices/{invoiceId}/invoice_items`: Stores invoice items for each invoice. Authorization relies on path-based ownership and inherits authorization from the parent invoice.\n*   `/credentialed_networks/{credentialedNetworkId}/provider_invoices`: Stores invoices from service providers. Uses path-based ownership for clear authorization.\n*   `/credentialed_networks/{credentialedNetworkId}/provider_invoices/{providerInvoiceId}/provider_invoice_items`: Stores invoice items for each provider invoice. Authorization relies on path-based ownership and inherits authorization from the parent provider invoice.\n\nThis structure facilitates simple security rules based on path ownership.  For example, rules can easily grant a client read/write access to their own invoices and invoice items under `/clients/{clientId}`.  Similarly, credentialed networks can manage their own provider invoices and items.  The segregation of standard vs client specific `price_tables` supports QAPs, because rules can easily scope read access to standard price tables vs client-specific price tables."
+    "reasoning": "A estrutura de SST Events foi adicionada para suportar a Agenda do Dia dinâmica com dados reais de clientes."
   }
 }

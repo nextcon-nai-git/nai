@@ -3,28 +3,22 @@
 
 import * as React from 'react';
 import { 
-  TrendingUp,
   Zap,
-  ArrowUpRight,
-  CheckCircle2,
-  FileText,
-  AlertTriangle,
-  Activity,
-  Users,
-  SearchCheck,
-  Sparkles,
-  MapPin,
+  ChevronRight,
   Calendar,
   User,
   DollarSign,
+  AlertTriangle,
+  SearchCheck,
+  Sparkles,
   Clock,
-  ChevronRight
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, where } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -60,6 +54,18 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: audits } = useCollection(auditsQuery);
 
+  // Agenda Real (Eventos SST)
+  const eventsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    // Busca eventos ordenados por data (mostrando os mais próximos)
+    return query(
+      collection(db, "clients", user.uid, "sst_events"), 
+      orderBy("date", "asc"), 
+      limit(5)
+    );
+  }, [db, user]);
+  const { data: events, isLoading: loadingEvents } = useCollection(eventsQuery);
+
   React.useEffect(() => {
     const hora = new Date().getHours();
     if (hora >= 5 && hora < 12) setSaudacao('Bom dia');
@@ -76,7 +82,7 @@ export default function Dashboard() {
     employees: employees?.length || 0,
     asos: reports?.filter(r => r.reportType === 'aso').length || 0,
     pendencies: audits?.filter(a => a.complianceScore < 100).length || 0,
-    billing: "R$ 45.200" // Placeholder financeiro
+    billing: "R$ 45.200"
   };
 
   const indicators = [
@@ -99,7 +105,7 @@ export default function Dashboard() {
           <p className="text-sm text-muted-foreground font-medium">{dataAtual}</p>
         </div>
         <div className="flex gap-2">
-          <Badge className="bg-[#f59e0b] text-[#090e24] font-black uppercase text-[10px] tracking-widest px-3">Estratégico 2026</Badge>
+          <Badge className="bg-[#f59e0b] text-[#090e24] font-black uppercase text-[10px] tracking-widest px-3 h-8 flex items-center">Estratégico 2026</Badge>
         </div>
       </div>
 
@@ -130,27 +136,38 @@ export default function Dashboard() {
               <Calendar className="size-5 text-muted-foreground" />
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center p-4 bg-blue-50/50 rounded-2xl border-l-4 border-blue-500 group hover:bg-blue-50 transition-colors">
-                <div className="w-20 shrink-0">
-                  <p className="text-sm font-black text-blue-700">09:00</p>
+              {loadingEvents ? (
+                <div className="flex flex-col items-center py-10 gap-2">
+                  <Loader2 className="size-8 animate-spin text-primary opacity-20" />
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sincronizando Agenda NAI...</p>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-[#090e24]">Exame Admissional - João Silva</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Construtora ABC • Unidade Centro</p>
+              ) : events && events.length > 0 ? (
+                events.map((event) => (
+                  <div key={event.id} className="flex items-center p-4 bg-blue-50/30 rounded-2xl border-l-4 border-primary group hover:bg-blue-50 transition-colors">
+                    <div className="w-20 shrink-0">
+                      <p className="text-sm font-black text-primary">{event.time || "Horário"}</p>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-[#090e24]">{event.title || event.type}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+                        {event.companyName} • {event.location || "Unidade Principal"}
+                      </p>
+                    </div>
+                    <ChevronRight className="size-4 text-primary/30 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-16 border-2 border-dashed rounded-2xl opacity-40">
+                  <Clock className="size-10 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-black uppercase tracking-widest">Agenda Vazia</p>
+                  <p className="text-[10px] mt-1">Nenhum evento técnico ou exame agendado para hoje.</p>
+                  <Link href="/data-import">
+                    <Button variant="outline" size="sm" className="mt-4 h-8 text-[9px] font-black uppercase border-primary text-primary">
+                      Importar Eventos SST
+                    </Button>
+                  </Link>
                 </div>
-                <ChevronRight className="size-4 text-blue-300 group-hover:translate-x-1 transition-transform" />
-              </div>
-
-              <div className="flex items-center p-4 bg-amber-50/50 rounded-2xl border-l-4 border-amber-500 group hover:bg-amber-50 transition-colors">
-                <div className="w-20 shrink-0">
-                  <p className="text-sm font-black text-amber-700">14:30</p>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-[#090e24]">Visita Técnica / Inspeção PGR</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Indústria Metalnorte • Planta 02</p>
-                </div>
-                <ChevronRight className="size-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
-              </div>
+              )}
               
               <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary/60 hover:text-primary">
                 Ver Agenda Completa <ChevronRight className="size-3 ml-1" />

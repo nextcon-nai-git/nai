@@ -10,12 +10,12 @@ import {
   Users, 
   ShieldAlert, 
   UserCheck, 
-  Stethoscope,
   HeartPulse,
   DatabaseZap,
   MapPin,
   FileText,
-  FileUp
+  FileUp,
+  CalendarDays
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -86,6 +86,49 @@ export default function UnifiedImportCenter() {
     }
   }
 
+  const seedAgendaEvents = async () => {
+    if (!user || !db || !companies || companies.length === 0) {
+      toast({ variant: "destructive", title: "Carga Indisponível", description: "Primeiro importe empresas para criar a agenda." })
+      return
+    }
+    setUploading(true)
+    
+    const eventTypes = [
+      { type: "Exame Periódico", time: "08:30" },
+      { type: "Inspeção PGR", time: "14:00" },
+      { type: "Treinamento NR-35", time: "09:00" },
+      { type: "Exame Admissional", time: "10:30" },
+      { type: "Vistoria Técnica", time: "15:45" }
+    ]
+
+    try {
+      const batch = writeBatch(db)
+      // Cria 5 eventos baseados nas empresas existentes
+      for (let i = 0; i < 5; i++) {
+        const company = companies[i % companies.length]
+        const event = eventTypes[i % eventTypes.length]
+        const eventId = `event_${Date.now()}_${i}`
+        const docRef = doc(db, "clients", user.uid, "sst_events", eventId)
+        
+        batch.set(docRef, {
+          id: eventId,
+          type: event.type,
+          time: event.time,
+          companyName: company.name,
+          location: company.city || "Sede Cliente",
+          date: new Date().toISOString(),
+          status: "SCHEDULED"
+        })
+      }
+      await batch.commit()
+      toast({ title: "Agenda Populada", description: "5 eventos reais baseados em seus clientes foram criados." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro na Carga de Agenda" })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleFileUpload = async () => {
     if (!user || !db || !storage || !fileToUpload || !selectedCompanyId) {
       toast({ variant: "destructive", title: "Campos Incompletos", description: "Selecione o cliente e o arquivo." })
@@ -94,13 +137,11 @@ export default function UnifiedImportCenter() {
 
     setUploading(true)
     try {
-      // 1. Upload para o Storage
       const filePath = `reports/${user.uid}/${selectedCompanyId}/${Date.now()}_${fileToUpload.name}`
       const fileRef = ref(storage, filePath)
       await uploadBytes(fileRef, fileToUpload)
       const downloadUrl = await getDownloadURL(fileRef)
 
-      // 2. Criar registro no Firestore
       const reportData = {
         companyId: selectedCompanyId,
         reportType: selectedReportType,
@@ -316,6 +357,17 @@ export default function UnifiedImportCenter() {
           </TabsList>
           
           <div className="flex gap-2 w-full md:w-auto">
+            {activeTab === 'exams' && (
+              <Button 
+                variant="outline" 
+                className="border-primary text-primary hover:bg-primary/10 gap-2 h-14 rounded-xl px-6 font-bold flex-1 md:flex-none"
+                onClick={seedAgendaEvents}
+                disabled={uploading}
+              >
+                <CalendarDays className="size-5" />
+                Seed: Agenda Real
+              </Button>
+            )}
             {activeTab === 'companies' && (
               <Button 
                 variant="outline" 
