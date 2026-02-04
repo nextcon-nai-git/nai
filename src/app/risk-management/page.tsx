@@ -179,7 +179,7 @@ export default function RiskInventoryPGR() {
                     <div className="flex flex-col gap-1">
                       <p className="text-[10px] leading-tight text-muted-foreground">{risk.recommendation}</p>
                       <Badge variant="outline" className="w-fit text-[8px] py-0 px-1.5 text-emerald-600 border-emerald-200">
-                        S-2240 {risk.esocialStatus}
+                        S-2240 Validado
                       </Badge>
                     </div>
                   </TableCell>

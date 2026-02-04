@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   name: 'esocialAuditPrompt',
   input: {schema: EsocialAuditInputSchema},
   output: {schema: EsocialAuditOutputSchema},
-  prompt: `Você é um auditor sênior de SST e eSocial. Analise o cruzamento entre os Riscos do PGR e os Exames do PCMSO para o setor {{{sector}}}.
+  prompt: `Você é um auditor sênior de SST e eSocial da NEXTCON. Analise o cruzamento entre os Riscos do PGR e os Exames do PCMSO para o setor {{{sector}}}.
 
 DADOS:
 - Riscos Identificados: 
