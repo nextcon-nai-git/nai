@@ -13,8 +13,43 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function Dashboard() {
+  const { user } = useUser();
+  const db = useFirestore();
+  const [saudacao, setSaudacao] = React.useState('');
+  const [dataAtual, setDataAtual] = React.useState('');
+
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
+
+  const { data: profile } = useDoc(profileRef);
+
+  React.useEffect(() => {
+    // 1. Lógica da Saudação (Dia/Tarde/Noite)
+    const hora = new Date().getHours();
+    if (hora >= 5 && hora < 12) {
+      setSaudacao('Bom dia');
+    } else if (hora >= 12 && hora < 18) {
+      setSaudacao('Boa tarde');
+    } else {
+      setSaudacao('Boa noite');
+    }
+
+    // 2. Lógica da Data (Ex: quarta-feira, 4 de fevereiro)
+    const data = new Date();
+    const opcoes: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' };
+    
+    let dataFormatada = data.toLocaleDateString('pt-BR', opcoes);
+    dataFormatada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+    
+    setDataAtual(dataFormatada);
+  }, []);
+
   const metrics = [
     { label: "ROI PREVENÇÃO", value: "R$ 452.800", icon: DollarSign, color: "text-blue-600" },
     { label: "FATOR FAP", value: "0,74", icon: TrendingDown, color: "text-emerald-600" },
@@ -22,13 +57,22 @@ export default function Dashboard() {
     { label: "COMPLIANCE", value: "98.5%", icon: ShieldCheck, color: "text-indigo-600" },
   ];
 
+  const nomeExibicao = profile?.name || user?.email?.split('@')[0] || 'Visitante';
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <Badge className="bg-[#f59e0b] text-[#090e24] font-black uppercase text-[10px] tracking-widest px-3 mb-2">Estratégico 2026</Badge>
-          <h1 className="text-4xl font-black text-[#090e24] tracking-tight font-headline">Visão Executiva Nextcon</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Gestão de Saúde e Segurança do Trabalho</p>
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-black text-[#090e24] tracking-tight font-headline">
+            {saudacao}, <span className="text-[#f59e0b]">{nomeExibicao}</span>
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium mb-4">
+            {dataAtual}
+          </p>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-[#f59e0b] text-[#090e24] font-black uppercase text-[10px] tracking-widest px-3">Estratégico 2026</Badge>
+            <Badge variant="outline" className="border-primary/20 text-primary text-[10px] uppercase font-bold">Unidade Curitiba</Badge>
+          </div>
         </div>
       </div>
 
