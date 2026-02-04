@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser } from '@/firebase';
@@ -53,7 +52,7 @@ export function AppContent({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <footer className="py-6 border-t bg-[#090e24] text-white/40 text-center text-[10px] font-bold tracking-widest uppercase mt-auto">
-        © 2024 NEXTCON SAÚDE EMPRESARIAL - SISTEMA DE GESTÃO SST
+        © 2026 NEXTCON SAÚDE EMPRESARIAL - SISTEMA DE GESTÃO SST
       </footer>
     </div>
   );
