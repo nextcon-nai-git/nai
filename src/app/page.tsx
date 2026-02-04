@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -7,10 +6,8 @@ import {
   ChevronRight,
   Calendar,
   User,
-  DollarSign,
   AlertTriangle,
   SearchCheck,
-  Sparkles,
   Clock,
   Loader2,
   ClipboardCheck,
@@ -50,12 +47,23 @@ export default function Dashboard() {
 
   const segment = company?.segment || "GENERAL";
 
-  // Contadores Reais
-  const employeesQuery = useMemoFirebase(() => {
+  // Busca Clientes (Empresas) para o contador
+  const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "employees"));
+    return query(collection(db, "clients", user.uid, "managedCompanies"));
   }, [db, user]);
-  const { data: employees } = useCollection(employeesQuery);
+  const { data: companiesData } = useCollection(companiesQuery);
+
+  // Filtra empresas com nomes inválidos (apenas números ou vazios)
+  const validCompanies = React.useMemo(() => {
+    if (!companiesData) return [];
+    return companiesData.filter(c => {
+      const name = c.name || "";
+      if (!name || name.trim().length < 3) return false;
+      if (/^\d+$/.test(name.replace(/[\.\-\/]/g, ''))) return false;
+      return true;
+    });
+  }, [companiesData]);
 
   const auditsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -151,11 +159,11 @@ export default function Dashboard() {
         <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vidas Ativas</p>
-              <h3 className="text-2xl font-black text-[#090e24] mt-1">{employees?.length || 0}</h3>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Clientes Ativos</p>
+              <h3 className="text-2xl font-black text-[#090e24] mt-1">{validCompanies.length}</h3>
             </div>
             <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
-              <User size={24} />
+              <Building2 size={24} />
             </div>
           </CardContent>
         </Card>
