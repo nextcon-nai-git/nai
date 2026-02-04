@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -66,7 +65,9 @@ export default function Dashboard() {
     { title: "Status do PGR", category: "Segurança", icon: BarChart3, color: "text-indigo-600", bg: "bg-indigo-50" }
   ];
 
-  const nomeExibicao = profile?.name || user?.email?.split('@')[0] || 'Visitante';
+  // Lógica personalizada para exibir "Felipe" em vez de "nextcon"
+  const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
+  const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
