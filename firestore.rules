@@ -5,28 +5,48 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    function isOwner(agencyId) {
-      return isSignedIn() && request.auth.uid == agencyId;
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Perfil de Usuário: permite que cada usuário gerencie seus próprios dados de perfil
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Estrutura Multi-Tenant: Dados segmentados por ID do administrador (agencyId)
     match /clients/{agencyId} {
       allow get, list, create, update: if isOwner(agencyId);
 
       match /managedCompanies/{companyId} {
-        allow get, list, create, update, delete: if isOwner(agencyId);
+        allow read, write: if isOwner(agencyId);
       }
       match /employees/{employeeId} {
-        allow get, list, create, update, delete: if isOwner(agencyId);
+        allow read, write: if isOwner(agencyId);
       }
-      match /suppliers/{supplierId} {
-        allow get, list, create, update, delete: if isOwner(agencyId);
+      match /tasks/{taskId} {
+        allow read, write: if isOwner(agencyId);
+      }
+      match /surveys/{surveyId} {
+        allow read, write: if isOwner(agencyId);
       }
       match /legalExpertises/{expertiseId} {
-        allow get, list, create, update, delete: if isOwner(agencyId);
+        allow read, write: if isOwner(agencyId);
       }
-      match /medicalExams/{examId} {
-        allow get, list, create, update, delete: if isOwner(agencyId);
+      match /auditHistory/{auditId} {
+        allow read, write: if isOwner(agencyId);
       }
+      match /sst_events/{eventId} {
+        allow read, write: if isOwner(agencyId);
+      }
+    }
+
+    // Coleções globais (mantendo compatibilidade se necessário)
+    match /companies/{companyId} {
+      allow read, write: if isSignedIn();
+    }
+    match /employees/{employeeId} {
+      allow read, write: if isSignedIn();
     }
   }
 }

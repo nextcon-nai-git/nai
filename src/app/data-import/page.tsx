@@ -4,21 +4,12 @@
 import * as React from "react"
 import { 
   Upload, 
-  CheckCircle2, 
-  AlertTriangle, 
   Save, 
   Loader2, 
   Building2, 
   Users, 
-  Stethoscope, 
-  Gavel,
-  FileUp,
-  X,
-  HeartPulse,
-  UserCircle,
-  ShieldAlert,
-  UserCheck,
-  ShieldCheck,
+  ShieldAlert, 
+  UserCheck, 
   Zap
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -27,10 +18,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
-import { doc, writeBatch, setDoc } from "firebase/firestore"
-import { cn } from "@/lib/utils"
+import { doc, writeBatch } from "firebase/firestore"
 
-type ImportType = 'companies' | 'employees' | 'suppliers' | 'expertises' | 'exams'
+type ImportType = 'companies' | 'employees' | 'exams'
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
@@ -40,7 +30,6 @@ export default function UnifiedImportCenter() {
   const [activeTab, setActiveTab] = React.useState<ImportType>('companies')
   const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
-  const [isDragging, setIsDragging] = React.useState(false)
 
   const setupProfileByRole = async (targetRole: 'SUPER_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE') => {
     if (!user || !db) return
@@ -51,7 +40,7 @@ export default function UnifiedImportCenter() {
     try {
       const batch = writeBatch(db)
 
-      // Perfil do Usuário Logado usando o novo schema
+      // Perfil do Usuário Logado
       batch.set(doc(db, "users", user.uid), {
         id: user.uid,
         name: name.charAt(0).toUpperCase() + name.slice(1),
@@ -98,9 +87,11 @@ export default function UnifiedImportCenter() {
           if (values[i]) data[header] = values[i]
         })
 
+        // Caminho Multi-Tenant: clientes/{adminUid}/colecao
         const collectionPath = 
-          activeTab === 'companies' ? "companies" : 
-          activeTab === 'employees' ? "employees" : "sst_events"
+          activeTab === 'companies' ? `clients/${user.uid}/managedCompanies` : 
+          activeTab === 'employees' ? `clients/${user.uid}/employees` : 
+          `clients/${user.uid}/sst_events`;
 
         const docId = data.id || data.cnpj || `import_${index}_${Date.now()}`
         const docRef = doc(db, collectionPath, docId)
@@ -109,7 +100,7 @@ export default function UnifiedImportCenter() {
       })
 
       await batch.commit()
-      toast({ title: "Importação Finalizada", description: `${count} registros importados.` })
+      toast({ title: "Importação Finalizada", description: `${count} registros importados para seu ambiente.` })
       setPastedData("")
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
@@ -160,14 +151,14 @@ export default function UnifiedImportCenter() {
                 </div>
                 <div>
                   <CardTitle className="text-xl">Importador em Lote</CardTitle>
-                  <CardDescription>Cole dados CSV ou Excel para popular a arquitetura NAI.</CardDescription>
+                  <CardDescription>Cole dados CSV para popular seu ambiente exclusivo.</CardDescription>
                 </div>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea 
-              placeholder="Cole aqui seus dados..."
+              placeholder="Cole aqui seus dados (Cabeçalho;Dado1;Dado2)..."
               className="min-h-[350px] font-mono text-xs bg-muted/20 p-6"
               value={pastedData}
               onChange={(e) => setPastedData(e.target.value)}
