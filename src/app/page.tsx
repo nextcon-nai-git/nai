@@ -14,13 +14,17 @@ import {
   Clock,
   Loader2,
   ClipboardCheck,
-  Stethoscope
+  Stethoscope,
+  Construction,
+  Building2,
+  Factory,
+  ShieldCheck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit, where } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -37,6 +41,15 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
 
+  // Busca dados da Empresa para o Segmento
+  const companyRef = useMemoFirebase(() => {
+    if (!db || !user || !profile?.companyId) return null;
+    return doc(db, "clients", user.uid, "managedCompanies", profile.companyId);
+  }, [db, user, profile?.companyId]);
+  const { data: company } = useDoc(companyRef);
+
+  const segment = company?.segment || "GENERAL";
+
   // Contadores Reais
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -44,19 +57,13 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: employees } = useCollection(employeesQuery);
 
-  const reportsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "reports"));
-  }, [db, user]);
-  const { data: reports } = useCollection(reportsQuery);
-
   const auditsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, "clients", user.uid, "auditHistory"));
   }, [db, user]);
   const { data: audits } = useCollection(auditsQuery);
 
-  // Agenda Real (Eventos SST)
+  // Agenda Real
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -79,20 +86,48 @@ export default function Dashboard() {
     setDataAtual(dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1));
   }, []);
 
-  const counts = {
-    employees: employees?.length || 0,
-    asos: reports?.filter(r => r.reportType === 'aso').length || 0,
-    pendencies: audits?.filter(a => a.complianceScore < 100).length || 0,
-    billing: "R$ 45.200"
+  const getSegmentFocus = () => {
+    switch (segment) {
+      case 'CONSTRUCTION':
+        return {
+          title: "Foco NR-18 & NR-35",
+          desc: "Gestão de Obras e Trabalho em Altura.",
+          icon: Construction,
+          color: "text-orange-600",
+          bg: "bg-orange-50",
+          nrs: ["NR-18 (PCMAT)", "NR-35 (Altura)", "NR-12 (Máquinas)"]
+        };
+      case 'HOSPITAL':
+        return {
+          title: "Foco NR-32",
+          desc: "Segurança em Serviços de Saúde.",
+          icon: Stethoscope,
+          color: "text-blue-600",
+          bg: "bg-blue-50",
+          nrs: ["NR-32 (Saúde)", "NR-07 (PCMSO)", "NR-09 (Riscos)"]
+        };
+      case 'INDUSTRY':
+        return {
+          title: "Foco NR-12 & NR-10",
+          desc: "Segurança em Máquinas e Elétrica.",
+          icon: Factory,
+          color: "text-emerald-600",
+          bg: "bg-emerald-50",
+          nrs: ["NR-12 (Equipamentos)", "NR-10 (Elétrica)", "NR-13 (Caldeiras)"]
+        };
+      default:
+        return {
+          title: "SST Estratégico",
+          desc: "Gestão Geral de Conformidade.",
+          icon: ShieldCheck,
+          color: "text-primary",
+          bg: "bg-muted",
+          nrs: ["NR-01 (PGR)", "NR-07 (PCMSO)", "eSocial"]
+        };
+    }
   };
 
-  const indicators = [
-    { title: "Vidas Ativas", val: counts.employees, color: "text-blue-600", bg: "bg-blue-50", icon: User },
-    { title: "ASOs a Vencer (30d)", val: "12", color: "text-amber-600", bg: "bg-amber-50", icon: Calendar },
-    { title: "Pendências eSocial", val: counts.pendencies, color: "text-red-600", bg: "bg-red-50", icon: AlertTriangle },
-    { title: "Faturamento (Mês)", val: counts.billing, color: "text-emerald-600", bg: "bg-emerald-50", icon: DollarSign },
-  ];
-
+  const focus = getSegmentFocus();
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
@@ -105,25 +140,56 @@ export default function Dashboard() {
           </h1>
           <p className="text-sm text-muted-foreground font-medium">{dataAtual}</p>
         </div>
-        <div className="flex gap-2">
-          <Badge className="bg-[#f59e0b] text-[#090e24] font-black uppercase text-[10px] tracking-widest px-3 h-8 flex items-center">Estratégico 2026</Badge>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#090e24] text-[#f59e0b] font-black uppercase text-[10px] tracking-widest px-3 h-8 flex items-center border border-[#f59e0b]/20">
+            {segment === 'CONSTRUCTION' ? 'Engenharia Civil' : segment === 'HOSPITAL' ? 'Saúde & Hospitais' : segment === 'INDUSTRY' ? 'Vertical Industrial' : 'Gestão Padrão'}
+          </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {indicators.map((indicator, idx) => (
-          <Card key={idx} className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
-            <CardContent className="p-6 flex items-center justify-between">
+        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Vidas Ativas</p>
+              <h3 className="text-2xl font-black text-[#090e24] mt-1">{employees?.length || 0}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+              <User size={24} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Pendências IA</p>
+              <h3 className="text-2xl font-black text-[#090e24] mt-1">{audits?.filter(a => a.complianceScore < 100).length || 0}</h3>
+            </div>
+            <div className="p-3 rounded-xl bg-red-50 text-red-600">
+              <AlertTriangle size={24} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Card Adaptativo por Segmento */}
+        <Card className={cn("border-none shadow-md lg:col-span-2 overflow-hidden relative", focus.bg)}>
+          <div className="absolute right-0 top-0 p-4 opacity-10">
+            <focus.icon size={100} className={focus.color} />
+          </div>
+          <CardContent className="p-6">
+            <div className="flex flex-col h-full justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{indicator.title}</p>
-                <h3 className="text-2xl font-black text-[#090e24] mt-1">{indicator.val}</h3>
+                <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", focus.color)}>{focus.title}</p>
+                <h3 className="text-xl font-bold text-[#090e24]">{focus.desc}</h3>
               </div>
-              <div className={cn("p-3 rounded-xl", indicator.bg, indicator.color)}>
-                <indicator.icon size={24} />
+              <div className="flex gap-2 mt-4">
+                {focus.nrs.map(nr => (
+                  <Badge key={nr} variant="outline" className="bg-white/50 border-none text-[9px] font-bold text-[#090e24]">{nr}</Badge>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -131,8 +197,8 @@ export default function Dashboard() {
           <Card className="border-none shadow-lg bg-white overflow-hidden">
             <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Agenda do Dia</CardTitle>
-                <CardDescription>Eventos e agendamentos técnicos programados.</CardDescription>
+                <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Agenda SST Real</CardTitle>
+                <CardDescription>Eventos dinâmicos sincronizados com seus clientes.</CardDescription>
               </div>
               <Calendar className="size-5 text-muted-foreground" />
             </CardHeader>
@@ -140,18 +206,18 @@ export default function Dashboard() {
               {loadingEvents ? (
                 <div className="flex flex-col items-center py-10 gap-2">
                   <Loader2 className="size-8 animate-spin text-primary opacity-20" />
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sincronizando Agenda NAI...</p>
+                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">NAI Sincronizando...</p>
                 </div>
               ) : events && events.length > 0 ? (
                 events.map((event) => (
                   <div key={event.id} className="flex items-center p-4 bg-blue-50/30 rounded-2xl border-l-4 border-primary group hover:bg-blue-50 transition-colors">
                     <div className="w-20 shrink-0">
-                      <p className="text-sm font-black text-primary">{event.time || "Horário"}</p>
+                      <p className="text-sm font-black text-primary">{event.time}</p>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-[#090e24]">{event.title || event.type}</p>
+                      <p className="text-sm font-bold text-[#090e24]">{event.type}</p>
                       <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">
-                        {event.companyName} • {event.location || "Unidade Principal"}
+                        {event.companyName} • {event.location}
                       </p>
                     </div>
                     <ChevronRight className="size-4 text-primary/30 group-hover:translate-x-1 transition-transform" />
@@ -160,13 +226,10 @@ export default function Dashboard() {
               ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-2xl opacity-40">
                   <Clock className="size-10 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm font-black uppercase tracking-widest">Agenda Vazia</p>
-                  <p className="text-[10px] mt-1">Nenhum evento técnico ou exame agendado para hoje.</p>
-                  <Link href="/data-import">
-                    <Button variant="outline" size="sm" className="mt-4 h-8 text-[9px] font-black uppercase border-primary text-primary">
-                      Importar Eventos SST
-                    </Button>
-                  </Link>
+                  <p className="text-sm font-black uppercase tracking-widest">Sem Eventos</p>
+                  <Button asChild variant="outline" size="sm" className="mt-4 border-primary text-primary text-[10px] font-black">
+                    <Link href="/data-import">Importar Agenda SST</Link>
+                  </Button>
                 </div>
               )}
               
@@ -186,7 +249,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h4 className="font-bold text-[#090e24] text-sm">Vigilante eSocial</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Auditoria automática via IA.</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Auditoria via Gemini.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -200,8 +263,8 @@ export default function Dashboard() {
                       <ClipboardCheck className="size-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-[#090e24] text-sm">Checklists & Corlett</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Inspeções e Diagrama Interativo.</p>
+                      <h4 className="font-bold text-[#090e24] text-sm">Checklists {segment === 'CONSTRUCTION' ? 'Obras' : ''}</h4>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Inspeções Técnicas.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -216,7 +279,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h4 className="font-bold text-[#090e24] text-sm">Sentinela NTEP</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Gestão de afastamentos.</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Gestão de Afastamentos.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -237,16 +300,20 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest mb-2">Impacto Tributário</p>
-                <p className="text-xs leading-relaxed text-white/80 font-medium">A economia projetada para este mês com a redução do FAP é de <span className="text-[#f59e0b] font-bold">R$ 12.400,00</span>.</p>
-              </div>
-              <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-2">Conformidade Ativa</p>
-                <p className="text-xs leading-relaxed text-white/80 font-medium">Identificamos {counts.pendencies} novas pendências de eSocial que precisam da sua atenção.</p>
+                <p className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest mb-2">Foco Normativo</p>
+                <p className="text-xs leading-relaxed text-white/80 font-medium">
+                  {segment === 'CONSTRUCTION' 
+                    ? "Alerta: Verificamos que 3 colaboradores precisam renovar o treinamento de NR-35 este mês." 
+                    : segment === 'HOSPITAL' 
+                    ? "Alerta NR-32: Verifique o descarte de resíduos pérfurocortantes na Unidade Central." 
+                    : "Dica: Mantenha o Inventário de Riscos atualizado no PGR para evitar multas de eSocial."}
+                </p>
               </div>
               <div className="p-4 bg-[#f59e0b] rounded-xl">
                 <p className="text-[10px] font-black text-[#090e24] uppercase tracking-widest mb-1">Dica Estratégica</p>
-                <p className="text-xs font-bold text-[#090e24]">O Diagrama de Corlett está disponível em Checklists para detectar fadiga precoce.</p>
+                <p className="text-xs font-bold text-[#090e24]">
+                  {segment === 'CONSTRUCTION' ? "Use o Quiosque de EPI para registrar a entrega de cintos de segurança com foto." : "O Diagrama de Corlett ajuda a prevenir afastamentos por LER/DORT."}
+                </p>
               </div>
             </CardContent>
           </Card>

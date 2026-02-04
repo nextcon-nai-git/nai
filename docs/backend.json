@@ -16,590 +16,73 @@
       },
       "required": ["id", "type", "date", "companyName"]
     },
-    "ProductService": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProductService",
-      "type": "object",
-      "description": "Represents a product or service offered by the company, such as PCMSO or a clinical exam.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProductService entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the product or service (e.g., PCMSO, Clinical Exam)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Detailed description of the product or service."
-        },
-        "serviceGroupId": {
-          "type": "string",
-          "description": "Reference to ServiceGroup. (Relationship: ServiceGroup 1:N ProductService)"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description",
-        "serviceGroupId"
-      ]
-    },
-    "ServiceGroup": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ServiceGroup",
-      "type": "object",
-      "description": "Represents a category for grouping services for reporting purposes (e.g., 'Exams', 'Engineering').",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ServiceGroup entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the service group (e.g., Exams, Engineering)."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the service group."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description"
-      ]
-    },
-    "PriceTable": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PriceTable",
-      "type": "object",
-      "description": "Represents a price table defining prices for clients or standard prices.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the PriceTable entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the price table."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N PriceTable). Nullable, indicates a standard price table if null."
-        },
-        "isStandard": {
-          "type": "boolean",
-          "description": "Indicates whether this is a standard price table applicable to all clients."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "isStandard"
-      ]
-    },
-    "PriceTableItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PriceTableItem",
-      "type": "object",
-      "description": "Represents an item within a price table, associating a product/service with a specific price.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the PriceTableItem entity."
-        },
-        "priceTableId": {
-          "type": "string",
-          "description": "Reference to PriceTable. (Relationship: PriceTable 1:N PriceTableItem)"
-        },
-        "productServiceId": {
-          "type": "string",
-          "description": "Reference to ProductService. (Relationship: ProductService 1:N PriceTableItem)"
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the product/service in this price table."
-        }
-      },
-      "required": [
-        "id",
-        "priceTableId",
-        "productServiceId",
-        "price"
-      ]
-    },
-    "ExamCost": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ExamCost",
-      "type": "object",
-      "description": "Represents the cost of an exam from a credentialed network (purchase cost).",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ExamCost entity."
-        },
-        "productServiceId": {
-          "type": "string",
-          "description": "Reference to ProductService. (Relationship: ProductService 1:N ExamCost)"
-        },
-        "credentialedNetworkId": {
-          "type": "string",
-          "description": "Reference to CredentialedNetwork. (Relationship: CredentialedNetwork 1:N ExamCost)"
-        },
-        "cost": {
-          "type": "number",
-          "description": "Cost of the exam."
-        }
-      },
-      "required": [
-        "id",
-        "productServiceId",
-        "credentialedNetworkId",
-        "cost"
-      ]
-    },
-    "CredentialedNetwork": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "CredentialedNetwork",
-      "type": "object",
-      "description": "Represents a clinic or partner network providing services.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the CredentialedNetwork entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the credentialed network."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the credentialed network."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "description"
-      ]
-    },
-    "Invoice": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Invoice",
-      "type": "object",
-      "description": "Represents an invoice generated for a client.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Invoice entity."
-        },
-        "clientId": {
-          "type": "string",
-          "description": "Reference to Client. (Relationship: Client 1:N Invoice)"
-        },
-        "invoiceDate": {
-          "type": "string",
-          "description": "Date the invoice was issued.",
-          "format": "date-time"
-        },
-        "dueDate": {
-          "type": "string",
-          "description": "Date the invoice is due.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the invoice."
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the invoice (e.g., pending, paid, overdue)."
-        }
-      },
-      "required": [
-        "id",
-        "clientId",
-        "invoiceDate",
-        "dueDate",
-        "totalAmount",
-        "status"
-      ]
-    },
-    "InvoiceItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "InvoiceItem",
-      "type": "object",
-      "description": "Represents a single item on an invoice.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the InvoiceItem entity."
-        },
-        "invoiceId": {
-          "type": "string",
-          "description": "Reference to Invoice. (Relationship: Invoice 1:N InvoiceItem)"
-        },
-        "productServiceId": {
-          "type": "string",
-          "description": "Reference to ProductService. (Relationship: ProductService 1:N InvoiceItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product/service."
-        },
-        "unitPrice": {
-          "type": "number",
-          "description": "Price per unit."
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount for this item."
-        }
-      },
-      "required": [
-        "id",
-        "invoiceId",
-        "productServiceId",
-        "quantity",
-        "unitPrice",
-        "totalAmount"
-      ]
-    },
-    "ProviderInvoice": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProviderInvoice",
-      "type": "object",
-      "description": "Represents an invoice received from a service provider (clinic/partner).",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProviderInvoice entity."
-        },
-        "credentialedNetworkId": {
-          "type": "string",
-          "description": "Reference to CredentialedNetwork. (Relationship: CredentialedNetwork 1:N ProviderInvoice)"
-        },
-        "invoiceDate": {
-          "type": "string",
-          "description": "Date the invoice was issued.",
-          "format": "date-time"
-        },
-        "dueDate": {
-          "type": "string",
-          "description": "Date the invoice is due.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the invoice."
-        },
-        "status": {
-          "type": "string",
-          "description": "Status of the invoice (e.g., pending, paid, overdue)."
-        }
-      },
-      "required": [
-        "id",
-        "credentialedNetworkId",
-        "invoiceDate",
-        "dueDate",
-        "totalAmount",
-        "status"
-      ]
-    },
-    "ProviderInvoiceItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProviderInvoiceItem",
-      "type": "object",
-      "description": "Represents a single item on a provider invoice.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProviderInvoiceItem entity."
-        },
-        "providerInvoiceId": {
-          "type": "string",
-          "description": "Reference to ProviderInvoice. (Relationship: ProviderInvoice 1:N ProviderInvoiceItem)"
-        },
-        "productServiceId": {
-          "type": "string",
-          "description": "Reference to ProductService. (Relationship: ProductService 1:N ProviderInvoiceItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product/service."
-        },
-        "unitPrice": {
-          "type": "number",
-          "description": "Price per unit."
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount for this item."
-        }
-      },
-      "required": [
-        "id",
-        "providerInvoiceId",
-        "productServiceId",
-        "quantity",
-        "unitPrice",
-        "totalAmount"
-      ]
-    },
     "Client": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Client",
       "type": "object",
-      "description": "Represents a client of the company.",
+      "description": "Represents a client company with its specific industry segment.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Client entity."
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "cnpj": { "type": "string" },
+        "segment": { 
+          "type": "string", 
+          "enum": ["CONSTRUCTION", "HOSPITAL", "INDUSTRY", "GENERAL"],
+          "description": "Determina o foco normativo do sistema."
         },
-        "name": {
-          "type": "string",
-          "description": "Name of the client."
-        },
-        "cnpj": {
-          "type": "string",
-          "description": "Client's CNPJ."
-        }
+        "city": { "type": "string" }
       },
-      "required": [
-        "id",
-        "name",
-        "cnpj"
-      ]
+      "required": ["id", "name", "cnpj", "segment"]
+    },
+    "ProductService": {
+      "title": "ProductService",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "serviceGroupId": { "type": "string" }
+      },
+      "required": ["id", "name", "description", "serviceGroupId"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password", "anonymous"]
   },
   "firestore": {
     "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "role": { "type": "string" },
+              "email": { "type": "string" },
+              "companyId": { "type": "string" }
+            }
+          },
+          "description": "Perfil do usuário."
+        }
+      },
+      {
+        "path": "/clients/{clientId}/managedCompanies/{companyId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": { "$ref": "#/backend/entities/Client" },
+          "description": "Empresas gerencias pela agência."
+        }
+      },
       {
         "path": "/clients/{clientId}/sst_events/{eventId}",
         "definition": {
           "entityName": "SstEvent",
           "schema": { "$ref": "#/backend/entities/SstEvent" },
-          "description": "Armazena eventos de agenda para cada cliente.",
-          "params": [
-            { "name": "clientId", "description": "ID da agência/usuário" },
-            { "name": "eventId", "description": "ID do evento" }
-          ]
-        }
-      },
-      {
-        "path": "/product_services/{productServiceId}",
-        "definition": {
-          "entityName": "ProductService",
-          "schema": {
-            "$ref": "#/backend/entities/ProductService"
-          },
-          "description": "Stores product and service information.",
-          "params": [
-            {
-              "name": "productServiceId",
-              "description": "The unique identifier of the product or service."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/service_groups/{serviceGroupId}",
-        "definition": {
-          "entityName": "ServiceGroup",
-          "schema": {
-            "$ref": "#/backend/entities/ServiceGroup"
-          },
-          "description": "Stores service groups for categorization and reporting.",
-          "params": [
-            {
-              "name": "serviceGroupId",
-              "description": "The unique identifier of the service group."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/price_tables/{priceTableId}",
-        "definition": {
-          "entityName": "PriceTable",
-          "schema": {
-            "$ref": "#/backend/entities/PriceTable"
-          },
-          "description": "Stores price tables for clients or standard pricing.",
-          "params": [
-            {
-              "name": "priceTableId",
-              "description": "The unique identifier of the price table."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/price_tables/{priceTableId}/price_table_items/{priceTableItemId}",
-        "definition": {
-          "entityName": "PriceTableItem",
-          "schema": {
-            "$ref": "#/backend/entities/PriceTableItem"
-          },
-          "description": "Stores items within a price table.",
-          "params": [
-            {
-              "name": "priceTableId",
-              "description": "The unique identifier of the price table."
-            },
-            {
-              "name": "priceTableItemId",
-              "description": "The unique identifier of the price table item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/exam_costs/{examCostId}",
-        "definition": {
-          "entityName": "ExamCost",
-          "schema": {
-            "$ref": "#/backend/entities/ExamCost"
-          },
-          "description": "Stores the cost of exams from credentialed networks.",
-          "params": [
-            {
-              "name": "examCostId",
-              "description": "The unique identifier of the exam cost."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/credentialed_networks/{credentialedNetworkId}",
-        "definition": {
-          "entityName": "CredentialedNetwork",
-          "schema": {
-            "$ref": "#/backend/entities/CredentialedNetwork"
-          },
-          "description": "Stores credentialed network (clinic) information.",
-          "params": [
-            {
-              "name": "credentialedNetworkId",
-              "description": "The unique identifier of the credentialed network."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/invoices/{invoiceId}",
-        "definition": {
-          "entityName": "Invoice",
-          "schema": {
-            "$ref": "#/backend/entities/Invoice"
-          },
-          "description": "Stores invoices for each client. Path-based ownership.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier of the client."
-            },
-            {
-              "name": "invoiceId",
-              "description": "The unique identifier of the invoice."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}/invoices/{invoiceId}/invoice_items/{invoiceItemId}",
-        "definition": {
-          "entityName": "InvoiceItem",
-          "schema": {
-            "$ref": "#/backend/entities/InvoiceItem"
-          },
-          "description": "Stores invoice items for each invoice. Path-based ownership.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier of the client."
-            },
-            {
-              "name": "invoiceId",
-              "description": "The unique identifier of the invoice."
-            },
-            {
-              "name": "invoiceItemId",
-              "description": "The unique identifier of the invoice item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/credentialed_networks/{credentialedNetworkId}/provider_invoices/{providerInvoiceId}",
-        "definition": {
-          "entityName": "ProviderInvoice",
-          "schema": {
-            "$ref": "#/backend/entities/ProviderInvoice"
-          },
-          "description": "Stores invoices from service providers. Path-based ownership.",
-          "params": [
-            {
-              "name": "credentialedNetworkId",
-              "description": "The unique identifier of the credentialed network."
-            },
-            {
-              "name": "providerInvoiceId",
-              "description": "The unique identifier of the provider invoice."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/credentialed_networks/{credentialedNetworkId}/provider_invoices/{providerInvoiceId}/provider_invoice_items/{providerInvoiceItemId}",
-        "definition": {
-          "entityName": "ProviderInvoiceItem",
-          "schema": {
-            "$ref": "#/backend/entities/ProviderInvoiceItem"
-          },
-          "description": "Stores invoice items for each provider invoice. Path-based ownership.",
-          "params": [
-            {
-              "name": "credentialedNetworkId",
-              "description": "The unique identifier of the credentialed network."
-            },
-            {
-              "name": "providerInvoiceId",
-              "description": "The unique identifier of the provider invoice."
-            },
-            {
-              "name": "providerInvoiceItemId",
-              "description": "The unique identifier of the provider invoice item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/clients/{clientId}",
-        "definition": {
-          "entityName": "Client",
-          "schema": {
-            "$ref": "#/backend/entities/Client"
-          },
-          "description": "Stores client information.",
-          "params": [
-            {
-              "name": "clientId",
-              "description": "The unique identifier of the client."
-            }
-          ]
+          "description": "Eventos de agenda."
         }
       }
-    ],
-    "reasoning": "A estrutura de SST Events foi adicionada para suportar a Agenda do Dia dinâmica com dados reais de clientes."
+    ]
   }
 }
