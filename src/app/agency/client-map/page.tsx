@@ -12,7 +12,8 @@ import {
   Globe,
   ExternalLink,
   Phone,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Stethoscope
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
