@@ -18,7 +18,8 @@ import {
   Sparkles,
   ClipboardList,
   Map as MapIcon,
-  DollarSign
+  DollarSign,
+  ClipboardCheck
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -67,7 +68,7 @@ const navGroups = [
     label: "Operação SST",
     roles: ['admin', 'super_admin', 'client', 'client_admin', 'provider'],
     items: [
-      { title: "Gestão de Riscos (PGR)", icon: ShieldAlert, href: "/risk-management" },
+      { title: "Hub de Checklists", icon: ClipboardCheck, href: "/checklists" },
       { title: "Vigilância Médica", icon: Stethoscope, href: "/health-control" },
       { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
       { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
@@ -78,8 +79,7 @@ const navGroups = [
     roles: ['admin', 'super_admin', 'client', 'client_admin', 'employee'],
     items: [
       { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Checklists & COPSOQ", icon: ClipboardList, href: "/checklists" },
-      { title: "Termômetro Burnout", icon: Activity, href: "/psychosocial" },
+      { title: "Auto-Avaliação", icon: Activity, href: "/psychosocial" },
     ]
   }
 ]

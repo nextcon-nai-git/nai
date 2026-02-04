@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -16,7 +15,11 @@ import {
   Trash2,
   Activity,
   ArrowLeft,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert,
+  Brain,
+  Plus,
+  FileText
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,10 +41,17 @@ const CHECKLIST_CATALOG = [
   { id: "ergo", category: "Ergonomia", title: "Diagrama Corlett", icon: Activity, color: "text-indigo-600" },
 ]
 
+const ERGO_METHODS = [
+  { id: "rula", name: "RULA", desc: "Membros Superiores" },
+  { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
+  { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
+  { id: "ocra", name: "OCRA", desc: "Movimentos Repetitivos" },
+]
+
 type BodyPart = {
   id: string
   label: string
-  level: 0 | 1 | 2 | 3 | 4 // 0: Nenhum, 1: Leve, 2: Médio, 3: Forte, 4: Extremo
+  level: 0 | 1 | 2 | 3 | 4
   path: string
 }
 
@@ -149,15 +159,11 @@ export default function ChecklistsPage() {
               <CardDescription>Clique nas regiões para indicar o nível de dor.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center py-10 relative">
-              {/* Manequim Humano SVG Realista */}
               <svg width="350" height="550" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8]">
-                {/* Silhueta Base - Subjacente para dar forma */}
                 <path 
                   d="M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z M46.5,17.5h7v4h-7V17.5z M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l-4,15l-1.5,15l-1,8l4,1l1-8l1.5-15l2-15l5,1l2-16l9.5,0l2,16l5-1l2,15l1.5,15l1,8l4-1l-1-8l-1.5-15l-4-15c0,0,0-4,3-7s8-4.5,11.5-4.5h-7V21.5z" 
                   className="fill-slate-50 stroke-slate-200 stroke-[0.5]"
                 />
-                
-                {/* Partes Interativas Dinâmicas */}
                 {bodyParts.map((part) => (
                   <path
                     key={part.id}
@@ -172,7 +178,6 @@ export default function ChecklistsPage() {
                   </path>
                 ))}
               </svg>
-
               <div className="mt-8 flex flex-wrap justify-center gap-4 w-full">
                 {[0, 1, 2, 3, 4].map((l) => (
                   <div key={l} className="flex items-center gap-2">
@@ -204,16 +209,7 @@ export default function ChecklistsPage() {
                       </Badge>
                     </div>
                   ))}
-                  {bodyParts.filter(p => p.level > 0).length === 0 && (
-                    <div className="py-10 text-center space-y-2">
-                      <div className="size-12 rounded-full bg-white/5 mx-auto flex items-center justify-center">
-                        <Activity className="size-6 text-white/20" />
-                      </div>
-                      <p className="text-[10px] italic text-white/40">Selecione as áreas afetadas no manequim.</p>
-                    </div>
-                  )}
                 </div>
-                
                 <Button 
                   className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-widest h-14 shadow-lg shadow-accent/20"
                   onClick={handleSaveCorlett}
@@ -224,16 +220,6 @@ export default function ChecklistsPage() {
                 </Button>
               </CardContent>
             </Card>
-
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3 shadow-inner">
-              <AlertCircle className="size-5 text-blue-600 shrink-0" />
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-blue-800 uppercase tracking-tighter">Aviso de Segurança</p>
-                <p className="text-[10px] text-blue-700 leading-tight">
-                  Este registro será processado pela NAI para identificar riscos ergonômicos (NR-17) e sugerir pausas ou melhorias no posto de trabalho.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -244,18 +230,24 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Biblioteca de Checklists</h1>
-          <p className="text-muted-foreground">Formulários técnicos e inspeções normativas 2026.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações & Checklists</h1>
+          <p className="text-muted-foreground">Gestão unificada de inspeções, PGR e análises ergonômicas.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[400px] grid-cols-2 bg-muted/50 p-1 rounded-xl h-12">
-          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold text-xs">
+        <TabsList className="grid w-full md:w-[800px] grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
+          <TabsTrigger value="catalog" className="rounded-lg gap-2 text-xs font-bold">
             <ClipboardCheck className="size-4" /> Catálogo
           </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold text-xs">
-            <Activity className="size-4" /> Realizados
+          <TabsTrigger value="pgr" className="rounded-lg gap-2 text-xs font-bold">
+            <ShieldAlert className="size-4" /> Inventário PGR
+          </TabsTrigger>
+          <TabsTrigger value="ergo" className="rounded-lg gap-2 text-xs font-bold">
+            <Brain className="size-4" /> Ergonomia Lab
+          </TabsTrigger>
+          <TabsTrigger value="history" className="rounded-lg gap-2 text-xs font-bold">
+            <Activity className="size-4" /> Histórico
           </TabsTrigger>
         </TabsList>
 
@@ -269,7 +261,6 @@ export default function ChecklistsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredCatalog.map((item) => (
               <Card 
@@ -286,9 +277,6 @@ export default function ChecklistsPage() {
                       <p className="text-[9px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
                       <h3 className="text-sm font-bold text-primary">{item.title}</h3>
                     </div>
-                    <Button variant="ghost" size="icon" className="group-hover:text-primary">
-                      <CheckCircle2 className="size-4 opacity-20 group-hover:opacity-100" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -296,9 +284,62 @@ export default function ChecklistsPage() {
           </div>
         </TabsContent>
 
+        <TabsContent value="pgr" className="mt-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-bold text-primary uppercase">Inventário de Riscos (NR-01)</h3>
+            <Button className="bg-primary gap-2"><Plus className="size-4" /> Novo Risco</Button>
+          </div>
+          <Card className="card-shadow border-none h-64 flex flex-col items-center justify-center opacity-40 italic bg-white border-dashed border-2">
+            <ShieldAlert className="size-12 mb-2 text-primary" />
+            <p className="text-sm font-medium">Use o botão 'Novo Risco' para popular seu inventário PGR.</p>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ergo" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2 card-shadow border-none bg-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-primary uppercase">Métodos de Avaliação NR-17</CardTitle>
+                <CardDescription>Selecione o método para iniciar a análise técnica do posto de trabalho.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ERGO_METHODS.map((m) => (
+                    <div key={m.id} className="p-4 border rounded-2xl hover:bg-muted/30 transition-all cursor-pointer group">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-black text-primary text-xl">{m.name}</h4>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{m.desc}</p>
+                        </div>
+                        <div className="p-2 bg-primary/5 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
+                          <Activity size={20} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="card-shadow border-none bg-[#090e24] text-white">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase text-accent tracking-widest">Resumo Ergonômico</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Análises Realizadas</p>
+                  <p className="text-2xl font-black">14</p>
+                </div>
+                <Button className="w-full bg-accent text-primary hover:bg-accent/90 font-bold uppercase text-[10px]">
+                  Emitir Laudo Ergonômico (AET)
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="history" className="mt-6">
           <Card className="card-shadow border-none h-64 flex items-center justify-center opacity-40 italic bg-white border-dashed border-2">
-            <p className="text-sm font-medium">Nenhum checklist preenchido recentemente.</p>
+            <p className="text-sm font-medium">Nenhum registro preenchido recentemente.</p>
           </Card>
         </TabsContent>
       </Tabs>

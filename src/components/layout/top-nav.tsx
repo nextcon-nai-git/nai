@@ -8,7 +8,6 @@ import {
   X, 
   LayoutDashboard, 
   Users, 
-  ShieldAlert, 
   SearchCheck, 
   LogOut,
   Database,
@@ -28,7 +27,8 @@ import {
   FolderOpen,
   Bell,
   DollarSign,
-  ClipboardCheck
+  ClipboardCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
@@ -60,10 +60,8 @@ export function TopNav() {
 
   const { data: profile } = useDoc(profileRef);
   
-  // Normaliza o role para maiúsculas para evitar erros de mapeamento
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
 
-  // Notificações em tempo real
   const notificationsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(
@@ -88,7 +86,6 @@ export function TopNav() {
       { label: "Visão Geral", href: "/", icon: LayoutDashboard },
       { label: "Vidas", href: "/employees", icon: Users },
       { label: "Checklists", href: "/checklists", icon: ClipboardCheck },
-      { label: "Segurança", href: "/risk-management", icon: ShieldAlert },
       { label: "eSocial", href: "/esocial-audit", icon: SearchCheck },
       { label: "NAI AI", href: "/knowledge-base", icon: Sparkles },
     ],
@@ -147,7 +144,6 @@ export function TopNav() {
           </div>
 
           <div className="hidden lg:flex items-center gap-2">
-            {/* Sino de Notificações */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/5">
