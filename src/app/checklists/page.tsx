@@ -46,21 +46,29 @@ type BodyPart = {
 }
 
 const INITIAL_BODY_PARTS: BodyPart[] = [
-  { id: "neck", label: "Pescoço", level: 0, path: "M50 15 L45 20 L55 20 Z" },
-  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M35 25 L45 22 L45 30 L35 30 Z" },
-  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M55 22 L65 25 L65 30 L55 30 Z" },
-  { id: "back_upper", label: "Coluna Superior", level: 0, path: "M45 30 L55 30 L55 45 L45 45 Z" },
-  { id: "back_mid", label: "Coluna Média", level: 0, path: "M45 45 L55 45 L55 60 L45 60 Z" },
-  { id: "back_lower", label: "Coluna Lombar", level: 0, path: "M45 60 L55 60 L55 75 L45 75 Z" },
-  { id: "arm_l", label: "Braço Esquerdo", level: 0, path: "M30 35 L35 30 L35 50 L30 55 Z" },
-  { id: "arm_r", label: "Braço Direito", level: 0, path: "M65 35 L70 30 L70 55 L65 50 Z" },
-  { id: "wrist_l", label: "Punho/Mão Esq", level: 0, path: "M25 60 L30 55 L30 65 L25 70 Z" },
-  { id: "wrist_r", label: "Punho/Mão Dir", level: 0, path: "M70 55 L75 60 L75 70 L70 65 Z" },
-  { id: "hip", label: "Quadril", level: 0, path: "M40 75 L60 75 L60 85 L40 85 Z" },
-  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M40 110 L48 110 L48 120 L40 120 Z" },
-  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M52 110 L60 110 L60 120 L52 120 Z" },
-  { id: "foot_l", label: "Tornozelo/Pé Esq", level: 0, path: "M38 140 L48 140 L48 150 L35 155 Z" },
-  { id: "foot_r", label: "Tornozelo/Pé Dir", level: 0, path: "M52 140 L62 140 L65 155 L52 150 Z" },
+  { id: "head", label: "Cabeça", level: 0, path: "M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z" },
+  { id: "neck", label: "Pescoço", level: 0, path: "M46.5,17.5h7v4h-7V17.5z" },
+  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l6,1.5l2-8.5L46.5,21.5z" },
+  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M53.5,21.5c3.5,0,8.5,1.5,11.5,4.5s3,7,3,7l-6,1.5l-2-8.5L53.5,21.5z" },
+  { id: "back_upper", label: "Coluna Superior", level: 0, path: "M46.5,21.5h7v15h-7V21.5z" },
+  { id: "back_mid", label: "Coluna Média", level: 0, path: "M46.5,36.5h7v15h-7V36.5z" },
+  { id: "back_lower", label: "Coluna Lombar", level: 0, path: "M46.5,51.5h7v15h-7V51.5z" },
+  { id: "arm_l_upper", label: "Braço Esquerdo (Sup)", level: 0, path: "M32,33l-2,15l5,1l2-16L32,33z" },
+  { id: "arm_r_upper", label: "Braço Direito (Sup)", level: 0, path: "M68,33l2,15l-5,1l-2-16L68,33z" },
+  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M30,48l-1.5,15l4,1l1.5-15L30,48z" },
+  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M70,48l1.5,15l-4,1l-1.5-15L70,48z" },
+  { id: "wrist_l", label: "Punho/Mão Esq", level: 0, path: "M28.5,63l-1,8l4,1l1-8L28.5,63z" },
+  { id: "wrist_r", label: "Punho/Mão Dir", level: 0, path: "M71.5,63l1,8l-4,1l-1-8L71.5,63z" },
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M40,66.5c-3,0-6,2-6,6s2,8,2,8h10.5v-14H40z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M60,66.5c3,0,6,2,6,6s-2,8-2,8H53.5v-14H60z" },
+  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M36,80.5l-2,25l10,2l2-27L36,80.5z" },
+  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M64,80.5l2,25l-10,2l-2-27L64,80.5z" },
+  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M34,105.5l-0.5,8l10,1l0.5-9L34,105.5z" },
+  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M66,105.5l0.5,8l-10,1l-0.5-9L66,105.5z" },
+  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M33.5,113.5l-1.5,25l9,1l1.5-26L33.5,113.5z" },
+  { id: "leg_r", label: "Perna Direita", level: 0, path: "M66.5,113.5l1.5,25l-9,1l-1.5-26L66.5,113.5z" },
+  { id: "foot_l", label: "Tornozelo/Pé Esq", level: 0, path: "M32,138.5l-2,10l12,2l1-12L32,138.5z" },
+  { id: "foot_r", label: "Tornozelo/Pé Dir", level: 0, path: "M68,138.5l2,10l-12,2l-1-12L68,138.5z" },
 ]
 
 export default function ChecklistsPage() {
@@ -89,7 +97,7 @@ export default function ChecklistsPage() {
       case 2: return "fill-orange-400 stroke-orange-600"
       case 3: return "fill-red-500 stroke-red-700"
       case 4: return "fill-purple-700 stroke-purple-900"
-      default: return "fill-slate-200 stroke-slate-400"
+      default: return "fill-slate-100 stroke-slate-300"
     }
   }
 
@@ -134,26 +142,28 @@ export default function ChecklistsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-2 card-shadow border-none bg-white overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Activity className="size-4 text-primary" /> Mapa de Sensibilidade
+            <CardHeader className="bg-muted/30 border-b text-center">
+              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                <Activity className="size-4 text-primary" /> Mapa de Sensibilidade Corporativa
               </CardTitle>
-              <CardDescription>Clique nas partes do corpo para indicar o nível de dor (0 a 4).</CardDescription>
+              <CardDescription>Clique nas regiões para indicar o nível de dor.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center py-10 relative">
-              {/* Manequim Humano SVG */}
-              <svg width="300" height="500" viewBox="0 0 100 160" className="drop-shadow-2xl">
-                {/* Silhueta Base */}
-                <path d="M50 10 C40 10 40 25 50 25 C60 25 60 10 50 10 Z" className="fill-slate-100 stroke-slate-300" /> {/* Cabeça */}
-                <rect x="40" y="25" width="20" height="60" rx="10" className="fill-slate-100 stroke-slate-300" /> {/* Tronco */}
+              {/* Manequim Humano SVG Realista */}
+              <svg width="350" height="550" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8]">
+                {/* Silhueta Base - Subjacente para dar forma */}
+                <path 
+                  d="M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z M46.5,17.5h7v4h-7V17.5z M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l-4,15l-1.5,15l-1,8l4,1l1-8l1.5-15l2-15l5,1l2-16l9.5,0l2,16l5-1l2,15l1.5,15l1,8l4-1l-1-8l-1.5-15l-4-15c0,0,0-4,3-7s8-4.5,11.5-4.5h-7V21.5z" 
+                  className="fill-slate-50 stroke-slate-200 stroke-[0.5]"
+                />
                 
-                {/* Partes Interativas */}
+                {/* Partes Interativas Dinâmicas */}
                 {bodyParts.map((part) => (
                   <path
                     key={part.id}
                     d={part.path}
                     className={cn(
-                      "cursor-pointer transition-all duration-300 hover:brightness-90 stroke-2",
+                      "cursor-pointer transition-all duration-300 hover:brightness-95 stroke-[0.8]",
                       getLevelColor(part.level)
                     )}
                     onClick={() => handlePartClick(part.id)}
@@ -163,11 +173,13 @@ export default function ChecklistsPage() {
                 ))}
               </svg>
 
-              <div className="mt-8 grid grid-cols-5 gap-2 w-full max-w-xs">
+              <div className="mt-8 flex flex-wrap justify-center gap-4 w-full">
                 {[0, 1, 2, 3, 4].map((l) => (
-                  <div key={l} className="flex flex-col items-center gap-1">
-                    <div className={cn("size-4 rounded-full", getLevelColor(l as any))} />
-                    <span className="text-[8px] font-bold uppercase">{l === 0 ? 'Nenhum' : l}</span>
+                  <div key={l} className="flex items-center gap-2">
+                    <div className={cn("size-4 rounded-md border shadow-sm", getLevelColor(l as any))} />
+                    <span className="text-[10px] font-black uppercase opacity-60">
+                      {l === 0 ? 'Nenhuma' : l === 1 ? 'Leve' : l === 2 ? 'Média' : l === 3 ? 'Forte' : 'Extrema'}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -177,39 +189,50 @@ export default function ChecklistsPage() {
           <div className="space-y-6">
             <Card className="card-shadow border-none bg-[#090e24] text-white">
               <CardHeader>
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Resumo do Relato</CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Análise de Desconforto</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="divide-y divide-white/10">
+                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
                   {bodyParts.filter(p => p.level > 0).map(p => (
-                    <div key={p.id} className="py-2 flex justify-between items-center">
-                      <span className="text-xs font-medium">{p.label}</span>
-                      <Badge className={cn("text-[9px] font-black", getLevelColor(p.level))}>
-                        Nível {p.level}
+                    <div key={p.id} className="p-3 bg-white/5 rounded-xl border border-white/10 flex justify-between items-center animate-in slide-in-from-right-2">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold">{p.label}</span>
+                        <span className="text-[9px] uppercase font-black text-white/40">Gravidade: {p.level}</span>
+                      </div>
+                      <Badge className={cn("text-[9px] font-black border-none", getLevelColor(p.level).replace('fill-', 'bg-'))}>
+                        Fadiga
                       </Badge>
                     </div>
                   ))}
                   {bodyParts.filter(p => p.level > 0).length === 0 && (
-                    <p className="py-4 text-xs italic text-white/40 text-center">Nenhuma dor relatada ainda.</p>
+                    <div className="py-10 text-center space-y-2">
+                      <div className="size-12 rounded-full bg-white/5 mx-auto flex items-center justify-center">
+                        <Activity className="size-6 text-white/20" />
+                      </div>
+                      <p className="text-[10px] italic text-white/40">Selecione as áreas afetadas no manequim.</p>
+                    </div>
                   )}
                 </div>
                 
                 <Button 
-                  className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-widest h-12"
+                  className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-widest h-14 shadow-lg shadow-accent/20"
                   onClick={handleSaveCorlett}
-                  disabled={isSaving}
+                  disabled={isSaving || bodyParts.filter(p => p.level > 0).length === 0}
                 >
-                  {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-4 mr-2" />}
-                  Enviar Relatório
+                  {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-5 mr-2" />}
+                  Finalizar Relato
                 </Button>
               </CardContent>
             </Card>
 
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3 shadow-inner">
               <AlertCircle className="size-5 text-blue-600 shrink-0" />
-              <p className="text-[10px] text-blue-700 leading-tight">
-                <strong>Importante:</strong> Este diagrama ajuda a identificar precocemente riscos ergonômicos na sua função. Caso a dor seja aguda, procure o ambulatório imediatamente.
-              </p>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-blue-800 uppercase tracking-tighter">Aviso de Segurança</p>
+                <p className="text-[10px] text-blue-700 leading-tight">
+                  Este registro será processado pela NAI para identificar riscos ergonômicos (NR-17) e sugerir pausas ou melhorias no posto de trabalho.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -227,21 +250,21 @@ export default function ChecklistsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[400px] grid-cols-2 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="catalog" className="rounded-lg gap-2">
+        <TabsList className="grid w-full md:w-[400px] grid-cols-2 bg-muted/50 p-1 rounded-xl h-12">
+          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold text-xs">
             <ClipboardCheck className="size-4" /> Catálogo
           </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg gap-2">
+          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold text-xs">
             <Activity className="size-4" /> Realizados
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="mt-6 space-y-6">
           <div className="relative">
-            <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-3.5 size-4 text-muted-foreground" />
             <Input 
               placeholder="Buscar por NR, Tipo ou Nome do Checklist..." 
-              className="pl-10 h-12 bg-white"
+              className="pl-10 h-12 bg-white border-muted shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -251,19 +274,19 @@ export default function ChecklistsPage() {
             {filteredCatalog.map((item) => (
               <Card 
                 key={item.id} 
-                className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all cursor-pointer group"
+                className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all cursor-pointer group bg-white"
                 onClick={() => setSelectedChecklist(item.id)}
               >
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl bg-muted/50 ${item.color} group-hover:bg-primary group-hover:text-white transition-all`}>
+                    <div className={`p-3 rounded-xl bg-muted/50 ${item.color} group-hover:bg-primary group-hover:text-white transition-all shadow-inner`}>
                       <item.icon className="size-6" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
                       <h3 className="text-sm font-bold text-primary">{item.title}</h3>
                     </div>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="group-hover:text-primary">
                       <CheckCircle2 className="size-4 opacity-20 group-hover:opacity-100" />
                     </Button>
                   </div>
@@ -274,8 +297,8 @@ export default function ChecklistsPage() {
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
-          <Card className="card-shadow border-none h-64 flex items-center justify-center opacity-40 italic">
-            <p>Nenhum checklist preenchido recentemente.</p>
+          <Card className="card-shadow border-none h-64 flex items-center justify-center opacity-40 italic bg-white border-dashed border-2">
+            <p className="text-sm font-medium">Nenhum checklist preenchido recentemente.</p>
           </Card>
         </TabsContent>
       </Tabs>
