@@ -15,7 +15,9 @@ import {
   Building2,
   Filter,
   ArrowRight,
-  Info
+  Info,
+  Loader2,
+  ExternalLink
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,6 +26,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, query, orderBy, where } from "firebase/firestore"
 
 interface ReportItem {
   id: string
@@ -33,7 +37,7 @@ interface ReportItem {
   icon: any
 }
 
-const REPORTS_DATA: Record<string, ReportItem[]> = {
+const REPORTS_MAPPING: Record<string, ReportItem[]> = {
   legal: [
     { id: "pgr", legacyId: "1422", name: "PGR - Programa de Gerenciamento de Riscos", description: "Gera o documento base da NR-01 (Inventário + Plano de Ação).", icon: FileText },
     { id: "pcmso", legacyId: "307", name: "PCMSO - Programa de Controle Médico", description: "Gera o documento base da NR-07.", icon: FileText },
@@ -65,9 +69,38 @@ const REPORTS_DATA: Record<string, ReportItem[]> = {
 
 export default function ReportsCenter() {
   const { toast } = useToast()
+  const { user } = useUser()
+  const db = useFirestore()
   const [activeTab, setActiveTab] = React.useState("legal")
+  const [selectedCompanyId, setSelectedCompanyId] = React.useState("all")
+
+  // Busca Empresas para o filtro
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
+  }, [db, user])
+  const { data: companies } = useCollection(companiesQuery)
+
+  // Busca Relatórios Reais carregados
+  const uploadedReportsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    let q = query(collection(db, "clients", user.uid, "reports"), orderBy("createdAt", "desc"))
+    if (selectedCompanyId !== "all") {
+      q = query(collection(db, "clients", user.uid, "reports"), where("companyId", "==", selectedCompanyId), orderBy("createdAt", "desc"))
+    }
+    return q
+  }, [db, user, selectedCompanyId])
+  const { data: uploadedReports, isLoading } = useCollection(uploadedReportsQuery)
 
   const handleAction = (report: ReportItem, action: string) => {
+    // Busca se existe um arquivo real para este tipo
+    const realFile = uploadedReports?.find(r => r.reportType === report.id)
+    
+    if (realFile && (action === 'Visualizar' || action === 'Baixar PDF')) {
+      window.open(realFile.fileUrl, '_blank')
+      return
+    }
+
     toast({
       title: `${action} Relatório`,
       description: `Processando "${report.name}" (ID Legado: ${report.legacyId})...`
@@ -78,7 +111,7 @@ export default function ReportsCenter() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Central de Relatórios NEXTCON</h1>
+          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight uppercase">Central de Relatórios NEXTCON</h1>
           <p className="text-muted-foreground">Interface unificada para documentos técnicos e indicadores de SST.</p>
         </div>
       </div>
@@ -86,10 +119,10 @@ export default function ReportsCenter() {
       <Card className="card-shadow border-none bg-white">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Unidade / Setor</label>
-              <Select defaultValue="all">
-                <SelectTrigger className="bg-muted/30 border-none">
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Unidade / Cliente Selecionado</label>
+              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                <SelectTrigger className="bg-muted/30 border-none h-12">
                   <div className="flex items-center gap-2">
                     <Building2 className="size-4 opacity-50" />
                     <SelectValue placeholder="Todas as Unidades" />
@@ -97,22 +130,19 @@ export default function ReportsCenter() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Unidades</SelectItem>
-                  <SelectItem value="matriz">Matriz Curitiba</SelectItem>
-                  <SelectItem value="unidade2">Unidade Industrial</SelectItem>
+                  {companies?.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Data Inicial</label>
-              <Input type="date" className="bg-muted/30 border-none" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Data Final</label>
-              <Input type="date" className="bg-muted/30 border-none" />
+              <Input type="date" className="bg-muted/30 border-none h-12" />
             </div>
             <div className="flex items-end">
-              <Button className="w-full gap-2 bg-primary font-bold h-10">
-                <Filter className="size-4" /> Aplicar Filtros
+              <Button className="w-full gap-2 bg-[#090e24] font-bold h-12 uppercase text-[10px] tracking-widest">
+                <Filter className="size-4" /> Filtrar Relatórios
               </Button>
             </div>
           </div>
@@ -135,55 +165,63 @@ export default function ReportsCenter() {
           </TabsTrigger>
         </TabsList>
 
-        {Object.entries(REPORTS_DATA).map(([category, reports]) => (
+        {Object.entries(REPORTS_MAPPING).map(([category, reports]) => (
           <TabsContent key={category} value={category} className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {reports.map((report) => (
-                <Card key={report.id} className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div className="p-2 bg-primary/5 rounded-lg text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                        <report.icon className="size-5" />
+              {reports.map((report) => {
+                const realFile = uploadedReports?.find(r => r.reportType === report.id);
+                return (
+                  <Card key={report.id} className={`card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white ${realFile ? 'border-l-4 border-l-[#f59e0b]' : ''}`}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <div className={`p-2 rounded-lg transition-colors ${realFile ? 'bg-[#f59e0b] text-[#090e24]' : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'}`}>
+                          <report.icon className="size-5" />
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-tighter">
+                            ID: {report.legacyId}
+                          </Badge>
+                          {realFile && (
+                            <Badge className="bg-emerald-600 text-[8px] uppercase font-black">Disponível</Badge>
+                          )}
+                        </div>
                       </div>
-                      <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-tighter">
-                        ID: {report.legacyId}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-sm font-bold text-primary mt-2">{report.name}</CardTitle>
-                    <CardDescription className="text-[11px] leading-tight line-clamp-2 min-h-[2.5rem]">
-                      {report.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-2 border-t mt-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-blue-50 text-blue-700"
-                        onClick={() => handleAction(report, 'Visualizar')}
-                      >
-                        <Eye className="size-3" /> Visualizar
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-emerald-50 text-emerald-700"
-                        onClick={() => handleAction(report, 'Baixar PDF')}
-                      >
-                        <Download className="size-3" /> PDF
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-amber-50 text-amber-700"
-                        onClick={() => handleAction(report, 'Exportar Excel')}
-                      >
-                        <FileSpreadsheet className="size-3" /> Excel
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardTitle className="text-sm font-bold text-primary mt-2">{report.name}</CardTitle>
+                      <CardDescription className="text-[11px] leading-tight line-clamp-2 min-h-[2.5rem]">
+                        {report.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-2 border-t mt-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-blue-50 text-blue-700"
+                          onClick={() => handleAction(report, 'Visualizar')}
+                        >
+                          <Eye className="size-3" /> Visualizar
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className={`text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 ${realFile ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-emerald-50 text-muted-foreground'}`}
+                          onClick={() => handleAction(report, 'Baixar PDF')}
+                        >
+                          <Download className="size-3" /> PDF
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-amber-50 text-amber-700"
+                          onClick={() => handleAction(report, 'Exportar Excel')}
+                        >
+                          <FileSpreadsheet className="size-3" /> Excel
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </TabsContent>
         ))}
@@ -191,9 +229,10 @@ export default function ReportsCenter() {
 
       <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex gap-3">
         <Info className="size-5 text-primary shrink-0" />
-        <p className="text-xs text-primary/80">
-          <strong>Dica NAI:</strong> Se você não encontrar um relatório específico pelo nome, tente buscar pelo <strong>ID Legado</strong> utilizando o filtro de pesquisa do navegador (Ctrl+F). Toda a base foi migrada com sucesso.
-        </p>
+        <div className="text-xs text-primary/80 space-y-1">
+          <p><strong>Dica NAI:</strong> Relatórios com a faixa lateral amarela possuem arquivos PDF reais carregados no sistema.</p>
+          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados > Aba Documentos</strong>.</p>
+        </div>
       </div>
     </div>
   )

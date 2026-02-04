@@ -75,6 +75,21 @@
         }
       },
       "required": ["legacyId", "displayName", "email", "status"]
+    },
+    "Report": {
+      "title": "Relatório Emitido",
+      "type": "object",
+      "description": "Documento técnico vinculado a uma empresa cliente.",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "reportType": { "type": "string" },
+        "category": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["companyId", "reportType", "fileUrl"]
     }
   },
   "auth": {
@@ -96,6 +111,10 @@
     "/providers/{providerId}": {
       "schema": "Provider",
       "description": "Rede credenciada de clínicas e médicos."
+    },
+    "/clients/{agencyId}/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Histórico de arquivos de relatórios por cliente."
     }
   }
 }

@@ -13,27 +13,45 @@ import {
   Stethoscope,
   HeartPulse,
   DatabaseZap,
-  MapPin
+  MapPin,
+  FileText,
+  FileUp
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore } from "@/firebase"
-import { doc, writeBatch } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
+import { doc, writeBatch, collection, query, orderBy, addDoc } from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { DEMO_PROVIDERS } from "@/lib/demo-providers"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 
-type ImportType = 'companies' | 'employees' | 'exams' | 'providers'
+type ImportType = 'companies' | 'employees' | 'exams' | 'providers' | 'files'
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
+  const storage = useStorage()
   
   const [activeTab, setActiveTab] = React.useState<ImportType>('companies')
   const [pastedData, setPastedData] = React.useState("")
   const [uploading, setUploading] = React.useState(false)
+
+  // Estados para Upload de Arquivo
+  const [selectedCompanyId, setSelectedCompanyId] = React.useState("")
+  const [selectedReportType, setSelectedReportType] = React.useState("pgr")
+  const [fileToUpload, setFileToUpload] = React.useState<File | null>(null)
+
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
+  }, [db, user])
+
+  const { data: companies } = useCollection(companiesQuery)
 
   const setupProfileByRole = async (targetRole: 'SUPER_ADMIN' | 'CLIENT_ADMIN' | 'EMPLOYEE' | 'PROVIDER') => {
     if (!user || !db) return
@@ -66,6 +84,52 @@ export default function UnifiedImportCenter() {
     } finally {
       setUploading(false)
     }
+  }
+
+  const handleFileUpload = async () => {
+    if (!user || !db || !storage || !fileToUpload || !selectedCompanyId) {
+      toast({ variant: "destructive", title: "Campos Incompletos", description: "Selecione o cliente e o arquivo." })
+      return
+    }
+
+    setUploading(true)
+    try {
+      // 1. Upload para o Storage
+      const filePath = `reports/${user.uid}/${selectedCompanyId}/${Date.now()}_${fileToUpload.name}`
+      const fileRef = ref(storage, filePath)
+      await uploadBytes(fileRef, fileToUpload)
+      const downloadUrl = await getDownloadURL(fileRef)
+
+      // 2. Criar registro no Firestore
+      const reportData = {
+        companyId: selectedCompanyId,
+        reportType: selectedReportType,
+        fileName: fileToUpload.name,
+        fileUrl: downloadUrl,
+        category: getCategoryByType(selectedReportType),
+        createdAt: new Date().toISOString(),
+        agencyId: user.uid
+      }
+
+      await addDoc(collection(db, "clients", user.uid, "reports"), reportData)
+
+      toast({
+        title: "Documento Carregado",
+        description: `${fileToUpload.name} vinculado ao cliente com sucesso.`
+      })
+      setFileToUpload(null)
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro no Upload", description: error.message })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const getCategoryByType = (type: string) => {
+    if (['pgr', 'pcmso', 'ltcat', 'ppp', 'insalubridade', 'periculosidade'].includes(type)) return 'legal';
+    if (['aso', 'due', 'absenteeism', 'audio', 'epidemiological'].includes(type)) return 'health';
+    if (['ppe', 'actions', 'cat', 'risk_map', 'training'].includes(type)) return 'safety';
+    return 'indicators';
   }
 
   const seedClinicsCuritiba = async () => {
@@ -233,18 +297,21 @@ export default function UnifiedImportCenter() {
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ImportType)} className="w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
-          <TabsList className="grid w-full md:w-[600px] grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
+          <TabsList className="grid w-full md:w-[700px] grid-cols-5 bg-muted/50 p-1 rounded-xl h-14">
             <TabsTrigger value="companies" className="rounded-lg gap-2">
               <Building2 className="size-4" /> Empresas
             </TabsTrigger>
             <TabsTrigger value="employees" className="rounded-lg gap-2">
-              <Users className="size-4" /> Funcionários
+              <Users className="size-4" /> Vidas
             </TabsTrigger>
             <TabsTrigger value="providers" className="rounded-lg gap-2">
-              <Stethoscope className="size-4" /> Prestadores
+              <Stethoscope className="size-4" /> Rede
             </TabsTrigger>
             <TabsTrigger value="exams" className="rounded-lg gap-2">
-              <HeartPulse className="size-4" /> Eventos SST
+              <HeartPulse className="size-4" /> Eventos
+            </TabsTrigger>
+            <TabsTrigger value="files" className="rounded-lg gap-2">
+              <FileUp className="size-4" /> Documentos
             </TabsTrigger>
           </TabsList>
           
@@ -274,15 +341,88 @@ export default function UnifiedImportCenter() {
           </div>
         </div>
 
-        <Card className="mt-6 border-none shadow-xl bg-white">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        {activeTab === 'files' ? (
+          <Card className="mt-6 border-none shadow-xl bg-white">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-[#f59e0b]/10 rounded-xl text-[#f59e0b]">
+                  <FileUp />
+                </div>
+                <div>
+                  <CardTitle className="text-xl font-headline">Upload de Documentos (PDF)</CardTitle>
+                  <CardDescription>Envie relatórios técnicos vinculados a um cliente específico.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Selecione o Cliente (Empresa)</label>
+                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                    <SelectTrigger className="h-12 bg-muted/20 border-none">
+                      <SelectValue placeholder="Selecione a empresa..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies?.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo de Relatório</label>
+                  <Select value={selectedReportType} onValueChange={setSelectedReportType}>
+                    <SelectTrigger className="h-12 bg-muted/20 border-none">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pgr">PGR - Programa Gerenciamento de Riscos</SelectItem>
+                      <SelectItem value="pcmso">PCMSO - Programa Controle Médico</SelectItem>
+                      <SelectItem value="ltcat">LTCAT - Laudo Técnico</SelectItem>
+                      <SelectItem value="aso">ASOs Emitidos</SelectItem>
+                      <SelectItem value="ppe">Ficha de EPI</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="p-10 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center bg-muted/10 hover:bg-muted/20 transition-all cursor-pointer relative">
+                <input 
+                  type="file" 
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                  accept=".pdf"
+                  onChange={(e) => setFileToUpload(e.target.files?.[0] || null)}
+                />
+                <div className="p-4 bg-white rounded-full shadow-sm mb-4">
+                  <Upload className="size-8 text-[#090e24]" />
+                </div>
+                <p className="text-sm font-bold text-[#090e24]">
+                  {fileToUpload ? fileToUpload.name : "Clique ou arraste o PDF aqui"}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1 uppercase font-black">Somente arquivos .pdf (Máx 10MB)</p>
+              </div>
+
+              <div className="flex justify-end">
+                <Button 
+                  className="bg-[#090e24] px-10 h-14 font-black uppercase tracking-widest gap-2"
+                  disabled={uploading || !fileToUpload || !selectedCompanyId}
+                  onClick={handleFileUpload}
+                >
+                  {uploading ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
+                  Confirmar Upload e Vincular
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="mt-6 border-none shadow-xl bg-white">
+            <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-accent/10 rounded-xl text-accent">
                   <Upload />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Importador em Lote</CardTitle>
+                  <CardTitle className="text-xl">Importador em Lote (CSV)</CardTitle>
                   <CardDescription>
                     {activeTab === 'providers' 
                       ? "Use o botão 'Carga Inicial' ou cole CSV: Código Original; Nome Completo; Ativo; ASO; Gere; Exam; Agen" 
@@ -290,27 +430,27 @@ export default function UnifiedImportCenter() {
                   </CardDescription>
                 </div>
               </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Textarea 
-              placeholder="Cole aqui seus dados..."
-              className="min-h-[350px] font-mono text-xs bg-muted/20 p-6"
-              value={pastedData}
-              onChange={(e) => setPastedData(e.target.value)}
-            />
-            <div className="flex justify-end pt-4 border-t">
-              <Button 
-                className="bg-[#090e24] px-10 h-12 font-bold" 
-                disabled={!pastedData || uploading}
-                onClick={processImport}
-              >
-                {uploading ? <Loader2 className="size-5 animate-spin mr-2" /> : <Save className="size-5 mr-2" />}
-                Confirmar Importação Manual
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea 
+                placeholder="Cole aqui seus dados..."
+                className="min-h-[350px] font-mono text-xs bg-muted/20 p-6"
+                value={pastedData}
+                onChange={(e) => setPastedData(e.target.value)}
+              />
+              <div className="flex justify-end pt-4 border-t">
+                <Button 
+                  className="bg-[#090e24] px-10 h-12 font-bold" 
+                  disabled={!pastedData || uploading}
+                  onClick={processImport}
+                >
+                  {uploading ? <Loader2 className="size-5 animate-spin mr-2" /> : <Save className="size-5 mr-2" />}
+                  Confirmar Importação Manual
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Tabs>
     </div>
   )

@@ -9,12 +9,10 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Perfil de Usuário: permite que cada usuário gerencie seus próprios dados de perfil
     match /users/{userId} {
       allow read, write: if isOwner(userId);
     }
 
-    // Estrutura Multi-Tenant: Dados segmentados por ID do administrador (agencyId)
     match /clients/{agencyId} {
       allow get, list, create, update: if isOwner(agencyId);
 
@@ -39,9 +37,11 @@ service cloud.firestore {
       match /sst_events/{eventId} {
         allow read, write: if isOwner(agencyId);
       }
+      match /reports/{reportId} {
+        allow read, write: if isOwner(agencyId);
+      }
     }
 
-    // Coleções globais (Rede Credenciada e Tabelas Mestres)
     match /providers/{providerId} {
       allow read, write: if isSignedIn();
     }
