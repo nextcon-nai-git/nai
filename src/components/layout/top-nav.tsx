@@ -26,14 +26,15 @@ import {
   UserCircle,
   HeartPulse,
   CalendarDays,
-  FolderOpen
+  FolderOpen,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from '@/firebase';
+import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from '@/components/ui/badge';
 
 export function TopNav() {
   const pathname = usePathname();
@@ -57,6 +59,19 @@ export function TopNav() {
 
   const { data: profile } = useDoc(profileRef);
   const role = profile?.role || 'CLIENT_ADMIN';
+
+  // Notificações em tempo real
+  const notificationsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(
+      collection(db, "users", user.uid, "notifications"),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    );
+  }, [db, user]);
+
+  const { data: notifications } = useCollection(notificationsQuery);
+  const unreadCount = notifications?.filter(n => !n.read).length || 0;
 
   const navStructure = {
     SUPER_ADMIN: [
@@ -126,10 +141,44 @@ export function TopNav() {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-2">
+            {/* Sino de Notificações */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:bg-white/5 gap-3 h-10 px-4">
+                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/5">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-[#090e24] text-white border-white/10">
+                <DropdownMenuLabel className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-50">
+                  Alertas NAI
+                  {unreadCount > 0 && <Badge className="bg-accent text-[#090e24] text-[8px]">{unreadCount} novos</Badge>}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-white/10" />
+                {notifications?.length ? notifications.map(n => (
+                  <DropdownMenuItem key={n.id} className="p-4 hover:bg-white/5 cursor-default flex flex-col items-start gap-1">
+                    <p className={cn("text-xs font-bold", n.read ? "text-white/50" : "text-white")}>{n.title}</p>
+                    <p className="text-[10px] text-white/40 leading-tight">{n.message}</p>
+                  </DropdownMenuItem>
+                )) : (
+                  <div className="p-8 text-center text-xs text-white/30 italic">Sem alertas no momento.</div>
+                )}
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuItem className="text-center justify-center text-[9px] font-black uppercase tracking-tighter text-accent cursor-pointer">
+                  Ver Todas as Notificações
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-white hover:bg-white/5 gap-3 h-10 px-4 ml-2">
                   <div className="text-right hidden xl:block">
                     <p className="text-[9px] font-black text-white/50 uppercase leading-none">{role.replace('_', ' ')}</p>
                     <p className="text-xs font-bold text-[#f59e0b]">{user?.email}</p>

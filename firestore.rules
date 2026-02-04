@@ -11,6 +11,9 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read, write: if isOwner(userId);
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /clients/{agencyId} {
@@ -18,6 +21,9 @@ service cloud.firestore {
 
       match /managedCompanies/{companyId} {
         allow read, write: if isOwner(agencyId);
+        match /risks/{riskId} {
+          allow read, write: if isOwner(agencyId);
+        }
       }
       match /employees/{employeeId} {
         allow read, write: if isOwner(agencyId);

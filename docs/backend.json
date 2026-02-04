@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -93,6 +94,33 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["companyId", "reportType", "fileUrl"]
+    },
+    "Risk": {
+      "title": "Risco PGR",
+      "type": "object",
+      "description": "Agente de risco identificado em um setor ou GES.",
+      "properties": {
+        "id": { "type": "string" },
+        "hazard": { "type": "string" },
+        "role": { "type": "string" },
+        "environment": { "type": "string" },
+        "level": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "esocialStatus": { "type": "string" }
+      }
+    },
+    "Notification": {
+      "title": "Notificação do Sistema",
+      "type": "object",
+      "description": "Alertas críticos para o usuário.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string", "enum": ["INFO", "WARNING", "CRITICAL"] },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -102,6 +130,10 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "Tabela central de permissões de usuários."
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Alertas e mensagens diretas para o usuário."
     },
     "/companies/{companyId}": {
       "schema": "Company",
@@ -118,6 +150,10 @@
     "/clients/{agencyId}/reports/{reportId}": {
       "schema": "Report",
       "description": "Histórico de arquivos de relatórios por cliente."
+    },
+    "/clients/{agencyId}/managedCompanies/{companyId}/risks/{riskId}": {
+      "schema": "Risk",
+      "description": "Inventário de riscos detalhado por empresa cliente."
     }
   }
 }
