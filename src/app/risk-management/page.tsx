@@ -106,7 +106,7 @@ export default function RiskInventoryPGR() {
   }
 
   return (
-    <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300 pb-20">
+    <div className="space-y-6 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-black text-[#090e24] tracking-tight">Inventário de Riscos (PGR)</h1>
@@ -203,11 +203,11 @@ export default function RiskInventoryPGR() {
       </Card>
 
       {(selectedRisk || isGenerating) && (
-        <Card className="card-shadow border-none bg-[#090e24] text-white overflow-hidden animate-in zoom-in-95 duration-300">
+        <Card className="card-shadow border-none bg-[#090e24] text-white overflow-hidden shadow-2xl mt-8">
           <CardHeader className="border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-[#f59e0b]/20 rounded-2xl">
-                <Zap className="size-6 text-[#f59e0b] animate-pulse" />
+                <Zap className="size-6 text-[#f59e0b]" />
               </div>
               <div>
                 <CardTitle className="text-xl font-headline font-bold">Refinamento Inteligente NAI</CardTitle>
@@ -219,7 +219,7 @@ export default function RiskInventoryPGR() {
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="size-10 animate-spin text-[#f59e0b]" />
-                <p className="text-sm font-black uppercase tracking-widest text-[#f59e0b]/80 animate-pulse">NAI Consultando Base de Conhecimento...</p>
+                <p className="text-sm font-black uppercase tracking-widest text-[#f59e0b]/80">NAI Consultando Base de Conhecimento...</p>
               </div>
             ) : (
               <div className="space-y-6">

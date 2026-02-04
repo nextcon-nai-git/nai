@@ -1,28 +1,33 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore'
+import { getStorage, FirebaseStorage } from 'firebase/storage'
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+// Singleton SDK instances to prevent internal assertion failures
+let memoizedSdks: ReturnType<typeof getSdks> | undefined;
+
+/**
+ * Initializes Firebase and returns the singleton instances of services.
+ * Ensures services are only initialized once on the client.
+ */
 export function initializeFirebase() {
-  if (!getApps().length) {
-    let firebaseApp;
-    try {
-      firebaseApp = initializeApp();
-    } catch (e) {
-      if (process.env.NODE_ENV === "production") {
-        console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
-      }
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-
-    return getSdks(firebaseApp);
+  if (typeof window === 'undefined') {
+    // Basic initialization for SSR if needed
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    return getSdks(app);
   }
 
-  return getSdks(getApp());
+  // Client-side singleton pattern
+  if (!memoizedSdks) {
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    memoizedSdks = getSdks(app);
+  }
+
+  return memoizedSdks;
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {

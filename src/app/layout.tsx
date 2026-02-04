@@ -20,12 +20,14 @@ function AppContent({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Handle protected route redirection
   React.useEffect(() => {
     if (mounted && !isUserLoading && !user && pathname !== '/login') {
       router.push('/login');
     }
   }, [user, isUserLoading, pathname, router, mounted]);
 
+  // Initial loading state or server-side rendering wait
   if (!mounted || isUserLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#090e24]">
@@ -34,21 +36,21 @@ function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Login page has its own minimal layout
   if (pathname === '/login') {
     return <div className="min-h-screen w-full bg-white">{children}</div>;
   }
 
-  if (!user && pathname !== '/login') return null;
+  // Prevent flash of content if not logged in
+  if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <TopNav />
-      <main className="flex-1 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto w-full">
-          {children}
-        </div>
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8">
+        {children}
       </main>
-      <footer className="py-6 border-t bg-[#090e24] text-white/40 text-center text-[10px] font-bold tracking-widest uppercase">
+      <footer className="py-6 border-t bg-[#090e24] text-white/40 text-center text-[10px] font-bold tracking-widest uppercase mt-auto">
         © 2024 NEXTCON SAÚDE EMPRESARIAL - SISTEMA DE GESTÃO SST
       </footer>
     </div>
@@ -68,7 +70,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
         <title>NextCon - SST Intelligence</title>
       </head>
-      <body>
+      <body className="font-body antialiased">
         <FirebaseClientProvider>
           <AppContent>{children}</AppContent>
           <Toaster />
