@@ -1,36 +1,29 @@
 'use client';
 import {
-  Auth,
+  Auth, // Import Auth type for type hinting
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
 
-/** 
- * Inicia login por e-mail (não bloqueante). 
- * Utiliza try/catch interno para evitar que o NextJS intercepte a falha como um erro de runtime não tratado.
- */
-export async function initiateEmailSignIn(
-  authInstance: Auth, 
-  email: string, 
-  password: string, 
-  onError?: (error: any) => void
-): Promise<void> {
-  try {
-    await signInWithEmailAndPassword(authInstance, email, password);
-  } catch (error: any) {
-    if (onError) {
-      onError(error);
-    }
-  }
+/** Initiate anonymous sign-in (non-blocking). */
+export function initiateAnonymousSignIn(authInstance: Auth): void {
+  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
+  signInAnonymously(authInstance);
+  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Inicia login anônimo. */
-export function initiateAnonymousSignIn(authInstance: Auth, onError?: (error: any) => void): void {
-  signInAnonymously(authInstance).catch(onError);
+/** Initiate email/password sign-up (non-blocking). */
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
+  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
+  createUserWithEmailAndPassword(authInstance, email, password);
+  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
-/** Inicia cadastro por e-mail. */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string, onError?: (error: any) => void): void {
-  createUserWithEmailAndPassword(authInstance, email, password).catch(onError);
+/** Initiate email/password sign-in (non-blocking). */
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
+  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
+  signInWithEmailAndPassword(authInstance, email, password);
+  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }

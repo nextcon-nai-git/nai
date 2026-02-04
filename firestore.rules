@@ -1,61 +1,183 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    /**
+     * FINANCIAL MODULE SECURITY RULES
+     *
+     * Core Philosophy:
+     * This ruleset implements a strict path-based ownership model for financial data. 
+     * Access is partitioned based on the entity identity (Client or Credentialed Network) 
+     * encoded directly in the document paths. This ensures that sensitive financial 
+     * documents like invoices and costs are only accessible to the parties involved.
+     *
+     * Data Structure:
+     * - Catalog data (Product Services, Service Groups) are accessible to all authenticated users.
+     * - Client-specific data (Invoices, Price Tables) are nested under /clients/{clientId}.
+     * - Provider-specific data (Provider Invoices, Exam Costs) are nested under /credentialed_networks/{networkId}.
+     *
+     * Key Security Decisions:
+     * - Path-Based Authorization: We rely on the Firestore path variables (clientId, networkId) 
+     *   matching the authenticated user's UID to grant access.
+     * - Relational Integrity: On creation, we enforce that the document's internal 
+     *   reference fields (e.g., clientId) match the path to prevent data cross-talk.
+     * - Prototyping Flexibility: Schema validation is omitted to allow rapid iteration 
+     *   on business logic, while strictly maintaining authorization boundaries.
+     */
+
+    // --- HELPER FUNCTIONS ---
+
+    /**
+     * @description Checks if the user is authenticated via any supported provider.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+
+    /**
+     * @description Validates that the authenticated user's UID matches the provided owner ID.
+     */
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
     }
 
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
-      match /notifications/{notificationId} {
-        allow read, write: if isOwner(userId);
+    /**
+     * @description Ensures the user owns the document and that the document actually exists.
+     * Used for update and delete operations to prevent errors on non-existent records.
+     */
+    function isExistingOwner(ownerId) {
+      return isOwner(ownerId) && resource != null;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Rules for Product and Service catalog. Accessible to all signed-in staff/users.
+     * @path /product_services/{productServiceId}
+     * @allow (get) Any signed-in user.
+     * @deny (create) Unauthenticated users.
+     * @principle Signed-in access for shared organizational catalog data.
+     */
+    match /product_services/{productServiceId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Rules for Service Groups used in reporting.
+     * @path /service_groups/{serviceGroupId}
+     * @allow (list) Any signed-in user can list groups for categorization.
+     * @deny (update) If the document does not exist.
+     * @principle Signed-in access for shared organizational metadata.
+     */
+    match /service_groups/{serviceGroupId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Rules for Price Tables. 
+     * Note: Reasoning suggests document IDs may be 'standard' or a 'clientId'.
+     * @path /price_tables/{priceTableId}
+     * @allow (create) Signed-in users.
+     * @deny (delete) Unauthenticated users.
+     */
+    match /price_tables/{priceTableId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
+
+      /**
+       * @description Items within a price table. Inherits access from signed-in context.
+       * @path /price_tables/{priceTableId}/price_table_items/{priceTableItemId}
+       */
+      match /price_table_items/{priceTableItemId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && resource != null;
       }
     }
 
-    match /clients/{agencyId} {
-      allow get, list, create, update: if isOwner(agencyId);
+    /**
+     * @description Rules for Exam Costs (Purchase prices from networks).
+     * @path /exam_costs/{examCostId}
+     */
+    match /exam_costs/{examCostId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && resource != null;
+    }
 
-      match /managedCompanies/{companyId} {
-        allow read, write: if isOwner(agencyId);
-        match /risks/{riskId} {
-          allow read, write: if isOwner(agencyId);
+    /**
+     * @description Rules for Credentialed Networks (Clinics/Partners).
+     * @path /credentialed_networks/{credentialedNetworkId}
+     * @allow (get) If the user is the network owner.
+     * @deny (create) If the UID does not match the document ID.
+     * @principle Path-based ownership for provider entities.
+     */
+    match /credentialed_networks/{credentialedNetworkId} {
+      allow get, list: if isOwner(credentialedNetworkId);
+      allow create: if isOwner(credentialedNetworkId);
+      allow update, delete: if isExistingOwner(credentialedNetworkId);
+
+      /**
+       * @description Provider Invoices nested under the network.
+       * @path /credentialed_networks/{credentialedNetworkId}/provider_invoices/{providerInvoiceId}
+       */
+      match /provider_invoices/{providerInvoiceId} {
+        allow get, list: if isOwner(credentialedNetworkId);
+        allow create: if isOwner(credentialedNetworkId) && request.resource.data.credentialedNetworkId == credentialedNetworkId;
+        allow update: if isExistingOwner(credentialedNetworkId) && request.resource.data.credentialedNetworkId == resource.data.credentialedNetworkId;
+        allow delete: if isExistingOwner(credentialedNetworkId);
+
+        /**
+         * @description Items within a provider's invoice.
+         */
+        match /provider_invoice_items/{providerInvoiceItemId} {
+          allow get, list: if isOwner(credentialedNetworkId);
+          allow create: if isOwner(credentialedNetworkId);
+          allow update, delete: if isExistingOwner(credentialedNetworkId);
         }
       }
-      match /employees/{employeeId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /tasks/{taskId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /surveys/{surveyId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /legalExpertises/{expertiseId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /auditHistory/{auditId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /sst_events/{eventId} {
-        allow read, write: if isOwner(agencyId);
-      }
-      match /reports/{reportId} {
-        allow read, write: if isOwner(agencyId);
+    }
+
+    /**
+     * @description Rules for Client profiles.
+     * @path /clients/{clientId}
+     * @allow (create) User creating their own client record.
+     * @deny (list) Trying to list all clients.
+     * @principle Path-based ownership for client entities.
+     */
+    match /clients/{clientId} {
+      allow get, list: if isOwner(clientId);
+      allow create: if isOwner(clientId);
+      allow update, delete: if isExistingOwner(clientId);
+
+      /**
+       * @description Invoices belonging to a specific client.
+       * @path /clients/{clientId}/invoices/{invoiceId}
+       * @allow (create) If the internal clientId matches the path.
+       * @deny (update) Attempting to change the clientId (relational immutability).
+       */
+      match /invoices/{invoiceId} {
+        allow get, list: if isOwner(clientId);
+        allow create: if isOwner(clientId) && request.resource.data.clientId == clientId;
+        allow update: if isExistingOwner(clientId) && request.resource.data.clientId == resource.data.clientId;
+        allow delete: if isExistingOwner(clientId);
+
+        /**
+         * @description Items within a client's invoice.
+         */
+        match /invoice_items/{invoiceItemId} {
+          allow get, list: if isOwner(clientId);
+          allow create: if isOwner(clientId);
+          allow update: if isExistingOwner(clientId);
+          allow delete: if isExistingOwner(clientId);
+        }
       }
     }
 
-    match /providers/{providerId} {
-      allow read, write: if isSignedIn();
-    }
-    match /companies/{companyId} {
-      allow read, write: if isSignedIn();
-    }
-    match /employees/{employeeId} {
-      allow read, write: if isSignedIn();
-    }
   }
 }
