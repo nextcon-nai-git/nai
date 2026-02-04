@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { useToast } from '@/hooks/use-toast';
 import { NextconLogo } from '@/components/ui/logo';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const [email, setEmail] = React.useState('admin@nextcon.com.br');
@@ -41,9 +42,10 @@ export default function LoginPage() {
   };
 
   const demoUsers = [
-    { email: 'admin@nextcon.com.br', role: 'Administrador', icon: ShieldAlert },
-    { email: 'cliente@empresa.com.br', role: 'Cliente', icon: Building2 },
-    { email: 'colaborador@trabalho.com.br', role: 'Colaborador', icon: UserCircle },
+    { email: 'admin@nextcon.com.br', role: 'Administrador Nextcon', label: 'SUPER ADMIN', icon: ShieldAlert },
+    { email: 'gestor@cliente.com.br', role: 'Gestor de Empresa', label: 'CLIENT ADMIN', icon: Building2 },
+    { email: 'colaborador@empresa.com.br', role: 'Colaborador', label: 'EMPLOYEE', icon: UserCircle },
+    { email: 'clinica@parceira.com.br', role: 'Prestador / Clínica', label: 'PROVIDER', icon: HeartPulse },
   ];
 
   return (
@@ -68,52 +70,54 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin}>
           <CardContent className="p-8 space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Acesso Rápido (Demo)</label>
-              <div className="grid grid-cols-1 gap-2">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center block mb-4">Selecione seu Perfil de Acesso</label>
+              <div className="grid grid-cols-2 gap-2">
                 {demoUsers.map((u) => (
                   <button
                     key={u.email}
                     type="button"
                     onClick={() => setEmail(u.email)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl border text-left transition-all",
-                      email === u.email ? "bg-[#090e24] text-white border-[#090e24]" : "bg-white hover:bg-gray-50"
+                      "flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all gap-2 h-28 group",
+                      email === u.email 
+                        ? "bg-[#090e24] text-white border-[#090e24] ring-4 ring-[#f59e0b]/20" 
+                        : "bg-white hover:bg-gray-50 border-gray-100"
                     )}
                   >
-                    <u.icon className={cn("h-4 w-4", email === u.email ? "text-[#f59e0b]" : "text-gray-400")} />
+                    <u.icon className={cn("h-6 w-6 transition-colors", email === u.email ? "text-[#f59e0b]" : "text-gray-400 group-hover:text-primary")} />
                     <div>
-                      <p className="text-xs font-bold">{u.role}</p>
-                      <p className="text-[9px] opacity-70">{u.email}</p>
+                      <p className="text-[10px] font-black leading-none mb-1 opacity-60">{u.label}</p>
+                      <p className="text-[11px] font-bold leading-tight">{u.role}</p>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
+            <div className="space-y-4 pt-6 border-t border-dashed">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">E-mail</label>
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">E-mail de Acesso</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     type="email" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
-                    className="pl-10 h-11"
+                    className="pl-10 h-11 bg-muted/20 border-none"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-700">Senha</label>
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Senha</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     type="password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="pl-10 h-11"
+                    className="pl-10 h-11 bg-muted/20 border-none"
                     required
                   />
                 </div>
@@ -122,15 +126,15 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="p-8 pt-0">
-            <Button type="submit" className="w-full bg-[#090e24] h-14 text-lg font-black uppercase tracking-widest" disabled={loading}>
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Entrar na Unidade'}
+            <Button type="submit" className="w-full bg-[#090e24] h-14 text-lg font-black uppercase tracking-widest hover:bg-[#090e24]/90 transition-all shadow-xl" disabled={loading}>
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Entrar no Sistema'}
             </Button>
           </CardFooter>
         </form>
       </Card>
       
       <p className="mt-8 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-        © 2024 Nextcon Inteligência Ocupacional
+        © 2026 Nextcon Inteligência Ocupacional
       </p>
     </div>
   );
