@@ -7,16 +7,16 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore'
 import { getStorage, FirebaseStorage } from 'firebase/storage'
 
-// Singleton SDK instances to prevent internal assertion failures
+// Singleton SDK instances to prevent internal assertion failures during HMR or multiple calls
 let memoizedSdks: ReturnType<typeof getSdks> | undefined;
 
 /**
  * Initializes Firebase and returns the singleton instances of services.
- * Ensures services are only initialized once on the client.
+ * Ensures services are only initialized once on the client to avoid "Unexpected state" errors.
  */
 export function initializeFirebase() {
   if (typeof window === 'undefined') {
-    // Basic initialization for SSR if needed
+    // Basic initialization for SSR
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     return getSdks(app);
   }
