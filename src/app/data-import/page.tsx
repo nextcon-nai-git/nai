@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -130,7 +131,8 @@ export default function UnifiedImportCenter() {
         description: `${DEMO_PROVIDERS.length} prestadores foram importados para a base NEXTCON.` 
       })
     } catch (e) {
-      toast({ variant: "destructive", title: "Erro na Carga Inicial" })
+      console.error("Erro na Carga:", e)
+      toast({ variant: "destructive", title: "Erro na Carga Inicial", description: "Verifique as permissões de gravação." })
     } finally {
       setUploading(false)
     }
@@ -210,7 +212,7 @@ export default function UnifiedImportCenter() {
     <div className="max-w-6xl mx-auto space-y-6 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight tracking-tighter">Arquitetura NEXTCON SST 2026</h1>
+          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight">Arquitetura NEXTCON SST 2026</h1>
           <p className="text-muted-foreground uppercase text-[10px] font-black tracking-widest">Alternar Perfis e Importar Dados</p>
         </div>
         <div className="flex flex-wrap gap-2">
