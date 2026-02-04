@@ -10,7 +10,7 @@
         "email": { "type": "string", "format": "email" },
         "role": { 
           "type": "string",
-          "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "EMPLOYEE", "PROVIDER"],
+          "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "EMPLOYEE", "PROVIDER", "SYSTEM_INTEGRATION"],
           "description": "Papel do usuário: SUPER_ADMIN (Nextcon), CLIENT_ADMIN (Gestor Empresa), EMPLOYEE (Funcionário), PROVIDER (Clínica/Médico)."
         },
         "companyId": { "type": "string", "description": "Referência para a empresa do cliente." },
@@ -55,12 +55,12 @@
         "legacyId": { "type": "string", "description": "Código Original do sistema antigo." },
         "displayName": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["PROVIDER"] },
+        "role": { "type": "string", "enum": ["PROVIDER", "SYSTEM_INTEGRATION"] },
         "professionalId": {
           "type": "object",
           "properties": {
             "number": { "type": "string" },
-            "type": { "type": "string", "enum": ["CRM", "CREA", "MTE"] }
+            "type": { "type": "string", "enum": ["CRM", "CREA", "MTE", "PR", "CAU", "COREN"] }
           }
         },
         "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },

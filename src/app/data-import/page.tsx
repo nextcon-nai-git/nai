@@ -11,7 +11,9 @@ import {
   ShieldAlert, 
   UserCheck, 
   Stethoscope,
-  HeartPulse
+  HeartPulse,
+  DatabaseZap,
+  Sparkles
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -19,7 +21,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
-import { doc, writeBatch } from "firebase/firestore"
+import { doc, writeBatch, collection } from "firebase/firestore"
+import { DEMO_PROVIDERS } from "@/lib/demo-providers"
 
 type ImportType = 'companies' | 'employees' | 'exams' | 'providers'
 
@@ -41,7 +44,6 @@ export default function UnifiedImportCenter() {
     try {
       const batch = writeBatch(db)
 
-      // Perfil do Usuário Logado
       batch.set(doc(db, "users", user.uid), {
         id: user.uid,
         name: name.charAt(0).toUpperCase() + name.slice(1),
@@ -60,6 +62,30 @@ export default function UnifiedImportCenter() {
       })
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao configurar perfil" })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const seedProviders = async () => {
+    if (!user || !db) return
+    setUploading(true)
+    try {
+      const batch = writeBatch(db)
+      DEMO_PROVIDERS.forEach((provider) => {
+        const docRef = doc(db, "providers", provider.legacyId)
+        batch.set(docRef, {
+          ...provider,
+          updatedAt: new Date().toISOString()
+        }, { merge: true })
+      })
+      await batch.commit()
+      toast({ 
+        title: "Carga Inicial Concluída", 
+        description: `${DEMO_PROVIDERS.length} prestadores foram importados para a base NEXTCON.` 
+      })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro na Carga Inicial" })
     } finally {
       setUploading(false)
     }
@@ -86,7 +112,6 @@ export default function UnifiedImportCenter() {
         let data: any = { updatedAt: new Date().toISOString() }
 
         if (activeTab === 'providers') {
-          // Mapeamento específico solicitado pelo usuário para Prestadores
           const row: any = {}
           headers.forEach((h, i) => row[h] = values[i])
 
@@ -114,7 +139,6 @@ export default function UnifiedImportCenter() {
           })
         }
 
-        // Caminho Multi-Tenant
         const collectionPath = 
           activeTab === 'companies' ? `clients/${user.uid}/managedCompanies` : 
           activeTab === 'employees' ? `clients/${user.uid}/employees` : 
@@ -161,20 +185,34 @@ export default function UnifiedImportCenter() {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ImportType)} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="companies" className="rounded-lg gap-2">
-            <Building2 className="size-4" /> Empresas
-          </TabsTrigger>
-          <TabsTrigger value="employees" className="rounded-lg gap-2">
-            <Users className="size-4" /> Funcionários
-          </TabsTrigger>
-          <TabsTrigger value="providers" className="rounded-lg gap-2">
-            <Stethoscope className="size-4" /> Prestadores
-          </TabsTrigger>
-          <TabsTrigger value="exams" className="rounded-lg gap-2">
-            <HeartPulse className="size-4" /> Eventos SST
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex justify-between items-end mb-2">
+          <TabsList className="grid w-full md:w-[600px] grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
+            <TabsTrigger value="companies" className="rounded-lg gap-2">
+              <Building2 className="size-4" /> Empresas
+            </TabsTrigger>
+            <TabsTrigger value="employees" className="rounded-lg gap-2">
+              <Users className="size-4" /> Funcionários
+            </TabsTrigger>
+            <TabsTrigger value="providers" className="rounded-lg gap-2">
+              <Stethoscope className="size-4" /> Prestadores
+            </TabsTrigger>
+            <TabsTrigger value="exams" className="rounded-lg gap-2">
+              <HeartPulse className="size-4" /> Eventos SST
+            </TabsTrigger>
+          </TabsList>
+          
+          {activeTab === 'providers' && (
+            <Button 
+              variant="outline" 
+              className="border-[#f59e0b] text-[#f59e0b] hover:bg-[#f59e0b]/10 gap-2 h-14 rounded-xl px-6 font-bold"
+              onClick={seedProviders}
+              disabled={uploading}
+            >
+              <DatabaseZap className="size-5" />
+              Carga Inicial: 100+ Prestadores
+            </Button>
+          )}
+        </div>
 
         <Card className="mt-6 border-none shadow-xl bg-white">
           <CardHeader>
@@ -187,7 +225,7 @@ export default function UnifiedImportCenter() {
                   <CardTitle className="text-xl">Importador em Lote</CardTitle>
                   <CardDescription>
                     {activeTab === 'providers' 
-                      ? "Colunas: Código Original; Nome Completo; Ativo; ASO; Gere; Exam; Agen" 
+                      ? "Use o botão 'Carga Inicial' ou cole CSV: Código Original; Nome Completo; Ativo; ASO; Gere; Exam; Agen" 
                       : "Cole dados CSV para popular seu ambiente exclusivo."}
                   </CardDescription>
                 </div>
@@ -208,7 +246,7 @@ export default function UnifiedImportCenter() {
                 onClick={processImport}
               >
                 {uploading ? <Loader2 className="size-5 animate-spin mr-2" /> : <Save className="size-5 mr-2" />}
-                Confirmar Importação
+                Confirmar Importação Manual
               </Button>
             </div>
           </CardContent>
