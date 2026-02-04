@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -230,8 +229,8 @@ export default function ReportsCenter() {
       <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex gap-3">
         <Info className="size-5 text-primary shrink-0" />
         <div className="text-xs text-primary/80 space-y-1">
-          <p><strong>Dica NAI:</strong> Relatórios com a faixa lateral amarela possuem arquivos PDF reais carregados no sistema.</p>
-          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados > Aba Documentos</strong>.</p>
+          <p><strong>Dica NEXTCON:</strong> Relatórios com a faixa lateral amarela possuem arquivos PDF reais carregados no sistema.</p>
+          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados &gt; Aba Documentos</strong>.</p>
         </div>
       </div>
     </div>
