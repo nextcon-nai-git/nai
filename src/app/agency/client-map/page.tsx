@@ -14,7 +14,8 @@ import {
   Phone,
   Link as LinkIcon,
   Stethoscope,
-  Zap
+  Zap,
+  Trash2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, doc } from "firebase/firestore"
 import { enrichProviderData } from "@/ai/flows/enrich-provider-flow"
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export default function ClientMapPage() {
   const { toast } = useToast()
@@ -44,9 +45,24 @@ export default function ClientMapPage() {
 
   const { data: companies, isLoading } = useCollection(companiesQuery)
 
+  // Função para validar se um nome é "lixo" ou apenas números
+  const isInvalidName = (name: string) => {
+    if (!name) return true;
+    const cleanName = name.trim();
+    if (cleanName.length < 3) return true;
+    // Verifica se o nome é composto apenas por dígitos (CNPJ inserido no campo nome, por exemplo)
+    if (/^\d+$/.test(cleanName.replace(/[\.\-\/]/g, ''))) return true;
+    return false;
+  }
+
   const filteredCompanies = React.useMemo(() => {
     if (!companies) return []
-    return companies.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    // Filtra nomes inválidos e aplica busca
+    return companies.filter(c => {
+      const name = c.name || "";
+      if (isInvalidName(name)) return false;
+      return name.toLowerCase().includes(searchTerm.toLowerCase());
+    })
   }, [companies, searchTerm])
 
   const handleEnrichData = async (company: any) => {
@@ -59,6 +75,19 @@ export default function ClientMapPage() {
       })
       
       const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
+      
+      // Se a confiança for muito baixa, o registro pode estar tão errado que não vale manter
+      if (result.confidence < 10 && !result.dataEnriched) {
+        deleteDocumentNonBlocking(companyRef)
+        setSelectedCompany(null)
+        toast({
+          variant: "destructive",
+          title: "Registro Eliminado",
+          description: `A NAI identificou que os dados de "${company.name}" estão incorretos ou inexistentes.`
+        })
+        return
+      }
+
       const updateData = {
         address: result.formatted_address || company.address,
         phone: result.international_phone_number || company.phone,
@@ -88,9 +117,10 @@ export default function ClientMapPage() {
   const handleBulkEnrich = async () => {
     if (!user || !db || !filteredCompanies.length) return
     
+    // Pega os que ainda não foram enriquecidos
     const toEnrich = filteredCompanies.filter(c => !c.dataEnriched)
     if (toEnrich.length === 0) {
-      toast({ title: "Tudo em ordem!", description: "Todos os registros visíveis já foram validados pela IA." })
+      toast({ title: "Tudo em ordem!", description: "Todos os registros válidos já foram processados." })
       return
     }
 
@@ -98,6 +128,7 @@ export default function ClientMapPage() {
     setBulkProgress(0)
     
     let processed = 0
+    let eliminated = 0
     const total = toEnrich.length
 
     for (const company of toEnrich) {
@@ -108,15 +139,21 @@ export default function ClientMapPage() {
         })
         
         const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
-        const updateData = {
-          address: result.formatted_address || company.address,
-          phone: result.international_phone_number || company.phone,
-          website: result.website || company.website,
-          dataEnriched: true,
-          updatedAt: new Date().toISOString()
-        }
         
-        updateDocumentNonBlocking(companyRef, updateData)
+        // Critério de expurgo: Baixa confiança ou sem enriquecimento
+        if (result.confidence < 10 && !result.dataEnriched) {
+          deleteDocumentNonBlocking(companyRef)
+          eliminated++
+        } else {
+          const updateData = {
+            address: result.formatted_address || company.address,
+            phone: result.international_phone_number || company.phone,
+            website: result.website || company.website,
+            dataEnriched: true,
+            updatedAt: new Date().toISOString()
+          }
+          updateDocumentNonBlocking(companyRef, updateData)
+        }
       } catch (e) {
         console.error(`Erro ao enriquecer ${company.name}:`, e)
       }
@@ -127,8 +164,8 @@ export default function ClientMapPage() {
 
     setIsBulkResolving(false)
     toast({
-      title: "Processamento Concluído",
-      description: `A NAI atualizou ${processed} registros com sucesso.`
+      title: "Varredura NAI Finalizada",
+      description: `Processados: ${processed} | Higienizados (Deletados): ${eliminated}`,
     })
   }
 
@@ -142,24 +179,24 @@ export default function ClientMapPage() {
     <div className="h-[calc(100vh-120px)] flex flex-col gap-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Geolocalização de Clientes & Rede</h1>
-          <p className="text-muted-foreground">Visualize a presença da Nextcon e localize unidades via NAI.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Geolocalização & Higienização NAI</h1>
+          <p className="text-muted-foreground">Localize sua rede e elimine registros inválidos automaticamente via IA.</p>
         </div>
         <div className="flex gap-2">
           <Button 
-            className="bg-accent hover:bg-accent/90 gap-2 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-accent/20"
+            className="bg-[#090e24] hover:bg-[#090e24]/90 gap-2 font-black uppercase text-[10px] tracking-widest shadow-lg"
             onClick={handleBulkEnrich}
             disabled={isBulkResolving || isLoading}
           >
             {isBulkResolving ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Processando... {bulkProgress}%
+                Higienizando... {bulkProgress}%
               </>
             ) : (
               <>
-                <Zap className="size-4" />
-                Enriquecer Lista (NAI)
+                <Zap className="size-4 text-[#f59e0b]" />
+                Higienizar & Enriquecer (NAI)
               </>
             )}
           </Button>
@@ -178,20 +215,18 @@ export default function ClientMapPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            {isBulkResolving && (
-              <div className="space-y-1.5 animate-in slide-in-from-top-2">
-                <div className="flex justify-between text-[9px] font-black text-primary/60 uppercase">
-                  <span>Varredura NAI em curso</span>
-                  <span>{bulkProgress}%</span>
-                </div>
-                <Progress value={bulkProgress} className="h-1 bg-muted" />
-              </div>
-            )}
+            <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
+              <p className="text-[9px] font-black text-blue-700 uppercase leading-tight">
+                Higienização Ativa: Nomes compostos apenas por números são ocultados e removidos durante a varredura NAI.
+              </p>
+            </div>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-0">
             <div className="divide-y">
               {isLoading ? (
                 <div className="p-10 text-center text-xs text-muted-foreground">Carregando empresas...</div>
+              ) : filteredCompanies.length === 0 ? (
+                <div className="p-10 text-center text-xs text-muted-foreground italic">Nenhum registro válido encontrado.</div>
               ) : filteredCompanies.map((company) => (
                 <button
                   key={company.id}
@@ -264,7 +299,7 @@ export default function ClientMapPage() {
                         onClick={() => handleEnrichData(selectedCompany)}
                         disabled={isResolving || isBulkResolving}
                       >
-                        {isResolving ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3 text-accent" />}
+                        {isResolving ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3 text-[#f59e0b]" />}
                         Revalidar IA
                       </Button>
                       <Button variant="default" size="sm" className="flex-1 text-[10px] h-8 bg-primary" asChild>
@@ -294,7 +329,7 @@ export default function ClientMapPage() {
                     </div>
                     <div>
                       <p className="text-lg font-bold text-primary">Aguardando Localização</p>
-                      <p className="text-sm text-muted-foreground">Clique em "Enriquecer Lista" ou selecione uma unidade para que a NAI a localize.</p>
+                      <p className="text-sm text-muted-foreground">Clique em "Higienizar & Enriquecer" ou selecione uma unidade para que a NAI a localize.</p>
                     </div>
                   </div>
                 )}
@@ -305,7 +340,7 @@ export default function ClientMapPage() {
               <MapIcon className="size-20 text-primary opacity-5" />
               <div>
                 <p className="text-lg font-bold text-primary opacity-40 uppercase tracking-widest">Selecione um Prestador</p>
-                <p className="text-sm text-muted-foreground">Escolha uma clínica na lista ao lado ou use o enriquecimento em lote.</p>
+                <p className="text-sm text-muted-foreground">Escolha uma clínica na lista ao lado ou use a higienização em lote.</p>
               </div>
             </div>
           )}
