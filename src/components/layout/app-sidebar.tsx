@@ -113,17 +113,17 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" collapsible="none" className="border-none bg-sidebar text-sidebar-foreground w-[260px] flex-shrink-0">
+    <Sidebar variant="sidebar" collapsible="none" className="border-none bg-sidebar text-sidebar-foreground w-[260px]">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-sidebar-primary shrink-0">
             <NextconLogo className="size-full" />
           </div>
-          <div className="flex flex-col leading-none">
-            <span className="font-headline font-black text-white text-xl tracking-tighter block">
+          <div className="flex flex-col leading-none overflow-hidden">
+            <span className="font-headline font-black text-white text-xl tracking-tighter">
               NEXTCON
             </span>
-            <span className="text-[9px] font-bold text-sidebar-primary uppercase tracking-[0.25em] mt-1 block">
+            <span className="text-[9px] font-bold text-sidebar-primary uppercase tracking-[0.25em] mt-1">
               SAÚDE EMPRESARIAL
             </span>
           </div>
@@ -136,7 +136,7 @@ export function AppSidebar() {
           
           return (
             <SidebarGroup key={group.label} className="px-3">
-              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-2 block">
+              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-2">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>
@@ -149,18 +149,18 @@ export function AppSidebar() {
                         asChild 
                         isActive={isActive}
                         className={cn(
-                          "relative h-11 px-4 mb-1 transition-none rounded-lg flex items-center gap-3 w-full",
+                          "relative h-11 px-4 mb-1 transition-none rounded-lg",
                           isActive 
                             ? "bg-white/10 text-white" 
                             : "text-white/70 hover:text-white hover:bg-white/5"
                         )}
                       >
-                        <Link href={item.href}>
+                        <Link href={item.href} className="flex items-center gap-3 w-full">
                           <Icon className={cn(
                             "size-5 shrink-0",
                             isActive ? "text-sidebar-primary" : "text-white/40"
                           )} />
-                          <span className="font-medium tracking-wide text-sm whitespace-nowrap block">
+                          <span className="font-medium tracking-wide text-sm whitespace-nowrap">
                             {item.title}
                           </span>
                           {isActive && <div className="absolute left-0 w-1 h-6 bg-sidebar-primary rounded-r-full" />}
@@ -192,6 +192,7 @@ export function AppSidebar() {
               <button 
                 onClick={handleLogout}
                 className="p-2 text-white/40 hover:text-sidebar-primary transition-colors shrink-0"
+                title="Sair do sistema"
               >
                 <LogOut className="size-4" />
               </button>
