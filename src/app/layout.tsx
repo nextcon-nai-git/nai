@@ -1,10 +1,13 @@
-
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import * as React from 'react';
 import { AppContent } from '@/components/layout/app-content';
 
+/**
+ * Server Component de Layout.
+ * Fix: Mantém a estrutura HTML/BODY estática para evitar erros de hidratação (mismatch).
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

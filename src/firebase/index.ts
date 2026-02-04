@@ -1,4 +1,3 @@
-
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -7,35 +6,29 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore'
 import { getStorage, FirebaseStorage } from 'firebase/storage'
 
-// Singleton SDK instances to prevent internal assertion failures during HMR or multiple calls
-let memoizedSdks: ReturnType<typeof getSdks> | undefined;
+// Padrão Singleton para evitar o erro "FIRESTORE INTERNAL ASSERTION FAILED"
+let memoizedApp: FirebaseApp | undefined;
+let memoizedAuth: Auth | undefined;
+let memoizedFirestore: Firestore | undefined;
+let memoizedStorage: FirebaseStorage | undefined;
 
 /**
- * Initializes Firebase and returns the singleton instances of services.
- * Ensures services are only initialized once on the client to avoid "Unexpected state" errors.
+ * Inicializa o Firebase garantindo que as instâncias sejam únicas (Singleton).
+ * Resolve problemas de asserção interna e conflitos durante o Hot Reload.
  */
 export function initializeFirebase() {
-  if (typeof window === 'undefined') {
-    // Basic initialization for SSR
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    return getSdks(app);
+  if (!memoizedApp) {
+    memoizedApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    memoizedAuth = getAuth(memoizedApp);
+    memoizedFirestore = getFirestore(memoizedApp);
+    memoizedStorage = getStorage(memoizedApp);
   }
 
-  // Client-side singleton pattern
-  if (!memoizedSdks) {
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    memoizedSdks = getSdks(app);
-  }
-
-  return memoizedSdks;
-}
-
-export function getSdks(firebaseApp: FirebaseApp) {
   return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp)
+    firebaseApp: memoizedApp,
+    auth: memoizedAuth!,
+    firestore: memoizedFirestore!,
+    storage: memoizedStorage!
   };
 }
 

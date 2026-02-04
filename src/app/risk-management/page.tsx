@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -135,10 +134,10 @@ export default function RiskInventoryPGR() {
         </div>
       </div>
 
-      <Card className="card-shadow border-none overflow-hidden">
-        <CardHeader className="bg-muted/30 border-b flex flex-row items-center justify-between">
+      <Card className="card-shadow border-none overflow-hidden bg-white">
+        <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Exposição por GES (Grupo de Exposição Similar)</CardTitle>
+            <CardTitle className="text-lg font-bold text-[#090e24]">Exposição por GES</CardTitle>
             <CardDescription>Visualização técnica atualizada conforme NR-01.</CardDescription>
           </div>
           <Badge className="bg-emerald-600 text-white border-none gap-1">
@@ -147,7 +146,7 @@ export default function RiskInventoryPGR() {
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-muted/10">
+            <TableHeader className="bg-gray-50/50">
               <TableRow>
                 <TableHead className="font-bold">Setor / GES</TableHead>
                 <TableHead className="font-bold">Agente de Risco</TableHead>
@@ -158,7 +157,7 @@ export default function RiskInventoryPGR() {
             </TableHeader>
             <TableBody>
               {filteredRisks.map((risk) => (
-                <TableRow key={risk.id} className="hover:bg-[#090e24]/5 transition-colors group">
+                <TableRow key={risk.id} className="hover:bg-gray-50 transition-colors group">
                   <TableCell>
                     <div>
                       <p className="font-bold text-[#090e24]">{risk.environment}</p>
@@ -203,7 +202,7 @@ export default function RiskInventoryPGR() {
       </Card>
 
       {(selectedRisk || isGenerating) && (
-        <Card className="card-shadow border-none bg-[#090e24] text-white overflow-hidden shadow-2xl mt-8">
+        <Card className="border-none bg-[#090e24] text-white overflow-hidden shadow-2xl mt-8">
           <CardHeader className="border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-[#f59e0b]/20 rounded-2xl">
@@ -219,7 +218,7 @@ export default function RiskInventoryPGR() {
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 gap-4">
                 <Loader2 className="size-10 animate-spin text-[#f59e0b]" />
-                <p className="text-sm font-black uppercase tracking-widest text-[#f59e0b]/80">NAI Consultando Base de Conhecimento...</p>
+                <p className="text-sm font-black uppercase tracking-widest text-[#f59e0b]/80">Consultando Base de Conhecimento...</p>
               </div>
             ) : (
               <div className="space-y-6">
