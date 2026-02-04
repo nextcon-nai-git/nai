@@ -1,5 +1,4 @@
-
-'use client';
+"use client"
 
 import * as React from 'react';
 import Link from 'next/link';
@@ -27,7 +26,8 @@ import {
   HeartPulse,
   CalendarDays,
   FolderOpen,
-  Bell
+  Bell,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
@@ -76,6 +76,7 @@ export function TopNav() {
   const navStructure = {
     SUPER_ADMIN: [
       { label: "Dashboard", href: "/", icon: LayoutDashboard },
+      { label: "Financeiro", href: "/financial", icon: DollarSign },
       { label: "Empresas", href: "/agency/client-map", icon: Building2 },
       { label: "Relatórios", href: "/reports", icon: FileText },
       { label: "Importação", href: "/data-import", icon: Database },

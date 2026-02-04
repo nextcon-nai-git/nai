@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -18,7 +17,8 @@ import {
   Database,
   Sparkles,
   ClipboardList,
-  Map as MapIcon
+  Map as MapIcon,
+  DollarSign
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -41,14 +41,13 @@ import { doc } from "firebase/firestore"
 import { NextconLogo } from "@/components/ui/logo"
 import { cn } from "@/lib/utils"
 
-type Role = 'admin' | 'client' | 'employee' | 'provider'
-
 const navGroups = [
   {
     label: "Administração Nextcon",
     roles: ['admin', 'super_admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
+      { title: "Módulo Financeiro", icon: DollarSign, href: "/financial" },
       { title: "Mapa de Clientes", icon: MapIcon, href: "/agency/client-map" },
       { title: "Importação de Dados", icon: Database, href: "/data-import" },
     ]
