@@ -13,12 +13,14 @@ import {
   ExternalLink,
   Phone,
   Link as LinkIcon,
-  Stethoscope
+  Stethoscope,
+  Zap
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, doc } from "firebase/firestore"
@@ -31,6 +33,8 @@ export default function ClientMapPage() {
   const db = useFirestore()
   const [selectedCompany, setSelectedCompany] = React.useState<any>(null)
   const [isResolving, setIsResolving] = React.useState(false)
+  const [isBulkResolving, setIsBulkResolving] = React.useState(false)
+  const [bulkProgress, setBulkProgress] = React.useState(0)
   const [searchTerm, setSearchTerm] = React.useState("")
 
   const companiesQuery = useMemoFirebase(() => {
@@ -81,6 +85,53 @@ export default function ClientMapPage() {
     }
   }
 
+  const handleBulkEnrich = async () => {
+    if (!user || !db || !filteredCompanies.length) return
+    
+    const toEnrich = filteredCompanies.filter(c => !c.dataEnriched)
+    if (toEnrich.length === 0) {
+      toast({ title: "Tudo em ordem!", description: "Todos os registros visíveis já foram validados pela IA." })
+      return
+    }
+
+    setIsBulkResolving(true)
+    setBulkProgress(0)
+    
+    let processed = 0
+    const total = toEnrich.length
+
+    for (const company of toEnrich) {
+      try {
+        const result = await enrichProviderData({
+          name: company.name,
+          city: company.city || "Curitiba"
+        })
+        
+        const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
+        const updateData = {
+          address: result.formatted_address || company.address,
+          phone: result.international_phone_number || company.phone,
+          website: result.website || company.website,
+          dataEnriched: true,
+          updatedAt: new Date().toISOString()
+        }
+        
+        updateDocumentNonBlocking(companyRef, updateData)
+      } catch (e) {
+        console.error(`Erro ao enriquecer ${company.name}:`, e)
+      }
+      
+      processed++
+      setBulkProgress(Math.round((processed / total) * 100))
+    }
+
+    setIsBulkResolving(false)
+    toast({
+      title: "Processamento Concluído",
+      description: `A NAI atualizou ${processed} registros com sucesso.`
+    })
+  }
+
   const mapUrl = React.useMemo(() => {
     if (!selectedCompany?.address) return null
     const query = encodeURIComponent(selectedCompany.address)
@@ -94,11 +145,30 @@ export default function ClientMapPage() {
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Geolocalização de Clientes & Rede</h1>
           <p className="text-muted-foreground">Visualize a presença da Nextcon e localize unidades via NAI.</p>
         </div>
+        <div className="flex gap-2">
+          <Button 
+            className="bg-accent hover:bg-accent/90 gap-2 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-accent/20"
+            onClick={handleBulkEnrich}
+            disabled={isBulkResolving || isLoading}
+          >
+            {isBulkResolving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Processando... {bulkProgress}%
+              </>
+            ) : (
+              <>
+                <Zap className="size-4" />
+                Enriquecer Lista (NAI)
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden">
         <Card className="lg:col-span-1 flex flex-col card-shadow border-none overflow-hidden">
-          <CardHeader className="bg-muted/30 border-b p-4">
+          <CardHeader className="bg-muted/30 border-b p-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
               <Input 
@@ -108,6 +178,15 @@ export default function ClientMapPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            {isBulkResolving && (
+              <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                <div className="flex justify-between text-[9px] font-black text-primary/60 uppercase">
+                  <span>Varredura NAI em curso</span>
+                  <span>{bulkProgress}%</span>
+                </div>
+                <Progress value={bulkProgress} className="h-1 bg-muted" />
+              </div>
+            )}
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-0">
             <div className="divide-y">
@@ -183,10 +262,10 @@ export default function ClientMapPage() {
                         size="sm" 
                         className="flex-1 text-[10px] h-8 gap-1"
                         onClick={() => handleEnrichData(selectedCompany)}
-                        disabled={isResolving}
+                        disabled={isResolving || isBulkResolving}
                       >
                         {isResolving ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3 text-accent" />}
-                        Enriquecer com IA
+                        Revalidar IA
                       </Button>
                       <Button variant="default" size="sm" className="flex-1 text-[10px] h-8 bg-primary" asChild>
                         <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedCompany.address || selectedCompany.name)}`} target="_blank">
@@ -215,7 +294,7 @@ export default function ClientMapPage() {
                     </div>
                     <div>
                       <p className="text-lg font-bold text-primary">Aguardando Localização</p>
-                      <p className="text-sm text-muted-foreground">Clique no botão acima para que a NAI encontre esta unidade no mapa.</p>
+                      <p className="text-sm text-muted-foreground">Clique em "Enriquecer Lista" ou selecione uma unidade para que a NAI a localize.</p>
                     </div>
                   </div>
                 )}
@@ -226,7 +305,7 @@ export default function ClientMapPage() {
               <MapIcon className="size-20 text-primary opacity-5" />
               <div>
                 <p className="text-lg font-bold text-primary opacity-40 uppercase tracking-widest">Selecione um Prestador</p>
-                <p className="text-sm text-muted-foreground">Escolha uma clínica na lista ao lado para visualizar os detalhes.</p>
+                <p className="text-sm text-muted-foreground">Escolha uma clínica na lista ao lado ou use o enriquecimento em lote.</p>
               </div>
             </div>
           )}
