@@ -1,102 +1,68 @@
 
 {
   "entities": {
-    "Agency": {
-      "title": "Perfil de Usuário (Multinível)",
+    "UserProfile": {
+      "title": "Perfil de Usuário",
       "type": "object",
-      "description": "Dados do usuário logado, definindo seu nível de acesso (admin, client, employee).",
+      "description": "Dados do usuário no sistema, definindo seu nível de acesso.",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "role": { 
           "type": "string",
-          "enum": ["admin", "client", "employee"],
-          "description": "Papel do usuário no sistema: admin (Nextcon), client (Gestor da Empresa), employee (Funcionário)."
+          "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "EMPLOYEE"],
+          "description": "Papel do usuário: SUPER_ADMIN (Nextcon), CLIENT_ADMIN (Gestor Empresa), EMPLOYEE (Funcionário)."
         },
-        "company": { "type": "string" }
+        "companyId": { "type": "string", "description": "Referência para a empresa do cliente." },
+        "linkedEmployeeId": { "type": "string", "description": "Referência para o cadastro de funcionário se for EMPLOYEE." },
+        "name": { "type": "string" }
       },
-      "required": ["id", "name", "role"]
+      "required": ["id", "role"]
     },
-    "ManagedCompany": {
+    "Company": {
       "title": "Empresa Cliente",
       "type": "object",
-      "description": "Empresa atendida pela consultoria Nextcon.",
+      "description": "Empresa atendida pela plataforma NAI.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "cnpj": { "type": "string" },
-        "sector": { "type": "string" },
-        "contactEmail": { "type": "string", "format": "email" },
-        "pgrExpiry": { "type": "string" },
-        "address": { "type": "string", "description": "Endereço completo da empresa para geolocalização." },
-        "city": { "type": "string" }
+        "status": { "type": "string", "enum": ["ACTIVE", "BLOCKED"] },
+        "subscriptionPlan": { "type": "string" },
+        "settings": { "type": "object" }
       },
       "required": ["id", "name", "cnpj"]
-    },
-    "Task": {
-      "title": "Plano de Ação",
-      "type": "object",
-      "description": "Tarefa de segurança ou conformidade do PGR/CIPA.",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "category": { "type": "string" },
-        "priority": { "type": "string" },
-        "status": { "type": "string" },
-        "deadline": { "type": "string" },
-        "createdAt": { "type": "string" }
-      }
     },
     "Employee": {
       "title": "Colaborador",
       "type": "object",
-      "description": "Funcionário de uma empresa cliente gerenciada.",
+      "description": "Cadastro de vida vinculada a uma empresa.",
       "properties": {
         "id": { "type": "string" },
         "companyId": { "type": "string" },
         "name": { "type": "string" },
-        "jobRole": { "type": "string" },
-        "admissionDate": { "type": "string", "format": "date-time" }
+        "cpf": { "type": "string" },
+        "registrationNumber": { "type": "string" },
+        "status": { "type": "string" }
       },
-      "required": ["id", "name"]
-    },
-    "PsychosocialSurvey": {
-      "title": "Pesquisa COPSOQ II",
-      "type": "object",
-      "description": "Avaliação de riscos psicossociais realizada pelo colaborador ou psicólogo.",
-      "properties": {
-        "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "date": { "type": "string" },
-        "answers": { "type": "object" },
-        "totalScore": { "type": "number" }
-      }
+      "required": ["id", "name", "companyId"]
     }
   },
   "auth": {
     "providers": ["password"]
   },
   "firestore": {
-    "/clients/{agencyId}": {
-      "schema": "Agency",
-      "description": "Perfil central do usuário logado (pode ser admin, cliente ou colaborador)."
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Tabela central de permissões de usuários."
     },
-    "/clients/{agencyId}/managedCompanies/{companyId}": {
-      "schema": "ManagedCompany",
-      "description": "Empresas clientes gerenciadas (visível para Admin)."
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Dados mestre das empresas clientes."
     },
-    "/clients/{agencyId}/tasks/{taskId}": {
-      "schema": "Task",
-      "description": "Plano de ação global do cliente (visível para Admin/Cliente)."
-    },
-    "/clients/{agencyId}/employees/{employeeId}": {
+    "/employees/{employeeId}": {
       "schema": "Employee",
-      "description": "Base global de colaboradores (visível para Admin/Cliente)."
-    },
-    "/clients/{agencyId}/surveys/{surveyId}": {
-      "schema": "PsychosocialSurvey",
-      "description": "Resultados das pesquisas (visível para Admin/Cliente)."
+      "description": "Base global de vidas gerenciadas."
     }
   }
 }
