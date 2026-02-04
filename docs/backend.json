@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -29,7 +28,11 @@
         "cnpj": { "type": "string" },
         "status": { "type": "string", "enum": ["ACTIVE", "BLOCKED"] },
         "subscriptionPlan": { "type": "string" },
-        "settings": { "type": "object" }
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "website": { "type": "string" },
+        "dataEnriched": { "type": "boolean" },
+        "city": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
     },

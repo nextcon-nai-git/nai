@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -89,10 +90,9 @@ export default function ReportsCenter() {
     }
     return q
   }, [db, user, selectedCompanyId])
-  const { data: uploadedReports, isLoading } = useCollection(uploadedReportsQuery)
+  const { data: uploadedReports } = useCollection(uploadedReportsQuery)
 
   const handleAction = (report: ReportItem, action: string) => {
-    // Busca se existe um arquivo real para este tipo
     const realFile = uploadedReports?.find(r => r.reportType === report.id)
     
     if (realFile && (action === 'Visualizar' || action === 'Baixar PDF')) {
@@ -230,7 +230,7 @@ export default function ReportsCenter() {
         <Info className="size-5 text-primary shrink-0" />
         <div className="text-xs text-primary/80 space-y-1">
           <p><strong>Dica NEXTCON:</strong> Relatórios com a faixa lateral amarela possuem arquivos PDF reais carregados no sistema.</p>
-          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados &gt; Aba Documentos</strong>.</p>
+          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados {'&gt;'} Aba Documentos</strong>.</p>
         </div>
       </div>
     </div>

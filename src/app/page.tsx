@@ -94,7 +94,7 @@ export default function Dashboard() {
     pgr: reports?.filter(r => r.reportType === 'pgr').length || 0
   };
 
-  const naiIndicators = [
+  const indicators = [
     { title: "Colaboradores Ativos", category: "Vidas", count: counts.employees, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Relatórios Emitidos", category: "Gestão", count: counts.reports, icon: FileText, color: "text-emerald-600", bg: "bg-emerald-50" },
     { title: "Eventos eSocial", category: "SST", count: counts.events, icon: Activity, color: "text-amber-600", bg: "bg-amber-50" },
@@ -106,9 +106,9 @@ export default function Dashboard() {
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
-  const naiCapabilities = [
+  const capabilities = [
     { 
-      title: "Auditoria eSocial", 
+      title: "Vigilante eSocial", 
       desc: "Valida inconsistências entre PGR e PCMSO em segundos.", 
       icon: SearchCheck, 
       href: "/esocial-audit",
@@ -155,7 +155,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {naiIndicators.map((indicator) => (
+        {indicators.map((indicator) => (
           <Card key={indicator.title} className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
@@ -209,16 +209,16 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {naiCapabilities.map((cap) => (
+            {capabilities.map((cap) => (
               <Link key={cap.title} href={cap.href}>
-                <Card className="border-none shadow-sm hover:ring-2 ring-[#f59e0b]/20 transition-all cursor-pointer bg-white h-full">
+                <Card className="border-none shadow-sm hover:ring-2 ring-[#f59e0b]/20 transition-all cursor-pointer bg-white h-full group">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                      <div className={cn("p-3 rounded-xl bg-muted/50", cap.color)}>
+                      <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#f59e0b]/10 transition-colors", cap.color)}>
                         <cap.icon className="size-6" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-[#090e24] mb-1">{cap.title}</h4>
+                        <h4 className="font-bold text-[#090e24] mb-1 group-hover:text-[#f59e0b] transition-colors">{cap.title}</h4>
                         <p className="text-xs text-muted-foreground leading-tight">{cap.desc}</p>
                       </div>
                     </div>
