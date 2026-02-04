@@ -53,7 +53,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
         <div className="flex-1 flex flex-col min-w-0 bg-background relative overflow-hidden">
           {/* Header Mobile - Visível apenas em telas pequenas */}
           <header className="h-14 border-b bg-white flex items-center px-4 md:hidden shrink-0 z-50">
-            <SidebarTrigger>
+            <SidebarTrigger className="h-10 w-10">
               <Menu className="size-6 text-primary" />
             </SidebarTrigger>
             <span className="ml-4 font-headline font-black text-primary text-sm tracking-tighter uppercase">NEXTCON</span>

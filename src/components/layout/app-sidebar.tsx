@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -112,7 +113,7 @@ export function AppSidebar() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <Sidebar variant="sidebar" className="border-none bg-sidebar text-sidebar-foreground w-[260px]">
+    <Sidebar variant="sidebar" collapsible="none" className="border-none bg-sidebar text-sidebar-foreground w-[260px]">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
           <div className="size-10 flex items-center justify-center text-sidebar-primary shrink-0">
