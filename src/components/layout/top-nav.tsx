@@ -114,31 +114,31 @@ export function TopNav() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-lg">
+    <header className="sticky top-0 z-50 w-full border-b bg-[#090e24] text-white shadow-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="size-8 text-accent shrink-0">
+            <div className="size-8 text-[#f59e0b] shrink-0">
               <NextconLogo className="size-full" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-headline font-black text-primary-foreground text-lg tracking-tighter uppercase group-hover:text-accent transition-colors block">
+              <span className="font-headline font-black text-white text-lg tracking-tighter uppercase group-hover:text-[#f59e0b] transition-colors">
                 NEXTCON
               </span>
-              <span className="text-[8px] font-bold text-accent uppercase tracking-widest leading-none block">
+              <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest leading-none">
                 SST
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation - Texto Branco Fixo */}
           <nav className="hidden lg:flex items-center gap-1">
             {navGroups.map((group) => {
               if (!group.roles.includes(role)) return null
               return (
                 <DropdownMenu key={group.label}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
+                    <Button variant="ghost" className="text-white/90 hover:text-white hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
                       {group.label} <ChevronDown className="size-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -146,11 +146,11 @@ export function TopNav() {
                     {group.items.map((item) => (
                       <DropdownMenuItem key={item.title} asChild>
                         <Link href={item.href} className={cn(
-                          "flex items-center gap-2 cursor-pointer p-2",
-                          pathname === item.href ? "bg-primary/5 text-primary font-bold" : ""
+                          "flex items-center gap-2 cursor-pointer p-2 text-sm font-medium",
+                          pathname === item.href ? "bg-primary/5 text-primary font-bold" : "text-foreground"
                         )}>
                           <item.icon className="size-4" />
-                          <span className="block">{item.title}</span>
+                          <span>{item.title}</span>
                         </Link>
                       </DropdownMenuItem>
                     ))}
@@ -164,14 +164,14 @@ export function TopNav() {
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-3 pr-2 border-r border-white/10">
             <div className="text-right">
-              <p className="text-xs font-bold text-primary-foreground leading-none">{userName}</p>
-              <p className="text-[9px] text-accent font-black uppercase tracking-tighter">{userRoleLabel}</p>
+              <p className="text-xs font-bold text-white leading-none">{userName}</p>
+              <p className="text-[9px] text-[#f59e0b] font-black uppercase tracking-tighter">{userRoleLabel}</p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="size-8 cursor-pointer border border-white/20 hover:border-accent transition-colors">
+                <Avatar className="size-8 cursor-pointer border border-white/20 hover:border-[#f59e0b] transition-colors">
                   <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                  <AvatarFallback className="bg-accent text-primary font-bold text-xs">{userInitial}</AvatarFallback>
+                  <AvatarFallback className="bg-[#f59e0b] text-[#090e24] font-bold text-xs">{userInitial}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 p-2">
@@ -187,23 +187,23 @@ export function TopNav() {
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden text-primary-foreground hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-white/10">
                 <Menu className="size-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] p-0 bg-primary border-none text-primary-foreground">
-              <SheetHeader className="p-6 border-b border-white/10">
-                <SheetTitle className="flex items-center gap-2 text-primary-foreground">
-                   <div className="size-8 text-accent"><NextconLogo className="size-full" /></div>
+            <SheetContent side="right" className="w-[300px] p-0 bg-[#090e24] border-none text-white">
+              <SheetHeader className="p-6 border-b border-white/10 text-left">
+                <SheetTitle className="flex items-center gap-2 text-white">
+                   <div className="size-8 text-[#f59e0b]"><NextconLogo className="size-full" /></div>
                    <span className="font-headline font-black tracking-tighter uppercase">NEXTCON</span>
                 </SheetTitle>
               </SheetHeader>
-              <div className="overflow-y-auto max-h-[calc(100vh-80px)] p-4 space-y-6">
+              <div className="overflow-y-auto p-4 space-y-6">
                 {navGroups.map((group) => {
                   if (!group.roles.includes(role)) return null
                   return (
                     <div key={group.label} className="space-y-3">
-                      <h3 className="text-[10px] font-black uppercase text-accent tracking-[0.2em] px-4">{group.label}</h3>
+                      <h3 className="text-[10px] font-black uppercase text-[#f59e0b] tracking-[0.2em] px-4">{group.label}</h3>
                       <div className="grid grid-cols-1 gap-1">
                         {group.items.map((item) => (
                           <Link
@@ -212,11 +212,11 @@ export function TopNav() {
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
                               "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                              pathname === item.href ? "bg-accent text-primary font-bold" : "text-primary-foreground/70 hover:bg-white/5 hover:text-primary-foreground"
+                              pathname === item.href ? "bg-[#f59e0b] text-[#090e24] font-bold" : "text-white/70 hover:bg-white/5 hover:text-white"
                             )}
                           >
                             <item.icon className="size-5" />
-                            <span className="text-sm block">{item.title}</span>
+                            <span className="text-sm">{item.title}</span>
                           </Link>
                         ))}
                       </div>
@@ -224,7 +224,7 @@ export function TopNav() {
                   )
                 })}
                 <div className="pt-4 border-t border-white/10">
-                  <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive gap-3 px-4" onClick={handleLogout}>
+                  <Button variant="ghost" className="w-full justify-start text-red-400 hover:bg-red-400/10 hover:text-red-400 gap-3 px-4" onClick={handleLogout}>
                     <LogOut className="size-5" /> Sair
                   </Button>
                 </div>

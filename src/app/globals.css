@@ -26,28 +26,6 @@
     --ring: 222 47% 11%;
     --radius: 0.75rem;
   }
-
-  .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 45 93% 47%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 212.7 26.8% 83.9%;
-  }
 }
 
 @layer base {
@@ -57,7 +35,7 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
   }
-  /* Garante visibilidade do texto */
+  /* Força visibilidade e impede animações que quebram o texto */
   span, p, h1, h2, h3, a, button {
     opacity: 1 !important;
     visibility: visible !important;
@@ -74,11 +52,6 @@
 
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
