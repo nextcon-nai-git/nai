@@ -22,8 +22,7 @@ import {
   Database,
   Sparkles,
   ClipboardList,
-  Map as MapIcon,
-  X
+  Map as MapIcon
 } from "lucide-react"
 
 import {
@@ -115,7 +114,7 @@ export function TopNav() {
   const userInitial = userName.substring(0, 2).toUpperCase()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-primary text-white shadow-lg">
+    <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-lg">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
@@ -123,10 +122,10 @@ export function TopNav() {
               <NextconLogo className="size-full" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-headline font-black text-white text-lg tracking-tighter uppercase group-hover:text-accent transition-colors">
+              <span className="font-headline font-black text-primary-foreground text-lg tracking-tighter uppercase group-hover:text-accent transition-colors block">
                 NEXTCON
               </span>
-              <span className="text-[8px] font-bold text-accent uppercase tracking-widest leading-none">
+              <span className="text-[8px] font-bold text-accent uppercase tracking-widest leading-none block">
                 SST
               </span>
             </div>
@@ -139,7 +138,7 @@ export function TopNav() {
               return (
                 <DropdownMenu key={group.label}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
+                    <Button variant="ghost" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10 gap-1 h-9 px-3 text-xs font-bold uppercase tracking-wider">
                       {group.label} <ChevronDown className="size-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -151,7 +150,7 @@ export function TopNav() {
                           pathname === item.href ? "bg-primary/5 text-primary font-bold" : ""
                         )}>
                           <item.icon className="size-4" />
-                          <span>{item.title}</span>
+                          <span className="block">{item.title}</span>
                         </Link>
                       </DropdownMenuItem>
                     ))}
@@ -163,10 +162,9 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* User Profile Desktop */}
           <div className="hidden sm:flex items-center gap-3 pr-2 border-r border-white/10">
             <div className="text-right">
-              <p className="text-xs font-bold text-white leading-none">{userName}</p>
+              <p className="text-xs font-bold text-primary-foreground leading-none">{userName}</p>
               <p className="text-[9px] text-accent font-black uppercase tracking-tighter">{userRoleLabel}</p>
             </div>
             <DropdownMenu>
@@ -187,16 +185,15 @@ export function TopNav() {
             </DropdownMenu>
           </div>
 
-          {/* Mobile Menu Trigger */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="lg:hidden text-primary-foreground hover:bg-white/10">
                 <Menu className="size-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] p-0 bg-primary border-none text-white">
+            <SheetContent side="right" className="w-[300px] p-0 bg-primary border-none text-primary-foreground">
               <SheetHeader className="p-6 border-b border-white/10">
-                <SheetTitle className="flex items-center gap-2 text-white">
+                <SheetTitle className="flex items-center gap-2 text-primary-foreground">
                    <div className="size-8 text-accent"><NextconLogo className="size-full" /></div>
                    <span className="font-headline font-black tracking-tighter uppercase">NEXTCON</span>
                 </SheetTitle>
@@ -215,11 +212,11 @@ export function TopNav() {
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
                               "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                              pathname === item.href ? "bg-accent text-primary font-bold" : "text-white/70 hover:bg-white/5 hover:text-white"
+                              pathname === item.href ? "bg-accent text-primary font-bold" : "text-primary-foreground/70 hover:bg-white/5 hover:text-primary-foreground"
                             )}
                           >
                             <item.icon className="size-5" />
-                            <span className="text-sm">{item.title}</span>
+                            <span className="text-sm block">{item.title}</span>
                           </Link>
                         ))}
                       </div>

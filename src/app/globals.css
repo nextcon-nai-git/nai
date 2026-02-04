@@ -57,6 +57,11 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
   }
+  /* Garante visibilidade do texto */
+  span, p, h1, h2, h3, a, button {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
 }
 
 .gradient-primary {
@@ -67,7 +72,6 @@
   box-shadow: 0 10px 30px -10px rgba(9, 14, 36, 0.08);
 }
 
-/* Custom Scrollbar for top menu */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -79,8 +83,4 @@
 
 ::-webkit-scrollbar-thumb {
   @apply bg-primary/20 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/40;
 }
