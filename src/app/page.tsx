@@ -18,13 +18,17 @@ import {
   Activity,
   UserMinus,
   BarChart3,
-  Users
+  Users,
+  SearchCheck,
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -102,8 +106,39 @@ export default function Dashboard() {
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
+  const naiCapabilities = [
+    { 
+      title: "Auditoria eSocial", 
+      desc: "Valida inconsistências entre PGR e PCMSO em segundos.", 
+      icon: SearchCheck, 
+      href: "/esocial-audit",
+      color: "text-emerald-500"
+    },
+    { 
+      title: "Sentinela NTEP", 
+      desc: "Gera contestações jurídicas para proteção do FAP/RAT.", 
+      icon: AlertTriangle, 
+      href: "/absenteeism",
+      color: "text-amber-500"
+    },
+    { 
+      title: "Consultoria NR 2026", 
+      desc: "Respostas imediatas sobre legislação e normas vigentes.", 
+      icon: Sparkles, 
+      href: "/knowledge-base",
+      color: "text-indigo-500"
+    },
+    { 
+      title: "Geointeligência", 
+      desc: "Localiza e enriquece dados da rede credenciada via IA.", 
+      icon: MapPin, 
+      href: "/agency/client-map",
+      color: "text-blue-500"
+    }
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col">
           <h1 className="text-3xl font-black text-[#090e24] tracking-tight font-headline">
@@ -145,32 +180,54 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 border-none shadow-lg bg-white overflow-hidden">
-          <CardHeader className="bg-[#090e24] text-white">
-            <CardTitle className="text-xl font-bold font-headline uppercase tracking-tight">Impacto Financeiro & ROI SST</CardTitle>
-            <CardDescription className="text-white/60">Economia projetada com base na redução de acidentes e contestações.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8">
-            <div className="h-64 bg-gray-50 rounded-xl border-2 border-dashed flex items-center justify-center text-muted-foreground text-xs uppercase font-bold tracking-widest">
-              [ Gráfico de Tendência Operacional 2026 ]
-            </div>
-            <div className="mt-8 p-6 bg-[#090e24] rounded-2xl flex items-center justify-between text-white">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white/10 rounded-xl">
-                  <ArrowUpRight className="h-6 w-6 text-[#f59e0b]" />
+        <div className="lg:col-span-2 space-y-8">
+          <Card className="border-none shadow-lg bg-white overflow-hidden">
+            <CardHeader className="bg-[#090e24] text-white">
+              <CardTitle className="text-xl font-bold font-headline uppercase tracking-tight">Impacto Financeiro & ROI SST</CardTitle>
+              <CardDescription className="text-white/60">Economia projetada com base na redução de acidentes e contestações.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-64 bg-gray-50 rounded-xl border-2 border-dashed flex items-center justify-center text-muted-foreground text-xs uppercase font-bold tracking-widest">
+                [ Gráfico de Tendência Operacional 2026 ]
+              </div>
+              <div className="mt-8 p-6 bg-[#090e24] rounded-2xl flex items-center justify-between text-white">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-white/10 rounded-xl">
+                    <ArrowUpRight className="h-6 w-6 text-[#f59e0b]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Salvaguarda Administrativa</p>
+                    <p className="text-[10px] text-white/50 uppercase font-black">Projeção NEXTCON</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold">Salvaguarda Administrativa</p>
-                  <p className="text-[10px] text-white/50 uppercase font-black">Projeção NEXTCON</p>
+                <div className="text-right">
+                  <p className="text-2xl font-black">R$ 452.800,00</p>
+                  <p className="text-[10px] font-black text-[#f59e0b] uppercase">Economia Direta</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-2xl font-black">R$ 452.800,00</p>
-                <p className="text-[10px] font-black text-[#f59e0b] uppercase">Economia Direta</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {naiCapabilities.map((cap) => (
+              <Link key={cap.title} href={cap.href}>
+                <Card className="border-none shadow-sm hover:ring-2 ring-[#f59e0b]/20 transition-all cursor-pointer bg-white h-full">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className={cn("p-3 rounded-xl bg-muted/50", cap.color)}>
+                        <cap.icon className="size-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#090e24] mb-1">{cap.title}</h4>
+                        <p className="text-xs text-muted-foreground leading-tight">{cap.desc}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
 
         <div className="space-y-6">
           <Card className="border-none shadow-lg bg-[#090e24] text-white relative overflow-hidden">
@@ -179,7 +236,7 @@ export default function Dashboard() {
             </div>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2 font-headline uppercase italic">
-                <Zap className="h-5 w-5 text-[#f59e0b]" /> Insights de Gestão NAI
+                <Zap className="h-5 w-5 text-[#f59e0b]" /> Insights NAI
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -189,7 +246,11 @@ export default function Dashboard() {
               </div>
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                 <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-2">Relatórios Técnicos</p>
-                <p className="text-xs leading-relaxed text-white/80 font-medium">Identificamos {counts.asos} ASOs válidos na sua base atual.</p>
+                <p className="text-xs leading-relaxed text-white/80 font-medium">Identificamos {counts.reports} documentos técnicos válidos na sua base atual.</p>
+              </div>
+              <div className="p-4 bg-[#f59e0b] rounded-xl">
+                <p className="text-[10px] font-black text-[#090e24] uppercase tracking-widest mb-1">Dica NAI</p>
+                <p className="text-xs font-bold text-[#090e24]">Use o Sentinela do Limbo para contestar NTEP indevido e reduzir o seu RAT.</p>
               </div>
             </CardContent>
           </Card>
