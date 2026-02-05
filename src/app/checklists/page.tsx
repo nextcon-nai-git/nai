@@ -50,7 +50,13 @@ import {
   CheckCircle2,
   XCircle,
   MinusCircle,
-  Info
+  Info,
+  FileUp,
+  FileText,
+  Sparkles,
+  ChevronRight,
+  MessageSquare,
+  History
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -63,6 +69,8 @@ import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { analyzePgrPdf, type PgrAnalysisOutput } from "@/ai/flows/pgr-analysis-flow"
+import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -185,6 +193,10 @@ export default function ChecklistsPage() {
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>(INITIAL_BODY_PARTS)
   const [isSaving, setIsSaving] = React.useState(false)
   const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
+  
+  // Estados para análise de PGR
+  const [isAnalyzingPgr, setIsAnalyzingPgr] = React.useState(false)
+  const [pgrResult, setPgrResult] = React.useState<PgrAnalysisOutput | null>(null)
 
   const handlePartClick = (id: string) => {
     setBodyParts(prev => prev.map(part => {
@@ -251,6 +263,38 @@ export default function ChecklistsPage() {
     }
   }
 
+  const handlePgrFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsAnalyzingPgr(true)
+    setPgrResult(null)
+
+    try {
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        const base64 = event.target?.result as string
+        const result = await analyzePgrPdf({
+          pdfDataUri: base64,
+          fileName: file.name
+        })
+        setPgrResult(result)
+        toast({ title: "Análise Concluída", description: "A NAI extraiu o inventário e o plano de ação." })
+      }
+      reader.readAsDataURL(file)
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Erro na Análise", description: error.message })
+    } finally {
+      setIsAnalyzingPgr(false)
+    }
+  }
+
+  const handleSendPgrToClient = () => {
+    if (!pgrResult) return
+    const message = `Olá, aqui é a Nextcon. Realizamos a análise do seu PGR (${pgrResult.companyInfo.name}).\n\n*Resumo Estratégico:* ${pgrResult.aiInsight}\n\n*Ação Prioritária:* ${pgrResult.actionPlan[0]?.description} (Prazo: ${pgrResult.actionPlan[0]?.deadline}).\n\nFavor validar na plataforma.`
+    window.open(getWhatsAppLink("11999999999", message), '_blank')
+  }
+
   const filteredCatalog = CHECKLIST_CATALOG.filter(item => 
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -266,9 +310,9 @@ export default function ChecklistsPage() {
       return (
         <div className="space-y-6 animate-in zoom-in-95 duration-300">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => setErgoTool(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+            <button onClick={() => setErgoTool(null)} className="h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-sm border hover:bg-muted transition-colors">
               <ArrowLeft className="size-5" />
-            </Button>
+            </button>
             <div>
               <h1 className="text-2xl font-headline font-bold text-primary uppercase">Diagrama de Corlett - 2026</h1>
               <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Avaliação Osteomuscular por Segmento Corporal</p>
@@ -369,9 +413,9 @@ export default function ChecklistsPage() {
     return (
       <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+          <button onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-sm border hover:bg-muted transition-colors">
             <ArrowLeft className="size-5" />
-          </Button>
+          </button>
           <div>
             <h1 className="text-2xl font-headline font-bold text-primary uppercase">Laboratório de Ergonomia (NR-17)</h1>
             <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Análise Ergonômica do Trabalho (AET)</p>
@@ -452,9 +496,9 @@ export default function ChecklistsPage() {
     return (
       <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+          <button onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 flex items-center justify-center rounded-full bg-white shadow-sm border hover:bg-muted transition-colors">
             <ArrowLeft className="size-5" />
-          </Button>
+          </button>
           <div>
             <h1 className="text-2xl font-headline font-bold text-primary uppercase">{selectedNR?.title}</h1>
             <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Auditoria Técnica de Campo</p>
@@ -560,7 +604,7 @@ export default function ChecklistsPage() {
             <ShieldAlert className="size-4" /> Inventário PGR
           </TabsTrigger>
           <TabsTrigger value="history" className="rounded-lg gap-2 text-xs font-bold">
-            <Activity className="size-4" /> Histórico
+            <History className="size-4" /> Histórico
           </TabsTrigger>
         </TabsList>
 
@@ -601,22 +645,189 @@ export default function ChecklistsPage() {
         </TabsContent>
 
         <TabsContent value="pgr" className="mt-6 space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-primary uppercase">Inventário de Riscos (NR-01)</h3>
-            <Button className="bg-primary gap-2"><Plus className="size-4" /> Novo Risco</Button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="card-shadow border-none bg-white">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold text-primary uppercase flex items-center gap-2">
+                    <FileUp className="size-5 text-accent" /> Scanner PGR Inteligente
+                  </CardTitle>
+                  <CardDescription>Importe o PDF do PGR e deixe a NAI extrair os riscos e o plano de ação automaticamente.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="border-2 border-dashed rounded-3xl p-12 text-center bg-muted/10 hover:bg-muted/20 transition-all group relative">
+                    <input 
+                      type="file" 
+                      accept=".pdf" 
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={handlePgrFileUpload}
+                      disabled={isAnalyzingPgr}
+                    />
+                    {isAnalyzingPgr ? (
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="size-12 animate-spin text-primary" />
+                        <p className="text-sm font-black uppercase tracking-widest animate-pulse">NAI Lendo Documento Técnico...</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-primary text-white rounded-full w-fit mx-auto shadow-xl group-hover:scale-110 transition-transform">
+                          <FileText size={32} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-primary">Clique ou arraste o PDF do PGR aqui</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-tighter mt-1">Formatos suportados: PDF (Máx 10MB)</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {pgrResult && (
+                    <div className="space-y-6 animate-in slide-in-from-top-4 duration-500">
+                      <div className="p-4 bg-primary rounded-2xl text-white">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-50">Empresa Identificada</p>
+                            <h3 className="text-lg font-bold">{pgrResult.companyInfo.name}</h3>
+                            <p className="text-[10px] uppercase font-black mt-1">Unidade: {pgrResult.companyInfo.unit} | Vigência: {pgrResult.companyInfo.validity}</p>
+                          </div>
+                          <Badge className="bg-accent text-primary">IA EXTRAÍDO</Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                          <AlertTriangle className="size-4" /> Inventário de Riscos (IA)
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {pgrResult.identifiedRisks.map((risk, i) => (
+                            <div key={i} className="p-3 border rounded-xl bg-white shadow-sm flex gap-3">
+                              <div className="p-2 bg-red-50 text-red-600 rounded-lg h-fit">
+                                <Biohazard className="size-4" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-black text-red-600 uppercase">{risk.category}</p>
+                                <p className="text-xs font-bold text-primary">{risk.hazard}</p>
+                                <p className="text-[10px] text-muted-foreground">Fonte: {risk.source}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                          <CheckSquare className="size-4" /> Plano de Ação Recomendado
+                        </h4>
+                        <div className="space-y-2">
+                          {pgrResult.actionPlan.map((action, i) => (
+                            <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl group hover:bg-white transition-colors border border-transparent hover:border-primary/10">
+                              <div className="flex items-center gap-3">
+                                <Badge className={cn(
+                                  "text-[8px] font-black border-none",
+                                  action.priority === 'Alta' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                )}>{action.priority}</Badge>
+                                <p className="text-xs font-medium text-primary">{action.description}</p>
+                              </div>
+                              <p className="text-[10px] font-black text-muted-foreground uppercase shrink-0 ml-4">Prazo: {action.deadline}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              {pgrResult ? (
+                <Card className="card-shadow border-none bg-[#090e24] text-white overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Sparkles size={80} className="text-accent" />
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.2em] flex items-center gap-2">
+                      <Zap className="size-4" /> Insight NAI Strategy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <p className="text-sm leading-relaxed italic opacity-90">
+                      "{pgrResult.aiInsight}"
+                    </p>
+                    
+                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex gap-3">
+                      <Info className="size-5 text-accent shrink-0" />
+                      <p className="text-[10px] text-white/60 font-bold uppercase leading-tight">
+                        Este resumo foi gerado por IA. Verifique as recomendações técnicas antes de enviar o cronograma final.
+                      </p>
+                    </div>
+
+                    <Button 
+                      className="w-full bg-accent text-primary hover:bg-accent/90 h-14 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-accent/20 gap-2"
+                      onClick={handleSendPgrToClient}
+                    >
+                      <MessageSquare className="size-4" /> Enviar para o Cliente
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="card-shadow border-none bg-muted/20 border-dashed border-2 h-64 flex flex-col items-center justify-center text-center p-6 opacity-40 italic">
+                  <ShieldAlert className="size-12 mb-2 text-primary" />
+                  <p className="text-xs font-medium">Faça o upload do PGR ao lado para iniciar a análise estratégica.</p>
+                </Card>
+              )}
+
+              <Card className="card-shadow border-none bg-white">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                    <History className="size-3" /> Últimas Análises
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    <div className="p-3 hover:bg-muted/30 transition-colors cursor-pointer flex justify-between items-center group">
+                      <div>
+                        <p className="text-[10px] font-bold text-primary">Britânia Eletrodomésticos</p>
+                        <p className="text-[8px] text-muted-foreground uppercase font-black">PGR_JOINVILLE_2025.PDF</p>
+                      </div>
+                      <ChevronRight className="size-3 text-primary/30 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-          <Card className="card-shadow border-none h-64 flex flex-col items-center justify-center opacity-40 italic bg-white border-dashed border-2">
-            <ShieldAlert className="size-12 mb-2 text-primary" />
-            <p className="text-sm font-medium">Use o botão 'Novo Risco' para popular seu inventário PGR.</p>
-          </Card>
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
           <Card className="card-shadow border-none h-64 flex items-center justify-center opacity-40 italic bg-white border-dashed border-2">
-            <p className="text-sm font-medium">Nenhum registro preenchido recentemente.</p>
+            <div className="text-center space-y-2">
+              <History className="size-10 mx-auto text-primary" />
+              <p className="text-sm font-medium">Nenhum registro preenchido recentemente.</p>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+function CheckSquare(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <path d="m9 11 3 3L22 4" />
+    </svg>
   )
 }
