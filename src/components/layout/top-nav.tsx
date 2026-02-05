@@ -28,9 +28,12 @@ import {
   Bell,
   DollarSign,
   ClipboardCheck,
-  ShieldAlert
+  ShieldAlert,
+  Search,
+  Command
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { NextconLogo } from '@/components/ui/logo';
@@ -52,6 +55,7 @@ export function TopNav() {
   const auth = useAuth();
   const db = useFirestore();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -112,8 +116,8 @@ export function TopNav() {
   return (
     <nav className="bg-[#090e24] text-white sticky top-0 z-50 shadow-lg border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
+        <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex items-center gap-6 shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="h-8 w-8 text-[#f59e0b]">
                 <NextconLogo className="h-full w-full" />
@@ -124,7 +128,7 @@ export function TopNav() {
               </div>
             </Link>
 
-            <div className="hidden lg:flex items-center space-x-1">
+            <div className="hidden xl:flex items-center space-x-1">
               {currentMenu.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -132,7 +136,7 @@ export function TopNav() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                      "px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shrink-0",
                       pathname === item.href 
                         ? "bg-[#f59e0b] text-[#090e24] shadow-lg shadow-[#f59e0b]/20" 
                         : "text-white/70 hover:text-white hover:bg-white/10"
@@ -146,7 +150,23 @@ export function TopNav() {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2">
+          {/* Campo de Busca Global */}
+          <div className="flex-1 max-w-md hidden md:block">
+            <div className="relative group">
+              <Search className="absolute left-3 top-2.5 size-4 text-white/30 group-focus-within:text-[#f59e0b] transition-colors" />
+              <Input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar colaboradores, perícias ou NRs..." 
+                className="w-full bg-white/5 border-white/10 h-10 pl-10 pr-12 text-xs focus-visible:ring-[#f59e0b] focus-visible:border-transparent transition-all placeholder:text-white/20"
+              />
+              <div className="absolute right-2 top-2 px-1.5 py-0.5 rounded border border-white/10 bg-white/5 flex items-center gap-1 text-[10px] font-black text-white/20 pointer-events-none group-focus-within:hidden">
+                <Command className="size-2.5" /> K
+              </div>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/5">
@@ -207,7 +227,10 @@ export function TopNav() {
             </DropdownMenu>
           </div>
 
-          <div className="lg:hidden">
+          <div className="lg:hidden flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="text-white">
+              <Search className="size-5" />
+            </Button>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 focus:outline-none"
