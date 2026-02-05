@@ -1,6 +1,7 @@
 
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
+ * Atualizado com Britânia Eletrodomésticos SA (CLI037).
  */
 
 export const REAL_COMPANIES = [
@@ -20,7 +21,9 @@ export const REAL_COMPANIES = [
   { id: "CLI124", name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-24", segment: "CONSTRUCTION" },
   { id: "CLI125", name: "DE LUCCA MANUTENÇÕES", city: "Curitiba", cnpj: "12.345.678/0001-25", segment: "INDUSTRY" },
   { id: "CLI055", name: "DW Montec", city: "Curitiba", cnpj: "12.345.678/0001-55", segment: "INDUSTRY" },
-  { id: "CLI037", name: "METALURGICA SUL LTDA", city: "Curitiba", cnpj: "12.345.678/0001-37", segment: "INDUSTRY" },
+  { id: "CLI037", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", cnpj: "76.492.701/0011-29", segment: "INDUSTRY", address: "Pirabeiraba, Joinville/SC", phone: "(41) 3218-7700" },
+  { id: "CLI117", name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", city: "Joinville", cnpj: "76.492.701/0014-71", segment: "INDUSTRY", website: "www.britania.com.br" },
+  { id: "CLI105", name: "BRITANIA ELETRODOMESTICOS SA (RODRIGO)", city: "Joinville", cnpj: "76.492.701/0007-42", segment: "INDUSTRY", website: "www.britania.com.br" },
 ];
 
 export const REAL_EMPLOYEES = [
@@ -33,11 +36,17 @@ export const REAL_EMPLOYEES = [
   { name: "SORIANE FLORENCIO SILVA", cpf: "961.586.877-75", companyId: "CLI129", jobRole: "Eletricista", ghe: "GHE 03 - Manutenção", admissionDate: "18/01/2022" },
   { name: "VANESSA DE CASTRO MOREIRA MIRANDA", cpf: "441.932.712-80", companyId: "CLI129", jobRole: "Recepcionista", ghe: "GHE 01 - Administrativo", admissionDate: "22/07/2023" },
   { name: "BRENDA DE FREITAS FERNANDES", cpf: "378.454.183-64", companyId: "CLI140", jobRole: "Auxiliar de Logística", ghe: "GHE 04 - Logística", admissionDate: "30/11/2024" },
+  { name: "SOFIA LULE RIBEIRO ALVES", cpf: "183.841.345-52", companyId: "CLI140", jobRole: "Auxiliar de Produção", admissionDate: "06/10/2022" },
+  { name: "ALINE FERNANDA DO ROSÁRIO", cpf: "730.248.971-84", companyId: "CLI013", jobRole: "Empilhadeirista", admissionDate: "23/09/2022" },
+  { name: "BRYAN DA SILVA MELO", cpf: "173.973.644-86", companyId: "CLI013", jobRole: "Eletricista", admissionDate: "14/02/2024" },
   { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
   { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
   { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },
   { name: "ELIANE VICENTIN", cpf: "000.000.000-04", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022" },
+  { name: "MARCELA GESSICA DA SILVA DE AMORIM", cpf: "000.000.000-05", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "12/02/2024" },
   { name: "LEANDRO RAMOS DA SILVA NETO", cpf: "000.000.000-10", companyId: "CLI037", jobRole: "Ajudante de galpão", admissionDate: "10/05/2025" },
+  { name: "JESSICA GOMES DOS SANTOS", cpf: "000.000.000-11", companyId: "CLI037", jobRole: "Auxiliar Técnica", admissionDate: "10/02/2017" },
+  { name: "SUELLEN MULLER AMARAL", cpf: "000.000.000-12", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/02/2024" },
 ];
 
 export const REAL_EXPERTISES = [
@@ -72,6 +81,21 @@ export const REAL_EXPERTISES = [
     cid: "M54.5"
   },
   {
+    id: "PER003",
+    companyId: "CLI037",
+    date: "2026-02-24T10:00:00",
+    employeeName: "Haranthia Rodrigues Sousa",
+    value: 130000.00,
+    jobRole: "Operador de Produção",
+    caseNumber: "0002069-20.2025.5.12.0050",
+    disease: "Lesão Ocular e Transtornos Psiquiátricos",
+    defenseStrategy: "Ausência de Afastamento Imediato",
+    defenseStrength: "Média",
+    status: "Quesitos Protocolados",
+    type: "Médica",
+    cid: "R52"
+  },
+  {
     id: "PER004",
     companyId: "CLI037",
     date: "2026-02-04T08:20:00",
@@ -85,6 +109,21 @@ export const REAL_EXPERTISES = [
     status: "Quesitos Protocolados",
     type: "Ergonômica",
     cid: "M77"
+  },
+  {
+    id: "PER005",
+    companyId: "CLI037",
+    date: "2026-02-12T18:30:00",
+    employeeName: "Marcela Gessica da Silva de Amorim",
+    value: 393000.00,
+    jobRole: "Operador de Produção",
+    caseNumber: "0002041-93.2025.5.12.0004",
+    disease: "Doenças Musculoesqueléticas",
+    defenseStrategy: "Doença Constitucional",
+    defenseStrength: "Média",
+    status: "Quesitos Protocolados",
+    type: "Ergonômica",
+    cid: "M75"
   },
   {
     id: "PER006",
@@ -115,5 +154,35 @@ export const REAL_EXPERTISES = [
     status: "Concluído",
     type: "Acidente",
     cid: "S62.3"
+  },
+  {
+    id: "PER011",
+    companyId: "CLI037",
+    date: "2026-02-10T12:00:00",
+    employeeName: "Jessica Gomes dos Santos",
+    value: 1252734.93,
+    jobRole: "Auxiliar Técnica",
+    caseNumber: "0001556-52.2025.5.12.0050",
+    disease: "LTCAT / Adicional",
+    defenseStrategy: "Doença Multicausal / Degenerativa",
+    defenseStrength: "Média",
+    status: "Quesitos Protocolados",
+    type: "Médica",
+    cid: "M75"
+  },
+  {
+    id: "PER012",
+    companyId: "CLI037",
+    date: "2026-02-10T12:30:00",
+    employeeName: "Suellen Muller Amaral",
+    value: 55548.00,
+    jobRole: "Operador de Produção",
+    caseNumber: "0001565-14.2025.5.12.0050",
+    disease: "Negligência / Falta EPI",
+    defenseStrategy: "Responsabilidade Subjetiva",
+    defenseStrength: "Baixa",
+    status: "Quesitos Protocolados",
+    type: "Médica",
+    cid: "M54"
   }
 ];

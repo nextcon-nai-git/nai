@@ -150,7 +150,7 @@ export default function UnifiedImportCenter() {
             SUPER ADMIN
           </Button>
           <Button variant="outline" size="sm" className="gap-2 border-[#f59e0b] text-[#f59e0b]" onClick={() => setupProfileByRole('CLIENT_ADMIN')}>
-            CLIENT ADMIN (Metalúrgica Sul)
+            CLIENT ADMIN (Britânia)
           </Button>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function UnifiedImportCenter() {
           <div className="flex gap-2">
             <Button className="bg-[#090e24] text-white hover:bg-[#090e24]/90 gap-2 h-14 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl" onClick={handleRealBaseImport} disabled={uploading}>
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <Database className="size-4 text-[#f59e0b]" />}
-              Carga Real (Perícias + Vidas)
+              Carga Real (Britânia + Vidas)
             </Button>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function UnifiedImportCenter() {
                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
                   <Scale className="size-5 text-blue-600 shrink-0" />
                   <p className="text-xs text-blue-700 font-bold uppercase leading-tight">
-                    A carga atual inclui 12 registros de perícias judiciais reais (Simone, Bruna, Haranthia, etc.) vinculadas à Metalúrgica Sul (CLI037).
+                    A carga real agora inclui a Britânia Eletrodomésticos SA (CLI037) e todas as perícias judiciais reais (Simone, Bruna, Suellen, etc.).
                   </p>
                 </div>
                 <Textarea placeholder="Cole CSV aqui para carga manual..." className="min-h-[200px] font-mono text-xs bg-muted/20" />
