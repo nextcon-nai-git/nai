@@ -56,29 +56,29 @@ type BodyPart = {
 }
 
 const INITIAL_BODY_PARTS: BodyPart[] = [
-  { id: "head", label: "Cabeça", level: 0, path: "M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z" },
-  { id: "neck", label: "Pescoço", level: 0, path: "M46.5,17.5h7v4h-7V17.5z" },
-  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l6,1.5l2-8.5L46.5,21.5z" },
-  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M53.5,21.5c3.5,0,8.5,1.5,11.5,4.5s3,7,3,7l-6,1.5l-2-8.5L53.5,21.5z" },
-  { id: "back_upper", label: "Coluna Superior", level: 0, path: "M46.5,21.5h7v15h-7V21.5z" },
-  { id: "back_mid", label: "Coluna Média", level: 0, path: "M46.5,36.5h7v15h-7V36.5z" },
-  { id: "back_lower", label: "Coluna Lombar", level: 0, path: "M46.5,51.5h7v15h-7V51.5z" },
-  { id: "arm_l_upper", label: "Braço Esquerdo (Sup)", level: 0, path: "M32,33l-2,15l5,1l2-16L32,33z" },
-  { id: "arm_r_upper", label: "Braço Direito (Sup)", level: 0, path: "M68,33l2,15l-5,1l-2-16L68,33z" },
-  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M30,48l-1.5,15l4,1l1.5-15L30,48z" },
-  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M70,48l1.5,15l-4,1l-1.5-15L70,48z" },
-  { id: "wrist_l", label: "Punho/Mão Esq", level: 0, path: "M28.5,63l-1,8l4,1l1-8L28.5,63z" },
-  { id: "wrist_r", label: "Punho/Mão Dir", level: 0, path: "M71.5,63l1,8l-4,1l-1-8L71.5,63z" },
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M40,66.5c-3,0-6,2-6,6s2,8,2,8h10.5v-14H40z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M60,66.5c3,0,6,2,6,6s-2,8-2,8H53.5v-14H60z" },
-  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M36,80.5l-2,25l10,2l2-27L36,80.5z" },
-  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M64,80.5l2,25l-10,2l-2-27L64,80.5z" },
-  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M34,105.5l-0.5,8l10,1l0.5-9L34,105.5z" },
-  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M66,105.5l0.5,8l-10,1l-0.5-9L66,105.5z" },
-  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M33.5,113.5l-1.5,25l9,1l1.5-26L33.5,113.5z" },
-  { id: "leg_r", label: "Perna Direita", level: 0, path: "M66.5,113.5l1.5,25l-9,1l-1.5-26L66.5,113.5z" },
-  { id: "foot_l", label: "Tornozelo/Pé Esq", level: 0, path: "M32,138.5l-2,10l12,2l1-12L32,138.5z" },
-  { id: "foot_r", label: "Tornozelo/Pé Dir", level: 0, path: "M68,138.5l2,10l-12,2l-1-12L68,138.5z" },
+  { id: "head", label: "Cabeça", level: 0, path: "M50,5c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54.4,5,50,5z" },
+  { id: "neck", label: "Pescoço", level: 0, path: "M46,21h8v4h-8V21z" },
+  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M46,25c-4,0-10,2-14,6s-4,8-4,8l6,2l2-10L46,25z" },
+  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M54,25c4,0,10,2,14,6s4,8,4,8l-6,2l-2-10L54,25z" },
+  { id: "back_upper", label: "Coluna Superior", level: 0, path: "M46,25h8v15h-8V25z" },
+  { id: "back_mid", label: "Coluna Média", level: 0, path: "M46,40h8v15h-8V40z" },
+  { id: "back_lower", label: "Coluna Lombar", level: 0, path: "M46,55h8v15h-8V55z" },
+  { id: "arm_l_upper", label: "Braço Esquerdo", level: 0, path: "M32,31l-3,15l5,1l3-16L32,31z" },
+  { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M68,31l3,15l-5,1l-3-16L68,31z" },
+  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M29,46l-2,15l4,1l2-15L29,46z" },
+  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M71,46l2,15l-4,1l-2-15L71,46z" },
+  { id: "wrist_l", label: "Punho Esquerdo", level: 0, path: "M27,61l-1,8l4,1l1-8L27,61z" },
+  { id: "wrist_r", label: "Punho Direito", level: 0, path: "M73,61l1,8l-4,1l-1-8L73,61z" },
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M40,70c-3,0-6,2-6,6s2,8,2,8h10V70H40z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M60,70c3,0,6,2,6,6s-2,8-2,8H54V70H60z" },
+  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M36,84l-2,25l10,2l2-27L36,84z" },
+  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M64,84l2,25l-10,2l-2-27L64,84z" },
+  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M34,109l-1,8l10,1l1-9L34,109z" },
+  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M66,109l1,8l-10,1l-1-9L66,109z" },
+  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M33,117l-2,25l9,1l2-26L33,117z" },
+  { id: "leg_r", label: "Perna Direita", level: 0, path: "M67,117l2,25l-9,1l-2-26L67,117z" },
+  { id: "foot_l", label: "Pé Esquerdo", level: 0, path: "M31,142l-2,10l12,2l1-12L31,142z" },
+  { id: "foot_r", label: "Pé Direito", level: 0, path: "M69,142l2,10l-12,2l-1-12L69,142z" },
 ]
 
 export default function ChecklistsPage() {
@@ -122,7 +122,7 @@ export default function ChecklistsPage() {
         createdAt: new Date().toISOString(),
       }
       await addDoc(collection(db, "clients", user.uid, "checklists"), reportData)
-      toast({ title: "Diagrama Salvo", description: "O relatório de fadiga foi enviado ao SESMT." })
+      toast({ title: "Relato Salvo!", description: "Dados enviados para análise do SESMT." })
       setSelectedChecklist(null)
       setBodyParts(INITIAL_BODY_PARTS)
     } catch (e) {
@@ -145,8 +145,8 @@ export default function ChecklistsPage() {
             <ArrowLeft className="size-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-headline font-bold text-primary uppercase">Diagrama de Corlett</h1>
-            <p className="text-xs text-muted-foreground">Relato de desconforto osteomuscular (Manequim Interativo).</p>
+            <h1 className="text-2xl font-headline font-bold text-primary uppercase">Mapeamento de Corlett</h1>
+            <p className="text-xs text-muted-foreground">Avaliação ergonômica via Mapa de Intensidade de Dor.</p>
           </div>
         </div>
 
@@ -154,24 +154,24 @@ export default function ChecklistsPage() {
           <Card className="lg:col-span-2 card-shadow border-none bg-white overflow-hidden">
             <CardHeader className="bg-muted/30 border-b text-center">
               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                <Activity className="size-4 text-primary" /> Mapa de Sensibilidade Corporativa
+                <Activity className="size-4 text-primary" /> Avatar Anatômico 2026
               </CardTitle>
-              <CardDescription>Clique nas regiões para indicar o nível de dor.</CardDescription>
+              <CardDescription>Toque nas regiões para indicar fadiga ou desconforto.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center py-10 relative">
-              <svg width="350" height="550" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8]">
-                {/* Silhueta Base Humana para preenchimento de fundo */}
+              <svg width="380" height="580" viewBox="0 0 100 160" className="drop-shadow-2xl">
+                {/* Silhueta Base Humana Estilizada */}
                 <path 
-                  d="M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z M46.5,17.5h7v4h-7V17.5z M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l-4,15l-1.5,15l-1,8l4,1l1-8l1.5-15l2-15l5,1l2-16l9.5,0l2,16l5-1l2,15l1.5,15l1,8l4-1l-1-8l-1.5-15l-4-15c0,0,0-4,3-7s8-4.5,11.5-4.5h-7V21.5z" 
+                  d="M50,2c-5,0-9,4-9,9s4,9,9,9s9-4,9-9S55,2,50,2z M45,20h10v5h-10V20z M45,25c-5,0-12,3-16,8s-5,10-5,10l7,3l3-13l11,0l3,13l7-3c0,0-1-5-5-10s-11-8-16-8z" 
                   className="fill-slate-50 stroke-slate-200 stroke-[0.5]"
                 />
-                {/* Partes Interativas */}
+                {/* Zonas Interativas */}
                 {bodyParts.map((part) => (
                   <path
                     key={part.id}
                     d={part.path}
                     className={cn(
-                      "cursor-pointer transition-all duration-300 hover:brightness-95 stroke-[0.8]",
+                      "cursor-pointer transition-all duration-300 hover:brightness-90 stroke-[0.8]",
                       getLevelColor(part.level)
                     )}
                     onClick={() => handlePartClick(part.id)}
@@ -180,6 +180,7 @@ export default function ChecklistsPage() {
                   </path>
                 ))}
               </svg>
+              
               <div className="mt-8 flex flex-wrap justify-center gap-4 w-full">
                 {[0, 1, 2, 3, 4].map((l) => (
                   <div key={l} className="flex items-center gap-2">
@@ -196,21 +197,24 @@ export default function ChecklistsPage() {
           <div className="space-y-6">
             <Card className="card-shadow border-none bg-[#090e24] text-white">
               <CardHeader>
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Análise de Desconforto</CardTitle>
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Áreas Identificadas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-[350px] overflow-y-auto space-y-2 pr-2">
                   {bodyParts.filter(p => p.level > 0).map(p => (
                     <div key={p.id} className="p-3 bg-white/5 rounded-xl border border-white/10 flex justify-between items-center animate-in slide-in-from-right-2">
                       <div className="flex flex-col">
                         <span className="text-xs font-bold">{p.label}</span>
-                        <span className="text-[9px] uppercase font-black text-white/40">Gravidade: {p.level}</span>
+                        <span className="text-[9px] uppercase font-black text-white/40">Intensidade: {p.level}</span>
                       </div>
                       <Badge className={cn("text-[9px] font-black border-none", getLevelColor(p.level).replace('fill-', 'bg-'))}>
-                        Fadiga
+                        Relatado
                       </Badge>
                     </div>
                   ))}
+                  {bodyParts.filter(p => p.level > 0).length === 0 && (
+                    <p className="text-center py-10 text-[10px] uppercase font-bold opacity-30 italic">Nenhuma área selecionada</p>
+                  )}
                 </div>
                 <Button 
                   className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-widest h-14 shadow-lg shadow-accent/20"
@@ -218,7 +222,7 @@ export default function ChecklistsPage() {
                   disabled={isSaving || bodyParts.filter(p => p.level > 0).length === 0}
                 >
                   {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-5 mr-2" />}
-                  Finalizar Relato
+                  Finalizar Avaliação
                 </Button>
               </CardContent>
             </Card>
@@ -304,7 +308,7 @@ export default function ChecklistsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 card-shadow border-none bg-white">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-primary uppercase">Métodos de Avaliação NR-17</CardTitle>
+                <CardTitle className="text-lg font-bold text-primary uppercase">Laboratório de Ergonomia (NR-17)</CardTitle>
                 <CardDescription>Selecione o método para iniciar a análise técnica do posto de trabalho.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -317,7 +321,7 @@ export default function ChecklistsPage() {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-black text-indigo-900 text-xl">Diagrama de Corlett</h4>
-                    <p className="text-sm text-indigo-700/70 font-medium italic">Ferramenta diagnóstica de dor e fadiga osteomuscular (Mapa de Intensidade).</p>
+                    <p className="text-sm text-indigo-700/70 font-medium italic">Ferramenta anatômica para relato de dor e fadiga muscular (Manequim Digital).</p>
                   </div>
                   <ArrowRight className="size-6 text-indigo-400 group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -348,7 +352,7 @@ export default function ChecklistsPage() {
                   <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Análises Realizadas</p>
                   <p className="text-2xl font-black">14</p>
                 </div>
-                <Button className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-bold uppercase text-[10px]">
+                <Button className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-bold uppercase text-[10px] h-12">
                   Emitir Laudo Ergonômico (AET)
                 </Button>
               </CardContent>
