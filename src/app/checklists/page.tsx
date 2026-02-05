@@ -260,7 +260,7 @@ export default function ChecklistsPage() {
   const selectedNR = CHECKLIST_CATALOG.find(c => c.id === selectedChecklistId)
   const nrItems = selectedChecklistId ? NR_ITEMS[selectedChecklistId] : []
 
-  // Renderização da NR-17 (Laboratório de Ergonomia)
+  // Renderização da NR-17 (Laboratório de Ergonomia Integrado)
   if (selectedChecklistId === "nr17") {
     if (ergoTool === "corlett") {
       return (
