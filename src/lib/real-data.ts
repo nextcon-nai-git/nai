@@ -4,29 +4,16 @@
  */
 
 export const REAL_COMPANIES = [
-  { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
-  { id: "CLI140", name: "ALKANCE SOLUCOES", city: "Curitiba", cnpj: "12.345.678/0001-40", segment: "INDUSTRY" },
-  { id: "CLI013", name: "Andes Negócios Digitais", city: "Curitiba", cnpj: "12.345.678/0001-13", segment: "GENERAL" },
-  { id: "CLI116", name: "ANDRE LUIS FRANCA DE NARDE SOCIEDADE INDIVIDUAL DE ADVOCACIA", city: "Curitiba", cnpj: "12.345.678/0001-16", segment: "GENERAL" },
-  { id: "CLI024", name: "ATLAS PARANA DESENVOLVIMENTO E ELETROTECNICA LTDA", city: "Curitiba", cnpj: "12.345.678/0001-24", segment: "INDUSTRY" },
-  { id: "CLI093", name: "Barabach & Knopp Engenharia e Tecnologia", city: "Curitiba", cnpj: "12.345.678/0001-93", segment: "CONSTRUCTION" },
-  { id: "CLI036", name: "BASSETTO,GRAHL E MADUREIRA SOCIEDADE DE ADVOGADOS", city: "Curitiba", cnpj: "12.345.678/0001-36", segment: "GENERAL" },
-  { id: "CLI121", name: "BCS APOIO ADMINISTRATIVO LTDA", city: "Curitiba", cnpj: "12.345.678/0001-21", segment: "GENERAL" },
-  { id: "CLI001", name: "BERNARDI DISTRIBUIDORA", city: "Curitiba", cnpj: "12.345.678/0001-01", segment: "GENERAL" },
-  { id: "CLI014", name: "CDA STEEL FABRICACAO E MONTAGEM LTDA", city: "Curitiba", cnpj: "12.345.678/0001-14", segment: "INDUSTRY" },
-  { id: "CLI025", name: "CENTRAL TURBOS PARANA", city: "Curitiba", cnpj: "12.345.678/0001-25", segment: "INDUSTRY" },
-  { id: "CLI026", name: "CHARFAV COMERCIO DE MEDICAMENTOS E PERFUMARIA LTDA", city: "Curitiba", cnpj: "12.345.678/0001-26", segment: "HOSPITAL" },
-  { id: "CLI064", name: "Clinica Biavatti", city: "Curitiba", cnpj: "12.345.678/0001-64", segment: "HOSPITAL" },
-  { id: "CLI124", name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-24", segment: "CONSTRUCTION" },
-  { id: "CLI125", name: "DE LUCCA MANUTENÇÕES", city: "Curitiba", cnpj: "12.345.678/0001-25", segment: "INDUSTRY" },
-  { id: "CLI055", name: "DW Montec", city: "Curitiba", cnpj: "12.345.678/0001-55", segment: "INDUSTRY" },
   { id: "CLI037", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", cnpj: "76.492.701/0011-29", segment: "INDUSTRY", address: "Pirabeiraba, Joinville/SC", phone: "(41) 3218-7700" },
   { id: "CLI117", name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", city: "Joinville", cnpj: "76.492.701/0014-71", segment: "INDUSTRY", website: "www.britania.com.br" },
   { id: "CLI105", name: "BRITANIA ELETRODOMESTICOS SA (RODRIGO)", city: "Joinville", cnpj: "76.492.701/0007-42", segment: "INDUSTRY", website: "www.britania.com.br" },
+  { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
+  { id: "CLI140", name: "ALKANCE SOLUCOES", city: "Curitiba", cnpj: "12.345.678/0001-40", segment: "INDUSTRY" },
+  { id: "CLI013", name: "Andes Negócios Digitais", city: "Curitiba", cnpj: "12.345.678/0001-13", segment: "GENERAL" },
+  { id: "CLI014", name: "CDA STEEL FABRICACAO E MONTAGEM LTDA", city: "Curitiba", cnpj: "12.345.678/0001-14", segment: "INDUSTRY" },
 ];
 
 export const REAL_EMPLOYEES = [
-  { name: "ANA ISABELA RIBEIRO CECHETTO", cpf: "497.978.917-84", companyId: "CLI129", jobRole: "Mecânico de Manutenção", admissionDate: "07/10/2025" },
   { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
   { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
   { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },

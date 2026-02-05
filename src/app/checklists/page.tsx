@@ -138,7 +138,7 @@ const NR_ITEMS: Record<string, string[]> = {
   nr26: ["Há sinalização visual de perigo nas máquinas?", "As tubulações estão pintadas conforme o padrão?", "Há rótulos nos produtos químicos armazenados?", "A sinalização é compreensível para todos os trabalhadores?"],
   nr28: ["As notificações de fiscalização foram atendidas?", "Há controle de multas e prazos de regularização?", "Os documentos solicitados estão prontos para exibição?"],
   nr29: ["Há plano de controle de emergência no porto?", "As redes de proteção em escadas de portaló estão íntegras?", "Há coletes salva-vidas disponíveis?", "Há sinalização de carga suspensa?"],
-  nr30: ["Há serviço de saúde a bordo?", "Há estoque de medicamentos e materiais de primeiros socorros?", "Os botes de salvamento são testados periodicamente?", "Há treinamento de abandono de embarcação?"],
+  nr30: ["Há serviço de saúde a bordo?", "Há estoque de medicamentos e materiais de primeiros socorros?", "Os botes de salvamento são testados periodicamente?", "Há treinamento de abandono de emergência?"],
   nr31: ["Há áreas de vivência no campo (sanitário/refeitório)?", "Os agrotóxicos são armazenados em local isolado?", "As máquinas agrícolas possuem proteção em partes móveis?", "Há EPIs adequados para o manejo de animais?"],
   nr32: ["Há plano de prevenção de riscos com perfurocortantes?", "Os recipientes de descarte estão em locais seguros?", "Há esquema vacinal atualizado para os trabalhadores?", "Há segregação correta de resíduos biológicos?"],
   nr33: ["Há PET (Permissão de Entrada e Trabalho) preenchida?", "Há vigia treinado na entrada do espaço?", "Há medição de gases antes e durante o trabalho?", "Há equipamentos de resgate prontos no local?"],
