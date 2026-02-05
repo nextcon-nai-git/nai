@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -120,7 +119,6 @@ const NR_ITEMS: Record<string, string[]> = {
   nr14: ["Os fornos possuem isolamento térmico eficiente?", "Há proteção contra calor radiante para os trabalhadores?", "As escadas e plataformas de acesso estão seguras?", "Há sinalização de segurança em áreas quentes?"],
   nr15: ["Há laudo de insalubridade atualizado?", "Os limites de tolerância são respeitados?", "Há pagamento de adicional conforme o grau (10, 20 ou 40%)?", "As medidas de controle neutralizam o agente?"],
   nr16: ["Há laudo de periculosidade atualizado?", "As áreas de risco estão delimitadas?", "Há pagamento do adicional de 30%?", "Os trabalhadores possuem treinamento para a área de risco?"],
-  nr17: ["Há Análise Ergonômica do Trabalho (AET) disponível?", "O mobiliário permite ajustes de altura?", "Há para atividades repetitivas?", "As condições ambientais (ruído, luz) são confortáveis?"],
   nr18: ["Há PCMAT implementado (para obras > 20 trab)?", "As áreas de vivência seguem os padrões de higiene?", "Há proteções coletivas contra queda em todo o perímetro?", "Os andaimes possuem guarda-corpo e rodapé?"],
   nr19: ["Os depósitos de explosivos são sinalizados?", "Há plano de emergência em caso de acidente?", "As distâncias de segurança são respeitadas?", "Há controle rigoroso de acesso e saída de materiais?"],
   nr20: ["Há prontuário da instalação disponível?", "Os tanques possuem bacia de contenção?", "Os trabalhadores possuem treinamento específico (Básico/Interm)?", "Há inspeção periódica de tubulações e mangueiras?"],
@@ -183,6 +181,7 @@ export default function ChecklistsPage() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
+  const [ergoTool, setErgoTool] = React.useState<string | null>(null)
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>(INITIAL_BODY_PARTS)
   const [isSaving, setIsSaving] = React.useState(false)
   const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
@@ -219,7 +218,7 @@ export default function ChecklistsPage() {
       }
       await addDoc(collection(db, "clients", user.uid, "checklists"), reportData)
       toast({ title: "Avaliação Salva!", description: "Os dados de desconforto foram enviados para análise." })
-      setSelectedChecklistId(null)
+      setErgoTool(null)
       setBodyParts(INITIAL_BODY_PARTS)
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao salvar relatório" })
@@ -261,13 +260,13 @@ export default function ChecklistsPage() {
   const selectedNR = CHECKLIST_CATALOG.find(c => c.id === selectedChecklistId)
   const nrItems = selectedChecklistId ? NR_ITEMS[selectedChecklistId] : []
 
-  // Renderização da Visualização do Checklist Selecionado
-  if (selectedChecklistId) {
-    if (selectedChecklistId === "ergo" || selectedChecklistId === "nr17") {
+  // Renderização da NR-17 (Laboratório de Ergonomia)
+  if (selectedChecklistId === "nr17") {
+    if (ergoTool === "corlett") {
       return (
         <div className="space-y-6 animate-in zoom-in-95 duration-300">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+            <Button variant="ghost" onClick={() => setErgoTool(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
               <ArrowLeft className="size-5" />
             </Button>
             <div>
@@ -367,7 +366,89 @@ export default function ChecklistsPage() {
       )
     }
 
-    // Renderização do Checklist das NRs
+    return (
+      <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+            <ArrowLeft className="size-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-headline font-bold text-primary uppercase">Laboratório de Ergonomia (NR-17)</h1>
+            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Análise Ergonômica do Trabalho (AET)</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 card-shadow border-none bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-primary uppercase">Métodos Técnicos de Avaliação</CardTitle>
+              <CardDescription>Selecione uma ferramenta para iniciar o estudo do posto de trabalho.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div 
+                className="p-8 border-2 border-dashed border-indigo-200 rounded-3xl bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-400 transition-all cursor-pointer group flex items-center gap-8 shadow-sm hover:shadow-xl"
+                onClick={() => setErgoTool("corlett")}
+              >
+                <div className="p-5 bg-indigo-600 text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <Activity size={40} />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-black text-indigo-900 text-2xl tracking-tight">Diagrama de Corlett</h4>
+                  <p className="text-sm text-indigo-700/70 font-medium italic mt-1">Mapa anatômico interativo para relato de dor e fadiga ocupacional (Avatar 2026).</p>
+                </div>
+                <ArrowRight className="size-8 text-indigo-400 group-hover:translate-x-2 transition-transform" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { id: "rula", name: "RULA", desc: "Membros Superiores" },
+                  { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
+                  { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
+                  { id: "ocra", name: "OCRA", desc: "Movimentos Repetitivos" },
+                ].map((m) => (
+                  <div key={m.id} className="p-4 border rounded-2xl hover:bg-muted/30 transition-all cursor-pointer group">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h4 className="font-black text-primary text-xl">{m.name}</h4>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold">{m.desc}</p>
+                      </div>
+                      <div className="p-2 bg-primary/5 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
+                        <Activity size={20} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-6">
+            <Card className="card-shadow border-none bg-[#090e24] text-white">
+              <CardHeader>
+                <CardTitle className="text-sm font-black uppercase text-accent tracking-widest">Status NR-17</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Análises Realizadas</p>
+                  <p className="text-2xl font-black">14</p>
+                </div>
+                <div className="p-4 bg-accent/10 rounded-xl border border-accent/20">
+                  <p className="text-[10px] uppercase font-black text-accent mb-1">AET em dia</p>
+                  <p className="text-sm font-medium">A última atualização do laudo foi há 12 dias.</p>
+                </div>
+                <Button className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase text-[10px] h-12">
+                  Emitir Relatório AET
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Renderização do Checklist Padrão das NRs
+  if (selectedChecklistId) {
     return (
       <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-4">
@@ -466,20 +547,17 @@ export default function ChecklistsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações & Checklists</h1>
-          <p className="text-muted-foreground">Gestão unificada de inspeções técnicas e conformidade das 38 NRs.</p>
+          <p className="text-muted-foreground">Gestão unificada de inspeções técnicas e conformidade normativa.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[800px] grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
+        <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="catalog" className="rounded-lg gap-2 text-xs font-bold">
             <ClipboardCheck className="size-4" /> Catálogo NRs
           </TabsTrigger>
           <TabsTrigger value="pgr" className="rounded-lg gap-2 text-xs font-bold">
             <ShieldAlert className="size-4" /> Inventário PGR
-          </TabsTrigger>
-          <TabsTrigger value="ergo" className="rounded-lg gap-2 text-xs font-bold">
-            <Brain className="size-4" /> Ergonomia Lab
           </TabsTrigger>
           <TabsTrigger value="history" className="rounded-lg gap-2 text-xs font-bold">
             <Activity className="size-4" /> Histórico
@@ -531,67 +609,6 @@ export default function ChecklistsPage() {
             <ShieldAlert className="size-12 mb-2 text-primary" />
             <p className="text-sm font-medium">Use o botão 'Novo Risco' para popular seu inventário PGR.</p>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="ergo" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 card-shadow border-none bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg font-bold text-primary uppercase">Laboratório de Ergonomia (NR-17)</CardTitle>
-                <CardDescription>Selecione o método para iniciar a análise técnica do posto de trabalho.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div 
-                  className="p-8 border-2 border-dashed border-indigo-200 rounded-3xl bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-400 transition-all cursor-pointer group flex items-center gap-8 shadow-sm hover:shadow-xl"
-                  onClick={() => setSelectedChecklistId("ergo")}
-                >
-                  <div className="p-5 bg-indigo-600 text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
-                    <Activity size={40} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-black text-indigo-900 text-2xl tracking-tight">Diagrama de Corlett</h4>
-                    <p className="text-sm text-indigo-700/70 font-medium italic mt-1">Mapa anatômico interativo para relato de dor e fadiga ocupacional (Avatar 2026).</p>
-                  </div>
-                  <ArrowRight className="size-8 text-indigo-400 group-hover:translate-x-2 transition-transform" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { id: "rula", name: "RULA", desc: "Membros Superiores" },
-                    { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
-                    { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
-                    { id: "ocra", name: "OCRA", desc: "Movimentos Repetitivos" },
-                  ].map((m) => (
-                    <div key={m.id} className="p-4 border rounded-2xl hover:bg-muted/30 transition-all cursor-pointer group">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="font-black text-primary text-xl">{m.name}</h4>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold">{m.desc}</p>
-                        </div>
-                        <div className="p-2 bg-primary/5 rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
-                          <Activity size={20} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="card-shadow border-none bg-[#090e24] text-white">
-              <CardHeader>
-                <CardTitle className="text-sm font-black uppercase text-accent tracking-widest">Resumo Ergonômico</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                  <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Análises Realizadas</p>
-                  <p className="text-2xl font-black">14</p>
-                </div>
-                <Button className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-bold uppercase text-[10px] h-12 shadow-lg shadow-accent/10">
-                  Emitir Laudo Ergonômico (AET)
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         <TabsContent value="history" className="mt-6">
