@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -149,29 +150,29 @@ type BodyPart = {
 }
 
 const INITIAL_BODY_PARTS: BodyPart[] = [
-  { id: "head", label: "Cabeça", level: 0, path: "M50,5c-4,0-7,3-7,7s3,7,7,7s7-3,7-7S54,5,50,5z" },
-  { id: "neck", label: "Pescoço", level: 0, path: "M46,19h8v4h-8V19z" },
-  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M42,23c-5,0-12,2-16,7s-3,12-3,12l7,2l5-16L42,23z" },
-  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M58,23c5,0,12,2,16,7s3,12,3,12l-7,2l-5-16L58,23z" },
-  { id: "back_upper", label: "Cervical", level: 0, path: "M44,23h12v15h-12V23z" },
-  { id: "back_mid", label: "Torácica", level: 0, path: "M44,38h12v15h-12V38z" },
-  { id: "back_lower", label: "Lombar", level: 0, path: "M44,53h12v15h-12V53z" },
-  { id: "arm_l_upper", label: "Braço Esquerdo", level: 0, path: "M26,42l-5,18l7,1l5-19L26,42z" },
-  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M21,60l-3,18l7,1l3-19L21,60z" },
-  { id: "wrist_l", label: "Punho Esquerdo", level: 0, path: "M18,78l-1,10l7,1l1-11L18,78z" },
-  { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M74,42l5,18l-7,1l-5-19L74,42z" },
-  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M79,60l3,18l-7,1l-3-19L79,60z" },
-  { id: "wrist_r", label: "Punho Direito", level: 0, path: "M82,78l1,10l-7,1l-1-11L82,78z" },
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,68H36c-4,0-10,3-10,12s3,12,3,12h15V68z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,68H64c4,0,10,3,10,12s-3,12-3,12H56V68z" },
-  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M30,92l-3,30l14,2l3-32L30,92z" },
-  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M70,92l3,30l-14,2l-3-32L70,92z" },
-  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M27,122l-1,10l14,1l1-11L27,122z" },
-  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M73,122l1,10l-14,1l-1-11L73,122z" },
-  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M26,132l-3,25l12,1l3-26L26,132z" },
-  { id: "leg_r", label: "Perna Direita", level: 0, path: "M74,132l3,25l-12,1l-3-26L74,132z" },
-  { id: "foot_l", label: "Pé Esquerdo", level: 0, path: "M23,157l-5,12l16,2l3-14L23,157z" },
-  { id: "foot_r", label: "Pé Direito", level: 0, path: "M77,157l5,12l-16,2l-3-14L77,157z" },
+  { id: "head", label: "Cabeça", level: 0, path: "M50,5c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54.4,5,50,5z" },
+  { id: "neck", label: "Pescoço", level: 0, path: "M46,21h8v4h-8V21z" },
+  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M42,25c-6,0-14,2-18,8s-2,14-2,14l8,2l4-18L42,25z" },
+  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M58,25c6,0,14,2,18,8s2,14,2,14l-8,2l-4-18L58,25z" },
+  { id: "back_upper", label: "Cervical", level: 0, path: "M44,25h12v12h-12V25z" },
+  { id: "back_mid", label: "Torácica", level: 0, path: "M44,37h12v15h-12V37z" },
+  { id: "back_lower", label: "Lombar", level: 0, path: "M44,52h12v15h-12V52z" },
+  { id: "arm_l_upper", label: "Braço Esquerdo", level: 0, path: "M24,47l-4,18l8,1l4-19L24,47z" },
+  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M20,65l-2,18l8,1l2-19L20,65z" },
+  { id: "wrist_l", label: "Punho Esquerdo", level: 0, path: "M18,83l-1,10l8,1l1-11L18,83z" },
+  { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M76,47l4,18l-8,1l-4-19L76,47z" },
+  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M80,65l2,18l-8,1l-2-19L80,65z" },
+  { id: "wrist_r", label: "Punho Direito", level: 0, path: "M82,83l1,10l-8,1l-1-11L82,83z" },
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67h-8c-4,0-10,3-10,12s3,12,3,12h15V67z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67h8c4,0,10,3,10,12s-3,12-3,12h-15V67z" },
+  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M30,91l-3,30l14,2l3-32L30,91z" },
+  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M70,91l3,30l-14,2l-3-32L70,91z" },
+  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M27,121l-1,10l14,1l1-11L27,121z" },
+  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M73,121l1,10l-14,1l-1-11L73,121z" },
+  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M26,131l-3,25l12,1l3-26L26,131z" },
+  { id: "leg_r", label: "Perna Direita", level: 0, path: "M74,131l3,25l-12,1l-3-26L74,131z" },
+  { id: "foot_l", label: "Pé Esquerdo", level: 0, path: "M23,156l-5,12l16,2l3-14L23,156z" },
+  { id: "foot_r", label: "Pé Direito", level: 0, path: "M77,156l5,12l-16,2l-3-14L77,156z" },
 ]
 
 export default function ChecklistsPage() {
