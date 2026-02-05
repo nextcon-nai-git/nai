@@ -1,7 +1,6 @@
-
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia Eletrodomésticos SA (CLI037).
+ * Atualizado com Britânia Eletrodomésticos SA (CLI037) e todas as perícias reais.
  */
 
 export const REAL_COMPANIES = [
@@ -27,23 +26,16 @@ export const REAL_COMPANIES = [
 ];
 
 export const REAL_EMPLOYEES = [
-  { name: "ANA ISABELA RIBEIRO CECHETTO", cpf: "497.978.917-84", companyId: "CLI129", jobRole: "Mecânico de Manutenção", ghe: "GHE 03 - Manutenção", admissionDate: "07/10/2025" },
-  { name: "LAIZ VIRGINIA DOS SANTOS DAL MEDICO MENDES", cpf: "497.978.917-85", companyId: "CLI129", jobRole: "Mecânico de Manutenção", ghe: "GHE 03 - Manutenção", admissionDate: "07/10/2025" },
-  { name: "LARISSA STHEFANI SAES", cpf: "319.767.991-63", companyId: "CLI129", jobRole: "Empilhadeirista", ghe: "GHE 04 - Logística", admissionDate: "09/02/2021" },
-  { name: "MARCELLI DE LIMA PEIXOTO", cpf: "199.898.655-50", companyId: "CLI129", jobRole: "Recepcionista", ghe: "GHE 01 - Administrativo", admissionDate: "27/03/2022" },
-  { name: "PAULA FERREIRA KUCHANOVICZ", cpf: "750.494.945-90", companyId: "CLI129", jobRole: "Auxiliar de Logística", ghe: "GHE 04 - Logística", admissionDate: "24/05/2023" },
-  { name: "ROSELY MUNHOS SCHUINDT DA SILVA", cpf: "961.586.877-77", companyId: "CLI129", jobRole: "Eletricista", ghe: "GHE 03 - Manutenção", admissionDate: "18/01/2022" },
-  { name: "SORIANE FLORENCIO SILVA", cpf: "961.586.877-75", companyId: "CLI129", jobRole: "Eletricista", ghe: "GHE 03 - Manutenção", admissionDate: "18/01/2022" },
-  { name: "VANESSA DE CASTRO MOREIRA MIRANDA", cpf: "441.932.712-80", companyId: "CLI129", jobRole: "Recepcionista", ghe: "GHE 01 - Administrativo", admissionDate: "22/07/2023" },
-  { name: "BRENDA DE FREITAS FERNANDES", cpf: "378.454.183-64", companyId: "CLI140", jobRole: "Auxiliar de Logística", ghe: "GHE 04 - Logística", admissionDate: "30/11/2024" },
-  { name: "SOFIA LULE RIBEIRO ALVES", cpf: "183.841.345-52", companyId: "CLI140", jobRole: "Auxiliar de Produção", admissionDate: "06/10/2022" },
-  { name: "ALINE FERNANDA DO ROSÁRIO", cpf: "730.248.971-84", companyId: "CLI013", jobRole: "Empilhadeirista", admissionDate: "23/09/2022" },
-  { name: "BRYAN DA SILVA MELO", cpf: "173.973.644-86", companyId: "CLI013", jobRole: "Eletricista", admissionDate: "14/02/2024" },
+  { name: "ANA ISABELA RIBEIRO CECHETTO", cpf: "497.978.917-84", companyId: "CLI129", jobRole: "Mecânico de Manutenção", admissionDate: "07/10/2025" },
   { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
   { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
   { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },
   { name: "ELIANE VICENTIN", cpf: "000.000.000-04", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022" },
   { name: "MARCELA GESSICA DA SILVA DE AMORIM", cpf: "000.000.000-05", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "12/02/2024" },
+  { name: "XIOMARA JOSEFINA LOPEZ SALMERON", cpf: "000.000.000-06", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "15/03/2021" },
+  { name: "ASTRID CAROLINA ZAMORA PEREZ", cpf: "000.000.000-07", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/01/2024" },
+  { name: "LISLAINE REGINA BARBOSA DOS SANTOS", cpf: "000.000.000-08", companyId: "CLI037", jobRole: "Encarregada de Qualidade", admissionDate: "05/05/2020" },
+  { name: "ELANE DA SILVA E SILVA", cpf: "000.000.000-09", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "20/12/2025" },
   { name: "LEANDRO RAMOS DA SILVA NETO", cpf: "000.000.000-10", companyId: "CLI037", jobRole: "Ajudante de galpão", admissionDate: "10/05/2025" },
   { name: "JESSICA GOMES DOS SANTOS", cpf: "000.000.000-11", companyId: "CLI037", jobRole: "Auxiliar Técnica", admissionDate: "10/02/2017" },
   { name: "SUELLEN MULLER AMARAL", cpf: "000.000.000-12", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/02/2024" },
@@ -103,7 +95,7 @@ export const REAL_EXPERTISES = [
     value: 308400.00,
     jobRole: "Operador de Produção",
     caseNumber: "0001035-10.2025.5.12.0050",
-    disease: "Fascite Plantar, Tendinopatia",
+    disease: "Fascite Plantar, Tendinopatia, Bursite",
     defenseStrategy: "Nexo Técnico Epidemiológico (Negativo)",
     defenseStrength: "Alta",
     status: "Quesitos Protocolados",
@@ -141,6 +133,50 @@ export const REAL_EXPERTISES = [
     cid: "M50"
   },
   {
+    id: "PER007",
+    companyId: "CLI037",
+    date: "2026-04-15T08:00:00",
+    employeeName: "Astrid Carolina Zamora Perez",
+    value: 414406.49,
+    jobRole: "Operador de Produção",
+    caseNumber: "0001962-36.2025.5.12.0030",
+    disease: "Tendinite Bicipital, Bursite",
+    defenseStrategy: "Valoração Incapacidade (SUSEP/AMA)",
+    defenseStrength: "Média",
+    status: "Quesitos Protocolados",
+    type: "Médica"
+  },
+  {
+    id: "PER008",
+    companyId: "CLI037",
+    date: "2026-01-26T16:40:00",
+    employeeName: "Lislaine Regina Barbosa dos Santos",
+    value: 215745.07,
+    jobRole: "Encarregada de Qualidade",
+    caseNumber: "0001672-63.2025.5.12.0016",
+    disease: "Transtorno Depressivo",
+    defenseStrategy: "Cronologia dos Sintomas (Pós-Férias)",
+    defenseStrength: "Alta",
+    status: "Quesitos Protocolados",
+    type: "Médica",
+    cid: "F33.9"
+  },
+  {
+    id: "PER009",
+    companyId: "CLI037",
+    date: "2026-01-21T14:40:00",
+    employeeName: "Elane da Silva e Silva",
+    value: 101644.64,
+    jobRole: "Operador de Produção",
+    caseNumber: "0001739-83.2025.5.12.0030",
+    disease: "Transtorno Depressivo",
+    defenseStrategy: "Ausência de Exposição (33 dias)",
+    defenseStrength: "Muito Alta",
+    status: "Quesitos Protocolados",
+    type: "Médica",
+    cid: "F33"
+  },
+  {
     id: "PER010",
     companyId: "CLI037",
     date: "2026-01-27T09:40:00",
@@ -163,7 +199,7 @@ export const REAL_EXPERTISES = [
     value: 1252734.93,
     jobRole: "Auxiliar Técnica",
     caseNumber: "0001556-52.2025.5.12.0050",
-    disease: "LTCAT / Adicional",
+    disease: "Doença Ocupacional (9 anos)",
     defenseStrategy: "Doença Multicausal / Degenerativa",
     defenseStrength: "Média",
     status: "Quesitos Protocolados",

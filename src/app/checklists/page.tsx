@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -163,10 +162,10 @@ const INITIAL_BODY_PARTS: BodyPart[] = [
   { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M76,47l4,18l-8,1l-4-19L76,47z" },
   { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M80,65l2,18l-8,1l-2-19L80,65z" },
   { id: "wrist_r", label: "Punho Direito", level: 0, path: "M82,83l1,10l-8,1l-1-11L82,83z" },
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67h-8c-4,0-10,3-10,12s3,12,3,12h15V67z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67h8c4,0,10,3,10,12s-3,12-3,12h-15V67z" },
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67 h-8 c-4,0-10,3-10,12 s3,12,3,12 h15 V67 z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67 h8 c4,0,10,3,10,12 s-3,12-3,12 h-15 V67 z" },
   { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M30,91l-3,30l14,2l3-32L30,91z" },
-  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M70,91l3,30l-14,2l-3-32L70,91z" },
+  { id: "thigh_r", label: "Coxa Direito", level: 0, path: "M70,91l3,30l-14,2l-3-32L70,91z" },
   { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M27,121l-1,10l14,1l1-11L27,121z" },
   { id: "knee_r", label: "Joelho Direito", level: 0, path: "M73,121l1,10l-14,1l-1-11L73,121z" },
   { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M26,131l-3,25l12,1l3-26L26,131z" },
