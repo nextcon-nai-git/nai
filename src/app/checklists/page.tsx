@@ -79,9 +79,9 @@ const INITIAL_BODY_PARTS: BodyPart[] = [
   { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M76,53l2,15l-6,1l-2-16L76,53z" },
   { id: "wrist_r", label: "Punho Direito", level: 0, path: "M78,68l1,8l-6,1l-1-9L78,68z" },
   
-  // Quadril e Coxas
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M40,67c-3,0-10,2-10,10s2,10,2,10h12V67H40z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M60,67c3,0,10,2,10,10s-2,10-2,10H48V67H60z" },
+  // Quadril e Coxas (Symmetrically Adjusted)
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67H38c-3,0-10,2-10,10s2,10,2,10h14V67z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67h8c3,0,10,2,10,10s-2,10-2,10H56V67z" },
   { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M32,87l-2,25l12,2l2-27L32,87z" },
   { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M68,87l2,25l-12,2l-2-27L68,87z" },
   
@@ -176,10 +176,8 @@ export default function ChecklistsPage() {
             <CardContent className="flex flex-col items-center py-12 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-50 to-white">
               <div className="relative group">
                 <svg width="400" height="600" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8] hover:saturate-100 transition-all duration-500">
-                  {/* Sombreamento de Chão para Profundidade */}
                   <ellipse cx="50" cy="155" rx="30" ry="5" fill="black" fillOpacity="0.05" />
                   
-                  {/* Zonas Anatômicas Clicáveis */}
                   {bodyParts.map((part) => (
                     <path
                       key={part.id}
