@@ -50,7 +50,8 @@ import {
   Droplets,
   CheckCircle2,
   XCircle,
-  MinusCircle
+  MinusCircle,
+  Info
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -119,7 +120,7 @@ const NR_ITEMS: Record<string, string[]> = {
   nr14: ["Os fornos possuem isolamento térmico eficiente?", "Há proteção contra calor radiante para os trabalhadores?", "As escadas e plataformas de acesso estão seguras?", "Há sinalização de segurança em áreas quentes?"],
   nr15: ["Há laudo de insalubridade atualizado?", "Os limites de tolerância são respeitados?", "Há pagamento de adicional conforme o grau (10, 20 ou 40%)?", "As medidas de controle neutralizam o agente?"],
   nr16: ["Há laudo de periculosidade atualizado?", "As áreas de risco estão delimitadas?", "Há pagamento do adicional de 30%?", "Os trabalhadores possuem treinamento para a área de risco?"],
-  nr17: ["Há Análise Ergonômica do Trabalho (AET) disponível?", "O mobiliário permite ajustes de altura?", "Há pausas para atividades repetitivas?", "As condições ambientais (ruído, luz) são confortáveis?"],
+  nr17: ["Há Análise Ergonômica do Trabalho (AET) disponível?", "O mobiliário permite ajustes de altura?", "Há para atividades repetitivas?", "As condições ambientais (ruído, luz) são confortáveis?"],
   nr18: ["Há PCMAT implementado (para obras > 20 trab)?", "As áreas de vivência seguem os padrões de higiene?", "Há proteções coletivas contra queda em todo o perímetro?", "Os andaimes possuem guarda-corpo e rodapé?"],
   nr19: ["Os depósitos de explosivos são sinalizados?", "Há plano de emergência em caso de acidente?", "As distâncias de segurança são respeitadas?", "Há controle rigoroso de acesso e saída de materiais?"],
   nr20: ["Há prontuário da instalação disponível?", "Os tanques possuem bacia de contenção?", "Os trabalhadores possuem treinamento específico (Básico/Interm)?", "Há inspeção periódica de tubulações e mangueiras?"],
