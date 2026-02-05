@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -79,9 +80,9 @@ const INITIAL_BODY_PARTS: BodyPart[] = [
   { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M76,53l2,15l-6,1l-2-16L76,53z" },
   { id: "wrist_r", label: "Punho Direito", level: 0, path: "M78,68l1,8l-6,1l-1-9L78,68z" },
   
-  // Quadril e Coxas (Symmetrically Adjusted)
+  // Quadril e Coxas (Corrigido para Simetria)
   { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67H38c-3,0-10,2-10,10s2,10,2,10h14V67z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67h8c3,0,10,2,10,10s-2,10-2,10H56V67z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67H62c3,0,10,2,10,10s-2,10-2,10H56V67z" },
   { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M32,87l-2,25l12,2l2-27L32,87z" },
   { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M68,87l2,25l-12,2l-2-27L68,87z" },
   
