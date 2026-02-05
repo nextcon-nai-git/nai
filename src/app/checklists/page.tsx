@@ -4,7 +4,6 @@
 import * as React from "react"
 import { 
   ClipboardCheck, 
-  CheckCircle2, 
   Save, 
   Loader2, 
   Search,
@@ -20,8 +19,35 @@ import {
   ShieldAlert,
   Brain,
   Plus,
-  FileText,
-  ArrowRight
+  ArrowRight,
+  Ban,
+  Users,
+  HeartPulse,
+  Building2,
+  Biohazard,
+  Settings2,
+  Box,
+  Flame,
+  Skull,
+  AlertTriangle,
+  Accessibility,
+  Bomb,
+  Fuel,
+  Sun,
+  Mountain,
+  FireExtinguisher,
+  Bath,
+  Recycle,
+  Megaphone,
+  Gavel,
+  Ship,
+  Anchor,
+  Sprout,
+  Stethoscope,
+  Hammer,
+  ArrowUpCircle,
+  Beef,
+  Droplets
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,12 +60,42 @@ import { collection, addDoc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 const CHECKLIST_CATALOG = [
-  { id: "nr10", category: "Normativo", title: "NR-10 - Eletricidade", icon: Zap, color: "text-amber-500" },
-  { id: "nr18", category: "Obras", title: "Check-List Obras (PCMAT)", icon: Construction, color: "text-orange-600" },
-  { id: "cipa", category: "Normativo", title: "05 - CIPA / SESMT", icon: ShieldCheck, color: "text-blue-600" },
-  { id: "epi", category: "Operacional", title: "06 - EPIs (Inspeção)", icon: HardHat, color: "text-emerald-600" },
-  { id: "amb", category: "Saúde", title: "Checklist - Ambulância", icon: Truck, color: "text-red-600" },
-  { id: "rss", category: "Saúde", title: "Resíduos de Saúde (RSS)", icon: Trash2, color: "text-purple-600" },
+  { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
+  { id: "nr03", category: "Administrativo", title: "NR-03 - Embargo e Interdição", icon: Ban, color: "text-red-700" },
+  { id: "nr04", category: "SESMT", title: "NR-04 - Dimensionamento do SESMT", icon: Users, color: "text-blue-600" },
+  { id: "nr05", category: "CIPA", title: "NR-05 - Comissão Interna (CIPA)", icon: ShieldCheck, color: "text-emerald-600" },
+  { id: "nr06", category: "EPI", title: "NR-06 - Equipamentos de Proteção (EPI)", icon: HardHat, color: "text-amber-600" },
+  { id: "nr07", category: "Saúde", title: "NR-07 - Controle Médico (PCMSO)", icon: HeartPulse, color: "text-rose-600" },
+  { id: "nr08", category: "Estrutural", title: "NR-08 - Edificações", icon: Building2, color: "text-slate-600" },
+  { id: "nr09", category: "Riscos", title: "NR-09 - Agentes Físicos, Químicos e Biológicos", icon: Biohazard, color: "text-purple-600" },
+  { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Zap, color: "text-yellow-500" },
+  { id: "nr11", category: "Logística", title: "NR-11 - Movimentação de Materiais", icon: Truck, color: "text-blue-500" },
+  { id: "nr12", category: "Máquinas", title: "NR-12 - Máquinas e Equipamentos", icon: Settings2, color: "text-indigo-600" },
+  { id: "nr13", category: "Pressão", title: "NR-13 - Caldeiras e Vasos de Pressão", icon: Box, color: "text-cyan-600" },
+  { id: "nr14", category: "Fornos", title: "NR-14 - Fornos", icon: Flame, color: "text-orange-700" },
+  { id: "nr15", category: "Insalubridade", title: "NR-15 - Atividades Insalubres", icon: Skull, color: "text-gray-700" },
+  { id: "nr16", category: "Periculosidade", title: "NR-16 - Atividades Perigosas", icon: AlertTriangle, color: "text-orange-600" },
+  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia (Checklist)", icon: Accessibility, color: "text-blue-700" },
+  { id: "nr18", category: "Obras", title: "NR-18 - Indústria da Construção", icon: Construction, color: "text-orange-600" },
+  { id: "nr19", category: "Explosivos", title: "NR-19 - Explosivos", icon: Bomb, color: "text-red-800" },
+  { id: "nr20", category: "Inflamáveis", title: "NR-20 - Inflamáveis e Combustíveis", icon: Fuel, color: "text-amber-700" },
+  { id: "nr21", category: "Trabalho Externo", title: "NR-21 - Trabalho a Céu Aberto", icon: Sun, color: "text-orange-400" },
+  { id: "nr22", category: "Mineração", title: "NR-22 - Segurança na Mineração", icon: Mountain, color: "text-stone-600" },
+  { id: "nr23", category: "Incêndio", title: "NR-23 - Proteção Contra Incêndios", icon: FireExtinguisher, color: "text-red-600" },
+  { id: "nr24", category: "Conforto", title: "NR-24 - Condições Sanitárias e Conforto", icon: Bath, color: "text-blue-400" },
+  { id: "nr25", category: "Resíduos", title: "NR-25 - Resíduos Industriais", icon: Recycle, color: "text-emerald-700" },
+  { id: "nr26", category: "Sinalização", title: "NR-26 - Sinalização de Segurança", icon: Megaphone, color: "text-yellow-600" },
+  { id: "nr28", category: "Fiscalização", title: "NR-28 - Fiscalização e Penalidades", icon: Gavel, color: "text-slate-800" },
+  { id: "nr29", category: "Portuário", title: "NR-29 - Trabalho Portuário", icon: Ship, color: "text-blue-800" },
+  { id: "nr30", category: "Aquaviário", title: "NR-30 - Trabalho Aquaviário", icon: Anchor, color: "text-sky-700" },
+  { id: "nr31", category: "Rural", title: "NR-31 - Trabalho Rural e Pesca", icon: Sprout, color: "text-green-600" },
+  { id: "nr32", category: "Saúde", title: "NR-32 - Serviços de Saúde", icon: Stethoscope, color: "text-blue-600" },
+  { id: "nr33", category: "Confinado", title: "NR-33 - Espaços Confinados", icon: Box, color: "text-orange-800" },
+  { id: "nr34", category: "Naval", title: "NR-34 - Construção e Reparação Naval", icon: Hammer, color: "text-slate-700" },
+  { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
+  { id: "nr36", category: "Frigoríficos", title: "NR-36 - Abate e Processamento de Carnes", icon: Beef, color: "text-red-500" },
+  { id: "nr37", category: "Petróleo", title: "NR-37 - Plataformas de Petróleo", icon: Droplets, color: "text-blue-900" },
+  { id: "nr38", category: "Limpeza Urbana", title: "NR-38 - Limpeza Urbana e Resíduos", icon: Trash2, color: "text-emerald-600" },
 ]
 
 const ERGO_METHODS = [
@@ -57,44 +113,29 @@ type BodyPart = {
 }
 
 const INITIAL_BODY_PARTS: BodyPart[] = [
-  // Cabeça e Pescoço
-  { id: "head", label: "Cabeça", level: 0, path: "M50,2c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54.4,2,50,2z" },
-  { id: "neck", label: "Pescoço", level: 0, path: "M46,18h8v4h-8V18z" },
-  
-  // Ombros
-  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M42,22c-4,0-10,2-14,6s-2,10-2,10l6,2l4-14L42,22z" },
-  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M58,22c4,0,10,2,14,6s2,10,2,10l-6,2l-4-14L58,22z" },
-  
-  // Tronco e Coluna
-  { id: "back_upper", label: "Coluna Cervical/Superior", level: 0, path: "M44,22h12v15h-12V22z" },
-  { id: "back_mid", label: "Coluna Torácica/Média", level: 0, path: "M44,37h12v15h-12V37z" },
-  { id: "back_lower", label: "Coluna Lombar", level: 0, path: "M44,52h12v15h-12V52z" },
-  
-  // Membros Superiores - Esquerdo
-  { id: "arm_l_upper", label: "Braço Esquerdo", level: 0, path: "M28,38l-4,15l6,1l4-16L28,38z" },
-  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M24,53l-2,15l6,1l2-16L24,53z" },
-  { id: "wrist_l", label: "Punho Esquerdo", level: 0, path: "M22,68l-1,8l6,1l1-9L22,68z" },
-  
-  // Membros Superiores - Direito
-  { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M72,38l4,15l-6,1l-4-16L72,38z" },
-  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M76,53l2,15l-6,1l-2-16L76,53z" },
-  { id: "wrist_r", label: "Punho Direito", level: 0, path: "M78,68l1,8l-6,1l-1-9L78,68z" },
-  
-  // Quadril e Coxas (Corrigido para Simetria)
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67H38c-3,0-10,2-10,10s2,10,2,10h14V67z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67H62c3,0,10,2,10,10s-2,10-2,10H56V67z" },
-  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M32,87l-2,25l12,2l2-27L32,87z" },
-  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M68,87l2,25l-12,2l-2-27L68,87z" },
-  
-  // Joelhos
-  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M30,112l-1,8l12,1l1-9L30,112z" },
-  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M70,112l1,8l-12,1l-1-9L70,112z" },
-  
-  // Pernas e Pés
-  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M29,120l-2,20l10,1l2-21L29,120z" },
-  { id: "leg_r", label: "Perna Direita", level: 0, path: "M71,120l2,20l-10,1l-2-21L71,120z" },
-  { id: "foot_l", label: "Pé Esquerdo", level: 0, path: "M27,140l-4,10l14,2l2-12L27,140z" },
-  { id: "foot_r", label: "Pé Direito", level: 0, path: "M73,140l4,10l-14,2l-2-12L73,140z" },
+  { id: "head", label: "Cabeça", level: 0, path: "M50,5c-4,0-7,3-7,7s3,7,7,7s7-3,7-7S54,5,50,5z" },
+  { id: "neck", label: "Pescoço", level: 0, path: "M46,19h8v4h-8V19z" },
+  { id: "shoulder_l", label: "Ombro Esquerdo", level: 0, path: "M42,23c-5,0-12,2-16,7s-3,12-3,12l7,2l5-16L42,23z" },
+  { id: "shoulder_r", label: "Ombro Direito", level: 0, path: "M58,23c5,0,12,2,16,7s3,12,3,12l-7,2l-5-16L58,23z" },
+  { id: "back_upper", label: "Cervical", level: 0, path: "M44,23h12v15h-12V23z" },
+  { id: "back_mid", label: "Torácica", level: 0, path: "M44,38h12v15h-12V38z" },
+  { id: "back_lower", label: "Lombar", level: 0, path: "M44,53h12v15h-12V53z" },
+  { id: "arm_l_upper", label: "Braço Esquerdo", level: 0, path: "M26,42l-5,18l7,1l5-19L26,42z" },
+  { id: "arm_l_lower", label: "Antebraço Esquerdo", level: 0, path: "M21,60l-3,18l7,1l3-19L21,60z" },
+  { id: "wrist_l", label: "Punho Esquerdo", level: 0, path: "M18,78l-1,10l7,1l1-11L18,78z" },
+  { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M74,42l5,18l-7,1l-5-19L74,42z" },
+  { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M79,60l3,18l-7,1l-3-19L79,60z" },
+  { id: "wrist_r", label: "Punho Direito", level: 0, path: "M82,78l1,10l-7,1l-1-11L82,78z" },
+  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,68H36c-4,0-10,3-10,12s3,12,3,12h15V68z" },
+  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,68H64c4,0,10,3,10,12s-3,12-3,12H56V68z" },
+  { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M30,92l-3,30l14,2l3-32L30,92z" },
+  { id: "thigh_r", label: "Coxa Direita", level: 0, path: "M70,92l3,30l-14,2l-3-32L70,92z" },
+  { id: "knee_l", label: "Joelho Esquerdo", level: 0, path: "M27,122l-1,10l14,1l1-11L27,122z" },
+  { id: "knee_r", label: "Joelho Direito", level: 0, path: "M73,122l1,10l-14,1l-1-11L73,122z" },
+  { id: "leg_l", label: "Perna Esquerda", level: 0, path: "M26,132l-3,25l12,1l3-26L26,132z" },
+  { id: "leg_r", label: "Perna Direita", level: 0, path: "M74,132l3,25l-12,1l-3-26L74,132z" },
+  { id: "foot_l", label: "Pé Esquerdo", level: 0, path: "M23,157l-5,12l16,2l3-14L23,157z" },
+  { id: "foot_r", label: "Pé Direito", level: 0, path: "M77,157l5,12l-16,2l-3-14L77,157z" },
 ]
 
 export default function ChecklistsPage() {
@@ -150,7 +191,8 @@ export default function ChecklistsPage() {
 
   const filteredCatalog = CHECKLIST_CATALOG.filter(item => 
     item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   if (selectedChecklist === "ergo") {
@@ -176,8 +218,8 @@ export default function ChecklistsPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center py-12 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-50 to-white">
               <div className="relative group">
-                <svg width="400" height="600" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8] hover:saturate-100 transition-all duration-500">
-                  <ellipse cx="50" cy="155" rx="30" ry="5" fill="black" fillOpacity="0.05" />
+                <svg width="400" height="600" viewBox="0 0 100 180" className="drop-shadow-2xl filter saturate-[0.8] hover:saturate-100 transition-all duration-500">
+                  <ellipse cx="50" cy="175" rx="35" ry="6" fill="black" fillOpacity="0.05" />
                   
                   {bodyParts.map((part) => (
                     <path
@@ -222,11 +264,11 @@ export default function ChecklistsPage() {
                       <div className="flex flex-col">
                         <span className="text-xs font-black uppercase tracking-wide">{p.label}</span>
                         <div className="flex items-center gap-2 mt-1">
-                          <div className={cn("size-2 rounded-full", getLevelColor(p.level).replace('fill-', 'bg-'))} />
+                          <div className={cn("size-2 rounded-full", getLevelColor(p.level).replace('fill-', 'bg-').replace(' stroke-', ' border-'))} />
                           <span className="text-[10px] font-bold text-white/50">Intensidade: {p.level}</span>
                         </div>
                       </div>
-                      <Badge className={cn("text-[9px] font-black border-none px-2 py-1", getLevelColor(p.level).replace('fill-', 'bg-'))}>
+                      <Badge className={cn("text-[9px] font-black border-none px-2 py-1", getLevelColor(p.level).replace('fill-', 'bg-').split(' ')[0])}>
                         Fadiga
                       </Badge>
                     </div>
@@ -271,14 +313,14 @@ export default function ChecklistsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações & Checklists</h1>
-          <p className="text-muted-foreground">Gestão unificada de inspeções, PGR e análises ergonômicas.</p>
+          <p className="text-muted-foreground">Gestão unificada de inspeções técnicas e conformidade das 38 NRs.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[800px] grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="catalog" className="rounded-lg gap-2 text-xs font-bold">
-            <ClipboardCheck className="size-4" /> Catálogo
+            <ClipboardCheck className="size-4" /> Catálogo NRs
           </TabsTrigger>
           <TabsTrigger value="pgr" className="rounded-lg gap-2 text-xs font-bold">
             <ShieldAlert className="size-4" /> Inventário PGR
@@ -295,7 +337,7 @@ export default function ChecklistsPage() {
           <div className="relative">
             <Search className="absolute left-3 top-3.5 size-4 text-muted-foreground" />
             <Input 
-              placeholder="Buscar por NR, Tipo ou Nome do Checklist..." 
+              placeholder="Buscar por número da NR (ex: 35), Tipo ou Nome..." 
               className="pl-10 h-12 bg-white border-muted shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -315,9 +357,9 @@ export default function ChecklistsPage() {
                       <div className={`p-3 rounded-xl bg-muted/50 ${item.color} group-hover:bg-primary group-hover:text-white transition-all shadow-inner`}>
                         <Icon className="size-6" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 overflow-hidden">
                         <p className="text-[9px] font-black uppercase tracking-widest opacity-50">{item.category}</p>
-                        <h3 className="text-sm font-bold text-primary">{item.title}</h3>
+                        <h3 className="text-sm font-bold text-primary truncate">{item.title}</h3>
                       </div>
                     </div>
                   </CardContent>
