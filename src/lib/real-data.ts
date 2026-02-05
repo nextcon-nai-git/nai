@@ -1,12 +1,39 @@
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia Eletrodomésticos SA (CLI037) e todas as perícias reais.
+ * Atualizado com Britânia Eletrodomésticos SA (CLI037) e todas as perícias reais enviadas.
  */
 
 export const REAL_COMPANIES = [
-  { id: "CLI037", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", cnpj: "76.492.701/0011-29", segment: "INDUSTRY", address: "Pirabeiraba, Joinville/SC", phone: "(41) 3218-7700" },
-  { id: "CLI117", name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", city: "Joinville", cnpj: "76.492.701/0014-71", segment: "INDUSTRY", website: "www.britania.com.br" },
-  { id: "CLI105", name: "BRITANIA ELETRODOMESTICOS SA (RODRIGO)", city: "Joinville", cnpj: "76.492.701/0007-42", segment: "INDUSTRY", website: "www.britania.com.br" },
+  { 
+    id: "CLI037", 
+    name: "BRITANIA ELETRODOMESTICOS SA", 
+    city: "Joinville", 
+    cnpj: "76.492.701/0011-29", 
+    segment: "INDUSTRY", 
+    address: "PIRABEIRABA, Joinville/SC", 
+    phone: "(41) 3218-7700",
+    email: "corporativo@britania.com.br"
+  },
+  { 
+    id: "CLI117", 
+    name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", 
+    city: "Joinville", 
+    cnpj: "76.492.701/0014-71", 
+    segment: "INDUSTRY", 
+    address: "Joinville/SC",
+    phone: "(41) 3218-7700",
+    website: "www.britania.com.br" 
+  },
+  { 
+    id: "CLI105", 
+    name: "BRITANIA ELETRODOMESTICOS SA (RODRIGO)", 
+    city: "Joinville", 
+    cnpj: "76.492.701/0007-42", 
+    segment: "INDUSTRY", 
+    address: "Joinville/SC",
+    phone: "(41) 3218-7700",
+    website: "www.britania.com.br" 
+  },
   { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
   { id: "CLI140", name: "ALKANCE SOLUCOES", city: "Curitiba", cnpj: "12.345.678/0001-40", segment: "INDUSTRY" },
   { id: "CLI013", name: "Andes Negócios Digitais", city: "Curitiba", cnpj: "12.345.678/0001-13", segment: "GENERAL" },
@@ -42,7 +69,8 @@ export const REAL_EXPERTISES = [
     defenseStrength: "Alta",
     status: "Quesitos Protocolados",
     type: "Médica",
-    cid: "M75.1"
+    cid: "M75.1",
+    technicalInfo: "Alegação de doença ocupacional. Solicita perícia para apurar redução da capacidade laborativa e nexo causal."
   },
   {
     id: "PER002",
@@ -57,7 +85,8 @@ export const REAL_EXPERTISES = [
     defenseStrength: "Muito Alta",
     status: "Quesitos Protocolados",
     type: "Médica",
-    cid: "M54.5"
+    cid: "M54.5",
+    technicalInfo: "Discussão sobre contrato de trabalho e condições laborais."
   },
   {
     id: "PER003",
@@ -118,65 +147,6 @@ export const REAL_EXPERTISES = [
     status: "Concluído",
     type: "Médica",
     cid: "M50"
-  },
-  {
-    id: "PER007",
-    companyId: "CLI037",
-    date: "2026-04-15T08:00:00",
-    employeeName: "Astrid Carolina Zamora Perez",
-    value: 414406.49,
-    jobRole: "Operador de Produção",
-    caseNumber: "0001962-36.2025.5.12.0030",
-    disease: "Tendinite Bicipital, Bursite",
-    defenseStrategy: "Valoração Incapacidade (SUSEP/AMA)",
-    defenseStrength: "Média",
-    status: "Quesitos Protocolados",
-    type: "Médica"
-  },
-  {
-    id: "PER008",
-    companyId: "CLI037",
-    date: "2026-01-26T16:40:00",
-    employeeName: "Lislaine Regina Barbosa dos Santos",
-    value: 215745.07,
-    jobRole: "Encarregada de Qualidade",
-    caseNumber: "0001672-63.2025.5.12.0016",
-    disease: "Transtorno Depressivo",
-    defenseStrategy: "Cronologia dos Sintomas (Pós-Férias)",
-    defenseStrength: "Alta",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "F33.9"
-  },
-  {
-    id: "PER009",
-    companyId: "CLI037",
-    date: "2026-01-21T14:40:00",
-    employeeName: "Elane da Silva e Silva",
-    value: 101644.64,
-    jobRole: "Operador de Produção",
-    caseNumber: "0001739-83.2025.5.12.0030",
-    disease: "Transtorno Depressivo",
-    defenseStrategy: "Ausência de Exposição (33 dias)",
-    defenseStrength: "Muito Alta",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "F33"
-  },
-  {
-    id: "PER010",
-    companyId: "CLI037",
-    date: "2026-01-27T09:40:00",
-    employeeName: "Leandro Ramos da Silva Neto",
-    value: 199421.00,
-    jobRole: "Ajudante de galpão",
-    caseNumber: "0001736-68.2025.5.12.0050",
-    disease: "Fratura dos 3º e 4º Metacarpos",
-    defenseStrategy: "Inexistência de incapacidade laborativa atual",
-    defenseStrength: "Alta",
-    status: "Concluído",
-    type: "Acidente",
-    cid: "S62.3"
   },
   {
     id: "PER011",
