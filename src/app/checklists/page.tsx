@@ -47,7 +47,10 @@ import {
   Hammer,
   ArrowUpCircle,
   Beef,
-  Droplets
+  Droplets,
+  CheckCircle2,
+  XCircle,
+  MinusCircle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -55,9 +58,11 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore } from "@/firebase"
-import { collection, addDoc } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -75,7 +80,7 @@ const CHECKLIST_CATALOG = [
   { id: "nr14", category: "Fornos", title: "NR-14 - Fornos", icon: Flame, color: "text-orange-700" },
   { id: "nr15", category: "Insalubridade", title: "NR-15 - Atividades Insalubres", icon: Skull, color: "text-gray-700" },
   { id: "nr16", category: "Periculosidade", title: "NR-16 - Atividades Perigosas", icon: AlertTriangle, color: "text-orange-600" },
-  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia (Checklist)", icon: Accessibility, color: "text-blue-700" },
+  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Accessibility, color: "text-blue-700" },
   { id: "nr18", category: "Obras", title: "NR-18 - Indústria da Construção", icon: Construction, color: "text-orange-600" },
   { id: "nr19", category: "Explosivos", title: "NR-19 - Explosivos", icon: Bomb, color: "text-red-800" },
   { id: "nr20", category: "Inflamáveis", title: "NR-20 - Inflamáveis e Combustíveis", icon: Fuel, color: "text-amber-700" },
@@ -98,12 +103,44 @@ const CHECKLIST_CATALOG = [
   { id: "nr38", category: "Limpeza Urbana", title: "NR-38 - Limpeza Urbana e Resíduos", icon: Trash2, color: "text-emerald-600" },
 ]
 
-const ERGO_METHODS = [
-  { id: "rula", name: "RULA", desc: "Membros Superiores" },
-  { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
-  { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
-  { id: "ocra", name: "OCRA", desc: "Movimentos Repetitivos" },
-]
+const NR_ITEMS: Record<string, string[]> = {
+  nr01: ["Existe PGR implementado?", "O inventário de riscos está atualizado?", "O plano de ação contempla medidas de prevenção?", "Há participação dos trabalhadores na identificação de perigos?"],
+  nr03: ["Há situação de risco grave e iminente?", "As atividades foram paralisadas em caso de risco extremo?", "O laudo técnico fundamenta a interdição?"],
+  nr04: ["O SESMT está dimensionado conforme o Quadro II?", "Há registro do SESMT no Ministério do Trabalho?", "Os profissionais possuem a formação exigida?"],
+  nr05: ["A CIPA foi constituída conforme o Quadro I?", "Houve treinamento para os membros da CIPA?", "A SIPAT foi realizada no último ano?", "As reuniões mensais estão em dia?"],
+  nr06: ["Os EPIs fornecidos possuem CA válido?", "Há registro de entrega dos EPIs aos trabalhadores?", "Os EPIs são adequados ao risco da atividade?", "Há treinamento sobre o uso correto do EPI?"],
+  nr07: ["O PCMSO está atualizado e implementado?", "Os ASOs estão dentro do prazo de validade?", "Há exames complementares específicos para os riscos?", "O Relatório Analítico anual foi gerado?"],
+  nr08: ["Os pisos apresentam resistência a cargas?", "As escadas possuem corrimão e rodapé?", "Há proteção contra quedas em aberturas no piso?", "A iluminação natural e artificial é adequada?"],
+  nr09: ["Há monitoramento de agentes físicos (ruído, calor)?", "Há monitoramento de agentes químicos no ambiente?", "As metodologias de avaliação seguem a NHO/Fundacentro?", "As medidas de controle são revisadas periodicamente?"],
+  nr10: ["O Prontuário de Instalações Elétricas (PIE) existe?", "Os trabalhadores possuem treinamento de NR-10?", "Há proteção contra contatos diretos e indiretos?", "As ferramentas manuais possuem isolamento adequado?"],
+  nr11: ["Os equipamentos de elevação possuem indicação de carga?", "Os operadores de empilhadeira possuem cartão de identificação?", "Há áreas de circulação desobstruídas?", "As pilhas de materiais estão estáveis?"],
+  nr12: ["As máquinas possuem proteção em zonas de perigo?", "Há dispositivos de parada de emergência acessíveis?", "Os manuais estão disponíveis em português?", "Há inventário de máquinas e equipamentos atualizado?"],
+  nr13: ["As caldeiras possuem placa de identificação?", "Há relatório de inspeção de segurança recente?", "O operador possui treinamento específico?", "As válvulas de segurança estão calibradas?"],
+  nr14: ["Os fornos possuem isolamento térmico eficiente?", "Há proteção contra calor radiante para os trabalhadores?", "As escadas e plataformas de acesso estão seguras?", "Há sinalização de segurança em áreas quentes?"],
+  nr15: ["Há laudo de insalubridade atualizado?", "Os limites de tolerância são respeitados?", "Há pagamento de adicional conforme o grau (10, 20 ou 40%)?", "As medidas de controle neutralizam o agente?"],
+  nr16: ["Há laudo de periculosidade atualizado?", "As áreas de risco estão delimitadas?", "Há pagamento do adicional de 30%?", "Os trabalhadores possuem treinamento para a área de risco?"],
+  nr17: ["Há Análise Ergonômica do Trabalho (AET) disponível?", "O mobiliário permite ajustes de altura?", "Há pausas para atividades repetitivas?", "As condições ambientais (ruído, luz) são confortáveis?"],
+  nr18: ["Há PCMAT implementado (para obras > 20 trab)?", "As áreas de vivência seguem os padrões de higiene?", "Há proteções coletivas contra queda em todo o perímetro?", "Os andaimes possuem guarda-corpo e rodapé?"],
+  nr19: ["Os depósitos de explosivos são sinalizados?", "Há plano de emergência em caso de acidente?", "As distâncias de segurança são respeitadas?", "Há controle rigoroso de acesso e saída de materiais?"],
+  nr20: ["Há prontuário da instalação disponível?", "Os tanques possuem bacia de contenção?", "Os trabalhadores possuem treinamento específico (Básico/Interm)?", "Há inspeção periódica de tubulações e mangueiras?"],
+  nr21: ["Há abrigo contra intempéries?", "Há fornecimento de água potável fresca?", "Há condições de higiene para refeições no campo?", "Há proteção contra animais peçonhentos?"],
+  nr22: ["Há plano de lavra atualizado?", "Há monitoramento de gases em minas subterrâneas?", "Há sistemas de ventilação eficientes?", "Há saídas de emergência desobstruídas?"],
+  nr23: ["Os extintores estão carregados e sinalizados?", "As saídas de emergência abrem para fora?", "Há brigada de incêndio treinada e ativa?", "Há iluminação de emergência testada mensalmente?"],
+  nr24: ["As instalações sanitárias são limpas e adequadas?", "Há armários individuais com chave no vestiário?", "O refeitório possui condições de higiene e conforto?", "Há local para aquecimento de refeições?"],
+  nr25: ["Há plano de gerenciamento de resíduos industriais?", "Os resíduos perigosos são armazenados em local seguro?", "Há destinação final adequada e comprovada?", "Os trabalhadores usam EPIs para manuseio de resíduos?"],
+  nr26: ["Há sinalização visual de perigo nas máquinas?", "As tubulações estão pintadas conforme o padrão?", "Há rótulos nos produtos químicos armazenados?", "A sinalização é compreensível para todos os trabalhadores?"],
+  nr28: ["As notificações de fiscalização foram atendidas?", "Há controle de multas e prazos de regularização?", "Os documentos solicitados estão prontos para exibição?"],
+  nr29: ["Há plano de controle de emergência no porto?", "As redes de proteção em escadas de portaló estão íntegras?", "Há coletes salva-vidas disponíveis?", "Há sinalização de carga suspensa?"],
+  nr30: ["Há serviço de saúde a bordo?", "Há estoque de medicamentos e materiais de primeiros socorros?", "Os botes de salvamento são testados periodicamente?", "Há treinamento de abandono de embarcação?"],
+  nr31: ["Há áreas de vivência no campo (sanitário/refeitório)?", "Os agrotóxicos são armazenados em local isolado?", "As máquinas agrícolas possuem proteção em partes móveis?", "Há EPIs adequados para o manejo de animais?"],
+  nr32: ["Há plano de prevenção de riscos com perfurocortantes?", "Os recipientes de descarte estão em locais seguros?", "Há esquema vacinal atualizado para os trabalhadores?", "Há segregação correta de resíduos biológicos?"],
+  nr33: ["Há PET (Permissão de Entrada e Trabalho) preenchida?", "Há vigia treinado na entrada do espaço?", "Há medição de gases antes e durante o trabalho?", "Há equipamentos de resgate prontos no local?"],
+  nr34: ["Há plano de inspeção e manutenção de equipamentos navais?", "As atividades de soldagem seguem padrões de segurança?", "Há proteção contra quedas em conveses e docas?", "Há controle de exposição a fumos metálicos?"],
+  nr35: ["Os trabalhadores possuem treinamento de NR-35?", "Há pontos de ancoragem certificados?", "O cinto de segurança é do tipo paraquedista?", "Há Análise de Risco (AR) para atividades acima de 2m?"],
+  nr36: ["Há rodízio de atividades para prevenir LER/DORT?", "A temperatura ambiente é controlada?", "As facas e ferramentas de corte possuem proteção?", "Há fornecimento de luvas de malha de aço?"],
+  nr37: ["Há plano de gestão de integridade da plataforma?", "Há treinamento de escape via baleeira?", "Há monitoramento de gases e vapores orgânicos?", "Há sistema de comunicação de emergência redundante?"],
+  nr38: ["Os veículos de coleta possuem estribos seguros?", "Os coletores usam uniformes refletivos?", "Há treinamento para manuseio de resíduos perigosos?", "Há fornecimento regular de água e protetor solar?"],
+}
 
 type BodyPart = {
   id: string
@@ -144,9 +181,10 @@ export default function ChecklistsPage() {
   const db = useFirestore()
   const [searchTerm, setSearchTerm] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("catalog")
-  const [selectedChecklist, setSelectedChecklist] = React.useState<string | null>(null)
+  const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>(INITIAL_BODY_PARTS)
   const [isSaving, setIsSaving] = React.useState(false)
+  const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
 
   const handlePartClick = (id: string) => {
     setBodyParts(prev => prev.map(part => {
@@ -180,10 +218,34 @@ export default function ChecklistsPage() {
       }
       await addDoc(collection(db, "clients", user.uid, "checklists"), reportData)
       toast({ title: "Avaliação Salva!", description: "Os dados de desconforto foram enviados para análise." })
-      setSelectedChecklist(null)
+      setSelectedChecklistId(null)
       setBodyParts(INITIAL_BODY_PARTS)
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao salvar relatório" })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSaveNRChecklist = async () => {
+    if (!user || !db || !selectedChecklistId) return
+    setIsSaving(true)
+    try {
+      const checklist = CHECKLIST_CATALOG.find(c => c.id === selectedChecklistId)
+      const reportData = {
+        userId: user.uid,
+        type: "NR_AUDIT",
+        nr: selectedChecklistId,
+        nrTitle: checklist?.title,
+        responses: formResponses,
+        createdAt: new Date().toISOString(),
+      }
+      await addDoc(collection(db, "clients", user.uid, "checklists"), reportData)
+      toast({ title: "Inspeção Registrada!", description: `Checklist da ${checklist?.title} foi salvo com sucesso.` })
+      setSelectedChecklistId(null)
+      setFormResponses({})
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro ao salvar inspeção" })
     } finally {
       setIsSaving(false)
     }
@@ -195,55 +257,163 @@ export default function ChecklistsPage() {
     item.id.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (selectedChecklist === "ergo") {
+  const selectedNR = CHECKLIST_CATALOG.find(c => c.id === selectedChecklistId)
+  const nrItems = selectedChecklistId ? NR_ITEMS[selectedChecklistId] : []
+
+  // Renderização da Visualização do Checklist Selecionado
+  if (selectedChecklistId) {
+    if (selectedChecklistId === "ergo" || selectedChecklistId === "nr17") {
+      return (
+        <div className="space-y-6 animate-in zoom-in-95 duration-300">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+              <ArrowLeft className="size-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-headline font-bold text-primary uppercase">Diagrama de Corlett - 2026</h1>
+              <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Avaliação Osteomuscular por Segmento Corporal</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-2 card-shadow border-none bg-white overflow-hidden">
+              <CardHeader className="bg-muted/30 border-b text-center py-4">
+                <CardTitle className="text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 text-primary">
+                  <Activity className="size-4" /> Mapa de Intensidade
+                </CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase">Toque na região afetada para registrar o nível de desconforto.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center py-12 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-50 to-white">
+                <div className="relative group">
+                  <svg width="400" height="600" viewBox="0 0 100 180" className="drop-shadow-2xl filter saturate-[0.8] hover:saturate-100 transition-all duration-500">
+                    <ellipse cx="50" cy="175" rx="35" ry="6" fill="black" fillOpacity="0.05" />
+                    
+                    {bodyParts.map((part) => (
+                      <path
+                        key={part.id}
+                        d={part.path}
+                        className={cn(
+                          "cursor-pointer transition-all duration-300 hover:brightness-110 stroke-[0.5] shadow-sm",
+                          getLevelColor(part.level)
+                        )}
+                        onClick={() => handlePartClick(part.id)}
+                      >
+                        <title>{part.label} - Nível {part.level}</title>
+                      </path>
+                    ))}
+                  </svg>
+                </div>
+                
+                <div className="mt-12 flex flex-wrap justify-center gap-6 w-full max-w-md">
+                  {[0, 1, 2, 3, 4].map((l) => (
+                    <div key={l} className="flex flex-col items-center gap-1">
+                      <div className={cn("size-6 rounded-lg border-2 shadow-sm transition-transform hover:scale-110", getLevelColor(l as any))} />
+                      <span className="text-[8px] font-black uppercase tracking-tighter opacity-60">
+                        {l === 0 ? 'Zero' : l === 1 ? 'Leve' : l === 2 ? 'Médio' : l === 3 ? 'Forte' : 'Extremo'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="card-shadow border-none bg-[#090e24] text-white">
+                <CardHeader className="border-b border-white/10">
+                  <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                    <Brain className="size-4" /> Áreas Relatadas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="min-h-[300px] max-h-[450px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                    {bodyParts.filter(p => p.level > 0).map(p => (
+                      <div key={p.id} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center animate-in slide-in-from-right-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black uppercase tracking-wide">{p.label}</span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className={cn("size-2 rounded-full", getLevelColor(p.level).replace('fill-', 'bg-').replace(' stroke-', ' border-'))} />
+                            <span className="text-[10px] font-bold text-white/50">Intensidade: {p.level}</span>
+                          </div>
+                        </div>
+                        <Badge className={cn("text-[9px] font-black border-none px-2 py-1", getLevelColor(p.level).replace('fill-', 'bg-').split(' ')[0])}>
+                          Fadiga
+                        </Badge>
+                      </div>
+                    ))}
+                    {bodyParts.filter(p => p.level > 0).length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-30">
+                        <Activity className="size-12 animate-pulse" />
+                        <p className="text-[10px] uppercase font-black tracking-widest">Nenhuma região<br/>selecionada no avatar</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="pt-4 border-t border-white/10">
+                    <Button 
+                      className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-[0.2em] h-14 shadow-xl shadow-accent/20 transition-all active:scale-95"
+                      onClick={handleSaveCorlett}
+                      disabled={isSaving || bodyParts.filter(p => p.level > 0).length === 0}
+                    >
+                      {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-5 mr-2" />}
+                      Confirmar Relato
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Renderização do Checklist das NRs
     return (
-      <div className="space-y-6 animate-in zoom-in-95 duration-300">
+      <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => setSelectedChecklist(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
+          <Button variant="ghost" onClick={() => setSelectedChecklistId(null)} className="h-10 w-10 p-0 rounded-full bg-white shadow-sm border">
             <ArrowLeft className="size-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-headline font-bold text-primary uppercase">Diagrama de Corlett - 2026</h1>
-            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Avaliação Osteomuscular por Segmento Corporal</p>
+            <h1 className="text-2xl font-headline font-bold text-primary uppercase">{selectedNR?.title}</h1>
+            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest opacity-60">Auditoria Técnica de Campo</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 card-shadow border-none bg-white overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b text-center py-4">
-              <CardTitle className="text-sm font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 text-primary">
-                <Activity className="size-4" /> Mapa de Intensidade
+          <Card className="lg:col-span-2 border-none shadow-xl bg-white overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                <ClipboardCheck className="size-4" /> Itens de Verificação
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase">Toque na região afetada para registrar o nível de desconforto.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center py-12 relative bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-50 to-white">
-              <div className="relative group">
-                <svg width="400" height="600" viewBox="0 0 100 180" className="drop-shadow-2xl filter saturate-[0.8] hover:saturate-100 transition-all duration-500">
-                  <ellipse cx="50" cy="175" rx="35" ry="6" fill="black" fillOpacity="0.05" />
-                  
-                  {bodyParts.map((part) => (
-                    <path
-                      key={part.id}
-                      d={part.path}
-                      className={cn(
-                        "cursor-pointer transition-all duration-300 hover:brightness-110 stroke-[0.5] shadow-sm",
-                        getLevelColor(part.level)
-                      )}
-                      onClick={() => handlePartClick(part.id)}
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {nrItems.map((item, index) => (
+                  <div key={index} className="p-6 space-y-4 hover:bg-muted/5 transition-colors">
+                    <p className="text-sm font-bold text-primary leading-relaxed">{item}</p>
+                    <RadioGroup 
+                      onValueChange={(val) => setFormResponses(prev => ({ ...prev, [index]: val }))}
+                      className="flex gap-6"
                     >
-                      <title>{part.label} - Nível {part.level}</title>
-                    </path>
-                  ))}
-                </svg>
-              </div>
-              
-              <div className="mt-12 flex flex-wrap justify-center gap-6 w-full max-w-md">
-                {[0, 1, 2, 3, 4].map((l) => (
-                  <div key={l} className="flex flex-col items-center gap-1">
-                    <div className={cn("size-6 rounded-lg border-2 shadow-sm transition-transform hover:scale-110", getLevelColor(l as any))} />
-                    <span className="text-[8px] font-black uppercase tracking-tighter opacity-60">
-                      {l === 0 ? 'Zero' : l === 1 ? 'Leve' : l === 2 ? 'Médio' : l === 3 ? 'Forte' : 'Extremo'}
-                    </span>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="C" id={`c-${index}`} className="text-emerald-600 border-emerald-200" />
+                        <Label htmlFor={`c-${index}`} className="text-[10px] font-black uppercase text-emerald-700 flex items-center gap-1">
+                          <CheckCircle2 className="size-3" /> Conforme
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="NC" id={`nc-${index}`} className="text-red-600 border-red-200" />
+                        <Label htmlFor={`nc-${index}`} className="text-[10px] font-black uppercase text-red-700 flex items-center gap-1">
+                          <XCircle className="size-3" /> Não Conforme
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="NA" id={`na-${index}`} className="text-slate-400 border-slate-200" />
+                        <Label htmlFor={`na-${index}`} className="text-[10px] font-black uppercase text-slate-500 flex items-center gap-1">
+                          <MinusCircle className="size-3" /> N/A
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                 ))}
               </div>
@@ -251,56 +421,38 @@ export default function ChecklistsPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card className="card-shadow border-none bg-[#090e24] text-white">
-              <CardHeader className="border-b border-white/10">
-                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                  <Brain className="size-4" /> Áreas Relatadas
-                </CardTitle>
+            <Card className="card-shadow border-none bg-primary text-white">
+              <CardHeader>
+                <CardTitle className="text-xs font-black uppercase text-accent tracking-widest">Resumo da Inspeção</CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="min-h-[300px] max-h-[450px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                  {bodyParts.filter(p => p.level > 0).map(p => (
-                    <div key={p.id} className="p-4 bg-white/5 rounded-2xl border border-white/10 flex justify-between items-center animate-in slide-in-from-right-4">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black uppercase tracking-wide">{p.label}</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className={cn("size-2 rounded-full", getLevelColor(p.level).replace('fill-', 'bg-').replace(' stroke-', ' border-'))} />
-                          <span className="text-[10px] font-bold text-white/50">Intensidade: {p.level}</span>
-                        </div>
-                      </div>
-                      <Badge className={cn("text-[9px] font-black border-none px-2 py-1", getLevelColor(p.level).replace('fill-', 'bg-').split(' ')[0])}>
-                        Fadiga
-                      </Badge>
-                    </div>
-                  ))}
-                  {bodyParts.filter(p => p.level > 0).length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-30">
-                      <Activity className="size-12 animate-pulse" />
-                      <p className="text-[10px] uppercase font-black tracking-widest">Nenhuma região<br/>selecionada no avatar</p>
-                    </div>
-                  )}
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-[8px] uppercase opacity-50">Respondidos</p>
+                    <p className="text-xl font-black">{Object.keys(formResponses).length} / {nrItems.length}</p>
+                  </div>
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-[8px] uppercase opacity-50">Não Conformes</p>
+                    <p className="text-xl font-black text-red-400">{Object.values(formResponses).filter(v => v === 'NC').length}</p>
+                  </div>
                 </div>
                 
-                <div className="pt-4 border-t border-white/10">
-                  <Button 
-                    className="w-full bg-accent text-[#090e24] hover:bg-accent/90 font-black uppercase tracking-[0.2em] h-14 shadow-xl shadow-accent/20 transition-all active:scale-95"
-                    onClick={handleSaveCorlett}
-                    disabled={isSaving || bodyParts.filter(p => p.level > 0).length === 0}
-                  >
-                    {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-5 mr-2" />}
-                    Confirmar Relato
-                  </Button>
-                </div>
+                <Button 
+                  className="w-full bg-accent text-primary hover:bg-accent/90 font-black uppercase h-12 shadow-lg"
+                  onClick={handleSaveNRChecklist}
+                  disabled={isSaving || Object.keys(formResponses).length === 0}
+                >
+                  {isSaving ? <Loader2 className="animate-spin" /> : <Save className="size-4 mr-2" />}
+                  Salvar Inspeção
+                </Button>
               </CardContent>
             </Card>
 
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <div className="flex gap-2">
-                <AlertCircle className="size-4 text-blue-600 shrink-0" />
-                <p className="text-[9px] text-blue-700 font-bold uppercase leading-tight">
-                  Os dados registrados no Diagrama de Corlett são fundamentais para o Plano de Ação Ergonômico da NR-17.
-                </p>
-              </div>
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+              <Info className="size-5 text-blue-600 shrink-0" />
+              <p className="text-[10px] text-blue-700 font-bold uppercase leading-tight">
+                Certifique-se de que todas as evidências fotográficas foram coletadas para os itens marcados como 'Não Conforme'.
+              </p>
             </div>
           </div>
         </div>
@@ -350,7 +502,7 @@ export default function ChecklistsPage() {
                 <Card 
                   key={item.id} 
                   className="card-shadow border-none hover:ring-2 ring-primary/10 transition-all cursor-pointer group bg-white"
-                  onClick={() => setSelectedChecklist(item.id)}
+                  onClick={() => setSelectedChecklistId(item.id)}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
@@ -390,7 +542,7 @@ export default function ChecklistsPage() {
               <CardContent className="space-y-6">
                 <div 
                   className="p-8 border-2 border-dashed border-indigo-200 rounded-3xl bg-indigo-50/30 hover:bg-indigo-50 hover:border-indigo-400 transition-all cursor-pointer group flex items-center gap-8 shadow-sm hover:shadow-xl"
-                  onClick={() => setSelectedChecklist("ergo")}
+                  onClick={() => setSelectedChecklistId("ergo")}
                 >
                   <div className="p-5 bg-indigo-600 text-white rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
                     <Activity size={40} />
@@ -403,7 +555,12 @@ export default function ChecklistsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ERGO_METHODS.map((m) => (
+                  {[
+                    { id: "rula", name: "RULA", desc: "Membros Superiores" },
+                    { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
+                    { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
+                    { id: "ocra", name: "OCRA", desc: "Movimentos Repetitivos" },
+                  ].map((m) => (
                     <div key={m.id} className="p-4 border rounded-2xl hover:bg-muted/30 transition-all cursor-pointer group">
                       <div className="flex justify-between items-center">
                         <div>
