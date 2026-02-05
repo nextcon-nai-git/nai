@@ -160,10 +160,12 @@ export default function ChecklistsPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center py-10 relative">
               <svg width="350" height="550" viewBox="0 0 100 160" className="drop-shadow-2xl filter saturate-[0.8]">
+                {/* Silhueta Base Humana para preenchimento de fundo */}
                 <path 
                   d="M50,2.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S45.9,2.5,50,2.5z M46.5,17.5h7v4h-7V17.5z M46.5,21.5c-3.5,0-8.5,1.5-11.5,4.5s-3,7-3,7l-4,15l-1.5,15l-1,8l4,1l1-8l1.5-15l2-15l5,1l2-16l9.5,0l2,16l5-1l2,15l1.5,15l1,8l4-1l-1-8l-1.5-15l-4-15c0,0,0-4,3-7s8-4.5,11.5-4.5h-7V21.5z" 
                   className="fill-slate-50 stroke-slate-200 stroke-[0.5]"
                 />
+                {/* Partes Interativas */}
                 {bodyParts.map((part) => (
                   <path
                     key={part.id}
