@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -8,44 +7,20 @@ import {
   ShieldAlert, 
   Plus, 
   ArrowLeft, 
-  Ban, 
-  Users, 
   HeartPulse, 
   Building2, 
-  Biohazard, 
-  Settings2, 
-  Box, 
-  Flame, 
-  Skull, 
-  AlertTriangle, 
-  Accessibility, 
-  Bomb, 
-  Fuel, 
-  Sun, 
-  Mountain, 
-  FireExtinguisher, 
-  Bath, 
-  Recycle, 
-  Megaphone, 
-  Gavel, 
-  Ship, 
-  Anchor, 
-  Sprout, 
-  Stethoscope, 
   Hammer, 
   ArrowUpCircle, 
-  Beef, 
-  Droplets, 
-  Trash2,
   Zap,
   CheckCircle2,
   Info,
   FileText,
   Sparkles,
-  Activity,
   Brain,
   History,
-  CloudUpload
+  CloudUpload,
+  Stethoscope,
+  Scale
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -53,13 +28,13 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
-import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
+import { collection, addDoc, query, orderBy } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { cn } from "@/lib/utils"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { analyzePgrPdf, type PgrAnalysisOutput } from "@/ai/flows/pgr-analysis-flow"
+import { analyzePgrPdf } from "@/ai/flows/pgr-analysis-flow"
+import { analyzeLtcatPdf } from "@/ai/flows/ltcat-analysis-flow"
+import { analyzePcmsoPdf } from "@/ai/flows/pcmso-analysis-flow"
 import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
 
@@ -72,13 +47,6 @@ const CHECKLIST_CATALOG = [
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
 ]
 
-const ERGO_METHODS = [
-  { id: "rula", name: "RULA", desc: "Membros Superiores" },
-  { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
-  { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
-  { id: "corlett", name: "Corlett", desc: "Diagrama de Desconforto" },
-]
-
 export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
@@ -86,10 +54,10 @@ export default function ChecklistsPage() {
   const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
-  const [isAnalyzingPgr, setIsAnalyzingPgr] = React.useState(false)
-  const [pgrResult, setPgrResult] = React.useState<PgrAnalysisOutput | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false)
+  const [analysisResult, setAnalysisResult] = React.useState<any>(null)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
-  const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
+  const [docType, setDocType] = React.useState<"pgr" | "ltcat" | "pcmso">("pgr")
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -97,12 +65,12 @@ export default function ChecklistsPage() {
   }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
 
-  const handlePgrFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     
     if (!selectedCompanyId) {
-      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir o PGR." })
+      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir o documento." })
       return
     }
 
@@ -111,27 +79,34 @@ export default function ChecklistsPage() {
       return
     }
 
-    setIsAnalyzingPgr(true)
+    setIsAnalyzing(true)
     try {
-      // 1. Ler para IA
       const reader = new FileReader()
       reader.onload = async (event) => {
         const dataUri = event.target?.result as string
-        
-        // 2. Analisar com IA
-        const result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
-        setPgrResult(result)
+        let result: any;
 
-        // 3. Salvar no Storage
-        const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, "pgr")
+        // 1. Chamar fluxo específico de IA
+        if (docType === "pgr") {
+          result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
+        } else if (docType === "ltcat") {
+          result = await analyzeLtcatPdf({ pdfDataUri: dataUri, fileName: file.name })
+        } else if (docType === "pcmso") {
+          result = await analyzePcmsoPdf({ pdfDataUri: dataUri, fileName: file.name })
+        }
+
+        setAnalysisResult(result)
+
+        // 2. Salvar no Storage
+        const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, docType)
         const fileRef = ref(storage, storagePath)
         const uploadResult = await uploadBytes(fileRef, file)
         const downloadUrl = await getDownloadURL(uploadResult.ref)
 
-        // 4. Salvar na Central de Relatórios
+        // 3. Salvar na Central de Relatórios
         await addDoc(collection(db, "clients", user.uid, "reports"), {
           companyId: selectedCompanyId,
-          reportType: "pgr",
+          reportType: docType,
           fileName: file.name,
           fileUrl: downloadUrl,
           analysisSummary: result.aiInsight,
@@ -139,77 +114,14 @@ export default function ChecklistsPage() {
           status: "AVAILABLE"
         })
 
-        toast({ title: "Análise e Upload Concluídos", description: "O PGR foi processado e arquivado com sucesso." })
+        toast({ title: `Análise ${docType.toUpperCase()} Concluída`, description: "O documento foi processado e arquivado." })
       }
       reader.readAsDataURL(file)
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
     } finally { 
-      setIsAnalyzingPgr(false) 
+      setIsAnalyzing(false) 
     }
-  }
-
-  const handleSaveNRChecklist = async () => {
-    if (!user || !db || !selectedChecklistId) return
-    try {
-      await addDoc(collection(db, "clients", user.uid, "checklists"), {
-        userId: user.uid, type: "NR_AUDIT", nr: selectedChecklistId, responses: formResponses, createdAt: new Date().toISOString()
-      })
-      toast({ title: "Inspeção Salva!" })
-      setSelectedChecklistId(null)
-    } catch (e) { toast({ variant: "destructive", title: "Erro ao salvar" }) }
-  }
-
-  if (selectedChecklistId === "nr17") {
-    return (
-      <div className="space-y-6 animate-in slide-in-from-bottom-4">
-        <Button variant="ghost" onClick={() => setSelectedChecklistId(null)}><ArrowLeft className="mr-2" /> Voltar ao Catálogo</Button>
-        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-          <div>
-            <h1 className="text-3xl font-headline font-bold text-primary">Laboratório de Ergonomia (NR-17)</h1>
-            <p className="text-muted-foreground">Avaliações biomecânicas e análise postural 2026.</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 card-shadow border-none bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg font-bold text-primary uppercase">Mapeamento de Desconforto (Corlett)</CardTitle>
-              <CardDescription>Selecione as regiões de incômodo no avatar anatômico.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center py-10">
-              <div className="w-64 h-96 relative bg-muted/20 rounded-3xl flex items-center justify-center">
-                <Brain className="size-20 text-primary opacity-10" />
-                <p className="text-[10px] uppercase font-black opacity-40 absolute bottom-4">Avatar 3D em Construção</p>
-              </div>
-              <div className="grid grid-cols-2 gap-4 w-full mt-8">
-                {ERGO_METHODS.map(m => (
-                  <Button key={m.id} variant="outline" className="h-16 flex flex-col gap-1 items-start px-4">
-                    <span className="font-black text-sm">{m.name}</span>
-                    <span className="text-[9px] uppercase opacity-60">{m.desc}</span>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-shadow border-none bg-[#090e24] text-white">
-            <CardHeader>
-              <CardTitle className="text-xs font-black uppercase text-accent tracking-widest">Resumo da Análise</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Risco Biomecânico</p>
-                <Badge className="bg-emerald-500">Baixo / Moderado</Badge>
-              </div>
-              <Button className="w-full bg-accent text-primary font-black uppercase text-[10px] h-12">
-                Gerar Parecer Ergonômico
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -220,9 +132,9 @@ export default function ChecklistsPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="catalog" className="rounded-lg gap-2">Catálogo NRs</TabsTrigger>
-          <TabsTrigger value="pgr" className="rounded-lg gap-2">Análise PGR (PDF)</TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg gap-2">Histórico</TabsTrigger>
+          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold">Catálogo NRs</TabsTrigger>
+          <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold"><Sparkles className="size-4 text-accent" /> Scanner IA</TabsTrigger>
+          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold">Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="mt-6">
@@ -244,25 +156,40 @@ export default function ChecklistsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="pgr" className="mt-6">
+        <TabsContent value="scanner" className="mt-6">
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             <CardHeader className="bg-muted/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-accent" /> Scanner PGR Inteligente</CardTitle>
-                <CardDescription>Análise via IA para extração de inventário e planos de ação (Max 10MB).</CardDescription>
+              <div className="space-y-1">
+                <CardTitle className="flex items-center gap-2">Scanner Inteligente NAI</CardTitle>
+                <CardDescription>Análise via IA para PGR, LTCAT e PCMSO (PDF até 10MB).</CardDescription>
               </div>
-              <div className="w-full md:w-64">
-                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block">Vincular Documento a:</label>
-                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                  <SelectTrigger className="bg-white border-muted h-10">
-                    <SelectValue placeholder="Selecione o Cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {companies?.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                <div className="w-full md:w-48">
+                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Tipo de Laudo:</label>
+                  <Select value={docType} onValueChange={(v: any) => setDocType(v)}>
+                    <SelectTrigger className="bg-white border-muted h-10 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pgr">PGR (Riscos)</SelectItem>
+                      <SelectItem value="ltcat">LTCAT (Previdenciário)</SelectItem>
+                      <SelectItem value="pcmso">PCMSO (Saúde)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full md:w-64">
+                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Vincular a:</label>
+                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                    <SelectTrigger className="bg-white border-muted h-10 text-xs">
+                      <SelectValue placeholder="Selecione o Cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies?.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -274,63 +201,100 @@ export default function ChecklistsPage() {
                   type="file" 
                   accept=".pdf" 
                   className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
-                  onChange={handlePgrFileUpload}
-                  disabled={!selectedCompanyId || isAnalyzingPgr}
+                  onChange={handleFileUpload}
+                  disabled={!selectedCompanyId || isAnalyzing}
                 />
-                {isAnalyzingPgr ? (
+                {isAnalyzing ? (
                   <div className="space-y-4">
                     <Loader2 className="animate-spin size-12 mx-auto text-primary" />
-                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Lendo e Salvando na Pasta do Cliente...</p>
+                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Analisando {docType.toUpperCase()}...</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <CloudUpload className="size-12 mx-auto text-primary opacity-40 group-hover:scale-110 transition-transform" />
                     <p className="font-bold text-primary">
-                      {selectedCompanyId ? "Arraste ou Clique para importar PGR" : "Selecione um cliente acima para habilitar"}
+                      {selectedCompanyId ? `Arraste ou Clique para importar ${docType.toUpperCase()}` : "Selecione um cliente acima para habilitar"}
                     </p>
                     <p className="text-[10px] uppercase font-black text-muted-foreground">Formato PDF • Limite 10MB</p>
                   </div>
                 )}
               </div>
 
-              {pgrResult && (
+              {analysisResult && (
                 <div className="animate-in zoom-in-95 duration-300 space-y-6">
-                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 flex justify-between items-center">
+                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                      <h3 className="text-xl font-headline font-black text-blue-900">{pgrResult.companyInfo.name}</h3>
-                      <p className="text-xs text-blue-700 font-bold uppercase">Vigência: {pgrResult.companyInfo.validity}</p>
+                      <h3 className="text-xl font-headline font-black text-blue-900">{analysisResult.companyInfo.name}</h3>
+                      <p className="text-xs text-blue-700 font-bold uppercase">
+                        {docType === 'pgr' ? `Vigência: ${analysisResult.companyInfo.validity}` : 
+                         docType === 'ltcat' ? `Data: ${analysisResult.companyInfo.date}` : 
+                         `Responsável: ${analysisResult.companyInfo.responsibleDoctor}`}
+                      </p>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado</Badge>
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado ({docType})</Badge>
                       <span className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1">
-                        <CheckCircle2 className="size-3" /> Arquivado na Central
+                        <CheckCircle2 className="size-3" /> Arquivado na Pasta do Cliente
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card className="border-none shadow-sm">
-                      <CardHeader className="pb-2"><CardTitle className="text-sm font-black uppercase">Inventário de Riscos</CardTitle></CardHeader>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                          {docType === 'pcmso' ? <HeartPulse className="size-4" /> : <ShieldAlert className="size-4" />}
+                          {docType === 'pcmso' ? 'Protocolo de Exames' : 'Levantamento Técnico'}
+                        </CardTitle>
+                      </CardHeader>
                       <CardContent className="space-y-2">
-                        {pgrResult.identifiedRisks.map((r, i) => (
+                        {docType === 'pgr' && analysisResult.identifiedRisks?.map((r: any, i: number) => (
                           <div key={i} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border">
                             <Badge variant="outline" className="text-[8px] uppercase font-black h-5">{r.category}</Badge>
                             <span className="text-xs font-bold text-primary">{r.hazard}</span>
+                          </div>
+                        ))}
+                        {docType === 'ltcat' && analysisResult.hazards?.map((h: any, i: number) => (
+                          <div key={i} className="p-3 bg-muted/30 rounded-xl border space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-bold text-primary">{h.agent}</span>
+                              {h.specialRetirement && <Badge className="bg-orange-500 text-[8px]">APOS. ESPECIAL</Badge>}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground uppercase">Medição: {h.intensity} | Limite: {h.limit}</p>
+                          </div>
+                        ))}
+                        {docType === 'pcmso' && analysisResult.examProtocol?.map((e: any, i: number) => (
+                          <div key={i} className="p-3 bg-muted/30 rounded-xl border flex justify-between items-center">
+                            <div>
+                              <p className="text-xs font-bold text-primary">{e.examName}</p>
+                              <p className="text-[9px] text-muted-foreground uppercase">{e.targetGroup}</p>
+                            </div>
+                            <Badge variant="outline" className="text-[9px] font-black">{e.periodicity}</Badge>
                           </div>
                         ))}
                       </CardContent>
                     </Card>
 
                     <Card className="border-none shadow-sm">
-                      <CardHeader className="pb-2"><CardTitle className="text-sm font-black uppercase">Plano de Ação</CardTitle></CardHeader>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
+                          <Scale className="size-4" /> Plano de Ação & Orientações
+                        </CardTitle>
+                      </CardHeader>
                       <CardContent className="space-y-2">
-                        {pgrResult.actionPlan.map((a, i) => (
+                        {docType === 'pgr' && analysisResult.actionPlan?.map((a: any, i: number) => (
                           <div key={i} className="p-3 bg-muted/30 rounded-xl border space-y-1">
                             <div className="flex justify-between">
                               <p className="text-xs font-bold text-primary">{a.description}</p>
                               <Badge className={cn("text-[8px] h-4 uppercase", a.priority === 'Alta' ? 'bg-red-500' : 'bg-blue-500')}>{a.priority}</Badge>
                             </div>
                             <p className="text-[10px] text-muted-foreground uppercase font-black">Prazo: {a.deadline}</p>
+                          </div>
+                        ))}
+                        {(docType === 'ltcat' || docType === 'pcmso') && (analysisResult.recommendations || analysisResult.medicalGuidelines)?.map((rec: string, i: number) => (
+                          <div key={i} className="p-3 bg-muted/30 rounded-xl border flex items-start gap-2">
+                            <div className="mt-1 size-1.5 bg-primary rounded-full shrink-0" />
+                            <p className="text-[11px] font-medium text-primary">{rec}</p>
                           </div>
                         ))}
                       </CardContent>
@@ -340,15 +304,20 @@ export default function ChecklistsPage() {
                   <div className="p-6 bg-accent rounded-2xl space-y-4">
                     <div className="flex items-center gap-2">
                       <Sparkles className="size-5 text-primary" />
-                      <h4 className="font-black uppercase text-xs text-primary">Insight Estratégico NAI</h4>
+                      <h4 className="font-black uppercase text-xs text-primary">Análise Estratégica NAI</h4>
                     </div>
-                    <p className="text-sm italic text-primary leading-relaxed">"{pgrResult.aiInsight}"</p>
-                    <Button 
-                      className="w-full bg-primary text-white h-12 font-bold uppercase gap-2"
-                      onClick={() => window.open(getWhatsAppLink("11999999999", `*Resumo PGR NAI*\n\n${pgrResult.aiInsight}`))}
-                    >
-                      Enviar Dossiê via WhatsApp
-                    </Button>
+                    <p className="text-sm italic text-primary leading-relaxed font-medium">"{analysisResult.aiInsight}"</p>
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1 bg-primary text-white h-12 font-bold uppercase gap-2 text-xs"
+                        onClick={() => window.open(getWhatsAppLink("11999999999", `*Resumo NAI - ${docType.toUpperCase()}*\n\n${analysisResult.aiInsight}`))}
+                      >
+                        Enviar para o Cliente (WhatsApp)
+                      </Button>
+                      <Button variant="outline" className="bg-white border-primary text-primary h-12 font-bold uppercase text-[10px]">
+                        Ver PDF Original
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -358,10 +327,10 @@ export default function ChecklistsPage() {
 
         <TabsContent value="history" className="mt-6">
           <Card className="border-none shadow-xl bg-white">
-            <CardHeader><CardTitle>Histórico de Inspeções</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Documentos Processados</CardTitle></CardHeader>
             <CardContent className="flex flex-col items-center py-20 text-center opacity-40">
               <History className="size-12 mb-4" />
-              <p className="text-sm font-bold uppercase tracking-widest">Sem registros recentes.</p>
+              <p className="text-sm font-bold uppercase tracking-widest">Os documentos analisados via Scanner aparecem na Central de Relatórios do cliente.</p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -370,7 +339,7 @@ export default function ChecklistsPage() {
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
         <Info className="size-5 text-blue-600 shrink-0" />
         <p className="text-[10px] text-blue-700 font-bold uppercase leading-tight">
-          Todas as evidências fotográficas e assinaturas coletadas via Checklists são armazenadas em buckets isolados por cliente conforme a LGPD.
+          O Scanner NAI suporta documentos de até 10MB. As informações extraídas são baseadas nos modelos Gemini 2.0 Flash e devem ser validadas pelo responsável técnico da Nextcon.
         </p>
       </div>
     </div>
