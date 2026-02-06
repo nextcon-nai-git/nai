@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -20,7 +21,9 @@ import {
   History,
   CloudUpload,
   Stethoscope,
-  Scale
+  Scale,
+  Calendar as CalendarIcon,
+  Bell
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -81,7 +84,9 @@ export default function ChecklistsPage() {
 
     setIsAnalyzing(true)
     try {
+      const company = companies?.find(c => c.id === selectedCompanyId)
       const reader = new FileReader()
+      
       reader.onload = async (event) => {
         const dataUri = event.target?.result as string
         let result: any;
@@ -103,18 +108,60 @@ export default function ChecklistsPage() {
         const uploadResult = await uploadBytes(fileRef, file)
         const downloadUrl = await getDownloadURL(uploadResult.ref)
 
-        // 3. Salvar na Central de Relatórios
+        // 3. Persistência e Gatilhos Automáticos (Sincronização com Calendário e Planos)
+        const timestamp = new Date().toISOString()
+        const nextYear = new Date()
+        nextYear.setFullYear(nextYear.getFullYear() + 1)
+
+        // a) Central de Relatórios
         await addDoc(collection(db, "clients", user.uid, "reports"), {
           companyId: selectedCompanyId,
           reportType: docType,
           fileName: file.name,
           fileUrl: downloadUrl,
           analysisSummary: result.aiInsight,
-          createdAt: new Date().toISOString(),
+          createdAt: timestamp,
           status: "AVAILABLE"
         })
 
-        toast({ title: `Análise ${docType.toUpperCase()} Concluída`, description: "O documento foi processado e arquivado." })
+        // b) Alimentar Calendário (Renovação)
+        await addDoc(collection(db, "clients", user.uid, "sst_events"), {
+          type: `RENOVAÇÃO ${docType.toUpperCase()}`,
+          date: nextYear.toISOString(),
+          time: "09:00",
+          companyName: company?.name || "Cliente",
+          location: "Escritório Nextcon / Unidade Cliente",
+          status: "SCHEDULED",
+          description: `Vencimento do documento importado em ${new Date().toLocaleDateString()}`
+        })
+
+        // c) Planos de Ação Automáticos (Apenas PGR)
+        if (docType === 'pgr' && result.actionPlan) {
+          for (const action of result.actionPlan) {
+            await addDoc(collection(db, "clients", user.uid, "tasks"), {
+              title: action.description,
+              category: "PGR",
+              priority: action.priority || "Média",
+              deadline: action.deadline || "A definir",
+              status: "ParaFazer",
+              companyId: selectedCompanyId,
+              createdAt: timestamp
+            })
+          }
+        }
+
+        // d) Alarme para a Equipe Interna
+        await addDoc(collection(db, "users", user.uid, "notifications"), {
+          title: `NAI: Novo ${docType.toUpperCase()} Processado`,
+          message: `O laudo de ${company?.name} foi analisado. ${result.actionPlan?.length || 0} novas ações criadas no Kanban.`,
+          read: false,
+          createdAt: timestamp
+        })
+
+        toast({ 
+          title: `Análise ${docType.toUpperCase()} Concluída`, 
+          description: "Calendário alimentado e Planos de Ação gerados automaticamente." 
+        })
       }
       reader.readAsDataURL(file)
     } catch (error: any) {
@@ -127,7 +174,10 @@ export default function ChecklistsPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações SST</h1>
+        <div>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações SST</h1>
+          <p className="text-muted-foreground">Gestão ativa de documentos com automação de agenda e planos.</p>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -161,7 +211,7 @@ export default function ChecklistsPage() {
             <CardHeader className="bg-muted/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
                 <CardTitle className="flex items-center gap-2">Scanner Inteligente NAI</CardTitle>
-                <CardDescription>Análise via IA para PGR, LTCAT e PCMSO (PDF até 10MB).</CardDescription>
+                <CardDescription>Extração de dados e automação de calendário (PDF até 10MB).</CardDescription>
               </div>
               <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                 <div className="w-full md:w-48">
@@ -207,7 +257,7 @@ export default function ChecklistsPage() {
                 {isAnalyzing ? (
                   <div className="space-y-4">
                     <Loader2 className="animate-spin size-12 mx-auto text-primary" />
-                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Analisando {docType.toUpperCase()}...</p>
+                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Alimentando Agenda e Planos...</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -215,13 +265,37 @@ export default function ChecklistsPage() {
                     <p className="font-bold text-primary">
                       {selectedCompanyId ? `Arraste ou Clique para importar ${docType.toUpperCase()}` : "Selecione um cliente acima para habilitar"}
                     </p>
-                    <p className="text-[10px] uppercase font-black text-muted-foreground">Formato PDF • Limite 10MB</p>
+                    <p className="text-[10px] uppercase font-black text-muted-foreground">A automação de calendário e tarefas será ativada após o upload.</p>
                   </div>
                 )}
               </div>
 
               {analysisResult && (
                 <div className="animate-in zoom-in-95 duration-300 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
+                      <div className="p-2 bg-emerald-500 rounded-lg text-white"><CalendarIcon className="size-4" /></div>
+                      <div>
+                        <p className="text-[9px] font-black text-emerald-700 uppercase">Calendário</p>
+                        <p className="text-xs font-bold text-emerald-900">Agenda de Renovação Criada</p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3">
+                      <div className="p-2 bg-blue-500 rounded-lg text-white"><ClipboardCheck className="size-4" /></div>
+                      <div>
+                        <p className="text-[9px] font-black text-blue-700 uppercase">Planos de Ação</p>
+                        <p className="text-xs font-bold text-blue-900">{docType === 'pgr' ? `${analysisResult.actionPlan?.length || 0} Tarefas Injetadas` : 'Sem novas tarefas'}</p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3">
+                      <div className="p-2 bg-amber-500 rounded-lg text-white"><Bell className="size-4" /></div>
+                      <div>
+                        <p className="text-[9px] font-black text-amber-700 uppercase">Alertas</p>
+                        <p className="text-xs font-bold text-amber-900">Equipe Técnica Notificada</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                       <h3 className="text-xl font-headline font-black text-blue-900">{analysisResult.companyInfo.name}</h3>
@@ -339,7 +413,7 @@ export default function ChecklistsPage() {
       <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
         <Info className="size-5 text-blue-600 shrink-0" />
         <p className="text-[10px] text-blue-700 font-bold uppercase leading-tight">
-          O Scanner NAI suporta documentos de até 10MB. As informações extraídas são baseadas nos modelos Gemini 2.0 Flash e devem ser validadas pelo responsável técnico da Nextcon.
+          O Scanner NAI agora alimenta automaticamente o calendário de vigências e cria tarefas no Kanban baseadas nas recomendações da IA.
         </p>
       </div>
     </div>
