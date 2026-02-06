@@ -1,6 +1,6 @@
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia, CONSTRUFAM e NATIVA EMPREENDIMENTOS.
+ * Clientes e Colaboradores vinculados por companyId.
  */
 
 export const REAL_COMPANIES = [
@@ -20,9 +20,7 @@ export const REAL_COMPANIES = [
     city: "Joinville", 
     cnpj: "76.492.701/0014-71", 
     segment: "INDUSTRY", 
-    address: "Joinville/SC",
-    phone: "(41) 3218-7700",
-    website: "www.britania.com.br" 
+    address: "Joinville/SC"
   },
   { 
     id: "CLI105", 
@@ -30,9 +28,7 @@ export const REAL_COMPANIES = [
     city: "Joinville", 
     cnpj: "76.492.701/0007-42", 
     segment: "INDUSTRY", 
-    address: "Joinville/SC",
-    phone: "(41) 3218-7700",
-    website: "www.britania.com.br" 
+    address: "Joinville/SC"
   },
   {
     id: "CLI_CONSTRUFAM",
@@ -50,46 +46,50 @@ export const REAL_COMPANIES = [
     segment: "CONSTRUCTION",
     address: "Curitiba/PR"
   },
-  { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
+  { 
+    id: "CLI129", 
+    name: "AC2 CORRETORA DE SEGUROS LTDA", 
+    city: "Curitiba", 
+    cnpj: "12.345.678/0001-29", 
+    segment: "GENERAL" 
+  },
 ];
 
 export const REAL_EMPLOYEES = [
-  // Nativa Empreendimentos
+  // --- BRITÂNIA SA (CLI037) ---
+  { name: "SIMONE MARAGNO DOS SANTOS", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023", status: "ACTIVE" },
+  { name: "BRUNA FELIX BRANCO", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024", status: "ACTIVE" },
+  { name: "HARANTHIA RODRIGUES SOUSA", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023", status: "ACTIVE" },
+  { name: "ELIANE VICENTIN", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022", status: "ACTIVE" },
+
+  // --- CONSTRUFAM ENGENHARIA (CLI_CONSTRUFAM) ---
+  { id: "0000000012", name: "ADILSON JOSE DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000001", name: "ADMERSON MORAES DE OSTI", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000021", name: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000002", name: "EDERLEI ALVES DA SILVEIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000003", name: "EMANUELLY EDUARDA STRAUB FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR ADMINISTRATIVO", status: "ACTIVE" },
+  { id: "0000000013", name: "EVADI FERNANDES", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000018", name: "Felipe Gustavo Ruiz Vicari", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000019", name: "GEOVANI CAVALCANTE SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000016", name: "Heudrian Giovanni Motta Gonçalves", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000004", name: "JAIR CESAR DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000015", name: "JONATHAN BRUNO FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000020", name: "Lucas Miguel Santana Kokot", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000010", name: "MARCOS ANTONIO MUNIZ", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000014", name: "MARLLON SOUZA PACHECO", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000017", name: "Marlos Moises Ribeiro Martins", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000005", name: "NICAMAQUE DE JESUS AMARAL DA SILVA MENDE", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
+  { id: "0000000011", name: "PAULO HENRIQUE MASTECK", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+  { id: "0000000008", name: "VANDERLAM MUNHOZ", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
+
+  // --- NATIVA EMPREENDIMENTOS (CLI_NATIVA) ---
   { id: "0000000002", name: "Helder Leonei Becker de Souza", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO LAGUNA", status: "ACTIVE" },
   { id: "0000000001", name: "JOÃO VICTOR NASCIMENTO DE OLIVEIRA", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
   { id: "0000000004", name: "Kelvin dos Santos Costa", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
   { id: "0000000003", name: "Sidney Gomes Perchis", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
   { id: "0000000005", name: "Tiago Alves Santana da Silva", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
-  { name: "JOAO SILVA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO LAGUNA", admissionDate: "10/01/2024" },
-  { name: "JOSE SANTOS AUXILIAR", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO LAGUNA", admissionDate: "15/01/2024" },
-  { name: "MARCOS OLIVEIRA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO MONACO", admissionDate: "20/02/2024" },
-  { name: "RICARDO LIMA SERVENTE", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", admissionDate: "22/02/2024" },
-
-  // Britânia
-  { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
-  { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
-  { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },
-  { name: "ELIANE VICENTIN", cpf: "000.000.000-04", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022" },
-  
-  // Construfam
-  { id: "0000000012", name: "ADILSON JOSE DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000001", name: "ADMERSON MORAES DE OSTI", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000021", name: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000002", name: "EDERLEI ALVES DA SILVEIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000003", name: "EMANUELLY EDUARDA STRAUB FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR ADMINISTRATIVO", admissionDate: "01/01/2024" },
-  { id: "0000000013", name: "EVADI FERNANDES", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000018", name: "Felipe Gustavo Ruiz Vicari", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000019", name: "GEOVANI CAVALCANTE SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000016", name: "Heudrian Giovanni Motta Gonçalves", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000004", name: "JAIR CESAR DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000015", name: "JONATHAN BRUNO FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000020", name: "Lucas Miguel Santana Kokot", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000010", name: "MARCOS ANTONIO MUNIZ", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000014", name: "MARLLON SOUZA PACHECO", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000017", name: "Marlos Moises Ribeiro Martins", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000005", name: "NICAMAQUE DE JESUS AMARAL DA SILVA MENDE", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000011", name: "PAULO HENRIQUE MASTECK", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000008", name: "VANDERLAM MUNHOZ", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { name: "JOAO SILVA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO LAGUNA", status: "ACTIVE" },
+  { name: "MARCOS OLIVEIRA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
 ];
 
 export const REAL_EXPERTISES = [
