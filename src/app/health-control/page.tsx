@@ -2,7 +2,20 @@
 "use client"
 
 import * as React from "react"
-import { HeartPulse, Calendar as CalendarIcon, Bell, MessageSquare, ChevronRight, Stethoscope, Clock, CheckCircle2 } from "lucide-react"
+import { 
+  HeartPulse, 
+  Calendar as CalendarIcon, 
+  Bell, 
+  MessageSquare, 
+  ChevronRight, 
+  Stethoscope, 
+  Clock, 
+  CheckCircle2,
+  MoreHorizontal,
+  CalendarPlus,
+  SendHorizontal,
+  Building2
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
@@ -15,24 +28,79 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
-import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
+import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { cn } from "@/lib/utils"
 
 const upcomingAlerts = [
-  { company: "LAVIERS ARTIGOS MASCULINOS", id: "#1164165", date: "10/01/2026", type: "Exame Clínico", phone: "11999999999", status: "Aguardando" },
-  { company: "NXC SST EMPRESARIAL", id: "#1005519", date: "30/01/2026", type: "EXAMES", phone: "11888888888", status: "Concluído" },
-  { company: "INCORPORADORA GRAN-PARA", id: "#1177322", date: "01/01/2026", type: "EXAMES", phone: "11777777777", status: "Em Atendimento" },
+  { 
+    employeeName: "Carlos Eduardo", 
+    company: "LAVIERS ARTIGOS MASCULINOS", 
+    id: "#1164165", 
+    date: "10/01/2026", 
+    type: "Periódico", 
+    phone: "11999999999", 
+    status: "Aguardando",
+    clinic: "Clinica SQV - Matriz",
+    clinicPhone: "11988887777"
+  },
+  { 
+    employeeName: "Carlos Eduardo", 
+    company: "NXC SST EMPRESARIAL", 
+    id: "#1005519", 
+    date: "30/01/2026", 
+    type: "Periódico", 
+    phone: "11888888888", 
+    status: "Concluído",
+    clinic: "Working Segurança",
+    clinicPhone: "11977776666"
+  },
+  { 
+    employeeName: "Carlos Eduardo", 
+    company: "INCORPORADORA GRAN-PARA", 
+    id: "#1177322", 
+    date: "01/01/2026", 
+    type: "Periódico", 
+    phone: "11777777777", 
+    status: "Em Atendimento",
+    clinic: "Clinica SQV - Filial",
+    clinicPhone: "11988887777"
+  },
 ]
 
 export default function HealthControl() {
+  const { toast } = useToast()
   const { user } = useUser()
-  const db = useFirestore()
   const [date, setDate] = React.useState<Date | undefined>(new Date())
 
-  const handleWhatsAppAlert = (alert: typeof upcomingAlerts[0]) => {
-    const message = MSG_TEMPLATES.AVISO_GESTOR(alert.company, "Colaborador " + alert.id, alert.type);
-    window.open(getWhatsAppLink(alert.phone, message), '_blank');
+  const handleAction = (action: string, record: typeof upcomingAlerts[0]) => {
+    if (action === 'whatsapp') {
+      const message = `Olá, aqui é da Nextcon. Gostaria de confirmar o atendimento de ${record.employeeName} para o exame ${record.type} na empresa ${record.company}.`;
+      window.open(getWhatsAppLink(record.clinicPhone, message), '_blank');
+      return;
+    }
+
+    if (action === 'schedule') {
+      toast({
+        title: "Agendamento Iniciado",
+        description: `Abrindo grade de horários para ${record.clinic}.`,
+      });
+      return;
+    }
+
+    toast({
+      title: "Status Atualizado",
+      description: `Atendimento de ${record.employeeName} marcado como ${action}.`,
+    });
   }
 
   return (
@@ -70,21 +138,18 @@ export default function HealthControl() {
           <Card className="border-none shadow-lg bg-[#090e24] text-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-black uppercase tracking-widest text-[#f59e0b] flex items-center gap-2">
-                <Bell className="size-4" /> Alertas Críticos
+                <Bell className="size-4" /> Próximos Vencimentos
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {upcomingAlerts.slice(0, 2).map((alert, i) => (
                 <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors group">
                   <div className="flex justify-between items-start mb-1">
-                    <p className="text-[9px] font-black text-white truncate max-w-[150px]">{alert.company}</p>
+                    <div className="overflow-hidden">
+                      <p className="text-[10px] font-black text-[#f59e0b] uppercase mb-0.5">{alert.employeeName}</p>
+                      <p className="text-[9px] font-medium text-white/60 truncate">{alert.company}</p>
+                    </div>
                     <Badge className="bg-[#f59e0b] text-[#090e24] text-[8px] px-1.5 h-4 font-black">{alert.date}</Badge>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-[10px] text-white/60 font-medium uppercase">{alert.type}</p>
-                    <button onClick={() => handleWhatsAppAlert(alert)} className="p-1 bg-green-500 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MessageSquare className="size-3" />
-                    </button>
                   </div>
                 </div>
               ))}
@@ -98,7 +163,9 @@ export default function HealthControl() {
               <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Fila de Atendimento (ASO)</CardTitle>
               <CardDescription>Acompanhamento de exames em tempo real na clínica.</CardDescription>
             </div>
-            <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px]">{upcomingAlerts.length} Na Fila</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px] px-3">{upcomingAlerts.length} Na Fila</Badge>
+            </div>
           </CardHeader>
           <CardContent className="p-0 flex-1">
             <Table>
@@ -114,13 +181,13 @@ export default function HealthControl() {
                 {upcomingAlerts.map((alert, i) => (
                   <TableRow key={i} className="group hover:bg-gray-50 transition-all">
                     <TableCell>
-                      <div>
-                        <p className="font-bold text-[#090e24] text-xs">Carlos Eduardo</p>
+                      <div className="flex flex-col">
+                        <p className="font-bold text-[#090e24] text-xs">{alert.employeeName}</p>
                         <p className="text-[9px] text-muted-foreground uppercase font-black">{alert.company}</p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-[10px] font-bold text-[#090e24] uppercase">Periódico</span>
+                      <Badge variant="outline" className="text-[9px] font-bold border-muted-foreground/20">{alert.type}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={cn(
@@ -132,15 +199,38 @@ export default function HealthControl() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      {alert.status === 'Concluído' ? (
-                        <Button variant="ghost" size="sm" className="text-[9px] font-black uppercase text-muted-foreground">
-                          <CheckCircle2 className="size-3 mr-1" /> Ver ASO
-                        </Button>
-                      ) : (
-                        <Button variant="link" size="sm" className="text-[9px] font-black uppercase text-blue-600">
-                          Iniciar <ChevronRight className="size-3 ml-1" />
-                        </Button>
-                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">Gestão de Atendimento</DropdownMenuLabel>
+                          {alert.status !== 'Concluído' && (
+                            <DropdownMenuItem onClick={() => handleAction('iniciado', alert)} className="cursor-pointer">
+                              <Stethoscope className="mr-2 h-4 w-4 text-blue-600" />
+                              <span className="font-bold">Iniciar Atendimento</span>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleAction('schedule', alert)} className="cursor-pointer">
+                            <CalendarPlus className="mr-2 h-4 w-4 text-[#f59e0b]" />
+                            <span className="font-bold">Agendar Novo Exame</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest opacity-50">Comunicação Externa</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handleAction('whatsapp', alert)} className="cursor-pointer text-green-600 focus:text-green-700 focus:bg-green-50">
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            <span className="font-bold">Notificar Clínica (Zap)</span>
+                          </DropdownMenuItem>
+                          {alert.status === 'Concluído' && (
+                            <DropdownMenuItem className="cursor-pointer">
+                              <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" />
+                              <span className="font-bold">Visualizar ASO</span>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -148,10 +238,15 @@ export default function HealthControl() {
             </Table>
             <div className="p-6 bg-gray-50 border-t">
               <div className="flex items-center gap-3 text-blue-700 bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <Stethoscope className="size-5" />
-                <p className="text-[11px] font-medium leading-relaxed">
-                  Utilize a Fila de Atendimento para gerenciar o fluxo de pacientes na clínica. Novos atendimentos geram eventos automáticos no eSocial após a finalização.
-                </p>
+                <div className="p-2 bg-blue-600 text-white rounded-lg">
+                  <Building2 className="size-4" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-black uppercase leading-none mb-1">Clínicas Parceiras Online</p>
+                  <p className="text-[10px] font-medium leading-tight opacity-80">
+                    O sistema está sincronizado com a grade da Clinica SQV e Working Segurança. Use o botão de WhatsApp para envio imediato de guias.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
