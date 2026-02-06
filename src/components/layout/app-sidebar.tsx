@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils"
 
 const navGroups = [
   {
-    label: "Administração Nextcon",
+    label: "Administração NextCon",
     roles: ['admin', 'super_admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
@@ -106,7 +106,7 @@ export function AppSidebar() {
   const role = (profile?.role?.toLowerCase() || 'admin')
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   const userRoleLabel = 
-    role.includes('admin') ? "Administrador Nextcon" : 
+    role.includes('admin') ? "Administrador NextCon" : 
     role.includes('client') ? "Gestor de Empresa" : 
     role.includes('provider') ? "Prestador / Clínica" : "Colaborador"
     
@@ -121,7 +121,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col leading-none overflow-hidden">
             <span className="font-headline font-black text-white text-xl tracking-tighter">
-              NEXTCON
+              NextCon
             </span>
             <span className="text-[9px] font-bold text-[#f59e0b] uppercase tracking-[0.25em] mt-1">
               SAÚDE EMPRESARIAL

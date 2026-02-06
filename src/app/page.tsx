@@ -91,7 +91,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <div className="flex items-center gap-3 text-3xl font-black text-primary tracking-tight font-headline">
-            {loadingProfile ? <Skeleton className="h-10 w-48" /> : <>{saudacao}, <span className="text-accent">{nomeExibicao}</span></>}
+            {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-2">{saudacao}, <span className="text-accent">{nomeExibicao}</span></div>}
           </div>
           <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-1">{dataAtual}</p>
         </div>
@@ -109,7 +109,7 @@ export default function Dashboard() {
           </div>
           <CardContent className="p-8">
             <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2">Unidade Principal</p>
-            <h3 className="text-xl font-bold text-primary truncate">{company?.name || "Nextcon Gestão"}</h3>
+            <h3 className="text-xl font-bold text-primary truncate">{company?.name || "NextCon Gestão"}</h3>
             <div className="mt-6 flex items-center gap-2">
               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-black text-[9px] uppercase">{segment}</Badge>
               <Badge variant="outline" className="bg-accent/10 text-primary border-accent/20 font-black text-[9px] uppercase">Vigente</Badge>

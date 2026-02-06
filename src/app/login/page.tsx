@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useAuth, useUser } from '@/firebase';
 import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { useToast } from '@/hooks/use-toast';
@@ -80,7 +79,7 @@ export default function LoginPage() {
 
           <div className="space-y-2 text-center lg:text-left">
             <h1 className="text-3xl font-black text-primary font-headline tracking-tight uppercase">Bem-vindo</h1>
-            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Acesse sua conta para gerenciar dados SST.</p>
+            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Acesse sua conta para gerenciar dados NextCon.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -139,7 +138,7 @@ export default function LoginPage() {
 
           <div className="text-center">
             <p className="text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em]">
-              © 2026 Nextcon Inteligência Ocupacional
+              © 2026 NextCon Inteligência Ocupacional
             </p>
           </div>
         </div>

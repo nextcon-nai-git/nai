@@ -111,7 +111,7 @@ export const SSTDocument = ({ data, company, type }: DocProps) => (
           <Text style={styles.docTitle}>
             {type} - {type === 'PGR' ? 'Gerenciamento de Riscos' : type === 'LTCAT' ? 'Laudo Ambiental' : 'Controle Médico'}
           </Text>
-          <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name || 'Cliente Nextcon'}</Text>
+          <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name || 'Cliente NextCon'}</Text>
           <Text style={{ fontSize: 8, color: '#6b7280' }}>Gerado via Plataforma NAI Intelligence 2026</Text>
         </View>
       </View>
@@ -193,12 +193,12 @@ export const SSTDocument = ({ data, company, type }: DocProps) => (
       {/* ASSINATURA */}
       <View style={styles.signatureBlock}>
         <View style={styles.line} />
-        <Text style={styles.signerName}>Nextcon Saúde Empresarial</Text>
+        <Text style={styles.signerName}>NextCon Saúde Empresarial</Text>
         <Text style={{ fontSize: 8, color: '#6b7280' }}>Gestão de Segurança e Saúde Ocupacional 360°</Text>
       </View>
 
       <Text style={styles.footer}>
-        Este documento foi gerado digitalmente pela Nextcon Saúde Empresarial em {new Date().toLocaleString()}
+        Este documento foi gerado digitalmente pela NextCon Saúde Empresarial em {new Date().toLocaleString()}
       </Text>
     </Page>
   </Document>

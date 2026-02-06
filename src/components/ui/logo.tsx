@@ -36,14 +36,14 @@ export function NextconLogo({ className }: { className?: string }) {
         strokeLinejoin="round"
       />
 
-      {/* Texto: nextcon */}
+      {/* Texto: NextCon */}
       <text 
         x="145" 
         y="75" 
         fill="#002d9c" 
         style={{ font: 'bold 65px Arial, sans-serif' }}
       >
-        nextcon
+        NextCon
       </text>
       
       {/* Texto: saúde empresarial */}
