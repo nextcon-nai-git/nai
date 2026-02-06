@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -16,7 +17,8 @@ import {
   ArrowRight,
   Info,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  FileDown
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,6 +29,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, where } from "firebase/firestore"
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { SSTDocument } from "@/components/documents/sst-documents"
 
 interface ReportItem {
   id: string
@@ -83,7 +87,7 @@ export default function ReportsCenter() {
     if (!db || !user) return null
     let q = query(collection(db, "clients", user.uid, "reports"), orderBy("createdAt", "desc"))
     if (selectedCompanyId !== "all") {
-      q = query(collection(db, "clients", user.uid, "reports"), where("companyId", "==", selectedCompanyId), orderBy("createdAt", "desc"))
+      q = query(collection(db, "clients", user.uid, "reports"), where("companyId", "==", selectedCompanyId))
     }
     return q
   }, [db, user, selectedCompanyId])
@@ -92,7 +96,7 @@ export default function ReportsCenter() {
   const handleAction = (report: ReportItem, action: string) => {
     const realFile = uploadedReports?.find(r => r.reportType === report.id)
     
-    if (realFile && (action === 'Visualizar' || action === 'Baixar PDF')) {
+    if (realFile && action === 'Visualizar') {
       window.open(realFile.fileUrl, '_blank')
       return
     }
@@ -166,7 +170,9 @@ export default function ReportsCenter() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {reports.map((report) => {
                 const realFile = uploadedReports?.find(r => r.reportType === report.id);
+                const company = companies?.find(c => c.id === realFile?.companyId);
                 const ReportIcon = report.icon;
+                
                 return (
                   <Card key={report.id} className={`card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white ${realFile ? 'border-l-4 border-l-[#f59e0b]' : ''}`}>
                     <CardHeader className="pb-2">
@@ -196,16 +202,41 @@ export default function ReportsCenter() {
                           className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-blue-50 text-blue-700"
                           onClick={() => handleAction(report, 'Visualizar')}
                         >
-                          <Eye className="size-3" /> Visualizar
+                          <Eye className="size-3" /> Original
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className={`text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 ${realFile ? 'bg-emerald-50 text-emerald-700' : 'hover:bg-emerald-50 text-muted-foreground'}`}
-                          onClick={() => handleAction(report, 'Baixar PDF')}
-                        >
-                          <Download className="size-3" /> PDF
-                        </Button>
+                        
+                        {/* BOTÃO DINÂMICO PARA GERAR O PDF OFICIAL COM BASE NA ANÁLISE SALVA */}
+                        {realFile?.analysisData ? (
+                          <div className="flex flex-col items-center">
+                            <PDFDownloadLink 
+                              document={<SSTDocument data={realFile.analysisData} company={company} type={report.id.toUpperCase() as any} />} 
+                              fileName={`${report.id.toUpperCase()}_Nextcon_${company?.name || 'Relatorio'}.pdf`}
+                              className="w-full"
+                            >
+                              {({ loading }) => (
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="w-full text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 bg-emerald-50 text-emerald-700"
+                                  disabled={loading}
+                                >
+                                  {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-3" />}
+                                  Dossiê
+                                </Button>
+                              )}
+                            </PDFDownloadLink>
+                          </div>
+                        ) : (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 text-muted-foreground opacity-30"
+                            disabled
+                          >
+                            <FileDown className="size-3" /> Dossiê
+                          </Button>
+                        )}
+
                         <Button 
                           variant="ghost" 
                           size="sm" 
@@ -227,8 +258,8 @@ export default function ReportsCenter() {
       <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex gap-3">
         <Info className="size-5 text-primary shrink-0" />
         <div className="text-xs text-primary/80 space-y-1">
-          <p><strong>Dica NEXTCON:</strong> Relatórios com a faixa lateral amarela possuem arquivos PDF reais carregados no sistema.</p>
-          <p>Para carregar novos documentos para um cliente, utilize o módulo de <strong>Importação de Dados {'&gt;'} Aba Documentos</strong>.</p>
+          <p><strong>Dica NEXTCON:</strong> Relatórios com a faixa lateral amarela possuem arquivos originais e análises NAI salvas.</p>
+          <p>Clique em <strong>"Dossiê"</strong> para gerar o documento oficial com a logo da sua empresa e o parecer técnico.</p>
         </div>
       </div>
     </div>

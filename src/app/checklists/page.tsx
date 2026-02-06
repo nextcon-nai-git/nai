@@ -113,11 +113,13 @@ export default function ChecklistsPage() {
         const nextYear = new Date()
         nextYear.setFullYear(nextYear.getFullYear() + 1)
 
+        // SALVA O RELATÓRIO COM O RESULTADO DA ANÁLISE PARA RE-GERAÇÃO NO FUTURO
         await addDoc(collection(db, "clients", user.uid, "reports"), {
           companyId: selectedCompanyId,
           reportType: docType,
           fileName: file.name,
           fileUrl: downloadUrl,
+          analysisData: result, // Dados estruturados para gerar o PDF oficial depois
           analysisSummary: result.aiInsight,
           createdAt: timestamp,
           status: "AVAILABLE"
