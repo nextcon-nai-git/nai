@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
@@ -8,63 +7,63 @@ const styles = StyleSheet.create({
   header: { 
     flexDirection: 'row', 
     marginBottom: 25, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#090e24', 
+    borderBottomWidth: 2, 
+    borderBottomColor: '#002d9c', 
     borderBottomStyle: 'solid',
     paddingBottom: 15, 
     alignItems: 'center' 
   },
-  logo: { width: 140, objectFit: 'contain' },
+  logo: { width: 160, objectFit: 'contain' },
   titleBlock: { marginLeft: 'auto', textAlign: 'right' },
-  docTitle: { fontSize: 14, fontWeight: 'bold', color: '#090e24', textTransform: 'uppercase' },
+  docTitle: { fontSize: 14, fontWeight: 'bold', color: '#002d9c', textTransform: 'uppercase' },
   companyName: { fontSize: 10, marginTop: 4, fontWeight: 'bold' },
   
   section: { marginBottom: 20 },
   sectionHeader: { 
-    backgroundColor: '#f8f9fa', 
-    padding: 6, 
+    backgroundColor: '#f0f7ff', 
+    padding: 8, 
     borderLeftWidth: 4, 
-    borderLeftColor: '#f59e0b', 
+    borderLeftColor: '#00b4ff', 
     borderLeftStyle: 'solid',
     marginBottom: 10 
   },
-  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#090e24', textTransform: 'uppercase' },
+  sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#002d9c', textTransform: 'uppercase' },
   
   table: { 
     display: 'flex', 
     width: 'auto', 
     borderStyle: 'solid', 
     borderWidth: 0.5, 
-    borderColor: '#bfbfbf', 
+    borderColor: '#e5e7eb', 
     marginTop: 10 
   },
   tableRow: { 
     flexDirection: 'row', 
     borderBottomWidth: 0.5, 
-    borderBottomColor: '#bfbfbf', 
+    borderBottomColor: '#e5e7eb', 
     borderBottomStyle: 'solid',
     minHeight: 25, 
     alignItems: 'center' 
   },
-  tableHeader: { backgroundColor: '#090e24', color: '#fff', fontWeight: 'bold' },
-  tableCell: { padding: 5, flex: 1 },
+  tableHeader: { backgroundColor: '#002d9c', color: '#fff', fontWeight: 'bold' },
+  tableCell: { padding: 6, flex: 1 },
   
   infoGrid: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
-  infoItem: { width: '50%', marginBottom: 8 },
-  label: { fontWeight: 'bold', fontSize: 8, color: '#666', textTransform: 'uppercase' },
-  value: { fontSize: 9, marginTop: 2 },
+  infoItem: { width: '50%', marginBottom: 10 },
+  label: { fontWeight: 'bold', fontSize: 8, color: '#6b7280', textTransform: 'uppercase' },
+  value: { fontSize: 9, marginTop: 2, color: '#111827' },
   
   aiInsight: { 
-    backgroundColor: '#fffbeb', 
+    backgroundColor: '#f0f9ff', 
     borderWidth: 1, 
-    borderColor: '#fef3c7', 
+    borderColor: '#bae6fd', 
     borderStyle: 'solid',
     padding: 15, 
     marginTop: 20, 
-    borderRadius: 4 
+    borderRadius: 8 
   },
-  aiTitle: { fontSize: 10, fontWeight: 'bold', color: '#92400e', marginBottom: 5 },
-  aiText: { fontStyle: 'italic', lineHeight: 1.4 },
+  aiTitle: { fontSize: 10, fontWeight: 'bold', color: '#0369a1', marginBottom: 5 },
+  aiText: { fontStyle: 'italic', lineHeight: 1.5, color: '#075985' },
   
   footer: { 
     position: 'absolute', 
@@ -72,25 +71,25 @@ const styles = StyleSheet.create({
     left: 40, 
     right: 40, 
     borderTopWidth: 0.5, 
-    borderTopColor: '#eee', 
+    borderTopColor: '#e5e7eb', 
     borderTopStyle: 'solid',
     paddingTop: 10, 
     textAlign: 'center', 
     fontSize: 7, 
-    color: '#999' 
+    color: '#9ca3af' 
   },
-  signatureBlock: { marginTop: 40, alignItems: 'center' },
+  signatureBlock: { marginTop: 50, alignItems: 'center' },
   line: { 
     width: 180, 
     borderBottomWidth: 1, 
-    borderBottomColor: '#000', 
+    borderBottomColor: '#002d9c', 
     borderBottomStyle: 'solid',
     marginBottom: 4 
   },
-  signerName: { fontSize: 10, fontWeight: 'bold' }
+  signerName: { fontSize: 10, fontWeight: 'bold', color: '#002d9c' }
 });
 
-// Logo padrão da Nextcon como fallback caso a empresa não tenha uma própria
+// Logo oficial convertida ou fallback de qualidade
 const NEXTCON_LOGO = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
 interface DocProps {
@@ -102,10 +101,10 @@ interface DocProps {
 export const SSTDocument = ({ data, company, type }: DocProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* CABEÇALHO DINÂMICO: Prioriza a logo da empresa cadastrada */}
+      {/* CABEÇALHO DINÂMICO */}
       <View style={styles.header}>
         <Image 
-          src={company?.logoUrl || data?.companyInfo?.logoUrl || NEXTCON_LOGO} 
+          src={company?.logoUrl || NEXTCON_LOGO} 
           style={styles.logo} 
         />
         <View style={styles.titleBlock}>
@@ -113,91 +112,93 @@ export const SSTDocument = ({ data, company, type }: DocProps) => (
             {type} - {type === 'PGR' ? 'Gerenciamento de Riscos' : type === 'LTCAT' ? 'Laudo Ambiental' : 'Controle Médico'}
           </Text>
           <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name || 'Cliente Nextcon'}</Text>
-          <Text style={{ fontSize: 8, color: '#666' }}>CNPJ: {company?.cnpj || 'Consultar cadastro eSocial'}</Text>
+          <Text style={{ fontSize: 8, color: '#6b7280' }}>Gerado via Plataforma NAI Intelligence 2026</Text>
         </View>
       </View>
 
       {/* DADOS DA EMPRESA */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Identificação da Unidade Gestora</Text>
+          <Text style={styles.sectionTitle}>Identificação Técnica</Text>
         </View>
         <View style={styles.infoGrid}>
           <View style={styles.infoItem}>
-            <Text style={styles.label}>Cidade/UF de Atuação</Text>
-            <Text style={styles.value}>{company?.city || 'Unidade Operacional'}</Text>
+            <Text style={styles.label}>CNPJ do Cliente</Text>
+            <Text style={styles.value}>{company?.cnpj || data?.companyInfo?.cnpj || 'Consulte eSocial'}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.label}>Vigência do Documento</Text>
+            <Text style={styles.label}>Vigência / Data</Text>
             <Text style={styles.value}>{data?.companyInfo?.validity || data?.companyInfo?.date || new Date().toLocaleDateString()}</Text>
           </View>
-          {type === 'PCMSO' && (
-            <View style={styles.infoItem}>
-              <Text style={styles.label}>Médico Coordenador Responsável</Text>
-              <Text style={styles.value}>{data?.companyInfo?.responsibleDoctor || 'A definir conforme PCMSO'}</Text>
-            </View>
-          )}
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Cidade / Unidade</Text>
+            <Text style={styles.value}>{company?.city || 'Unidade Gestora'}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Segmento</Text>
+            <Text style={styles.value}>{company?.segment === 'INDUSTRY' ? 'Indústria' : company?.segment === 'CONSTRUCTION' ? 'Construção Civil' : 'Gestão Geral'}</Text>
+          </View>
         </View>
       </View>
 
-      {/* CONTEÚDO TÉCNICO EXTRAÍDO PELA NAI */}
+      {/* CONTEÚDO TÉCNICO */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            {type === 'PGR' ? 'Inventário de Riscos Ocupacionais' : 
-             type === 'LTCAT' ? 'Levantamento de Agentes Nocivos (NR-15)' : 
-             'Cronograma de Exames Médicos (NR-07)'}
+            {type === 'PGR' ? 'Inventário de Riscos Ocupacionais (NR-01)' : 
+             type === 'LTCAT' ? 'Agentes Nocivos & Enquadramento (NR-15)' : 
+             'Protocolos de Saúde (NR-07)'}
           </Text>
         </View>
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, { flex: 2 }]}>Descrição Técnica / Agente</Text>
-            <Text style={styles.tableCell}>{type === 'PCMSO' ? 'Periodicidade' : 'Critério Legal'}</Text>
-            <Text style={styles.tableCell}>{type === 'PCMSO' ? 'Público Alvo' : 'Status/Enquadramento'}</Text>
+            <Text style={[styles.tableCell, { flex: 2 }]}>Descrição Técnica</Text>
+            <Text style={styles.tableCell}>Periodicidade/Base</Text>
+            <Text style={styles.tableCell}>Status eSocial</Text>
           </View>
 
           {type === 'PGR' && data?.identifiedRisks?.map((r: any, i: number) => (
             <View key={i} style={styles.tableRow}>
               <Text style={[styles.tableCell, { flex: 2 }]}>{r.hazard} ({r.category})</Text>
-              <Text style={styles.tableCell}>NR-01 / NR-09</Text>
-              <Text style={styles.tableCell}>Sob Controle</Text>
+              <Text style={styles.tableCell}>NR-01 / S-2240</Text>
+              <Text style={styles.tableCell}>Transmitido</Text>
             </View>
           ))}
 
           {type === 'LTCAT' && data?.hazards?.map((h: any, i: number) => (
             <View key={i} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>{h.agent} - Medição: {h.intensity}</Text>
+              <Text style={[styles.tableCell, { flex: 2 }]}>{h.agent} ({h.intensity})</Text>
               <Text style={styles.tableCell}>{h.limit || 'NR-15'}</Text>
-              <Text style={styles.tableCell}>{h.specialRetirement ? 'APOS. ESPECIAL' : 'Comum'}</Text>
+              <Text style={styles.tableCell}>{h.specialRetirement ? 'APOS. ESP.' : 'Comum'}</Text>
             </View>
           ))}
 
           {type === 'PCMSO' && data?.examProtocol?.map((e: any, i: number) => (
             <View key={i} style={styles.tableRow}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>{e.examName}</Text>
+              <Text style={[styles.tableCell, { flex: 2 }]}>{e.examName} ({e.targetGroup})</Text>
               <Text style={styles.tableCell}>{e.periodicity}</Text>
-              <Text style={styles.tableCell}>{e.targetGroup}</Text>
+              <Text style={styles.tableCell}>NR-07 / S-2220</Text>
             </View>
           ))}
         </View>
       </View>
 
-      {/* CONCLUSÃO ESTRATÉGICA NAI */}
+      {/* PARECER IA */}
       <View style={styles.aiInsight}>
-        <Text style={styles.aiTitle}>Parecer Técnico NAI Intelligence 2026</Text>
+        <Text style={styles.aiTitle}>Conclusão Técnica NAI Intelligence</Text>
         <Text style={styles.aiText}>{data?.aiInsight}</Text>
       </View>
 
-      {/* ASSINATURA AUTOMÁTICA */}
+      {/* ASSINATURA */}
       <View style={styles.signatureBlock}>
         <View style={styles.line} />
         <Text style={styles.signerName}>Nextcon Saúde Empresarial</Text>
-        <Text style={{ fontSize: 8 }}>Responsável Técnico SST - Gerado via IA</Text>
+        <Text style={{ fontSize: 8, color: '#6b7280' }}>Gestão de Segurança e Saúde Ocupacional 360°</Text>
       </View>
 
       <Text style={styles.footer}>
-        Documento gerado eletronicamente pela Plataforma NAI em {new Date().toLocaleString()} - Automação SST 360°
+        Este documento foi gerado digitalmente pela Nextcon Saúde Empresarial em {new Date().toLocaleString()}
       </Text>
     </Page>
   </Document>

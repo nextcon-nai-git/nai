@@ -10,20 +10,27 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 222 47% 11%; 
+    
+    /* Cores Oficiais Nextcon */
+    --primary: 226 100% 31%; /* Azul Marinho Logo */
     --primary-foreground: 210 40% 98%;
+    
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
+    
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 45 93% 47%; 
+    
+    --accent: 199 100% 50%; /* Ciano Logo */
     --accent-foreground: 222 47% 11%;
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222 47% 11%;
-    --radius: 0.5rem;
+    --ring: 226 100% 31%;
+    --radius: 0.75rem;
   }
 }
 
@@ -39,36 +46,26 @@
   }
 }
 
-.bg-nextcon-dark {
-  background-color: #090e24;
-}
-
-.text-nextcon-gold {
-  color: #f59e0b;
-}
-
 .card-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
-  will-change: transform, box-shadow;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-shadow:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -4px rgba(0, 45, 156, 0.12);
 }
 
-.gradient-primary {
-  background: linear-gradient(135deg, #090e24 0%, #1a234a 100%);
+.gradient-nextcon {
+  background: linear-gradient(135deg, hsl(226, 100%, 31%) 0%, hsl(226, 100%, 20%) 100%);
 }
 
-/* Otimização de renderização para elementos fixos */
-nav, aside {
-  transform: translateZ(0);
-  backface-visibility: hidden;
+.text-gradient-accent {
+  background: linear-gradient(90deg, #002d9c, #00b4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Scrollbar personalizada mais leve */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

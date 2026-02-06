@@ -42,100 +42,108 @@ export default function LoginPage() {
   };
 
   const demoUsers = [
-    { email: 'admin@nextcon.com.br', role: 'Administrador Nextcon', label: 'SUPER ADMIN', icon: ShieldAlert },
-    { email: 'gestor@cliente.com.br', role: 'Gestor de Empresa', label: 'CLIENT ADMIN', icon: Building2 },
+    { email: 'admin@nextcon.com.br', role: 'Administrador', label: 'SUPER ADMIN', icon: ShieldAlert },
+    { email: 'gestor@cliente.com.br', role: 'Gestor Cliente', label: 'CLIENT ADMIN', icon: Building2 },
     { email: 'colaborador@empresa.com.br', role: 'Colaborador', label: 'EMPLOYEE', icon: UserCircle },
-    { email: 'clinica@parceira.com.br', role: 'Prestador / Clínica', label: 'PROVIDER', icon: HeartPulse },
+    { email: 'clinica@parceira.com.br', role: 'Clínica', label: 'PROVIDER', icon: HeartPulse },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="mb-10 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="h-14 w-14 text-[#090e24]">
-            <NextconLogo className="h-full w-full" />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white">
+      {/* Lado Esquerdo: Brand */}
+      <div className="hidden lg:flex lg:w-1/2 gradient-nextcon flex-col items-center justify-center p-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 p-20 opacity-10">
+          <NextconLogo className="w-[800px] text-white" />
+        </div>
+        
+        <div className="relative z-10 text-center space-y-8">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl inline-block">
+            <NextconLogo className="h-32 w-auto" />
           </div>
-          <div className="text-left">
-            <h1 className="text-4xl font-black text-[#090e24] tracking-tighter leading-none font-headline">NEXTCON</h1>
-            <p className="text-[10px] font-bold text-[#f59e0b] uppercase tracking-[0.3em]">Saúde Empresarial</p>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black text-white font-headline tracking-tighter uppercase">Inteligência SST</h2>
+            <p className="text-accent text-lg font-bold uppercase tracking-[0.3em]">Segurança e Saúde 360°</p>
           </div>
+        </div>
+        
+        <div className="absolute bottom-12 text-white/40 text-[10px] font-black uppercase tracking-[0.5em]">
+          Plataforma NAI v2.6.0
         </div>
       </div>
 
-      <Card className="w-full max-w-md border-none shadow-2xl overflow-hidden">
-        <div className="bg-[#090e24] p-8 text-center">
-          <h2 className="text-2xl font-black text-white font-headline uppercase tracking-tight">Plataforma SST</h2>
-          <p className="text-white/50 text-xs mt-1 font-bold">INTELIGÊNCIA EM SEGURANÇA E SAÚDE</p>
-        </div>
+      {/* Lado Direito: Form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-gray-50">
+        <div className="w-full max-w-md space-y-8">
+          <div className="lg:hidden flex justify-center mb-8">
+            <NextconLogo className="h-20 w-auto" />
+          </div>
 
-        <form onSubmit={handleLogin}>
-          <CardContent className="p-8 space-y-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center block mb-4">Selecione seu Perfil de Acesso</label>
-              <div className="grid grid-cols-2 gap-2">
-                {demoUsers.map((u) => (
-                  <button
-                    key={u.email}
-                    type="button"
-                    onClick={() => setEmail(u.email)}
-                    className={cn(
-                      "flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all gap-2 h-28 group",
-                      email === u.email 
-                        ? "bg-[#090e24] text-white border-[#090e24] ring-4 ring-[#f59e0b]/20" 
-                        : "bg-white hover:bg-gray-50 border-gray-100"
-                    )}
-                  >
-                    <u.icon className={cn("h-6 w-6 transition-colors", email === u.email ? "text-[#f59e0b]" : "text-gray-400 group-hover:text-primary")} />
-                    <div>
-                      <p className="text-[10px] font-black leading-none mb-1 opacity-60">{u.label}</p>
-                      <p className="text-[11px] font-bold leading-tight">{u.role}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-2 text-center lg:text-left">
+            <h1 className="text-3xl font-black text-primary font-headline tracking-tight uppercase">Bem-vindo</h1>
+            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Acesse sua conta para gerenciar dados SST.</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="grid grid-cols-2 gap-3">
+              {demoUsers.map((u) => (
+                <button
+                  key={u.email}
+                  type="button"
+                  onClick={() => setEmail(u.email)}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all gap-2 h-24 group shadow-sm",
+                    email === u.email 
+                      ? "bg-primary text-white border-primary ring-4 ring-primary/5" 
+                      : "bg-white hover:bg-gray-100 border-gray-100 text-gray-400"
+                  )}
+                >
+                  <u.icon className={cn("h-5 w-5 transition-colors", email === u.email ? "text-accent" : "text-gray-300 group-hover:text-primary")} />
+                  <span className="text-[9px] font-black leading-none uppercase tracking-tighter">{u.label}</span>
+                </button>
+              ))}
             </div>
 
-            <div className="space-y-4 pt-6 border-t border-dashed">
+            <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">E-mail de Acesso</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">E-mail Corporativo</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-4 top-3.5 h-4 w-4 text-gray-300" />
                   <Input 
                     type="email" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
-                    className="pl-10 h-11 bg-muted/20 border-none"
+                    className="pl-12 h-12 bg-white border-gray-100 rounded-xl focus-visible:ring-primary/10 font-bold"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Senha</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Chave de Acesso</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Lock className="absolute left-4 top-3.5 h-4 w-4 text-gray-300" />
                   <Input 
                     type="password" 
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
-                    className="pl-10 h-11 bg-muted/20 border-none"
+                    className="pl-12 h-12 bg-white border-gray-100 rounded-xl focus-visible:ring-primary/10 font-bold"
                     required
                   />
                 </div>
               </div>
             </div>
-          </CardContent>
 
-          <CardFooter className="p-8 pt-0">
-            <Button type="submit" className="w-full bg-[#090e24] h-14 text-lg font-black uppercase tracking-widest hover:bg-[#090e24]/90 transition-all shadow-xl" disabled={loading}>
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Entrar no Sistema'}
+            <Button type="submit" className="w-full h-14 bg-primary text-white text-md font-black uppercase tracking-widest hover:bg-primary/90 transition-all rounded-2xl shadow-xl shadow-primary/20" disabled={loading}>
+              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : 'Acessar Plataforma'}
             </Button>
-          </CardFooter>
-        </form>
-      </Card>
-      
-      <p className="mt-8 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-        © 2026 Nextcon Inteligência Ocupacional
-      </p>
+          </form>
+
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em]">
+              © 2026 Nextcon Inteligência Ocupacional
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -114,35 +114,30 @@ export function TopNav() {
   };
 
   return (
-    <nav className="bg-[#090e24] text-white sticky top-0 z-50 shadow-lg border-b border-white/5">
+    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          <div className="flex items-center gap-6 shrink-0">
+        <div className="flex items-center justify-between h-20 gap-4">
+          <div className="flex items-center gap-10 shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="h-8 w-8 text-[#f59e0b]">
-                <NextconLogo className="h-full w-full" />
-              </div>
-              <div className="flex flex-col leading-none">
-                <span className="font-black text-lg tracking-tighter uppercase font-headline">NEXTCON</span>
-                <span className="text-[8px] font-bold text-[#f59e0b] uppercase tracking-widest">Saúde Empresarial</span>
-              </div>
+              <NextconLogo className="h-14 w-auto" />
             </Link>
 
             <div className="hidden xl:flex items-center space-x-1">
               {currentMenu.map((item) => {
                 const Icon = item.icon;
+                const isActive = pathname === item.href;
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shrink-0",
-                      pathname === item.href 
-                        ? "bg-[#f59e0b] text-[#090e24] shadow-lg shadow-[#f59e0b]/20" 
-                        : "text-white/70 hover:text-white hover:bg-white/10"
+                      "px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-2 shrink-0",
+                      isActive 
+                        ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                        : "text-gray-500 hover:text-primary hover:bg-primary/5"
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className={cn("h-4 w-4", isActive ? "text-accent" : "text-gray-400")} />
                     {item.label}
                   </Link>
                 );
@@ -150,26 +145,25 @@ export function TopNav() {
             </div>
           </div>
 
-          {/* Campo de Busca Global */}
           <div className="flex-1 max-w-md hidden md:block">
             <div className="relative group">
-              <Search className="absolute left-3 top-2.5 size-4 text-white/30 group-focus-within:text-[#f59e0b] transition-colors" />
+              <Search className="absolute left-3 top-2.5 size-4 text-gray-400 group-focus-within:text-primary transition-colors" />
               <Input 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar colaboradores, perícias ou NRs..." 
-                className="w-full bg-white/5 border-white/10 h-10 pl-10 pr-12 text-xs focus-visible:ring-[#f59e0b] focus-visible:border-transparent transition-all placeholder:text-white/20"
+                placeholder="Pesquisar no sistema..." 
+                className="w-full bg-gray-50 border-gray-100 h-10 pl-10 pr-12 text-xs focus-visible:ring-primary/20 focus-visible:border-primary transition-all placeholder:text-gray-400"
               />
-              <div className="absolute right-2 top-2 px-1.5 py-0.5 rounded border border-white/10 bg-white/5 flex items-center gap-1 text-[10px] font-black text-white/20 pointer-events-none group-focus-within:hidden">
+              <div className="absolute right-2 top-2 px-1.5 py-0.5 rounded border border-gray-200 bg-white flex items-center gap-1 text-[10px] font-black text-gray-400 pointer-events-none group-focus-within:hidden">
                 <Command className="size-2.5" /> K
               </div>
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center gap-2 shrink-0">
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/5">
+                <Button variant="ghost" size="icon" className="relative text-gray-500 hover:bg-gray-100">
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute top-2 right-2 flex h-2 w-2">
@@ -179,61 +173,50 @@ export function TopNav() {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 bg-[#090e24] text-white border-white/10">
+              <DropdownMenuContent align="end" className="w-80 border-none shadow-2xl">
                 <DropdownMenuLabel className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest opacity-50">
                   Alertas NAI
-                  {unreadCount > 0 && <Badge className="bg-accent text-[#090e24] text-[8px]">{unreadCount} novos</Badge>}
+                  {unreadCount > 0 && <Badge className="bg-accent text-primary text-[8px]">{unreadCount} novos</Badge>}
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuSeparator />
                 {notifications?.length ? notifications.map(n => (
-                  <DropdownMenuItem key={n.id} className="p-4 hover:bg-white/5 cursor-default flex flex-col items-start gap-1">
-                    <p className={cn("text-xs font-bold", n.read ? "text-white/50" : "text-white")}>{n.title}</p>
-                    <p className="text-[10px] text-white/40 leading-tight">{n.message}</p>
+                  <DropdownMenuItem key={n.id} className="p-4 cursor-default flex flex-col items-start gap-1">
+                    <p className={cn("text-xs font-bold", n.read ? "text-gray-400" : "text-primary")}>{n.title}</p>
+                    <p className="text-[10px] text-gray-500 leading-tight">{n.message}</p>
                   </DropdownMenuItem>
                 )) : (
-                  <div className="p-8 text-center text-xs text-white/30 italic">Sem alertas no momento.</div>
+                  <div className="p-8 text-center text-xs text-gray-400 italic">Sem alertas.</div>
                 )}
-                <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem className="text-center justify-center text-[9px] font-black uppercase tracking-tighter text-accent cursor-pointer">
-                  Ver Todas as Notificações
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="text-white hover:bg-white/5 gap-3 h-10 px-4 ml-2">
+                <Button variant="ghost" className="hover:bg-gray-100 gap-3 h-12 px-4 rounded-2xl">
                   <div className="text-right hidden xl:block">
-                    <p className="text-[9px] font-black text-white/50 uppercase leading-none">{role.replace('_', ' ')}</p>
-                    <p className="text-xs font-bold text-[#f59e0b]">{user?.email}</p>
+                    <p className="text-[9px] font-black text-gray-400 uppercase leading-none">{role.replace('_', ' ')}</p>
+                    <p className="text-xs font-bold text-primary">{user?.email?.split('@')[0]}</p>
                   </div>
-                  <UserCircle className="h-5 w-5 text-[#f59e0b]" />
-                  <ChevronDown className="h-3 w-3 opacity-50" />
+                  <div className="size-9 rounded-full bg-primary/5 border border-primary/10 flex items-center justify-center text-primary font-bold text-sm uppercase">
+                    {user?.email?.substring(0, 2)}
+                  </div>
+                  <ChevronDown className="h-3 w-3 opacity-50 text-primary" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#090e24] text-white border-white/10">
+              <DropdownMenuContent align="end" className="w-56 border-none shadow-2xl">
                 <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-tighter opacity-50">Configurações</DropdownMenuLabel>
-                <DropdownMenuItem className="hover:bg-white/10 cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" /> Perfil de Usuário
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-white/10 cursor-pointer" asChild>
-                  <Link href="/data-import"><Database className="mr-2 h-4 w-4" /> Importar Dados</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem className="text-red-400 hover:bg-red-400/10 cursor-pointer" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" /> Encerrar Sessão
-                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer font-bold text-xs"><Settings className="mr-2 h-4 w-4" /> Perfil</DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer font-bold text-xs" asChild><Link href="/data-import"><Database className="mr-2 h-4 w-4" /> Importação</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-500 font-bold text-xs cursor-pointer" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /> Sair</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          <div className="lg:hidden flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-white">
-              <Search className="size-5" />
-            </Button>
+          <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-primary hover:bg-primary/5 focus:outline-none"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -242,38 +225,21 @@ export function TopNav() {
       </div>
 
       {isOpen && (
-        <div className="lg:hidden bg-[#090e24] border-t border-white/10">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {currentMenu.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsOpen(false)}
-                  className={cn(
-                    "block px-3 py-3 rounded-md text-sm font-bold uppercase tracking-wider flex items-center gap-3",
-                    pathname === item.href 
-                      ? "bg-[#f59e0b] text-[#090e24]" 
-                      : "text-white/70 hover:text-white hover:bg-white/5"
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              );
-            })}
-            <div className="pt-4 mt-4 border-t border-white/10 px-3 pb-4">
-              <Button
-                variant="destructive"
-                className="w-full justify-start gap-3 h-12"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-5 w-5" />
-                Encerrar Sessão
-              </Button>
-            </div>
-          </div>
+        <div className="lg:hidden bg-white border-t border-gray-50 p-4 space-y-2">
+          {currentMenu.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setIsOpen(false)}
+              className={cn(
+                "block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider flex items-center gap-3",
+                pathname === item.href ? "bg-primary text-white" : "text-gray-500 hover:bg-gray-50"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.label}
+            </Link>
+          ))}
         </div>
       )}
     </nav>
