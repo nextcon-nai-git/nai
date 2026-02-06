@@ -5,7 +5,6 @@ import {
   Zap,
   ChevronRight,
   Calendar,
-  User,
   AlertTriangle,
   SearchCheck,
   Clock,
@@ -15,7 +14,9 @@ import {
   Construction,
   Building2,
   Factory,
-  ShieldCheck
+  ShieldCheck,
+  TrendingUp,
+  History
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@
 import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -35,7 +37,7 @@ export default function Dashboard() {
     if (!db || !user) return null;
     return doc(db, "users", user.uid);
   }, [db, user]);
-  const { data: profile } = useDoc(profileRef);
+  const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
   const companyRef = useMemoFirebase(() => {
     if (!db || !user || !profile?.companyId) return null;
@@ -45,11 +47,12 @@ export default function Dashboard() {
 
   const segment = company?.segment || "GENERAL";
 
+  // Queries otimizadas com limites
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "managedCompanies"));
+    return query(collection(db, "clients", user.uid, "managedCompanies"), limit(50));
   }, [db, user]);
-  const { data: companiesData } = useCollection(companiesQuery);
+  const { data: companiesData, isLoading: loadingCompanies } = useCollection(companiesQuery);
 
   const validCompanies = React.useMemo(() => {
     if (!companiesData) return [];
@@ -63,9 +66,9 @@ export default function Dashboard() {
 
   const auditsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "auditHistory"));
+    return query(collection(db, "clients", user.uid, "auditHistory"), orderBy("createdAt", "desc"), limit(10));
   }, [db, user]);
-  const { data: audits } = useCollection(auditsQuery);
+  const { data: audits, isLoading: loadingAudits } = useCollection(auditsQuery);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -89,7 +92,7 @@ export default function Dashboard() {
     setDataAtual(dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1));
   }, []);
 
-  const getSegmentFocus = () => {
+  const focus = React.useMemo(() => {
     switch (segment) {
       case 'CONSTRUCTION':
         return {
@@ -128,19 +131,18 @@ export default function Dashboard() {
           nrs: ["NR-01 (PGR)", "NR-07 (PCMSO)", "eSocial"]
         };
     }
-  };
+  }, [segment]);
 
-  const focus = getSegmentFocus();
   const FocusIcon = focus.icon;
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Visitante';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col">
           <h1 className="text-3xl font-black text-[#090e24] tracking-tight font-headline">
-            {saudacao}, <span className="text-[#f59e0b]">{nomeExibicao}</span>
+            {loadingProfile ? <Skeleton className="h-9 w-48" /> : <>{saudacao}, <span className="text-[#f59e0b]">{nomeExibicao}</span></>}
           </h1>
           <p className="text-sm text-muted-foreground font-medium">{dataAtual}</p>
         </div>
@@ -152,24 +154,29 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
+        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default overflow-hidden">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Clientes Ativos</p>
-              <h3 className="text-2xl font-black text-[#090e24] mt-1">{validCompanies.length}</h3>
+              <h3 className="text-2xl font-black text-[#090e24] mt-1">
+                {loadingCompanies ? <Skeleton className="h-8 w-12" /> : validCompanies.length}
+              </h3>
             </div>
-            <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+            <div className="p-3 rounded-xl bg-blue-50 text-blue-600 transition-transform group-hover:scale-110">
               <Building2 size={24} />
             </div>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default">
+        
+        <Card className="border-none shadow-sm hover:shadow-md transition-all bg-white group cursor-default overflow-hidden">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Pendências IA</p>
-              <h3 className="text-2xl font-black text-[#090e24] mt-1">{audits?.filter(a => a.complianceScore < 100).length || 0}</h3>
+              <h3 className="text-2xl font-black text-[#090e24] mt-1">
+                {loadingAudits ? <Skeleton className="h-8 w-12" /> : (audits?.filter(a => a.complianceScore < 100).length || 0)}
+              </h3>
             </div>
-            <div className="p-3 rounded-xl bg-red-50 text-red-600">
+            <div className="p-3 rounded-xl bg-red-50 text-red-600 transition-transform group-hover:scale-110">
               <AlertTriangle size={24} />
             </div>
           </CardContent>
@@ -201,19 +208,18 @@ export default function Dashboard() {
             <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Agenda SST Real</CardTitle>
-                <CardDescription>Eventos dinâmicos sincronizados com seus clientes.</CardDescription>
+                <CardDescription>Eventos dinâmicos sincronizados em tempo real.</CardDescription>
               </div>
               <Calendar className="size-5 text-muted-foreground" />
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {loadingEvents ? (
-                <div className="flex flex-col items-center py-10 gap-2">
-                  <Loader2 className="size-8 animate-spin text-primary opacity-20" />
-                  <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">NAI Sincronizando...</p>
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-2xl" />)}
                 </div>
               ) : events && events.length > 0 ? (
                 events.map((event) => (
-                  <div key={event.id} className="flex items-center p-4 bg-blue-50/30 rounded-2xl border-l-4 border-primary group hover:bg-blue-50 transition-colors">
+                  <div key={event.id} className="flex items-center p-4 bg-blue-50/30 rounded-2xl border-l-4 border-primary group hover:bg-blue-50 transition-all cursor-pointer">
                     <div className="w-20 shrink-0">
                       <p className="text-sm font-black text-primary">{event.time}</p>
                     </div>
@@ -229,7 +235,7 @@ export default function Dashboard() {
               ) : (
                 <div className="text-center py-16 border-2 border-dashed rounded-2xl opacity-40">
                   <Clock className="size-10 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm font-black uppercase tracking-widest">Sem Eventos</p>
+                  <p className="text-sm font-black uppercase tracking-widest">Sem Eventos Próximos</p>
                   <Button asChild variant="outline" size="sm" className="mt-4 border-primary text-primary text-[10px] font-black">
                     <Link href="/data-import">Importar Agenda SST</Link>
                   </Button>
@@ -243,56 +249,37 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/esocial-audit">
-              <Card className="border-none shadow-sm hover:ring-2 ring-emerald-500/20 transition-all cursor-pointer bg-white h-full group">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-3">
-                    <div className="p-3 rounded-xl bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                      <SearchCheck className="size-6" />
+            {[
+              { href: "/esocial-audit", icon: SearchCheck, color: "emerald", label: "Vigilante eSocial", sub: "Auditoria Gemini" },
+              { href: "/checklists", icon: ClipboardCheck, color: "blue", label: "Checklists Técnicos", sub: "Inspeções em Campo" },
+              { href: "/absenteeism", icon: AlertTriangle, color: "amber", label: "Sentinela NTEP", sub: "Gestão de Nexo" },
+            ].map((item) => (
+              <Link key={item.href} href={item.href}>
+                <Card className="border-none shadow-sm hover:ring-2 ring-primary/10 transition-all cursor-pointer bg-white h-full group overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center gap-3">
+                      <div className={cn(
+                        "p-3 rounded-xl transition-all group-hover:scale-110",
+                        item.color === 'emerald' ? "bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white" :
+                        item.color === 'blue' ? "bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white" :
+                        "bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white"
+                      )}>
+                        <item.icon className="size-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#090e24] text-sm">{item.label}</h4>
+                        <p className="text-[10px] text-muted-foreground leading-tight mt-1">{item.sub}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-[#090e24] text-sm">Vigilante eSocial</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Auditoria via Gemini.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/checklists">
-              <Card className="border-none shadow-sm hover:ring-2 ring-blue-500/20 transition-all cursor-pointer bg-white h-full group">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-3">
-                    <div className="p-3 rounded-xl bg-blue-50 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                      <ClipboardCheck className="size-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#090e24] text-sm">Checklists {segment === 'CONSTRUCTION' ? 'Obras' : ''}</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Inspeções Técnicas.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/absenteeism">
-              <Card className="border-none shadow-sm hover:ring-2 ring-amber-500/20 transition-all cursor-pointer bg-white h-full group">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center text-center gap-3">
-                    <div className="p-3 rounded-xl bg-amber-50 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all">
-                      <AlertTriangle className="size-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#090e24] text-sm">Sentinela NTEP</h4>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-1">Gestão de Afastamentos.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className="space-y-6">
-          <Card className="border-none shadow-lg bg-[#090e24] text-white relative overflow-hidden">
+          <Card className="border-none shadow-lg bg-[#090e24] text-white relative overflow-hidden card-shadow">
             <div className="absolute top-0 right-0 p-4 opacity-10">
               <Zap className="h-24 w-24 text-[#f59e0b]" />
             </div>
@@ -303,21 +290,42 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest mb-2">Foco Normativo</p>
+                <p className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest mb-2">Monitoramento Ativo</p>
                 <p className="text-xs leading-relaxed text-white/80 font-medium">
-                  {segment === 'CONSTRUCTION' 
+                  {loadingProfile ? <Skeleton className="h-12 w-full bg-white/10" /> : 
+                    segment === 'CONSTRUCTION' 
                     ? "Alerta: Verificamos que 3 colaboradores precisam renovar o treinamento de NR-35 este mês." 
                     : segment === 'HOSPITAL' 
                     ? "Alerta NR-32: Verifique o descarte de resíduos pérfurocortantes na Unidade Central." 
                     : "Dica: Mantenha o Inventário de Riscos atualizado no PGR para evitar multas de eSocial."}
                 </p>
               </div>
-              <div className="p-4 bg-[#f59e0b] rounded-xl">
+              <div className="p-4 bg-[#f59e0b] rounded-xl group cursor-pointer hover:bg-[#f59e0b]/90 transition-colors">
                 <p className="text-[10px] font-black text-[#090e24] uppercase tracking-widest mb-1">Dica Estratégica</p>
                 <p className="text-xs font-bold text-[#090e24]">
-                  {segment === 'CONSTRUCTION' ? "Use o Quiosque de EPI para registrar a entrega de cintos de segurança com foto." : "O Diagrama de Corlett ajuda a prevenir afastamentos por LER/DORT."}
+                  {segment === 'CONSTRUCTION' ? "O Quiosque de EPI automatiza o registro de CA e validade dos cintos de segurança." : "O Diagrama de Corlett reduz custos com perícias de LER/DORT."}
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-md bg-white overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
+                <TrendingUp className="size-3 text-primary" /> Eficiência Global
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-end justify-between">
+                <h2 className="text-3xl font-black text-[#090e24]">94%</h2>
+                <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black border-none uppercase">Acima da Média</Badge>
+              </div>
+              <div className="h-1.5 w-full bg-muted rounded-full mt-3 overflow-hidden">
+                <div className="h-full bg-primary rounded-full" style={{ width: '94%' }} />
+              </div>
+              <p className="text-[9px] text-muted-foreground mt-3 uppercase font-bold tracking-tighter">
+                Sincronização de dados eSocial em tempo real sem erros.
+              </p>
             </CardContent>
           </Card>
         </div>

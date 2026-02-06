@@ -7,8 +7,7 @@ import * as React from 'react';
 import { TopNav } from '@/components/layout/top-nav';
 
 /**
- * Componente Cliente que gerencia o estado de autenticação e o layout principal.
- * Separado do RootLayout para evitar erros de hidratação.
+ * Componente Cliente otimizado para evitar re-renders desnecessários e flashes de conteúdo.
  */
 export function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -16,39 +15,43 @@ export function AppContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [mounted, setMounted] = React.useState(false);
 
-  // Garante que o componente só renderize conteúdo dinâmico após a montagem no cliente
+  // Memoiza a verificação de página de login para evitar cálculos em cada render
+  const isLoginPage = React.useMemo(() => pathname === '/login', [pathname]);
+
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Redirecionamento para login se não estiver autenticado
+  // Redirecionamento centralizado
   React.useEffect(() => {
-    if (mounted && !isUserLoading && !user && pathname !== '/login') {
-      router.push('/login');
+    if (mounted && !isUserLoading && !user && !isLoginPage) {
+      router.replace('/login');
     }
-  }, [user, isUserLoading, pathname, router, mounted]);
+  }, [user, isUserLoading, isLoginPage, router, mounted]);
 
-  // Tela de carregamento inicial
-  if (!mounted || isUserLoading) {
+  // Loading state com transição suave
+  if (!mounted || (isUserLoading && !isLoginPage)) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#090e24]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#f59e0b]" />
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#090e24] animate-in fade-in duration-500">
+        <div className="relative">
+          <div className="absolute inset-0 blur-xl bg-[#f59e0b]/20 animate-pulse rounded-full" />
+          <Loader2 className="h-12 w-12 animate-spin text-[#f59e0b] relative z-10" />
+        </div>
+        <p className="mt-6 text-[10px] font-black text-white/40 uppercase tracking-[0.3em] animate-pulse">Sincronizando NAI Cloud...</p>
       </div>
     );
   }
 
-  // Layout simplificado para página de login
-  if (pathname === '/login') {
-    return <div className="min-h-screen w-full bg-white">{children}</div>;
+  if (isLoginPage) {
+    return <div className="min-h-screen w-full bg-white animate-in fade-in duration-300">{children}</div>;
   }
 
-  // Se não houver usuário após o carregamento (e não for página de login), não renderiza nada (redirecionamento em curso)
-  if (!user && pathname !== '/login') return null;
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
       <TopNav />
-      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 transition-all duration-300">
         {children}
       </main>
       <footer className="py-6 border-t bg-[#090e24] text-white/40 text-center text-[10px] font-bold tracking-widest uppercase mt-auto">
