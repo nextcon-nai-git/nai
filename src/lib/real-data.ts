@@ -5,6 +5,19 @@
 
 export const REAL_COMPANIES = [
   { 
+    id: "CLI_TIMENOW", 
+    name: "TIMENOW GESTÃO DE OBRAS LTDA", 
+    unit: "ArcelorMittal Vega",
+    city: "São Francisco do Sul", 
+    cnpj: "48.865.462/0001-06", 
+    segment: "CONSTRUCTION", 
+    address: "BR-280, ArcelorMittal Vega", 
+    phone: "(27) 3348-1000",
+    email: "contato@timenow.com.br",
+    cnae: "4399-1/01",
+    riskGrade: "3"
+  },
+  { 
     id: "CLI037", 
     name: "BRITANIA ELETRODOMESTICOS SA", 
     city: "Joinville", 
@@ -19,14 +32,6 @@ export const REAL_COMPANIES = [
     name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", 
     city: "Joinville", 
     cnpj: "76.492.701/0014-71", 
-    segment: "INDUSTRY", 
-    address: "Joinville/SC"
-  },
-  { 
-    id: "CLI105", 
-    name: "BRITANIA ELETRODOMESTICOS SA (RODRIGO)", 
-    city: "Joinville", 
-    cnpj: "76.492.701/0007-42", 
     segment: "INDUSTRY", 
     address: "Joinville/SC"
   },
@@ -45,17 +50,16 @@ export const REAL_COMPANIES = [
     cnpj: "00.000.000/0001-99",
     segment: "CONSTRUCTION",
     address: "Curitiba/PR"
-  },
-  { 
-    id: "CLI129", 
-    name: "AC2 CORRETORA DE SEGUROS LTDA", 
-    city: "Curitiba", 
-    cnpj: "12.345.678/0001-29", 
-    segment: "GENERAL" 
-  },
+  }
 ];
 
 export const REAL_EMPLOYEES = [
+  // --- TIMENOW GESTÃO DE OBRAS (ArcelorMittal Vega) ---
+  { name: "ANALISTA ADM MODELO", companyId: "CLI_TIMENOW", jobRole: "Analista Técnico", ghe: "GHE 01 - ADMINISTRATIVO", status: "ACTIVE" },
+  { name: "ENGENHEIRO ELETRICO MODELO", companyId: "CLI_TIMENOW", jobRole: "Engenheiro(a) de Projetos", ghe: "GHE 02 - PROJETOS ELÉTRICOS", status: "ACTIVE" },
+  { name: "ANALISTA PLANEJAMENTO MODELO", companyId: "CLI_TIMENOW", jobRole: "Analista de Planejamento", ghe: "GHE 03 - GESTÃO DE PROJETOS", status: "ACTIVE" },
+  { name: "TECNICO DE CAMPO MODELO", companyId: "CLI_TIMENOW", jobRole: "Técnico de Campo (Elétrico)", ghe: "GHE 04 - FISCALIZAÇÃO", status: "ACTIVE", hazard: "Ruído 90.4 dB", specialRetirement: true },
+
   // --- BRITÂNIA SA (CLI037) ---
   { name: "SIMONE MARAGNO DOS SANTOS", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023", status: "ACTIVE" },
   { name: "BRUNA FELIX BRANCO", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024", status: "ACTIVE" },
@@ -88,8 +92,6 @@ export const REAL_EMPLOYEES = [
   { id: "0000000004", name: "Kelvin dos Santos Costa", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
   { id: "0000000003", name: "Sidney Gomes Perchis", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
   { id: "0000000005", name: "Tiago Alves Santana da Silva", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
-  { name: "JOAO SILVA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO LAGUNA", status: "ACTIVE" },
-  { name: "MARCOS OLIVEIRA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
 ];
 
 export const REAL_EXPERTISES = [
