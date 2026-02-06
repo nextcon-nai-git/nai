@@ -1,6 +1,6 @@
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia Eletrodomésticos SA, CONSTRUFAM ENGENHARIA e Catálogo de Exames.
+ * Atualizado com Britânia, CONSTRUFAM e NATIVA EMPREENDIMENTOS.
  */
 
 export const REAL_COMPANIES = [
@@ -42,46 +42,33 @@ export const REAL_COMPANIES = [
     segment: "CONSTRUCTION",
     address: "Curitiba/PR"
   },
+  {
+    id: "CLI_NATIVA",
+    name: "NATIVA EMPREENDIMENTOS LTDA",
+    city: "Curitiba",
+    cnpj: "00.000.000/0001-99",
+    segment: "CONSTRUCTION",
+    address: "Curitiba/PR"
+  },
   { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
-  { id: "CLI140", name: "ALKANCE SOLUCOES", city: "Curitiba", cnpj: "12.345.678/0001-40", segment: "INDUSTRY" },
-  { id: "CLI013", name: "Andes Negócios Digitais", city: "Curitiba", cnpj: "12.345.678/0001-13", segment: "GENERAL" },
-  { id: "CLI014", name: "CDA STEEL FABRICACAO E MONTAGEM LTDA", city: "Curitiba", cnpj: "12.345.678/0001-14", segment: "INDUSTRY" },
 ];
 
 export const REAL_EMPLOYEES = [
+  // Nativa Empreendimentos
+  { name: "JOAO SILVA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO LAGUNA", admissionDate: "10/01/2024" },
+  { name: "JOSE SANTOS AUXILIAR", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO LAGUNA", admissionDate: "15/01/2024" },
+  { name: "MARCOS OLIVEIRA PEDREIRO", companyId: "CLI_NATIVA", jobRole: "PEDREIRO", location: "OBRAS - EDIFÍCIO MONACO", admissionDate: "20/02/2024" },
+  { name: "RICARDO LIMA SERVENTE", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", admissionDate: "22/02/2024" },
+
   // Britânia
   { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
   { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
   { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },
   { name: "ELIANE VICENTIN", cpf: "000.000.000-04", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022" },
-  { name: "MARCELA GESSICA DA SILVA DE AMORIM", cpf: "000.000.000-05", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "12/02/2024" },
-  { name: "XIOMARA JOSEFINA LOPEZ SALMERON", cpf: "000.000.000-06", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "15/03/2021" },
-  { name: "ASTRID CAROLINA ZAMORA PEREZ", cpf: "000.000.000-07", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/01/2024" },
-  { name: "LISLAINE REGINA BARBOSA DOS SANTOS", cpf: "000.000.000-08", companyId: "CLI037", jobRole: "Encarregada de Qualidade", admissionDate: "05/05/2020" },
-  { name: "ELANE DA SILVA E SILVA", cpf: "000.000.000-09", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "20/12/2025" },
-  { name: "LEANDRO RAMOS DA SILVA NETO", cpf: "000.000.000-10", companyId: "CLI037", jobRole: "Ajudante de galpão", admissionDate: "10/05/2025" },
-  { name: "JESSICA GOMES DOS SANTOS", cpf: "000.000.000-11", companyId: "CLI037", jobRole: "Auxiliar Técnica", admissionDate: "10/02/2017" },
-  { name: "SUELLEN MULLER AMARAL", cpf: "000.000.000-12", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/02/2024" },
   
   // Construfam
   { id: "0000000012", name: "ADILSON JOSE DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
   { id: "0000000001", name: "ADMERSON MORAES DE OSTI", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000021", name: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000002", name: "EDERLEI ALVES DA SILVEIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000003", name: "EMANUELLY EDUARDA STRAUB FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR ADMINISTRATIVO", admissionDate: "01/01/2024" },
-  { id: "0000000013", name: "EVADI FERNANDES", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000018", name: "Felipe Gustavo Ruiz Vicari", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000019", name: "GEOVANI CAVALCANTE SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000016", name: "Heudrian Giovanni Motta Gonçalves", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000004", name: "JAIR CESAR DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000015", name: "JONATHAN BRUNO FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000020", name: "Lucas Miguel Santana Kokot", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000010", name: "MARCOS ANTONIO MUNIZ", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000014", name: "MARLLON SOUZA PACHECO", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000017", name: "Marlos Moises Ribeiro Martins", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000005", name: "NICAMAQUE DE JESUS AMARAL DA SILVA MENDE", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
-  { id: "0000000011", name: "PAULO HENRIQUE MASTECK", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
-  { id: "0000000008", name: "VANDERLAM MUNHOZ", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
 ];
 
 export const REAL_EXPERTISES = [
@@ -94,88 +81,9 @@ export const REAL_EXPERTISES = [
     jobRole: "Operador de Produção",
     caseNumber: "0002042-15.2025.5.12.0030",
     disease: "Lesão no Ombro / Manguito Rotador",
-    defenseStrategy: "Doença Degenerativa/Metabólica",
-    defenseStrength: "Alta",
     status: "Quesitos Protocolados",
     type: "Médica",
-    cid: "M75.1",
-    technicalInfo: "Alegação de doença ocupacional. Solicita perícia para apurar redução da capacidade laborativa e nexo causal."
-  },
-  {
-    id: "PER002",
-    companyId: "CLI037",
-    date: "2026-02-10T09:00:00",
-    employeeName: "Bruna Felix Branco",
-    value: 125547.48,
-    jobRole: "Operador de Produção",
-    caseNumber: "0001895-71.2025.5.12.0030",
-    disease: "Lesões em Coluna, Pelve e Membros Inferiores",
-    defenseStrategy: "Trauma Extralaboral",
-    defenseStrength: "Muito Alta",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "M54.5",
-    technicalInfo: "Discussão sobre contrato de trabalho e condições laborais."
-  },
-  {
-    id: "PER003",
-    companyId: "CLI037",
-    date: "2026-02-24T10:00:00",
-    employeeName: "Haranthia Rodrigues Sousa",
-    value: 130000.00,
-    jobRole: "Operador de Produção",
-    caseNumber: "0002069-20.2025.5.12.0050",
-    disease: "Lesão Ocular e Transtornos Psiquiátricos",
-    defenseStrategy: "Ausência de Afastamento Imediato",
-    defenseStrength: "Média",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "R52"
-  },
-  {
-    id: "PER004",
-    companyId: "CLI037",
-    date: "2026-02-04T08:20:00",
-    employeeName: "Eliane Vicentin",
-    value: 308400.00,
-    jobRole: "Operador de Produção",
-    caseNumber: "0001035-10.2025.5.12.0050",
-    disease: "Fascite Plantar, Tendinopatia, Bursite",
-    defenseStrategy: "Nexo Técnico Epidemiológico (Negativo)",
-    defenseStrength: "Alta",
-    status: "Quesitos Protocolados",
-    type: "Ergonômica",
-    cid: "M77"
-  },
-  {
-    id: "PER005",
-    companyId: "CLI037",
-    date: "2026-02-12T18:30:00",
-    employeeName: "Marcela Gessica da Silva de Amorim",
-    value: 393000.00,
-    jobRole: "Operador de Produção",
-    caseNumber: "0002041-93.2025.5.12.0004",
-    disease: "Doenças Musculoesqueléticas",
-    defenseStrategy: "Doença Constitucional",
-    defenseStrength: "Média",
-    status: "Quesitos Protocolados",
-    type: "Ergonômica",
-    cid: "M75"
-  },
-  {
-    id: "PER006",
-    companyId: "CLI037",
-    date: "2025-11-10T17:00:00",
-    employeeName: "Xiomara Josefina Lopez Salmeron",
-    value: 88000.00,
-    jobRole: "Operador de Produção",
-    caseNumber: "0000453-70.2025.5.12.0030",
-    disease: "Coluna Cervical, Ombros",
-    defenseStrategy: "Fatores Biológicos/Degenerativos",
-    defenseStrength: "Muito Alta",
-    status: "Concluído",
-    type: "Médica",
-    cid: "M50"
+    cid: "M75.1"
   },
   {
     id: "PER011",
@@ -186,69 +94,16 @@ export const REAL_EXPERTISES = [
     jobRole: "Auxiliar Técnica",
     caseNumber: "0001556-52.2025.5.12.0050",
     disease: "Doença Ocupacional (9 anos)",
-    defenseStrategy: "Doença Multicausal / Degenerativa",
-    defenseStrength: "Média",
     status: "Quesitos Protocolados",
     type: "Médica",
     cid: "M75"
-  },
-  {
-    id: "PER012",
-    companyId: "CLI037",
-    date: "2026-02-10T12:30:00",
-    employeeName: "Suellen Muller Amaral",
-    value: 55548.00,
-    jobRole: "Operador de Produção",
-    caseNumber: "0001565-14.2025.5.12.0050",
-    disease: "Negligência / Falta EPI",
-    defenseStrategy: "Responsabilidade Subjetiva",
-    defenseStrength: "Baixa",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "M54"
   }
 ];
 
 export const REAL_EXAMS = [
   { name: "1,2 Ciclohexanodiol na Urina" },
-  { name: "1,2 Dihidro-4 (N-Acetilcisteína) - Butano na Urina" },
-  { name: "1,6 Hexametilenodiamina na Urina" },
-  { name: "2,4 Diaminotolueno" },
-  { name: "2,5 Hexanodiona na Urina" },
-  { name: "4 - Clorocatecol na Urina" },
-  { name: "5 - Hidroxi-N-Metil- 2 - Pirrolidona na Urina" },
-  { name: "Acetilcolina - Anticorpo Bloqueador" },
-  { name: "Acetilcolina - Anticorpo Ligador" },
-  { name: "Acetilcolina - Anticorpo Modulador" },
   { name: "Acetilcolinesterase Eritrocitária" },
-  { name: "Acetona na Urina" },
-  { name: "Acetona Plasma" },
-  { name: "Acetona Sangue Total" },
-  { name: "Ácido 2 - Metóxiácetico na Urina" },
-  { name: "Ácido 2 - Tioxotiazolina 4 Carboxílico (TTCA) na Urina" },
-  { name: "Ácido Butoxiacético na Urina" },
-  { name: "Ácido Delta Amino Levulínico (ALA-U) na Urina" },
-  { name: "Ácido Etóxiacético na Urina" },
-  { name: "Ácido Furóico na Urina" },
-  { name: "Ácido Hipúrico na Urina" },
-  { name: "Ácido Mandélico na Urina" },
-  { name: "Ácido Metilhipúrico na Urina" },
-  { name: "Ácido Trans, Trans-Muconico (TTMA) na Urina" },
-  { name: "Ácido Tricloroacético na Urina" },
-  { name: "Ácido Úrico" },
   { name: "Acuidade Visual - Ortho Rater" },
-  { name: "Acuidade Visual - Tabela de Snellen" },
-  { name: "Acuidade Visual - Teste de Ishihara - Daltonismo" },
-  { name: "Adutos de N - (2-Hidroxietil) Valina (Hev) Em Hemoglobina" },
-  { name: "Amônia - pesquisa e/ou dosagem" },
-  { name: "Anfetamina" },
-  { name: "Anticorpos HIV 1/2" },
-  { name: "Arsênio na Urina" },
-  { name: "Audiometria de Altas Frequências" },
-  { name: "Audiometria de Tronco Cerebral - Bera" },
-  { name: "Audiometria Tonal - Limiar Com Teste de Discriminação" },
-  { name: "Audiometria Vocal - Limiar de Discriminação" },
-  { name: "Audiometria Vocal - Limiar de Inteligebilidade" },
-  { name: "Avaliação Com Especialista" },
+  { name: "Audiometria Tonal Ocupacional" },
   { name: "Avaliação Ergonômica" },
 ];

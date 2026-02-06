@@ -1,13 +1,10 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
-    // Ignora erros de tipagem para garantir o build no Firebase Studio
     ignoreBuildErrors: true,
   },
   eslint: {
-    // Ignora erros de linting para evitar interrupções no deploy
     ignoreDuringBuilds: true,
   },
   experimental: {
