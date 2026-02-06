@@ -1,68 +1,54 @@
+
 "use client"
 
 import * as React from "react"
 import { 
   ClipboardCheck, 
-  Save, 
   Loader2, 
-  Search,
-  Zap,
-  ShieldCheck,
-  HardHat,
-  Construction,
-  Truck,
+  ShieldAlert, 
+  Plus, 
+  ArrowLeft, 
+  Ban, 
+  Users, 
+  HeartPulse, 
+  Building2, 
+  Biohazard, 
+  Settings2, 
+  Box, 
+  Flame, 
+  Skull, 
+  AlertTriangle, 
+  Accessibility, 
+  Bomb, 
+  Fuel, 
+  Sun, 
+  Mountain, 
+  FireExtinguisher, 
+  Bath, 
+  Recycle, 
+  Megaphone, 
+  Gavel, 
+  Ship, 
+  Anchor, 
+  Sprout, 
+  Stethoscope, 
+  Hammer, 
+  ArrowUpCircle, 
+  Beef, 
+  Droplets, 
   Trash2,
-  Activity,
-  ArrowLeft,
-  AlertCircle,
-  ShieldAlert,
-  Brain,
-  Plus,
-  ArrowRight,
-  Ban,
-  Users,
-  HeartPulse,
-  Building2,
-  Biohazard,
-  Settings2,
-  Box,
-  Flame,
-  Skull,
-  AlertTriangle,
-  Accessibility,
-  Bomb,
-  Fuel,
-  Sun,
-  Mountain,
-  FireExtinguisher,
-  Bath,
-  Recycle,
-  Megaphone,
-  Gavel,
-  Ship,
-  Anchor,
-  Sprout,
-  Stethoscope,
-  Hammer,
-  ArrowUpCircle,
-  Beef,
-  Droplets,
+  Zap,
   CheckCircle2,
-  XCircle,
-  MinusCircle,
   Info,
-  FileUp,
   FileText,
   Sparkles,
-  ChevronRight,
-  MessageSquare,
-  History
+  Activity,
+  Brain
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
@@ -74,67 +60,26 @@ import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
-  { id: "nr03", category: "Administrativo", title: "NR-03 - Embargo e Interdição", icon: Ban, color: "text-red-700" },
-  { id: "nr04", category: "SESMT", title: "NR-04 - Dimensionamento do SESMT", icon: Users, color: "text-blue-600" },
-  { id: "nr05", category: "CIPA", title: "NR-05 - Comissão Interna (CIPA)", icon: ShieldCheck, color: "text-emerald-600" },
-  { id: "nr06", category: "EPI", title: "NR-06 - Equipamentos de Proteção (EPI)", icon: HardHat, color: "text-amber-600" },
-  { id: "nr07", category: "Saúde", title: "NR-07 - Controle Médico (PCMSO)", icon: HeartPulse, color: "text-rose-600" },
-  { id: "nr08", category: "Estrutural", title: "NR-08 - Edificações", icon: Building2, color: "text-slate-600" },
-  { id: "nr09", category: "Riscos", title: "NR-09 - Agentes Físicos, Químicos e Biológicos", icon: Biohazard, color: "text-purple-600" },
+  { id: "nr06", category: "EPI", title: "NR-06 - Equipamentos de Proteção (EPI)", icon: HeartPulse, color: "text-amber-600" },
+  { id: "nr17", category: "Ergonomia", title: "NR-17 - Laboratório de Ergonomia", icon: Brain, color: "text-blue-700" },
+  { id: "nr18", category: "Obras", title: "NR-18 - Indústria da Construção", icon: Hammer, color: "text-orange-600" },
   { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Zap, color: "text-yellow-500" },
-  { id: "nr11", category: "Logística", title: "NR-11 - Movimentação de Materiais", icon: Truck, color: "text-blue-500" },
-  { id: "nr12", category: "Máquinas", title: "NR-12 - Máquinas e Equipamentos", icon: Settings2, color: "text-indigo-600" },
-  { id: "nr13", category: "Pressão", title: "NR-13 - Caldeiras e Vasos de Pressão", icon: Box, color: "text-cyan-600" },
-  { id: "nr14", category: "Fornos", title: "NR-14 - Fornos", icon: Flame, color: "text-orange-700" },
-  { id: "nr15", category: "Insalubridade", title: "NR-15 - Atividades Insalubres", icon: Skull, color: "text-gray-700" },
-  { id: "nr16", category: "Periculosidade", title: "NR-16 - Atividades Perigosas", icon: AlertTriangle, color: "text-orange-600" },
-  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Accessibility, color: "text-blue-700" },
-  { id: "nr18", category: "Obras", title: "NR-18 - Indústria da Construção", icon: Construction, color: "text-orange-600" },
-  { id: "nr19", category: "Explosivos", title: "NR-19 - Explosivos", icon: Bomb, color: "text-red-800" },
-  { id: "nr20", category: "Inflamáveis", title: "NR-20 - Inflamáveis e Combustíveis", icon: Fuel, color: "text-amber-700" },
-  { id: "nr21", category: "Trabalho Externo", title: "NR-21 - Trabalho a Céu Aberto", icon: Sun, color: "text-orange-400" },
-  { id: "nr22", category: "Mineração", title: "NR-22 - Segurança na Mineração", icon: Mountain, color: "text-stone-600" },
-  { id: "nr23", category: "Incêndio", title: "NR-23 - Proteção Contra Incêndios", icon: FireExtinguisher, color: "text-red-600" },
-  { id: "nr24", category: "Conforto", title: "NR-24 - Condições Sanitárias e Conforto", icon: Bath, color: "text-blue-400" },
-  { id: "nr25", category: "Resíduos", title: "NR-25 - Resíduos Industriais", icon: Recycle, color: "text-emerald-700" },
-  { id: "nr26", category: "Sinalização", title: "NR-26 - Sinalização de Segurança", icon: Megaphone, color: "text-yellow-600" },
-  { id: "nr28", category: "Fiscalização", title: "NR-28 - Fiscalização e Penalidades", icon: Gavel, color: "text-slate-800" },
-  { id: "nr29", category: "Portuário", title: "NR-29 - Trabalho Portuário", icon: Ship, color: "text-blue-800" },
-  { id: "nr30", category: "Aquaviário", title: "NR-30 - Trabalho Aquaviário", icon: Anchor, color: "text-sky-700" },
-  { id: "nr31", category: "Rural", title: "NR-31 - Trabalho Rural e Pesca", icon: Sprout, color: "text-green-600" },
-  { id: "nr32", category: "Saúde", title: "NR-32 - Serviços de Saúde", icon: Stethoscope, color: "text-blue-600" },
-  { id: "nr33", category: "Confinado", title: "NR-33 - Espaços Confinados", icon: Box, color: "text-orange-800" },
-  { id: "nr34", category: "Naval", title: "NR-34 - Construção e Reparação Naval", icon: Hammer, color: "text-slate-700" },
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
-  { id: "nr36", category: "Frigoríficos", title: "NR-36 - Abate e Processamento de Carnes", icon: Beef, color: "text-red-500" },
-  { id: "nr37", category: "Petróleo", title: "NR-37 - Plataformas de Petróleo", icon: Droplets, color: "text-blue-900" },
-  { id: "nr38", category: "Limpeza Urbana", title: "NR-38 - Limpeza Urbana e Resíduos", icon: Trash2, color: "text-emerald-600" },
 ]
 
-const NR_ITEMS: Record<string, string[]> = {
-  nr01: ["Existe PGR implementado?", "O inventário de riscos está atualizado?", "O plano de ação contempla medidas de prevenção?"],
-  nr06: ["Os EPIs fornecidos possuem CA válido?", "Há registro de entrega assinado?", "Os EPIs são adequados ao risco?"],
-  nr18: ["O PCMAT está atualizado?", "As áreas de vivência estão limpas?", "Há proteção coletiva em periferias?"],
-}
-
-type BodyPart = { id: string; label: string; level: 0 | 1 | 2 | 3 | 4; path: string }
-
-const INITIAL_BODY_PARTS: BodyPart[] = [
-  { id: "head", label: "Cabeça", level: 0, path: "M50,5c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S54.4,5,50,5z" },
-  { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67 h-8 c-4,0-10,3-10,12 s3,12,3,12 h15 V67 z" },
-  { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67 h8 c4,0,10,3,10,12 s-3,12-3,12 h-15 V67 z" },
-  // ... outros caminhos SVG simétricos
+const ERGO_METHODS = [
+  { id: "rula", name: "RULA", desc: "Membros Superiores" },
+  { id: "reba", name: "REBA", desc: "Corpo Inteiro" },
+  { id: "niosh", name: "NIOSH", desc: "Levantamento de Cargas" },
+  { id: "corlett", name: "Corlett", desc: "Diagrama de Desconforto" },
 ]
 
 export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  const [searchTerm, setSearchTerm] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
-  const [ergoTool, setErgoTool] = React.useState<string | null>(null)
-  const [bodyParts, setBodyParts] = React.useState<BodyPart[]>(INITIAL_BODY_PARTS)
   const [isAnalyzingPgr, setIsAnalyzingPgr] = React.useState(false)
   const [pgrResult, setPgrResult] = React.useState<PgrAnalysisOutput | null>(null)
   const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
@@ -171,37 +116,55 @@ export default function ChecklistsPage() {
     } catch (e) { toast({ variant: "destructive", title: "Erro ao salvar" }) }
   }
 
+  // Visualização especial para NR-17
   if (selectedChecklistId === "nr17") {
-    // Interface Ergo Lab aqui
-    return (
-      <div className="space-y-6 animate-in fade-in">
-        <Button variant="ghost" onClick={() => setSelectedChecklistId(null)}><ArrowLeft className="mr-2" /> Voltar</Button>
-        <h1 className="text-2xl font-bold">Laboratório de Ergonomia (NR-17)</h1>
-        {/* ... ferramentas ergo ... */}
-      </div>
-    )
-  }
-
-  if (selectedChecklistId) {
-    const nrItems = NR_ITEMS[selectedChecklistId] || ["Item padrão de conformidade 01", "Item padrão de conformidade 02"]
     return (
       <div className="space-y-6 animate-in slide-in-from-bottom-4">
-        <Button variant="ghost" onClick={() => setSelectedChecklistId(null)}><ArrowLeft className="mr-2" /> Voltar</Button>
-        <Card className="border-none shadow-xl">
-          <CardHeader><CardTitle>{CHECKLIST_CATALOG.find(c => c.id === selectedChecklistId)?.title}</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {nrItems.map((item, i) => (
-              <div key={i} className="p-4 border rounded-xl flex justify-between items-center">
-                <span className="text-sm font-medium">{item}</span>
-                <RadioGroup className="flex gap-4" onValueChange={(v) => setFormResponses(prev => ({...prev, [i]: v}))}>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="C" id={`c-${i}`} /><Label htmlFor={`c-${i}`}>C</Label></div>
-                  <div className="flex items-center space-x-2"><RadioGroupItem value="NC" id={`nc-${i}`} /><Label htmlFor={`nc-${i}`}>NC</Label></div>
-                </RadioGroup>
+        <Button variant="ghost" onClick={() => setSelectedChecklistId(null)}><ArrowLeft className="mr-2" /> Voltar ao Catálogo</Button>
+        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div>
+            <h1 className="text-3xl font-headline font-bold text-primary">Laboratório de Ergonomia (NR-17)</h1>
+            <p className="text-muted-foreground">Avaliações biomecânicas e análise postural 2026.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 card-shadow border-none bg-white">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-primary uppercase">Mapeamento de Desconforto (Corlett)</CardTitle>
+              <CardDescription>Selecione as regiões de incômodo no avatar anatômico.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center py-10">
+              <div className="w-64 h-96 relative bg-muted/20 rounded-3xl flex items-center justify-center">
+                <Brain className="size-20 text-primary opacity-10" />
+                <p className="text-[10px] uppercase font-black opacity-40 absolute bottom-4">Avatar 3D em Construção</p>
               </div>
-            ))}
-            <Button className="w-full" onClick={handleSaveNRChecklist}>Salvar Auditoria</Button>
-          </CardContent>
-        </Card>
+              <div className="grid grid-cols-2 gap-4 w-full mt-8">
+                {ERGO_METHODS.map(m => (
+                  <Button key={m.id} variant="outline" className="h-16 flex flex-col gap-1 items-start px-4">
+                    <span className="font-black text-sm">{m.name}</span>
+                    <span className="text-[9px] uppercase opacity-60">{m.desc}</span>
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="card-shadow border-none bg-[#090e24] text-white">
+            <CardHeader>
+              <CardTitle className="text-xs font-black uppercase text-accent tracking-widest">Resumo da Análise</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-[10px] uppercase font-bold opacity-50 mb-1">Risco Biomecânico</p>
+                <Badge className="bg-emerald-500">Baixo / Moderado</Badge>
+              </div>
+              <Button className="w-full bg-accent text-primary font-black uppercase text-[10px] h-12">
+                Gerar Parecer Ergonômico
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     )
   }
@@ -224,10 +187,13 @@ export default function ChecklistsPage() {
             {CHECKLIST_CATALOG.map((item) => {
               const Icon = item.icon
               return (
-                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-primary/10 transition-all" onClick={() => setSelectedChecklistId(item.id)}>
+                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-primary/10 transition-all group bg-white border-none card-shadow" onClick={() => setSelectedChecklistId(item.id)}>
                   <CardContent className="p-6 flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl bg-muted/50", item.color)}><Icon className="size-6" /></div>
-                    <div><p className="text-[9px] font-black uppercase opacity-50">{item.category}</p><h3 className="text-sm font-bold">{item.title}</h3></div>
+                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-primary group-hover:text-white transition-all", item.color)}><Icon className="size-6" /></div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase opacity-50">{item.category}</p>
+                      <h3 className="text-sm font-bold text-primary">{item.title}</h3>
+                    </div>
                   </CardContent>
                 </Card>
               )
@@ -236,25 +202,103 @@ export default function ChecklistsPage() {
         </TabsContent>
 
         <TabsContent value="pgr" className="mt-6">
-          <Card className="border-none shadow-xl">
-            <CardHeader><CardTitle>Scanner PGR Inteligente</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-              <div className="border-2 border-dashed rounded-3xl p-12 text-center bg-muted/10 hover:bg-muted/20 relative">
+          <Card className="border-none shadow-xl bg-white overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-accent" /> Scanner PGR Inteligente</CardTitle>
+              <CardDescription>Análise via IA para extração de inventário e planos de ação (Max 10MB).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              <div className="border-2 border-dashed rounded-3xl p-12 text-center bg-muted/10 hover:bg-muted/20 relative group transition-all">
                 <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handlePgrFileUpload} />
-                {isAnalyzingPgr ? <Loader2 className="animate-spin size-10 mx-auto" /> : <FileText className="size-10 mx-auto" />}
-                <p className="mt-2 text-sm">Clique para importar PGR (Máx 10MB)</p>
+                {isAnalyzingPgr ? (
+                  <div className="space-y-4">
+                    <Loader2 className="animate-spin size-12 mx-auto text-primary" />
+                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Lendo Documento Técnico...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <FileText className="size-12 mx-auto text-primary opacity-40 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-primary">Arraste ou Clique para importar PGR</p>
+                    <p className="text-[10px] uppercase font-black text-muted-foreground">Formato PDF • Limite 10MB</p>
+                  </div>
+                )}
               </div>
+
               {pgrResult && (
-                <div className="p-4 bg-blue-50 rounded-xl space-y-4">
-                  <h3 className="font-bold">{pgrResult.companyInfo.name}</h3>
-                  <p className="text-sm italic">"{pgrResult.aiInsight}"</p>
-                  <Button onClick={() => window.open(getWhatsAppLink("11999999999", pgrResult.aiInsight))}>Enviar ao Cliente</Button>
+                <div className="animate-in zoom-in-95 duration-300 space-y-6">
+                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-headline font-black text-blue-900">{pgrResult.companyInfo.name}</h3>
+                      <p className="text-xs text-blue-700 font-bold uppercase">Vigência: {pgrResult.companyInfo.validity}</p>
+                    </div>
+                    <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado</Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card className="border-none shadow-sm">
+                      <CardHeader className="pb-2"><CardTitle className="text-sm font-black uppercase">Inventário de Riscos</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                        {pgrResult.identifiedRisks.map((r, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border">
+                            <Badge variant="outline" className="text-[8px] uppercase font-black h-5">{r.category}</Badge>
+                            <span className="text-xs font-bold text-primary">{r.hazard}</span>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-sm">
+                      <CardHeader className="pb-2"><CardTitle className="text-sm font-black uppercase">Plano de Ação</CardTitle></CardHeader>
+                      <CardContent className="space-y-2">
+                        {pgrResult.actionPlan.map((a, i) => (
+                          <div key={i} className="p-3 bg-muted/30 rounded-xl border space-y-1">
+                            <div className="flex justify-between">
+                              <p className="text-xs font-bold text-primary">{a.description}</p>
+                              <Badge className={cn("text-[8px] h-4 uppercase", a.priority === 'Alta' ? 'bg-red-500' : 'bg-blue-500')}>{a.priority}</Badge>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black">Prazo: {a.deadline}</p>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="p-6 bg-accent rounded-2xl space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="size-5 text-primary" />
+                      <h4 className="font-black uppercase text-xs text-primary">Insight Estratégico NAI</h4>
+                    </div>
+                    <p className="text-sm italic text-primary leading-relaxed">"{pgrResult.aiInsight}"</p>
+                    <Button 
+                      className="w-full bg-primary text-white h-12 font-bold uppercase gap-2"
+                      onClick={() => window.open(getWhatsAppLink("11999999999", `*Resumo PGR NAI*\n\n${pgrResult.aiInsight}`))}
+                    >
+                      Enviar Dossiê via WhatsApp
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="history" className="mt-6">
+          <Card className="border-none shadow-xl bg-white">
+            <CardHeader><CardTitle>Histórico de Inspeções</CardTitle></CardHeader>
+            <CardContent className="flex flex-col items-center py-20 text-center opacity-40">
+              <History className="size-12 mb-4" />
+              <p className="text-sm font-bold uppercase tracking-widest">Sem registros recentes.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+        <Info className="size-5 text-blue-600 shrink-0" />
+        <p className="text-[10px] text-blue-700 font-bold uppercase leading-tight">
+          Todas as evidências fotográficas e assinaturas coletadas via Checklists são armazenadas em buckets isolados por cliente conforme a LGPD.
+        </p>
+      </div>
     </div>
   )
 }
