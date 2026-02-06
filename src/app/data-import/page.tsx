@@ -18,7 +18,8 @@ import {
   Trash2,
   Database,
   Gavel,
-  Scale
+  Scale,
+  Stethoscope
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { doc, writeBatch, collection, query, orderBy, getDocs, deleteDoc } from "firebase/firestore"
-import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXPERTISES } from "@/lib/real-data"
+import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXPERTISES, REAL_EXAMS } from "@/lib/real-data"
 
 type ImportType = 'companies' | 'employees' | 'expertises' | 'exams' | 'providers'
 
@@ -104,7 +105,7 @@ export default function UnifiedImportCenter() {
       // 4. Importar Colaboradores
       const empBatch = writeBatch(db)
       REAL_EMPLOYEES.forEach((emp, i) => {
-        const empId = `real_emp_${i}`
+        const empId = emp.id || `real_emp_${i}`
         const docRef = doc(db, "clients", user.uid, "employees", empId)
         empBatch.set(docRef, {
           ...emp,
@@ -126,9 +127,24 @@ export default function UnifiedImportCenter() {
       })
       await expertBatch.commit()
 
+      // 6. Importar Catálogo de Exames (Product Services)
+      const examBatch = writeBatch(db)
+      REAL_EXAMS.forEach((exam, i) => {
+        const examId = `exam_${i.toString().padStart(3, '0')}`
+        const docRef = doc(db, "product_services", examId)
+        examBatch.set(docRef, {
+          id: examId,
+          name: exam.name,
+          description: "Exame Ocupacional / Complementar",
+          serviceGroupId: "OCCUPATIONAL_EXAMS",
+          updatedAt: new Date().toISOString()
+        }, { merge: true })
+      })
+      await examBatch.commit()
+
       toast({
         title: "Carga Massiva Concluída",
-        description: `Base real de ${REAL_COMPANIES.length} empresas, ${REAL_EMPLOYEES.length} funcionários e ${REAL_EXPERTISES.length} perícias importada.`
+        description: `Base real de ${REAL_COMPANIES.length} empresas, ${REAL_EMPLOYEES.length} funcionários, ${REAL_EXPERTISES.length} perícias e ${REAL_EXAMS.length} exames importada.`
       })
     } catch (e) {
       console.error(e)
@@ -161,14 +177,14 @@ export default function UnifiedImportCenter() {
             <TabsTrigger value="companies" className="rounded-lg gap-2">Empresas</TabsTrigger>
             <TabsTrigger value="employees" className="rounded-lg gap-2">Colaboradores</TabsTrigger>
             <TabsTrigger value="expertises" className="rounded-lg gap-2">Perícias (Novas)</TabsTrigger>
-            <TabsTrigger value="exams" className="rounded-lg gap-2">Agenda</TabsTrigger>
+            <TabsTrigger value="exams" className="rounded-lg gap-2">Catálogo Exames</TabsTrigger>
             <TabsTrigger value="providers" className="rounded-lg gap-2">Rede</TabsTrigger>
           </TabsList>
           
           <div className="flex gap-2">
             <Button className="bg-[#090e24] text-white hover:bg-[#090e24]/90 gap-2 h-14 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl" onClick={handleRealBaseImport} disabled={uploading}>
               {uploading ? <Loader2 className="size-4 animate-spin" /> : <Database className="size-4 text-[#f59e0b]" />}
-              Carga Real (Britânia + Vidas)
+              Carga Real (Completa)
             </Button>
           </div>
         </div>
@@ -176,22 +192,34 @@ export default function UnifiedImportCenter() {
         <Card className="mt-6 border-none shadow-xl bg-white">
           <CardHeader>
             <CardTitle>Importador Jurídico & Operacional</CardTitle>
-            <CardDescription>Gerencie dados dinâmicos das empresas clientes.</CardDescription>
+            <CardDescription>Gerencie dados dinâmicos das empresas clientes e catálogo de serviços.</CardDescription>
           </CardHeader>
           <CardContent>
             {uploading ? (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
                 <Loader2 className="size-12 animate-spin text-primary" />
-                <p className="text-sm font-black uppercase tracking-widest animate-pulse">NAI Processando Base Jurídica Real...</p>
+                <p className="text-sm font-black uppercase tracking-widest animate-pulse">NAI Processando Base Técnica Real...</p>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
                   <Scale className="size-5 text-blue-600 shrink-0" />
                   <p className="text-xs text-blue-700 font-bold uppercase leading-tight">
-                    A carga real agora inclui a Britânia Eletrodomésticos SA (CLI037) e todas as perícias judiciais reais (Simone, Bruna, Suellen, etc.).
+                    A carga real agora inclui a Britânia SA, Construfam Engenharia, 12 perícias críticas e o catálogo completo de 41 exames ocupacionais.
                   </p>
                 </div>
+                
+                {activeTab === 'exams' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {REAL_EXAMS.map((exam, i) => (
+                      <div key={i} className="p-3 bg-muted/20 rounded-lg flex items-center gap-2 border">
+                        <Stethoscope className="size-3 text-primary opacity-40" />
+                        <span className="text-[10px] font-bold text-primary truncate">{exam.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <Textarea placeholder="Cole CSV aqui para carga manual..." className="min-h-[200px] font-mono text-xs bg-muted/20" />
               </div>
             )}

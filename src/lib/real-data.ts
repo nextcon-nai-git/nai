@@ -1,6 +1,6 @@
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia Eletrodomésticos SA (CLI037) e CONSTRUFAM ENGENHARIA.
+ * Atualizado com Britânia Eletrodomésticos SA, CONSTRUFAM ENGENHARIA e Catálogo de Exames.
  */
 
 export const REAL_COMPANIES = [
@@ -207,4 +207,48 @@ export const REAL_EXPERTISES = [
     type: "Médica",
     cid: "M54"
   }
+];
+
+export const REAL_EXAMS = [
+  { name: "1,2 Ciclohexanodiol na Urina" },
+  { name: "1,2 Dihidro-4 (N-Acetilcisteína) - Butano na Urina" },
+  { name: "1,6 Hexametilenodiamina na Urina" },
+  { name: "2,4 Diaminotolueno" },
+  { name: "2,5 Hexanodiona na Urina" },
+  { name: "4 - Clorocatecol na Urina" },
+  { name: "5 - Hidroxi-N-Metil- 2 - Pirrolidona na Urina" },
+  { name: "Acetilcolina - Anticorpo Bloqueador" },
+  { name: "Acetilcolina - Anticorpo Ligador" },
+  { name: "Acetilcolina - Anticorpo Modulador" },
+  { name: "Acetilcolinesterase Eritrocitária" },
+  { name: "Acetona na Urina" },
+  { name: "Acetona Plasma" },
+  { name: "Acetona Sangue Total" },
+  { name: "Ácido 2 - Metóxiácetico na Urina" },
+  { name: "Ácido 2 - Tioxotiazolina 4 Carboxílico (TTCA) na Urina" },
+  { name: "Ácido Butoxiacético na Urina" },
+  { name: "Ácido Delta Amino Levulínico (ALA-U) na Urina" },
+  { name: "Ácido Etóxiacético na Urina" },
+  { name: "Ácido Furóico na Urina" },
+  { name: "Ácido Hipúrico na Urina" },
+  { name: "Ácido Mandélico na Urina" },
+  { name: "Ácido Metilhipúrico na Urina" },
+  { name: "Ácido Trans, Trans-Muconico (TTMA) na Urina" },
+  { name: "Ácido Tricloroacético na Urina" },
+  { name: "Ácido Úrico" },
+  { name: "Acuidade Visual - Ortho Rater" },
+  { name: "Acuidade Visual - Tabela de Snellen" },
+  { name: "Acuidade Visual - Teste de Ishihara - Daltonismo" },
+  { name: "Adutos de N - (2-Hidroxietil) Valina (Hev) Em Hemoglobina" },
+  { name: "Amônia - pesquisa e/ou dosagem" },
+  { name: "Anfetamina" },
+  { name: "Anticorpos HIV 1/2" },
+  { name: "Arsênio na Urina" },
+  { name: "Audiometria de Altas Frequências" },
+  { name: "Audiometria de Tronco Cerebral - Bera" },
+  { name: "Audiometria Tonal - Limiar Com Teste de Discriminação" },
+  { name: "Audiometria Vocal - Limiar de Discriminação" },
+  { name: "Audiometria Vocal - Limiar de Inteligebilidade" },
+  { name: "Avaliação Com Especialista" },
+  { name: "Avaliação Ergonômica" },
 ];
