@@ -1,6 +1,6 @@
 /**
  * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Atualizado com Britânia Eletrodomésticos SA (CLI037) e todas as perícias reais enviadas.
+ * Atualizado com Britânia Eletrodomésticos SA (CLI037) e CONSTRUFAM ENGENHARIA.
  */
 
 export const REAL_COMPANIES = [
@@ -34,6 +34,14 @@ export const REAL_COMPANIES = [
     phone: "(41) 3218-7700",
     website: "www.britania.com.br" 
   },
+  {
+    id: "CLI_CONSTRUFAM",
+    name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA",
+    city: "Curitiba",
+    cnpj: "00.000.000/0001-00",
+    segment: "CONSTRUCTION",
+    address: "Curitiba/PR"
+  },
   { id: "CLI129", name: "AC2 CORRETORA DE SEGUROS LTDA", city: "Curitiba", cnpj: "12.345.678/0001-29", segment: "GENERAL" },
   { id: "CLI140", name: "ALKANCE SOLUCOES", city: "Curitiba", cnpj: "12.345.678/0001-40", segment: "INDUSTRY" },
   { id: "CLI013", name: "Andes Negócios Digitais", city: "Curitiba", cnpj: "12.345.678/0001-13", segment: "GENERAL" },
@@ -41,6 +49,7 @@ export const REAL_COMPANIES = [
 ];
 
 export const REAL_EMPLOYEES = [
+  // Britânia
   { name: "SIMONE MARAGNO DOS SANTOS", cpf: "000.000.000-01", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023" },
   { name: "BRUNA FELIX BRANCO", cpf: "000.000.000-02", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024" },
   { name: "HARANTHIA RODRIGUES SOUSA", cpf: "000.000.000-03", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023" },
@@ -53,6 +62,26 @@ export const REAL_EMPLOYEES = [
   { name: "LEANDRO RAMOS DA SILVA NETO", cpf: "000.000.000-10", companyId: "CLI037", jobRole: "Ajudante de galpão", admissionDate: "10/05/2025" },
   { name: "JESSICA GOMES DOS SANTOS", cpf: "000.000.000-11", companyId: "CLI037", jobRole: "Auxiliar Técnica", admissionDate: "10/02/2017" },
   { name: "SUELLEN MULLER AMARAL", cpf: "000.000.000-12", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/02/2024" },
+  
+  // Construfam
+  { id: "0000000012", name: "ADILSON JOSE DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000001", name: "ADMERSON MORAES DE OSTI", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000021", name: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000002", name: "EDERLEI ALVES DA SILVEIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000003", name: "EMANUELLY EDUARDA STRAUB FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR ADMINISTRATIVO", admissionDate: "01/01/2024" },
+  { id: "0000000013", name: "EVADI FERNANDES", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000018", name: "Felipe Gustavo Ruiz Vicari", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000019", name: "GEOVANI CAVALCANTE SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000016", name: "Heudrian Giovanni Motta Gonçalves", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000004", name: "JAIR CESAR DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000015", name: "JONATHAN BRUNO FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000020", name: "Lucas Miguel Santana Kokot", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000010", name: "MARCOS ANTONIO MUNIZ", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000014", name: "MARLLON SOUZA PACHECO", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000017", name: "Marlos Moises Ribeiro Martins", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000005", name: "NICAMAQUE DE JESUS AMARAL DA SILVA MENDE", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", admissionDate: "01/01/2024" },
+  { id: "0000000011", name: "PAULO HENRIQUE MASTECK", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
+  { id: "0000000008", name: "VANDERLAM MUNHOZ", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", admissionDate: "01/01/2024" },
 ];
 
 export const REAL_EXPERTISES = [
