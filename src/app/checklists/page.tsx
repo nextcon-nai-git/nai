@@ -23,7 +23,8 @@ import {
   Stethoscope,
   Scale,
   Calendar as CalendarIcon,
-  Bell
+  Bell,
+  FileDown
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,6 +41,8 @@ import { analyzeLtcatPdf } from "@/ai/flows/ltcat-analysis-flow"
 import { analyzePcmsoPdf } from "@/ai/flows/pcmso-analysis-flow"
 import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import { SSTDocument } from "@/components/documents/sst-documents"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -91,7 +94,6 @@ export default function ChecklistsPage() {
         const dataUri = event.target?.result as string
         let result: any;
 
-        // 1. Chamar fluxo específico de IA
         if (docType === "pgr") {
           result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
         } else if (docType === "ltcat") {
@@ -102,18 +104,15 @@ export default function ChecklistsPage() {
 
         setAnalysisResult(result)
 
-        // 2. Salvar no Storage
         const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, docType)
         const fileRef = ref(storage, storagePath)
         const uploadResult = await uploadBytes(fileRef, file)
         const downloadUrl = await getDownloadURL(uploadResult.ref)
 
-        // 3. Persistência e Gatilhos Automáticos (Sincronização com Calendário e Planos)
         const timestamp = new Date().toISOString()
         const nextYear = new Date()
         nextYear.setFullYear(nextYear.getFullYear() + 1)
 
-        // a) Central de Relatórios
         await addDoc(collection(db, "clients", user.uid, "reports"), {
           companyId: selectedCompanyId,
           reportType: docType,
@@ -124,7 +123,6 @@ export default function ChecklistsPage() {
           status: "AVAILABLE"
         })
 
-        // b) Alimentar Calendário (Renovação)
         await addDoc(collection(db, "clients", user.uid, "sst_events"), {
           type: `RENOVAÇÃO ${docType.toUpperCase()}`,
           date: nextYear.toISOString(),
@@ -135,7 +133,6 @@ export default function ChecklistsPage() {
           description: `Vencimento do documento importado em ${new Date().toLocaleDateString()}`
         })
 
-        // c) Planos de Ação Automáticos (Apenas PGR)
         if (docType === 'pgr' && result.actionPlan) {
           for (const action of result.actionPlan) {
             await addDoc(collection(db, "clients", user.uid, "tasks"), {
@@ -150,7 +147,6 @@ export default function ChecklistsPage() {
           }
         }
 
-        // d) Alarme para a Equipe Interna
         await addDoc(collection(db, "users", user.uid, "notifications"), {
           title: `NAI: Novo ${docType.toUpperCase()} Processado`,
           message: `O laudo de ${company?.name} foi analisado. ${result.actionPlan?.length || 0} novas ações criadas no Kanban.`,
@@ -170,6 +166,8 @@ export default function ChecklistsPage() {
       setIsAnalyzing(false) 
     }
   }
+
+  const selectedCompany = companies?.find(c => c.id === selectedCompanyId);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -381,15 +379,26 @@ export default function ChecklistsPage() {
                       <h4 className="font-black uppercase text-xs text-primary">Análise Estratégica NAI</h4>
                     </div>
                     <p className="text-sm italic text-primary leading-relaxed font-medium">"{analysisResult.aiInsight}"</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col md:flex-row gap-2">
                       <Button 
                         className="flex-1 bg-primary text-white h-12 font-bold uppercase gap-2 text-xs"
                         onClick={() => window.open(getWhatsAppLink("11999999999", `*Resumo NAI - ${docType.toUpperCase()}*\n\n${analysisResult.aiInsight}`))}
                       >
                         Enviar para o Cliente (WhatsApp)
                       </Button>
-                      <Button variant="outline" className="bg-white border-primary text-primary h-12 font-bold uppercase text-[10px]">
-                        Ver PDF Original
+                      
+                      <Button asChild variant="outline" className="flex-1 bg-white border-primary text-primary h-12 font-bold uppercase text-[10px] gap-2">
+                        <PDFDownloadLink 
+                          document={<SSTDocument data={analysisResult} company={selectedCompany} type={docType.toUpperCase() as any} />} 
+                          fileName={`${docType.toUpperCase()}_Nextcon_${analysisResult.companyInfo.name}.pdf`}
+                        >
+                          {({ loading }) => (
+                            <span className="flex items-center gap-2">
+                              {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-4" />}
+                              Gerar Documento Oficial (PDF)
+                            </span>
+                          )}
+                        </PDFDownloadLink>
                       </Button>
                     </div>
                   </div>
