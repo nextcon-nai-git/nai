@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   signerName: { fontSize: 10, fontWeight: 'bold' }
 });
 
-// Logo base64 ou URL pública da Nextcon
+// Logo padrão da Nextcon
 const NEXTCON_LOGO = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
 interface DocProps {
@@ -47,9 +47,10 @@ interface DocProps {
 export const SSTDocument = ({ data, company, type }: DocProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO COM LOGO DINÂMICA */}
       <View style={styles.header}>
-        <Image src={NEXTCON_LOGO} style={styles.logo} />
+        {/* Se a empresa tiver logoUrl, usa ela. Caso contrário, usa a logo padrão da Nextcon. */}
+        <Image src={company?.logoUrl || data?.companyInfo?.logoUrl || NEXTCON_LOGO} style={styles.logo} />
         <View style={styles.titleBlock}>
           <Text style={styles.docTitle}>{type} - {type === 'PGR' ? 'Gerenciamento de Riscos' : type === 'LTCAT' ? 'Laudo Ambiental' : 'Controle Médico'}</Text>
           <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name}</Text>
