@@ -6,7 +6,7 @@ import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/render
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 9, fontFamily: 'Helvetica', color: '#333' },
   header: { flexDirection: 'row', marginBottom: 25, borderBottom: 1, borderColor: '#090e24', paddingBottom: 15, alignItems: 'center' },
-  logo: { width: 140 },
+  logo: { width: 140, objectFit: 'contain' },
   titleBlock: { marginLeft: 'auto', textAlign: 'right' },
   docTitle: { fontSize: 14, fontWeight: 'bold', color: '#090e24', textTransform: 'uppercase' },
   companyName: { fontSize: 10, marginTop: 4, fontWeight: 'bold' },
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
   signerName: { fontSize: 10, fontWeight: 'bold' }
 });
 
-// Logo padrão da Nextcon
+// Logo padrão da Nextcon como fallback caso a empresa não tenha uma própria
 const NEXTCON_LOGO = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
 interface DocProps {
@@ -47,54 +47,58 @@ interface DocProps {
 export const SSTDocument = ({ data, company, type }: DocProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
-      {/* CABEÇALHO COM LOGO DINÂMICA */}
+      {/* CABEÇALHO DINÂMICO: Prioriza a logo da empresa cadastrada */}
       <View style={styles.header}>
-        {/* Se a empresa tiver logoUrl, usa ela. Caso contrário, usa a logo padrão da Nextcon. */}
-        <Image src={company?.logoUrl || data?.companyInfo?.logoUrl || NEXTCON_LOGO} style={styles.logo} />
+        <Image 
+          src={company?.logoUrl || data?.companyInfo?.logoUrl || NEXTCON_LOGO} 
+          style={styles.logo} 
+        />
         <View style={styles.titleBlock}>
-          <Text style={styles.docTitle}>{type} - {type === 'PGR' ? 'Gerenciamento de Riscos' : type === 'LTCAT' ? 'Laudo Ambiental' : 'Controle Médico'}</Text>
-          <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name}</Text>
-          <Text style={{ fontSize: 8, color: '#666' }}>CNPJ: {company?.cnpj || 'Consulte o cadastro'}</Text>
+          <Text style={styles.docTitle}>
+            {type} - {type === 'PGR' ? 'Gerenciamento de Riscos' : type === 'LTCAT' ? 'Laudo Ambiental' : 'Controle Médico'}
+          </Text>
+          <Text style={styles.companyName}>{company?.name || data?.companyInfo?.name || 'Cliente Nextcon'}</Text>
+          <Text style={{ fontSize: 8, color: '#666' }}>CNPJ: {company?.cnpj || 'Consultar cadastro eSocial'}</Text>
         </View>
       </View>
 
       {/* DADOS DA EMPRESA */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Identificação da Unidade</Text>
+          <Text style={styles.sectionTitle}>Identificação da Unidade Gestora</Text>
         </View>
         <View style={styles.infoGrid}>
           <View style={styles.infoItem}>
-            <Text style={styles.label}>Cidade/UF</Text>
-            <Text style={styles.value}>{company?.city || 'Curitiba/PR'}</Text>
+            <Text style={styles.label}>Cidade/UF de Atuação</Text>
+            <Text style={styles.value}>{company?.city || 'Unidade Operacional'}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.label}>Vigência/Data</Text>
+            <Text style={styles.label}>Vigência do Documento</Text>
             <Text style={styles.value}>{data?.companyInfo?.validity || data?.companyInfo?.date || new Date().toLocaleDateString()}</Text>
           </View>
           {type === 'PCMSO' && (
             <View style={styles.infoItem}>
-              <Text style={styles.label}>Médico Coordenador</Text>
-              <Text style={styles.value}>{data?.companyInfo?.responsibleDoctor || 'A definir'}</Text>
+              <Text style={styles.label}>Médico Coordenador Responsável</Text>
+              <Text style={styles.value}>{data?.companyInfo?.responsibleDoctor || 'A definir conforme PCMSO'}</Text>
             </View>
           )}
         </View>
       </View>
 
-      {/* CONTEÚDO TÉCNICO DINÂMICO */}
+      {/* CONTEÚDO TÉCNICO EXTRAÍDO PELA NAI */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
             {type === 'PGR' ? 'Inventário de Riscos Ocupacionais' : 
-             type === 'LTCAT' ? 'Levantamento de Agentes Nocivos' : 
-             'Cronograma de Exames Médicos'}
+             type === 'LTCAT' ? 'Levantamento de Agentes Nocivos (NR-15)' : 
+             'Cronograma de Exames Médicos (NR-07)'}
           </Text>
         </View>
 
         <View style={styles.table}>
           <View style={[styles.tableRow, styles.tableHeader]}>
-            <Text style={[styles.tableCell, { flex: 2 }]}>Descrição / Agente</Text>
-            <Text style={styles.tableCell}>{type === 'PCMSO' ? 'Periodicidade' : 'Critério/Limite'}</Text>
+            <Text style={[styles.tableCell, { flex: 2 }]}>Descrição Técnica / Agente</Text>
+            <Text style={styles.tableCell}>{type === 'PCMSO' ? 'Periodicidade' : 'Critério Legal'}</Text>
             <Text style={styles.tableCell}>{type === 'PCMSO' ? 'Público Alvo' : 'Status/Enquadramento'}</Text>
           </View>
 
@@ -102,14 +106,14 @@ export const SSTDocument = ({ data, company, type }: DocProps) => (
             <View key={i} style={styles.tableRow}>
               <Text style={[styles.tableCell, { flex: 2 }]}>{r.hazard} ({r.category})</Text>
               <Text style={styles.tableCell}>NR-01 / NR-09</Text>
-              <Text style={styles.tableCell}>Controlado</Text>
+              <Text style={styles.tableCell}>Sob Controle</Text>
             </View>
           ))}
 
           {type === 'LTCAT' && data?.hazards?.map((h: any, i: number) => (
             <View key={i} style={styles.tableRow}>
               <Text style={[styles.tableCell, { flex: 2 }]}>{h.agent} - Medição: {h.intensity}</Text>
-              <Text style={styles.tableCell}>{h.limit}</Text>
+              <Text style={styles.tableCell}>{h.limit || 'NR-15'}</Text>
               <Text style={styles.tableCell}>{h.specialRetirement ? 'APOS. ESPECIAL' : 'Comum'}</Text>
             </View>
           ))}
@@ -124,21 +128,21 @@ export const SSTDocument = ({ data, company, type }: DocProps) => (
         </View>
       </View>
 
-      {/* INSIGHT ESTRATÉGICO NAI */}
+      {/* CONCLUSÃO ESTRATÉGICA NAI */}
       <View style={styles.aiInsight}>
-        <Text style={styles.aiTitle}>Conclusão & Insights NAI Intelligence</Text>
+        <Text style={styles.aiTitle}>Parecer Técnico NAI Intelligence 2026</Text>
         <Text style={styles.aiText}>{data?.aiInsight}</Text>
       </View>
 
-      {/* ASSINATURA */}
+      {/* ASSINATURA AUTOMÁTICA */}
       <View style={styles.signatureBlock}>
         <View style={styles.line} />
         <Text style={styles.signerName}>Nextcon Saúde Empresarial</Text>
-        <Text style={{ fontSize: 8 }}>Responsável Técnico SST</Text>
+        <Text style={{ fontSize: 8 }}>Responsável Técnico SST - Gerado via IA</Text>
       </View>
 
       <Text style={styles.footer}>
-        Documento gerado eletronicamente pela Plataforma NAI Nextcon em {new Date().toLocaleString()} - www.nextcon.com.br
+        Documento gerado eletronicamente pela Plataforma NAI em {new Date().toLocaleString()} - Automação SST 360°
       </Text>
     </Page>
   </Document>
