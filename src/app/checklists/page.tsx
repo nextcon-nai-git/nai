@@ -43,20 +43,25 @@ import {
   FileText,
   Sparkles,
   Activity,
-  Brain
+  Brain,
+  History,
+  CloudUpload
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
 import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { cn } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { analyzePgrPdf, type PgrAnalysisOutput } from "@/ai/flows/pgr-analysis-flow"
 import { getWhatsAppLink } from "@/lib/whatsapp-utils"
+import { STORAGE_PATHS } from "@/lib/storage-paths"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -78,31 +83,70 @@ export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
+  const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
   const [isAnalyzingPgr, setIsAnalyzingPgr] = React.useState(false)
   const [pgrResult, setPgrResult] = React.useState<PgrAnalysisOutput | null>(null)
+  const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [formResponses, setFormResponses] = React.useState<Record<string, string>>({})
+
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
+  }, [db, user])
+  const { data: companies } = useCollection(companiesQuery)
 
   const handlePgrFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    
+    if (!selectedCompanyId) {
+      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir o PGR." })
+      return
+    }
+
     if (file.size > 10 * 1024 * 1024) {
       toast({ variant: "destructive", title: "Arquivo muito grande", description: "O PDF deve ter no máximo 10MB." })
       return
     }
+
     setIsAnalyzingPgr(true)
     try {
+      // 1. Ler para IA
       const reader = new FileReader()
       reader.onload = async (event) => {
-        const result = await analyzePgrPdf({ pdfDataUri: event.target?.result as string, fileName: file.name })
+        const dataUri = event.target?.result as string
+        
+        // 2. Analisar com IA
+        const result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
         setPgrResult(result)
-        toast({ title: "Análise Concluída", description: "NAI processou o PGR com sucesso." })
+
+        // 3. Salvar no Storage
+        const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, "pgr")
+        const fileRef = ref(storage, storagePath)
+        const uploadResult = await uploadBytes(fileRef, file)
+        const downloadUrl = await getDownloadURL(uploadResult.ref)
+
+        // 4. Salvar na Central de Relatórios
+        await addDoc(collection(db, "clients", user.uid, "reports"), {
+          companyId: selectedCompanyId,
+          reportType: "pgr",
+          fileName: file.name,
+          fileUrl: downloadUrl,
+          analysisSummary: result.aiInsight,
+          createdAt: new Date().toISOString(),
+          status: "AVAILABLE"
+        })
+
+        toast({ title: "Análise e Upload Concluídos", description: "O PGR foi processado e arquivado com sucesso." })
       }
       reader.readAsDataURL(file)
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro na Análise", description: error.message })
-    } finally { setIsAnalyzingPgr(false) }
+      toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
+    } finally { 
+      setIsAnalyzingPgr(false) 
+    }
   }
 
   const handleSaveNRChecklist = async () => {
@@ -116,7 +160,6 @@ export default function ChecklistsPage() {
     } catch (e) { toast({ variant: "destructive", title: "Erro ao salvar" }) }
   }
 
-  // Visualização especial para NR-17
   if (selectedChecklistId === "nr17") {
     return (
       <div className="space-y-6 animate-in slide-in-from-bottom-4">
@@ -203,22 +246,48 @@ export default function ChecklistsPage() {
 
         <TabsContent value="pgr" className="mt-6">
           <Card className="border-none shadow-xl bg-white overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-accent" /> Scanner PGR Inteligente</CardTitle>
-              <CardDescription>Análise via IA para extração de inventário e planos de ação (Max 10MB).</CardDescription>
+            <CardHeader className="bg-muted/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2"><Sparkles className="size-5 text-accent" /> Scanner PGR Inteligente</CardTitle>
+                <CardDescription>Análise via IA para extração de inventário e planos de ação (Max 10MB).</CardDescription>
+              </div>
+              <div className="w-full md:w-64">
+                <label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block">Vincular Documento a:</label>
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <SelectTrigger className="bg-white border-muted h-10">
+                    <SelectValue placeholder="Selecione o Cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies?.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              <div className="border-2 border-dashed rounded-3xl p-12 text-center bg-muted/10 hover:bg-muted/20 relative group transition-all">
-                <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handlePgrFileUpload} />
+              <div className={cn(
+                "border-2 border-dashed rounded-3xl p-12 text-center relative group transition-all",
+                selectedCompanyId ? "bg-muted/10 hover:bg-muted/20 border-muted" : "bg-muted/5 border-muted/20 opacity-50 cursor-not-allowed"
+              )}>
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+                  onChange={handlePgrFileUpload}
+                  disabled={!selectedCompanyId || isAnalyzingPgr}
+                />
                 {isAnalyzingPgr ? (
                   <div className="space-y-4">
                     <Loader2 className="animate-spin size-12 mx-auto text-primary" />
-                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Lendo Documento Técnico...</p>
+                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Lendo e Salvando na Pasta do Cliente...</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <FileText className="size-12 mx-auto text-primary opacity-40 group-hover:scale-110 transition-transform" />
-                    <p className="font-bold text-primary">Arraste ou Clique para importar PGR</p>
+                    <CloudUpload className="size-12 mx-auto text-primary opacity-40 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-primary">
+                      {selectedCompanyId ? "Arraste ou Clique para importar PGR" : "Selecione um cliente acima para habilitar"}
+                    </p>
                     <p className="text-[10px] uppercase font-black text-muted-foreground">Formato PDF • Limite 10MB</p>
                   </div>
                 )}
@@ -231,7 +300,12 @@ export default function ChecklistsPage() {
                       <h3 className="text-xl font-headline font-black text-blue-900">{pgrResult.companyInfo.name}</h3>
                       <p className="text-xs text-blue-700 font-bold uppercase">Vigência: {pgrResult.companyInfo.validity}</p>
                     </div>
-                    <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado</Badge>
+                    <div className="flex flex-col items-end gap-2">
+                      <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado</Badge>
+                      <span className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                        <CheckCircle2 className="size-3" /> Arquivado na Central
+                      </span>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
