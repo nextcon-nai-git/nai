@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table"
 import { useUser, useFirestore } from "@/firebase"
 import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
+import { cn } from "@/lib/utils"
 
 const upcomingAlerts = [
   { company: "LAVIERS ARTIGOS MASCULINOS", id: "#1164165", date: "10/01/2026", type: "Exame Clínico", phone: "11999999999", status: "Aguardando" },

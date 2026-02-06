@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -141,9 +142,9 @@ export default function Dashboard() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col">
-          <h1 className="text-3xl font-black text-[#090e24] tracking-tight font-headline">
+          <div className="text-3xl font-black text-[#090e24] tracking-tight font-headline">
             {loadingProfile ? <Skeleton className="h-9 w-48" /> : <>{saudacao}, <span className="text-[#f59e0b]">{nomeExibicao}</span></>}
-          </h1>
+          </div>
           <p className="text-sm text-muted-foreground font-medium">{dataAtual}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -158,9 +159,9 @@ export default function Dashboard() {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Clientes Ativos</p>
-              <h3 className="text-2xl font-black text-[#090e24] mt-1">
+              <div className="text-2xl font-black text-[#090e24] mt-1">
                 {loadingCompanies ? <Skeleton className="h-8 w-12" /> : validCompanies.length}
-              </h3>
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-blue-50 text-blue-600 transition-transform group-hover:scale-110">
               <Building2 size={24} />
@@ -172,9 +173,9 @@ export default function Dashboard() {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Pendências IA</p>
-              <h3 className="text-2xl font-black text-[#090e24] mt-1">
+              <div className="text-2xl font-black text-[#090e24] mt-1">
                 {loadingAudits ? <Skeleton className="h-8 w-12" /> : (audits?.filter(a => a.complianceScore < 100).length || 0)}
-              </h3>
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-red-50 text-red-600 transition-transform group-hover:scale-110">
               <AlertTriangle size={24} />
@@ -291,14 +292,14 @@ export default function Dashboard() {
             <CardContent className="space-y-4">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                 <p className="text-[10px] font-black text-[#f59e0b] uppercase tracking-widest mb-2">Monitoramento Ativo</p>
-                <p className="text-xs leading-relaxed text-white/80 font-medium">
+                <div className="text-xs leading-relaxed text-white/80 font-medium">
                   {loadingProfile ? <Skeleton className="h-12 w-full bg-white/10" /> : 
                     segment === 'CONSTRUCTION' 
                     ? "Alerta: Verificamos que 3 colaboradores precisam renovar o treinamento de NR-35 este mês." 
                     : segment === 'HOSPITAL' 
                     ? "Alerta NR-32: Verifique o descarte de resíduos pérfurocortantes na Unidade Central." 
                     : "Dica: Mantenha o Inventário de Riscos atualizado no PGR para evitar multas de eSocial."}
-                </p>
+                </div>
               </div>
               <div className="p-4 bg-[#f59e0b] rounded-xl group cursor-pointer hover:bg-[#f59e0b]/90 transition-colors">
                 <p className="text-[10px] font-black text-[#090e24] uppercase tracking-widest mb-1">Dica Estratégica</p>
