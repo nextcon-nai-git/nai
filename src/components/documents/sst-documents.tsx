@@ -5,18 +5,47 @@ import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/render
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 9, fontFamily: 'Helvetica', color: '#333' },
-  header: { flexDirection: 'row', marginBottom: 25, borderBottom: 1, borderColor: '#090e24', paddingBottom: 15, alignItems: 'center' },
+  header: { 
+    flexDirection: 'row', 
+    marginBottom: 25, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#090e24', 
+    borderBottomStyle: 'solid',
+    paddingBottom: 15, 
+    alignItems: 'center' 
+  },
   logo: { width: 140, objectFit: 'contain' },
   titleBlock: { marginLeft: 'auto', textAlign: 'right' },
   docTitle: { fontSize: 14, fontWeight: 'bold', color: '#090e24', textTransform: 'uppercase' },
   companyName: { fontSize: 10, marginTop: 4, fontWeight: 'bold' },
   
   section: { marginBottom: 20 },
-  sectionHeader: { backgroundColor: '#f8f9fa', padding: 6, borderLeft: 4, borderColor: '#f59e0b', marginBottom: 10 },
+  sectionHeader: { 
+    backgroundColor: '#f8f9fa', 
+    padding: 6, 
+    borderLeftWidth: 4, 
+    borderLeftColor: '#f59e0b', 
+    borderLeftStyle: 'solid',
+    marginBottom: 10 
+  },
   sectionTitle: { fontSize: 11, fontWeight: 'bold', color: '#090e24', textTransform: 'uppercase' },
   
-  table: { display: 'flex', width: 'auto', borderStyle: 'solid', borderWidth: 0.5, borderColor: '#bfbfbf', marginTop: 10 },
-  tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderColor: '#bfbfbf', minHeight: 25, alignItems: 'center' },
+  table: { 
+    display: 'flex', 
+    width: 'auto', 
+    borderStyle: 'solid', 
+    borderWidth: 0.5, 
+    borderColor: '#bfbfbf', 
+    marginTop: 10 
+  },
+  tableRow: { 
+    flexDirection: 'row', 
+    borderBottomWidth: 0.5, 
+    borderBottomColor: '#bfbfbf', 
+    borderBottomStyle: 'solid',
+    minHeight: 25, 
+    alignItems: 'center' 
+  },
   tableHeader: { backgroundColor: '#090e24', color: '#fff', fontWeight: 'bold' },
   tableCell: { padding: 5, flex: 1 },
   
@@ -25,13 +54,39 @@ const styles = StyleSheet.create({
   label: { fontWeight: 'bold', fontSize: 8, color: '#666', textTransform: 'uppercase' },
   value: { fontSize: 9, marginTop: 2 },
   
-  aiInsight: { backgroundColor: '#fffbeb', border: 1, borderColor: '#fef3c7', padding: 15, marginTop: 20, borderRadius: 4 },
+  aiInsight: { 
+    backgroundColor: '#fffbeb', 
+    borderWidth: 1, 
+    borderColor: '#fef3c7', 
+    borderStyle: 'solid',
+    padding: 15, 
+    marginTop: 20, 
+    borderRadius: 4 
+  },
   aiTitle: { fontSize: 10, fontWeight: 'bold', color: '#92400e', marginBottom: 5 },
   aiText: { fontStyle: 'italic', lineHeight: 1.4 },
   
-  footer: { position: 'absolute', bottom: 30, left: 40, right: 40, borderTop: 0.5, borderColor: '#eee', paddingTop: 10, textAlign: 'center', fontSize: 7, color: '#999' },
+  footer: { 
+    position: 'absolute', 
+    bottom: 30, 
+    left: 40, 
+    right: 40, 
+    borderTopWidth: 0.5, 
+    borderTopColor: '#eee', 
+    borderTopStyle: 'solid',
+    paddingTop: 10, 
+    textAlign: 'center', 
+    fontSize: 7, 
+    color: '#999' 
+  },
   signatureBlock: { marginTop: 40, alignItems: 'center' },
-  line: { width: 180, borderBottom: 1, borderColor: '#000', marginBottom: 4 },
+  line: { 
+    width: 180, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#000', 
+    borderBottomStyle: 'solid',
+    marginBottom: 4 
+  },
   signerName: { fontSize: 10, fontWeight: 'bold' }
 });
 
