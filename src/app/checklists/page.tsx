@@ -170,7 +170,6 @@ const INITIAL_BODY_PARTS: BodyPart[] = [
   { id: "arm_r_upper", label: "Braço Direito", level: 0, path: "M76,47l4,18l-8,1l-4-19L76,47z" },
   { id: "arm_r_lower", label: "Antebraço Direito", level: 0, path: "M80,65l2,18l-8,1l-2-19L80,65z" },
   { id: "wrist_r", label: "Punho Direito", level: 0, path: "M82,83l1,10l-8,1l-1-11L82,83z" },
-  // Quadril com simetria corrigida (hip_r espelha hip_l perfeitamente)
   { id: "hip_l", label: "Quadril Esquerdo", level: 0, path: "M44,67 h-8 c-4,0-10,3-10,12 s3,12,3,12 h15 V67 z" },
   { id: "hip_r", label: "Quadril Direito", level: 0, path: "M56,67 h8 c4,0,10,3,10,12 s-3,12-3,12 h-15 V67 z" },
   { id: "thigh_l", label: "Coxa Esquerda", level: 0, path: "M30,91l-3,30l14,2l3-32L30,91z" },
@@ -266,6 +265,16 @@ export default function ChecklistsPage() {
   const handlePgrFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    // Validação de tamanho (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Arquivo muito grande",
+        description: "O PDF do PGR deve ter no máximo 10MB."
+      })
+      return
+    }
 
     setIsAnalyzingPgr(true)
     setPgrResult(null)

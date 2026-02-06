@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
     // Ignora erros de linting para evitar interrupções no deploy
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
