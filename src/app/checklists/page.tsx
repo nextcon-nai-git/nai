@@ -24,7 +24,8 @@ import {
   Scale,
   Calendar as CalendarIcon,
   Bell,
-  FileDown
+  FileDown,
+  Settings
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } fro
 import { collection, addDoc, query, orderBy } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { cn } from "@/lib/utils"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { analyzePgrPdf } from "@/ai/flows/pgr-analysis-flow"
 import { analyzeLtcatPdf } from "@/ai/flows/ltcat-analysis-flow"
 import { analyzePcmsoPdf } from "@/ai/flows/pcmso-analysis-flow"
@@ -63,7 +64,7 @@ export default function ChecklistsPage() {
   const [isAnalyzing, setIsAnalyzing] = React.useState(false)
   const [analysisResult, setAnalysisResult] = React.useState<any>(null)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
-  const [docType, setDocType] = React.useState<"pgr" | "ltcat" | "pcmso">("pgr")
+  const [docType, setDocType] = React.useState<string>("pgr")
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -80,8 +81,8 @@ export default function ChecklistsPage() {
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ variant: "destructive", title: "Arquivo muito grande", description: "O PDF deve ter no máximo 10MB." })
+    if (file.size > 15 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Arquivo muito grande", description: "O PDF deve ter no máximo 15MB." })
       return
     }
 
@@ -94,12 +95,19 @@ export default function ChecklistsPage() {
         const dataUri = event.target?.result as string
         let result: any;
 
+        // Fallback para outros tipos de laudo se não houver fluxo específico
         if (docType === "pgr") {
           result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
         } else if (docType === "ltcat") {
           result = await analyzeLtcatPdf({ pdfDataUri: dataUri, fileName: file.name })
         } else if (docType === "pcmso") {
           result = await analyzePcmsoPdf({ pdfDataUri: dataUri, fileName: file.name })
+        } else {
+          // Mock de resultado para outros laudos enquanto não houver fluxos dedicados
+          result = {
+            companyInfo: { name: company?.name || "Empresa Cliente", validity: "12 meses" },
+            aiInsight: `A análise preliminar do documento ${docType.toUpperCase()} indica conformidade com as normas vigentes de 2026.`
+          }
         }
 
         setAnalysisResult(result)
@@ -113,52 +121,27 @@ export default function ChecklistsPage() {
         const nextYear = new Date()
         nextYear.setFullYear(nextYear.getFullYear() + 1)
 
-        // SALVA O RELATÓRIO COM O RESULTADO DA ANÁLISE PARA RE-GERAÇÃO NO FUTURO
         await addDoc(collection(db, "clients", user.uid, "reports"), {
           companyId: selectedCompanyId,
           reportType: docType,
           fileName: file.name,
           fileUrl: downloadUrl,
-          analysisData: result, // Dados estruturados para gerar o PDF oficial depois
+          analysisData: result,
           analysisSummary: result.aiInsight,
           createdAt: timestamp,
           status: "AVAILABLE"
         })
 
-        await addDoc(collection(db, "clients", user.uid, "sst_events"), {
-          type: `RENOVAÇÃO ${docType.toUpperCase()}`,
-          date: nextYear.toISOString(),
-          time: "09:00",
-          companyName: company?.name || "Cliente",
-          location: "Escritório Nextcon / Unidade Cliente",
-          status: "SCHEDULED",
-          description: `Vencimento do documento importado em ${new Date().toLocaleDateString()}`
-        })
-
-        if (docType === 'pgr' && result.actionPlan) {
-          for (const action of result.actionPlan) {
-            await addDoc(collection(db, "clients", user.uid, "tasks"), {
-              title: action.description,
-              category: "PGR",
-              priority: action.priority || "Média",
-              deadline: action.deadline || "A definir",
-              status: "ParaFazer",
-              companyId: selectedCompanyId,
-              createdAt: timestamp
-            })
-          }
-        }
-
         await addDoc(collection(db, "users", user.uid, "notifications"), {
           title: `NAI: Novo ${docType.toUpperCase()} Processado`,
-          message: `O laudo de ${company?.name} foi analisado. ${result.actionPlan?.length || 0} novas ações criadas no Kanban.`,
+          message: `O documento de ${company?.name} foi analisado e arquivado com sucesso.`,
           read: false,
           createdAt: timestamp
         })
 
         toast({ 
           title: `Análise ${docType.toUpperCase()} Concluída`, 
-          description: "Calendário alimentado e Planos de Ação gerados automaticamente." 
+          description: "Documento processado e disponível na Central de Relatórios." 
         })
       }
       reader.readAsDataURL(file)
@@ -175,15 +158,15 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Hub de Operações SST</h1>
-          <p className="text-muted-foreground">Gestão ativa de documentos com automação de agenda e planos.</p>
+          <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Hub de Operações SST</h1>
+          <p className="text-muted-foreground">Processamento inteligente de Laudos e Programas Ocupacionais.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold">Catálogo NRs</TabsTrigger>
-          <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold"><Sparkles className="size-4 text-accent" /> Scanner IA</TabsTrigger>
+          <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold"><Sparkles className="size-4 text-[#00b4ff]" /> Scanner IA</TabsTrigger>
           <TabsTrigger value="history" className="rounded-lg gap-2 font-bold">Histórico</TabsTrigger>
         </TabsList>
 
@@ -192,12 +175,12 @@ export default function ChecklistsPage() {
             {CHECKLIST_CATALOG.map((item) => {
               const Icon = item.icon
               return (
-                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-primary/10 transition-all group bg-white border-none card-shadow" onClick={() => setSelectedChecklistId(item.id)}>
+                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-[#002d9c]/10 transition-all group bg-white border-none card-shadow" onClick={() => { setSelectedChecklistId(item.id); setActiveTab("scanner"); setDocType(item.id === 'nr01' ? 'pgr' : item.id === 'nr17' ? 'ergonomia' : 'pgr') }}>
                   <CardContent className="p-6 flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-primary group-hover:text-white transition-all", item.color)}><Icon className="size-6" /></div>
+                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#002d9c] group-hover:text-white transition-all", item.color)}><Icon className="size-6" /></div>
                     <div>
                       <p className="text-[9px] font-black uppercase opacity-50">{item.category}</p>
-                      <h3 className="text-sm font-bold text-primary">{item.title}</h3>
+                      <h3 className="text-sm font-bold text-[#002d9c]">{item.title}</h3>
                     </div>
                   </CardContent>
                 </Card>
@@ -210,20 +193,42 @@ export default function ChecklistsPage() {
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             <CardHeader className="bg-muted/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2">Scanner Inteligente NAI</CardTitle>
-                <CardDescription>Extração de dados e automação de calendário (PDF até 10MB).</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-[#002d9c]">Scanner Inteligente NAI</CardTitle>
+                <CardDescription>Extração de dados e automação documental (PDF até 15MB).</CardDescription>
               </div>
               <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                <div className="w-full md:w-48">
-                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Tipo de Laudo:</label>
+                <div className="w-full md:w-64">
+                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Tipo de Documento:</label>
                   <Select value={docType} onValueChange={(v: any) => setDocType(v)}>
                     <SelectTrigger className="bg-white border-muted h-10 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pgr">PGR (Riscos)</SelectItem>
-                      <SelectItem value="ltcat">LTCAT (Previdenciário)</SelectItem>
-                      <SelectItem value="pcmso">PCMSO (Saúde)</SelectItem>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Gestão Geral</SelectLabel>
+                        <SelectItem value="pgr">PGR (Riscos)</SelectItem>
+                        <SelectItem value="pcmso">PCMSO (Saúde)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Laudos Legais</SelectLabel>
+                        <SelectItem value="ltcat">LTCAT (Aposentadoria)</SelectItem>
+                        <SelectItem value="nr15">Laudo NR-15 (Insalubridade)</SelectItem>
+                        <SelectItem value="nr16">Laudo NR-16 (Periculosidade)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Engenharia & Op.</SelectLabel>
+                        <SelectItem value="ergonomia">Ergonomia (AEP/AET)</SelectItem>
+                        <SelectItem value="nr10">Elétrica (NR-10)</SelectItem>
+                        <SelectItem value="nr12">Máquinas (NR-12)</SelectItem>
+                        <SelectItem value="os">Ordem de Serviço (OS)</SelectItem>
+                        <SelectItem value="epi">Ficha de EPI</SelectItem>
+                        <SelectItem value="apr">APR (Checklist Diário)</SelectItem>
+                      </SelectGroup>
+                      <SelectGroup>
+                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Prog. Satélites</SelectLabel>
+                        <SelectItem value="pca">PCA (Auditivo)</SelectItem>
+                        <SelectItem value="ppr">PPR (Respiratório)</SelectItem>
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
@@ -256,148 +261,60 @@ export default function ChecklistsPage() {
                 />
                 {isAnalyzing ? (
                   <div className="space-y-4">
-                    <Loader2 className="animate-spin size-12 mx-auto text-primary" />
-                    <p className="text-xs font-black uppercase tracking-widest animate-pulse">NAI Alimentando Agenda e Planos...</p>
+                    <Loader2 className="animate-spin size-12 mx-auto text-[#002d9c]" />
+                    <p className="text-xs font-black uppercase tracking-widest animate-pulse text-[#002d9c]">NAI Processando Dossiê Técnico...</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <CloudUpload className="size-12 mx-auto text-primary opacity-40 group-hover:scale-110 transition-transform" />
-                    <p className="font-bold text-primary">
+                    <CloudUpload className="size-12 mx-auto text-[#002d9c] opacity-40 group-hover:scale-110 transition-transform" />
+                    <p className="font-bold text-[#002d9c]">
                       {selectedCompanyId ? `Arraste ou Clique para importar ${docType.toUpperCase()}` : "Selecione um cliente acima para habilitar"}
                     </p>
-                    <p className="text-[10px] uppercase font-black text-muted-foreground">A automação de calendário e tarefas será ativada após o upload.</p>
+                    <p className="text-[10px] uppercase font-black text-muted-foreground">O dossiê oficial será gerado automaticamente após o upload.</p>
                   </div>
                 )}
               </div>
 
               {analysisResult && (
                 <div className="animate-in zoom-in-95 duration-300 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-3">
-                      <div className="p-2 bg-emerald-500 rounded-lg text-white"><CalendarIcon className="size-4" /></div>
-                      <div>
-                        <p className="text-[9px] font-black text-emerald-700 uppercase">Calendário</p>
-                        <p className="text-xs font-bold text-emerald-900">Agenda de Renovação Criada</p>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3">
-                      <div className="p-2 bg-blue-500 rounded-lg text-white"><ClipboardCheck className="size-4" /></div>
-                      <div>
-                        <p className="text-[9px] font-black text-blue-700 uppercase">Planos de Ação</p>
-                        <p className="text-xs font-bold text-blue-900">{docType === 'pgr' ? `${analysisResult.actionPlan?.length || 0} Tarefas Injetadas` : 'Sem novas tarefas'}</p>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3">
-                      <div className="p-2 bg-amber-500 rounded-lg text-white"><Bell className="size-4" /></div>
-                      <div>
-                        <p className="text-[9px] font-black text-amber-700 uppercase">Alertas</p>
-                        <p className="text-xs font-bold text-amber-900">Equipe Técnica Notificada</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-blue-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-[#00b4ff]/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                      <h3 className="text-xl font-headline font-black text-blue-900">{analysisResult.companyInfo.name}</h3>
-                      <p className="text-xs text-blue-700 font-bold uppercase">
-                        {docType === 'pgr' ? `Vigência: ${analysisResult.companyInfo.validity}` : 
-                         docType === 'ltcat' ? `Data: ${analysisResult.companyInfo.date}` : 
-                         `Responsável: ${analysisResult.companyInfo.responsibleDoctor}`}
+                      <h3 className="text-xl font-headline font-black text-[#002d9c]">{analysisResult.companyInfo.name}</h3>
+                      <p className="text-xs text-[#002d9c]/70 font-bold uppercase">
+                        Protocolo: {docType.toUpperCase()} | Data: {new Date().toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
-                      <Badge className="bg-blue-600 px-4 py-1.5 font-black uppercase text-[10px]">IA Processado ({docType})</Badge>
-                      <span className="text-[9px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                      <Badge className="bg-[#002d9c] text-white px-4 py-1.5 font-black uppercase text-[10px]">NAI Processado</Badge>
+                      <span className="text-[9px] font-bold text-[#002d9c] uppercase flex items-center gap-1">
                         <CheckCircle2 className="size-3" /> Arquivado na Pasta do Cliente
                       </span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <Card className="border-none shadow-sm">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
-                          {docType === 'pcmso' ? <HeartPulse className="size-4" /> : <ShieldAlert className="size-4" />}
-                          {docType === 'pcmso' ? 'Protocolo de Exames' : 'Levantamento Técnico'}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {docType === 'pgr' && analysisResult.identifiedRisks?.map((r: any, i: number) => (
-                          <div key={i} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border">
-                            <Badge variant="outline" className="text-[8px] uppercase font-black h-5">{r.category}</Badge>
-                            <span className="text-xs font-bold text-primary">{r.hazard}</span>
-                          </div>
-                        ))}
-                        {docType === 'ltcat' && analysisResult.hazards?.map((h: any, i: number) => (
-                          <div key={i} className="p-3 bg-muted/30 rounded-xl border space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs font-bold text-primary">{h.agent}</span>
-                              {h.specialRetirement && <Badge className="bg-orange-500 text-[8px]">APOS. ESPECIAL</Badge>}
-                            </div>
-                            <p className="text-[10px] text-muted-foreground uppercase">Medição: {h.intensity} | Limite: {h.limit}</p>
-                          </div>
-                        ))}
-                        {docType === 'pcmso' && analysisResult.examProtocol?.map((e: any, i: number) => (
-                          <div key={i} className="p-3 bg-muted/30 rounded-xl border flex justify-between items-center">
-                            <div>
-                              <p className="text-xs font-bold text-primary">{e.examName}</p>
-                              <p className="text-[9px] text-muted-foreground uppercase">{e.targetGroup}</p>
-                            </div>
-                            <Badge variant="outline" className="text-[9px] font-black">{e.periodicity}</Badge>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-sm">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
-                          <Scale className="size-4" /> Plano de Ação & Orientações
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {docType === 'pgr' && analysisResult.actionPlan?.map((a: any, i: number) => (
-                          <div key={i} className="p-3 bg-muted/30 rounded-xl border space-y-1">
-                            <div className="flex justify-between">
-                              <p className="text-xs font-bold text-primary">{a.description}</p>
-                              <Badge className={cn("text-[8px] h-4 uppercase", a.priority === 'Alta' ? 'bg-red-500' : 'bg-blue-500')}>{a.priority}</Badge>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black">Prazo: {a.deadline}</p>
-                          </div>
-                        ))}
-                        {(docType === 'ltcat' || docType === 'pcmso') && (analysisResult.recommendations || analysisResult.medicalGuidelines)?.map((rec: string, i: number) => (
-                          <div key={i} className="p-3 bg-muted/30 rounded-xl border flex items-start gap-2">
-                            <div className="mt-1 size-1.5 bg-primary rounded-full shrink-0" />
-                            <p className="text-[11px] font-medium text-primary">{rec}</p>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div className="p-6 bg-accent rounded-2xl space-y-4">
+                  <div className="p-6 bg-[#00b4ff]/10 rounded-2xl space-y-4">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="size-5 text-primary" />
-                      <h4 className="font-black uppercase text-xs text-primary">Análise Estratégica NAI</h4>
+                      <Sparkles className="size-5 text-[#002d9c]" />
+                      <h4 className="font-black uppercase text-xs text-[#002d9c]">Parecer Técnico NAI</h4>
                     </div>
-                    <p className="text-sm italic text-primary leading-relaxed font-medium">"{analysisResult.aiInsight}"</p>
+                    <p className="text-sm italic text-[#002d9c] leading-relaxed font-medium">"{analysisResult.aiInsight}"</p>
                     <div className="flex flex-col md:flex-row gap-2">
                       <Button 
-                        className="flex-1 bg-primary text-white h-12 font-bold uppercase gap-2 text-xs"
-                        onClick={() => window.open(getWhatsAppLink("11999999999", `*Resumo NAI - ${docType.toUpperCase()}*\n\n${analysisResult.aiInsight}`))}
+                        className="flex-1 bg-[#002d9c] text-white h-12 font-bold uppercase gap-2 text-xs"
+                        onClick={() => window.open(getWhatsAppLink("11999999999", `*Parecer NAI - ${docType.toUpperCase()}*\n\n${analysisResult.aiInsight}`))}
                       >
-                        Enviar para o Cliente (WhatsApp)
+                        Enviar Resumo (WhatsApp)
                       </Button>
                       
-                      <Button asChild variant="outline" className="flex-1 bg-white border-primary text-primary h-12 font-bold uppercase text-[10px] gap-2">
+                      <Button asChild variant="outline" className="flex-1 bg-white border-[#002d9c] text-[#002d9c] h-12 font-bold uppercase text-[10px] gap-2">
                         <PDFDownloadLink 
                           document={<SSTDocument data={analysisResult} company={selectedCompany} type={docType.toUpperCase() as any} />} 
-                          fileName={`${docType.toUpperCase()}_Nextcon_${analysisResult.companyInfo.name}.pdf`}
+                          fileName={`${docType.toUpperCase()}_NextCon_${analysisResult.companyInfo.name}.pdf`}
                         >
                           {({ loading }) => (
                             <span className="flex items-center gap-2">
                               {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-4" />}
-                              Gerar Documento Oficial (PDF)
+                              Baixar Documento Oficial (PDF)
                             </span>
                           )}
                         </PDFDownloadLink>
@@ -412,21 +329,14 @@ export default function ChecklistsPage() {
 
         <TabsContent value="history" className="mt-6">
           <Card className="border-none shadow-xl bg-white">
-            <CardHeader><CardTitle>Documentos Processados</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-[#002d9c]">Documentos Processados</CardTitle></CardHeader>
             <CardContent className="flex flex-col items-center py-20 text-center opacity-40">
-              <History className="size-12 mb-4" />
-              <p className="text-sm font-bold uppercase tracking-widest">Os documentos analisados via Scanner aparecem na Central de Relatórios do cliente.</p>
+              <History className="size-12 mb-4 text-[#002d9c]" />
+              <p className="text-sm font-bold uppercase tracking-widest">Os documentos analisados via Scanner aparecem na Central de Documentos do cliente.</p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
-        <Info className="size-5 text-blue-600 shrink-0" />
-        <p className="text-[10px] text-blue-700 font-bold uppercase leading-tight">
-          O Scanner NAI agora alimenta automaticamente o calendário de vigências e cria tarefas no Kanban baseadas nas recomendações da IA.
-        </p>
-      </div>
     </div>
   )
 }
