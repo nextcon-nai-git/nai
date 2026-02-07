@@ -299,39 +299,39 @@ export default function ChecklistsPage() {
                             <p className="text-sm font-bold text-primary leading-snug">{item.question}</p>
                           </div>
                           
-                          <div className="flex gap-1 shrink-0">
+                          <div className="flex flex-wrap gap-2 shrink-0 md:w-auto w-full">
                             <Button 
                               size="sm" 
                               variant="outline"
                               onClick={() => handleStatusChange(item, 'C')}
                               className={cn(
-                                "h-10 px-4 font-black text-[10px]",
-                                responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-md" : "text-emerald-600 border-emerald-100"
+                                "flex-1 md:flex-none h-10 px-4 font-black text-[9px] uppercase tracking-tight transition-all",
+                                responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-md" : "text-emerald-600 border-emerald-100 hover:bg-emerald-50"
                               )}
                             >
-                              C
+                              CONFORME
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
                               onClick={() => handleStatusChange(item, 'NC')}
                               className={cn(
-                                "h-10 px-4 font-black text-[10px]",
-                                responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-md" : "text-red-600 border-red-100"
+                                "flex-1 md:flex-none h-10 px-4 font-black text-[9px] uppercase tracking-tight transition-all",
+                                responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-md" : "text-red-600 border-red-100 hover:bg-red-50"
                               )}
                             >
-                              NC
+                              NÃO CONFORME
                             </Button>
                             <Button 
                               size="sm" 
                               variant="outline"
                               onClick={() => handleStatusChange(item, 'NA')}
                               className={cn(
-                                "h-10 px-4 font-black text-[10px]",
-                                responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-md" : "text-slate-600 border-slate-100"
+                                "flex-1 md:flex-none h-10 px-4 font-black text-[9px] uppercase tracking-tight transition-all",
+                                responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-md" : "text-slate-600 border-slate-100 hover:bg-slate-50"
                               )}
                             >
-                              NA
+                              NÃO AVALIADO
                             </Button>
                           </div>
                         </div>
