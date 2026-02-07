@@ -50,7 +50,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isValid } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 // DnD Kit Imports
@@ -90,6 +90,14 @@ const COLUMNS = [
   { id: "EmAndamento", label: "Em Execução", color: "bg-blue-500" },
   { id: "Concluido", label: "Finalizado / Entrega", color: "bg-emerald-500" }
 ]
+
+// Helper function to safely format dates
+function safeFormat(dateStr: string | undefined | null, formatStr: string) {
+  if (!dateStr) return "---";
+  const date = new Date(dateStr);
+  if (!isValid(date)) return "---";
+  return format(date, formatStr);
+}
 
 export default function ActionPlans() {
   const { user } = useUser()
@@ -322,7 +330,7 @@ export default function ActionPlans() {
                     <Building2 className="size-3 inline mr-1" /> {task.unit || "N/I"}
                   </TableCell>
                   <TableCell className="text-[10px] font-black uppercase text-primary">
-                    {format(new Date(task.deadline), 'dd/MM/yyyy')}
+                    {safeFormat(task.deadline, 'dd/MM/yyyy')}
                   </TableCell>
                   <TableCell>
                     <Badge className={cn(
@@ -367,7 +375,10 @@ export default function ActionPlans() {
               start: startOfMonth(currentMonth),
               end: endOfMonth(currentMonth)
             }).map((day, i) => {
-              const dayTasks = tasks?.filter(t => isSameDay(new Date(t.deadline), day))
+              const dayTasks = tasks?.filter(t => {
+                const date = new Date(t.deadline);
+                return isValid(date) && isSameDay(date, day);
+              })
               return (
                 <div key={i} className="min-h-[120px] p-2 border-r border-b bg-white group hover:bg-slate-50 transition-colors">
                   <span className={cn(
@@ -537,7 +548,7 @@ function TaskCard({ task, isOverlay, onEdit, onDelete }: {
         <div className="flex items-center justify-between pt-2 border-t border-dashed">
           <div className="flex items-center gap-1 text-[9px] font-black text-slate-400 uppercase">
             <Clock className="size-3" />
-            {format(new Date(task.deadline), 'dd/MM')}
+            {safeFormat(task.deadline, 'dd/MM')}
           </div>
           <Badge className={cn(
             "text-[8px] font-black uppercase px-2 h-4 border-none text-white",
