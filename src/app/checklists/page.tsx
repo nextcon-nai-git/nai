@@ -5,7 +5,6 @@ import {
   ClipboardCheck, 
   Loader2, 
   ShieldAlert, 
-  Plus, 
   HeartPulse, 
   Building2, 
   Hammer, 
@@ -15,12 +14,8 @@ import {
   FileText,
   Sparkles,
   Brain,
-  History,
   CloudUpload,
-  Calendar as CalendarIcon,
-  FileDown,
   Layers,
-  X,
   Search,
   Filter,
   Ban,
@@ -49,7 +44,10 @@ import {
   Recycle,
   Check,
   AlertOctagon,
-  MinusCircle
+  MinusCircle,
+  Info,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -140,6 +138,7 @@ export default function ChecklistsPage() {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false)
   const [activeNR, setActiveNR] = React.useState<NRChecklist | null>(null)
   const [responses, setResponses] = React.useState<Record<string, ChecklistStatus>>({})
+  const [expandedHelp, setExpandedHelp] = React.useState<Record<string, boolean>>({})
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -169,11 +168,16 @@ export default function ChecklistsPage() {
     const config = NR_CHECKLISTS[nrId] || getGenericChecklist(nrId.toUpperCase(), title);
     setActiveNR(config);
     setResponses({});
+    setExpandedHelp({});
     setIsChecklistOpen(true);
   }
 
   const handleStatusChange = (itemId: string, status: ChecklistStatus) => {
     setResponses(prev => ({ ...prev, [itemId]: status }));
+  }
+
+  const toggleHelp = (itemId: string) => {
+    setExpandedHelp(prev => ({ ...prev, [itemId]: !prev[itemId] }));
   }
 
   const checklistProgress = React.useMemo(() => {
@@ -190,7 +194,7 @@ export default function ChecklistsPage() {
         companyId: selectedCompanyId,
         nr: activeNR.nr,
         responses,
-        score: Object.values(responses).filter(v => v === 'C').length / activeNR.items.length * 100,
+        score: (Object.values(responses).filter(v => v === 'C').length / activeNR.items.length) * 100,
         createdAt: new Date().toISOString(),
         technician: user.email
       });
@@ -397,48 +401,77 @@ export default function ChecklistsPage() {
               {activeNR?.items.map((item) => (
                 <Card key={item.id} className="border-none shadow-sm bg-white overflow-hidden">
                   <CardContent className="p-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[8px] font-black border-[#002d9c]/20 text-[#002d9c] uppercase">Ref: {item.legalRef}</Badge>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-[8px] font-black border-[#002d9c]/20 text-[#002d9c] uppercase">Item {item.legal_ref}</Badge>
+                            <Badge variant="secondary" className="text-[8px] font-black uppercase bg-slate-100">{item.category}</Badge>
+                            <Badge className={cn(
+                              "text-[8px] font-black uppercase border-none",
+                              item.criticality === 'high' ? 'bg-red-100 text-red-700' :
+                              item.criticality === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                            )}>
+                              Risco {item.criticality === 'high' ? 'Alto' : item.criticality === 'medium' ? 'Médio' : 'Baixo'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm font-bold text-[#002d9c] leading-snug">{item.question}</p>
                         </div>
-                        <p className="text-sm font-bold text-[#002d9c] leading-snug">{item.question}</p>
+                        
+                        <div className="flex gap-1 shrink-0">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleStatusChange(item.id, 'C')}
+                            className={cn(
+                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
+                              responses[item.id] === 'C' ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "hover:bg-emerald-50 text-emerald-600 border-emerald-100"
+                            )}
+                          >
+                            <Check className="size-3" /> C
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleStatusChange(item.id, 'NC')}
+                            className={cn(
+                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
+                              responses[item.id] === 'NC' ? "bg-red-500 text-white border-red-500 shadow-md" : "hover:bg-red-50 text-red-600 border-red-100"
+                            )}
+                          >
+                            <AlertOctagon className="size-3" /> NC
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleStatusChange(item.id, 'NA')}
+                            className={cn(
+                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
+                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-slate-500 shadow-md" : "hover:bg-slate-50 text-slate-600 border-slate-100"
+                            )}
+                          >
+                            <MinusCircle className="size-3" /> NA
+                          </Button>
+                        </div>
                       </div>
-                      
-                      <div className="flex gap-1 shrink-0">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleStatusChange(item.id, 'C')}
-                          className={cn(
-                            "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                            responses[item.id] === 'C' ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "hover:bg-emerald-50 text-emerald-600 border-emerald-100"
-                          )}
+
+                      <div className="border-t border-dashed pt-3">
+                        <button 
+                          onClick={() => toggleHelp(item.id)}
+                          className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-[#002d9c] transition-colors"
                         >
-                          <Check className="size-3" /> C
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleStatusChange(item.id, 'NC')}
-                          className={cn(
-                            "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                            responses[item.id] === 'NC' ? "bg-red-500 text-white border-red-500 shadow-md" : "hover:bg-red-50 text-red-600 border-red-100"
-                          )}
-                        >
-                          <AlertOctagon className="size-3" /> NC
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleStatusChange(item.id, 'NA')}
-                          className={cn(
-                            "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                            responses[item.id] === 'NA' ? "bg-slate-500 text-white border-slate-500 shadow-md" : "hover:bg-slate-50 text-slate-600 border-slate-100"
-                          )}
-                        >
-                          <MinusCircle className="size-3" /> NA
-                        </Button>
+                          <Info className="size-3" /> 
+                          Guia de Inspeção NAI
+                          {expandedHelp[item.id] ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+                        </button>
+                        
+                        {expandedHelp[item.id] && (
+                          <div className="mt-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 animate-in slide-in-from-top-2 duration-300">
+                            <p className="text-[11px] leading-relaxed text-[#002d9c]/80 italic">
+                              {item.help_text}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
