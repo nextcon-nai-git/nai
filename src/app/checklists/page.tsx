@@ -26,7 +26,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy } from "firebase/firestore"
@@ -69,7 +68,6 @@ export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [searchTerm, setSearchTerm] = React.useState("")
 

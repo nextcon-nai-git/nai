@@ -53,15 +53,6 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
         legal_text: "As organizações devem incluir regras de conduta sobre assédio sexual e outras formas de violência nas normas internas.",
         criticality: "critical",
         help_text: "Item obrigatório para CIPA e PGR. Verificar código de ética."
-      },
-      { 
-        id: "1.4", 
-        category: "Direito de Recusa",
-        question: "Há evidência de que os trabalhadores foram treinados sobre o direito de interromper atividades de risco?", 
-        legal_ref: "1.4.3",
-        legal_text: "O trabalhador poderá interromper suas atividades quando constatar uma situação de trabalho de risco grave e iminente.",
-        criticality: "medium",
-        help_text: "Verificar conteúdo programático da integração ou ordens de serviço."
       }
     ]
   },
@@ -86,6 +77,15 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
         legal_text: "Devem ser adotadas medidas de proteção coletiva para prevenir o risco de choque elétrico.",
         criticality: "critical",
         help_text: "Verificar quadros elétricos abertos ou fiação exposta."
+      },
+      { 
+        id: "10.3", 
+        category: "LOTO",
+        question: "Existe procedimento de bloqueio e sinalização (LOTO) para intervenções?", 
+        legal_ref: "10.5.1",
+        legal_text: "Somente serão consideradas desenergizadas as instalações elétricas liberadas para trabalho mediante procedimentos apropriados.",
+        criticality: "critical",
+        help_text: "Verificar cadeados e etiquetas de impedimento."
       }
     ]
   },
@@ -95,51 +95,21 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
     items: [
       { 
         id: "12.1", 
-        category: "Parada de Emergência",
-        question: "Os botões de emergência estão acessíveis, sinalizados e funcionais?", 
-        legal_ref: "12.4.1",
-        legal_text: "As máquinas devem ser equipadas com um ou mais dispositivos de parada de emergência.",
+        category: "Proteções",
+        question: "As zonas de perigo das máquinas possuem proteções fixas ou móveis com intertravamento?", 
+        legal_ref: "12.5.1",
+        legal_text: "As zonas de perigo das máquinas e equipamentos devem possuir sistemas de segurança.",
         criticality: "critical",
-        help_text: "Testar o acionamento e verificar se a parada é instantânea."
+        help_text: "Testar se a máquina para ao abrir a grade de proteção."
       },
       { 
         id: "12.2", 
-        category: "Proteções",
-        question: "Zonas de perigo possuem proteções fixas ou móveis com sensores de segurança?", 
-        legal_ref: "12.5.1",
-        legal_text: "As zonas de perigo devem possuir sistemas de segurança intertravados.",
+        category: "Emergência",
+        question: "Os dispositivos de parada de emergência estão instalados, sinalizados e acessíveis?", 
+        legal_ref: "12.4.1",
+        legal_text: "As máquinas devem ser equipadas com um ou mais dispositivos de parada de emergência.",
         criticality: "critical",
-        help_text: "Não deve ser possível acessar partes móveis com a máquina ligada."
-      }
-    ]
-  },
-  nr18: {
-    nr: "NR-18",
-    title: "Segurança na Construção Civil",
-    items: [
-      { 
-        id: "18.1", 
-        category: "Proteção de Periferia",
-        question: "As periferias e vãos de elevador possuem guarda-corpo e rodapé normatizados?", 
-        legal_ref: "18.9.1",
-        legal_text: "É obrigatória a instalação de proteção coletiva onde houver risco de queda.",
-        criticality: "critical",
-        help_text: "Verificar altura de 1,20m para travessão superior e rodapé de 20cm."
-      }
-    ]
-  },
-  nr33: {
-    nr: "NR-33",
-    title: "Espaços Confinados",
-    items: [
-      { 
-        id: "33.1", 
-        category: "PET",
-        question: "A Permissão de Entrada e Trabalho (PET) é emitida para cada entrada e monitorada pelo vigia?", 
-        legal_ref: "33.3.3",
-        legal_text: "A PET deve ser emitida antes do início das atividades.",
-        criticality: "critical",
-        help_text: "Verificar se os testes de gases foram realizados."
+        help_text: "Verificar se o botão 'cogumelo' está funcionando."
       }
     ]
   },
@@ -150,20 +120,29 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
       { 
         id: "35.1", 
         category: "Planejamento",
-        question: "A Análise de Risco (AR) contempla a análise da zona livre de queda (ZLQ)?", 
+        question: "A Análise de Risco (AR) foi emitida antes do início da atividade em altura?", 
         legal_ref: "35.4.5.1",
         legal_text: "Todo trabalho em altura deve ser precedido de Análise de Risco.",
         criticality: "critical",
-        help_text: "Medir se o trabalhador bateria no chão antes do talabarte atuar."
+        help_text: "A AR deve ser específica para o local e assinada por todos."
       },
       { 
         id: "35.2", 
         category: "Ancoragem",
-        question: "Os pontos de ancoragem possuem projeto e laudo de inspeção anual por PLH?", 
+        question: "Os pontos de ancoragem possuem projeto e laudo de inspeção assinado por PLH?", 
         legal_ref: "35.5.3",
-        legal_text: "O sistema de ancoragem deve ser projetado por profissional habilitado.",
+        legal_text: "O sistema de ancoragem deve ser projetado por profissional legalmente habilitado.",
         criticality: "critical",
-        help_text: "Exigir documento de ART do projeto dos olhais."
+        help_text: "Verificar data da última inspeção anual dos olhais."
+      },
+      { 
+        id: "35.3", 
+        category: "Resgate",
+        question: "Existe plano de resgate e equipe capacitada no local da atividade?", 
+        legal_ref: "35.6.1",
+        legal_text: "O empregador deve disponibilizar equipe de emergência para resgate em altura.",
+        criticality: "high",
+        help_text: "O plano deve considerar o tempo para evitar o trauma de suspensão inerte."
       }
     ]
   }
