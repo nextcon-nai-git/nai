@@ -4,7 +4,17 @@
  */
 
 export const REAL_COMPANIES = [
+  // CONTRATOS MASTER (PAIS)
   { id: "CLI_TIMENOW", name: "TIMENOW GESTÃO DE OBRAS LTDA", city: "Vitória", state: "ES", cnpj: "48.865.462/0001-06", segment: "CONSTRUCTION", isParent: true },
+  
+  // SUBUNIDADES TIME NOW (FILHOS)
+  { id: "TN_SOLENIS_IGARASSU", name: "SOLENIS - IGARASSU PE", city: "Igarassu", state: "PE", segment: "INDUSTRY", parentId: "CLI_TIMENOW", address: "ROD PE-041, S/N - KM 6.5, ARARIPE CEP: 53.659-899 - IGARASSU – PE" },
+  { id: "TN_AM_VEGA", name: "ARCELORMITTAL VEGA", city: "São Francisco do Sul", state: "SC", segment: "INDUSTRY", parentId: "CLI_TIMENOW", address: "Rodovia Duque de Caxias, s/n - Iperoba, São Francisco do Sul - SC" },
+  { id: "TN_NESTLE_CACAPAVA", name: "NESTLE CAÇAPAVA", city: "Caçapava", state: "SP", segment: "INDUSTRY", parentId: "CLI_TIMENOW", address: "Av. Henry Nestle, 1800 - Vila Galvão, Caçapava - SP" },
+  { id: "TN_SUZANO_TL", name: "SUZANO TRÊS LAGOAS", city: "Três Lagoas", state: "MS", segment: "INDUSTRY", parentId: "CLI_TIMENOW", address: "ROD BR 158 KM 298, S/N - Três Lagoas - MS" },
+  { id: "TN_VALE_SALOBO", name: "VALE - MINA DO SALOBO", city: "Marabá", state: "PA", segment: "INDUSTRY", parentId: "CLI_TIMENOW", address: "Estrada Mina do Salobo, s/n - Marabá - PA" },
+  
+  // EMPRESAS GERAIS
   { id: "CLI_CONSTRUFAM", name: "CONSTRUFAM ENGENHARIA", city: "Curitiba", state: "PR", segment: "CONSTRUCTION" },
   { id: "CLI_GULA", name: "GULA ALIMENTOS", city: "Curitiba", state: "PR", segment: "INDUSTRY" },
   { id: "CLI_PROMATEC", name: "PROMATEC SERVICOS", city: "Curitiba", state: "PR", segment: "INDUSTRY" },
@@ -70,11 +80,37 @@ export const REAL_EXAMS = [
   { name: "Radiografia de Tórax (Padrão OIT)" },
   { name: "Hemograma Completo" },
   { name: "Glicemia de Jejum" },
-  { name: "Avaliação Psicossocial" },
+  { name: "Avaliação Psicossocial (Trabalho em Altura / Espaço Confinado)" },
   { name: "Acuidade Visual" },
   { name: "Toxicológico (Larga Janela)" },
   { name: "Ácido Hipúrico (Xileno)" },
   { name: "Ácido Metil-Hipúrico (Tolueno)" },
   { name: "Chumbo Sangüíneo" },
-  { name: "Colinesterase Plasmática" },
+  { name: "Colinesterase Plasmática (Agrotóxicos Organofosforados)" },
+  { name: "Cádmio Sangüíneo" },
+  { name: "Cromo Urinário" },
+  { name: "Fenol Urinário (Benzeno)" },
+  { name: "Mercúrio Urinário" },
+  { name: "Manganês Urinário" },
+  { name: "Níquel Urinário" },
+  { name: "Ácido Mandélico (Estireno)" },
+  { name: "Ácido Trans, Trans-Mucônico (Benzeno)" },
+  { name: "Coproporfirina Urinária" },
+  { name: "Protoporfirina Zíncica (ZPP)" },
+  { name: "Creatinina Urinária" },
+  { name: "Acido Tricloroacetico (Tricloroetileno)" },
+  { name: "Metanol Urinário" },
+  { name: "Carboxihemoglobina (Monóxido de Carbono)" },
+  { name: "Metahemoglobina (Anilina/Nitrobenzeno)" },
+  { name: "Reticulócitos" },
+  { name: "Plaquetas" },
+  { name: "Gama-GT" },
+  { name: "TGO / TGP" },
+  { name: "Ureia e Creatinina" },
+  { name: "VDRL" },
+  { name: "HBSAG / Anti-HBS" },
+  { name: "Anti-HCV" },
+  { name: "Parasitológico de Fezes (PPF)" },
+  { name: "Coprocultura" },
+  { name: "Escarro (Pesquisa de BAAR)" },
 ];
