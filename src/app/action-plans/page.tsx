@@ -3,24 +3,16 @@
 import * as React from "react"
 import { 
   Plus, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  Filter,
-  Search,
-  Trash2,
-  Edit3,
-  Calendar as CalendarIcon,
-  LayoutGrid,
-  Map as MapIcon,
-  List as ListIcon,
-  ChevronRight,
-  ChevronLeft,
-  Building2,
-  ShieldAlert,
-  MoreVertical,
-  ArrowRight
+  Search, 
+  Edit3, 
+  Calendar as CalendarIcon, 
+  LayoutGrid, 
+  Map as MapIcon, 
+  List as ListIcon, 
+  ChevronRight, 
+  ChevronLeft, 
+  Building2, 
+  Filter
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, doc } from "firebase/firestore"
-import { addDocumentNonBlocking, updateDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
   DialogContent,
@@ -38,7 +30,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
@@ -53,6 +44,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMont
 import { ptBR } from "date-fns/locale"
 import { SSTTask, KANBAN_COLUMNS, Status, Priority, TaskType } from "@/types/kanban"
 import { TaskCard } from "@/components/kanban/task-card"
+import { KanbanColumn } from "@/components/kanban/kanban-column"
 
 // DnD Kit Imports
 import {
@@ -63,18 +55,12 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
-  defaultDropAnimationSideEffects,
   DragEndEvent,
   DragStartEvent,
 } from "@dnd-kit/core"
 import {
-  arrayMove,
-  SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
 
 // Helper function to safely format dates
 function safeFormat(date: any, formatStr: string) {
@@ -105,7 +91,7 @@ export default function ActionPlans() {
     type: "pgr",
     priority: "medium",
     status: "todo",
-    dueDate: new Date().toISOString()
+    dueDate: new Date()
   })
 
   // Data Fetching
@@ -119,7 +105,6 @@ export default function ActionPlans() {
   // DnD Sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
   const [activeId, setActiveId] = React.useState<string | null>(null)
@@ -134,23 +119,13 @@ export default function ActionPlans() {
     if (!over) return
 
     const taskId = active.id as string
-    const overId = over.id as string
-
-    // Check if dropped over a column
-    let newStatus = overId as Status
-    const columnIds = KANBAN_COLUMNS.map(c => c.id)
-    
-    if (!columnIds.includes(newStatus)) {
-      // If dropped over a task, get that task's status
-      const overTask = tasks?.find(t => t.id === overId)
-      if (overTask) newStatus = overTask.status
-    }
+    const newStatus = over.id as Status
 
     const task = tasks?.find(t => t.id === taskId)
     if (task && task.status !== newStatus) {
       const taskRef = doc(db!, "clients", user!.uid, "tasks", taskId)
       updateDocumentNonBlocking(taskRef, { status: newStatus })
-      toast({ title: "Status Atualizado", description: `Intervenção movida com sucesso.` })
+      toast({ title: "Status Atualizado", description: `Intervenção movida para ${newStatus.toUpperCase()}.` })
     }
 
     setActiveId(null)
@@ -161,18 +136,11 @@ export default function ActionPlans() {
     const colRef = collection(db, "clients", user.uid, "tasks")
     addDocumentNonBlocking(colRef, {
       ...taskForm,
+      dueDate: taskForm.dueDate?.toISOString(),
       createdAt: new Date().toISOString()
     })
     setIsCreateOpen(false)
-    setTaskForm({ title: "", company: "", type: "pgr", priority: "medium", status: "todo", dueDate: new Date().toISOString() })
-  }
-
-  const handleUpdateTask = () => {
-    if (!user || !db || !selectedTask) return
-    const taskRef = doc(db, "clients", user.uid, "tasks", selectedTask.id)
-    updateDocumentNonBlocking(taskRef, { ...taskForm })
-    setIsEditOpen(false)
-    setSelectedTask(null)
+    setTaskForm({ title: "", company: "", type: "pgr", priority: "medium", status: "todo", dueDate: new Date() })
   }
 
   const filteredTasks = React.useMemo(() => {
@@ -255,13 +223,14 @@ export default function ActionPlans() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[600px]">
+          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin">
             {KANBAN_COLUMNS.map((col) => (
               <KanbanColumn 
-                key={col.id} 
-                column={col} 
+                key={col.id}
+                id={col.id}
+                title={col.title}
+                color={col.color}
                 tasks={filteredTasks.filter(t => t.status === col.id)} 
-                onEdit={(t) => { setSelectedTask(t); setTaskForm(t); setIsEditOpen(true); }}
               />
             ))}
           </div>
@@ -305,7 +274,7 @@ export default function ActionPlans() {
                   </TableCell>
                   <TableCell>
                     <Badge className={cn(
-                      "text-[8px] font-black uppercase px-2 h-4 border-none",
+                      "text-[8px] font-black uppercase px-2 h-4 border-none text-white",
                       task.priority === 'critical' ? 'bg-destructive' : 
                       task.priority === 'high' ? 'bg-orange-500' : 'bg-blue-500'
                     )}>
@@ -318,7 +287,7 @@ export default function ActionPlans() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="size-8" onClick={() => { setSelectedTask(task); setTaskForm(task); setIsEditOpen(true); }}>
+                    <Button variant="ghost" size="icon" className="size-8">
                       <Edit3 className="size-3" />
                     </Button>
                   </TableCell>
@@ -348,7 +317,7 @@ export default function ActionPlans() {
               end: endOfMonth(currentMonth)
             }).map((day, i) => {
               const dayTasks = tasks?.filter(t => {
-                const date = new Date(t.dueDate);
+                const date = new Date(t.dueDate || "");
                 return isValid(date) && isSameDay(date, day);
               })
               return (
@@ -373,60 +342,6 @@ export default function ActionPlans() {
           </div>
         </Card>
       )}
-
-      {/* Edit Modal */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Editar Intervenção</DialogTitle>
-            <DialogDescription>Atualize os dados técnicos ou o progresso da ação.</DialogDescription>
-          </DialogHeader>
-          <TaskFormValues form={taskForm} onChange={setTaskForm} />
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1 font-bold" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateTask} className="flex-1 bg-primary font-bold">Salvar Alterações</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  )
-}
-
-function KanbanColumn({ column, tasks, onEdit }: { 
-  column: any, 
-  tasks: SSTTask[], 
-  onEdit: (t: SSTTask) => void
-}) {
-  const { setNodeRef } = useSortable({ id: column.id })
-
-  return (
-    <div 
-      ref={setNodeRef}
-      className="flex flex-col gap-4 p-4 rounded-3xl bg-slate-100/50 border-2 border-transparent transition-all min-h-[500px]"
-    >
-      <div className="flex items-center justify-between px-2">
-        <h3 className="font-black text-primary uppercase text-[10px] tracking-widest flex items-center gap-2">
-          <div className={cn("size-2 rounded-full", column.color)} />
-          {column.title}
-        </h3>
-        <Badge variant="secondary" className="bg-white text-[10px] font-black border-none shadow-sm">
-          {tasks.length}
-        </Badge>
-      </div>
-      
-      <div className="flex flex-col gap-3">
-        {tasks.map((task) => (
-          <TaskCard 
-            key={task.id} 
-            task={task} 
-          />
-        ))}
-        {tasks.length === 0 && (
-          <div className="py-10 border-2 border-dashed rounded-2xl flex items-center justify-center opacity-20">
-            <p className="text-[9px] font-black uppercase">Sem tarefas</p>
-          </div>
-        )}
-      </div>
     </div>
   )
 }
@@ -461,7 +376,7 @@ function TaskFormValues({ form, onChange }: { form: any, onChange: any }) {
               <SelectItem value="pgr">PGR / NR-01</SelectItem>
               <SelectItem value="pcmso">Saúde / NR-07</SelectItem>
               <SelectItem value="treinamento">Treinamento</SelectItem>
-              <SelectItem value="vistoria">Vistoria Técnica</SelectItem>
+              <SelectItem value="vistoria">Vistorias</SelectItem>
               <SelectItem value="esocial">eSocial S-2240</SelectItem>
             </SelectContent>
           </Select>
@@ -484,7 +399,7 @@ function TaskFormValues({ form, onChange }: { form: any, onChange: any }) {
         <Input 
           type="date" 
           value={form.dueDate ? format(new Date(form.dueDate), 'yyyy-MM-dd') : ''} 
-          onChange={e => onChange({...form, dueDate: new Date(e.target.value).toISOString()})} 
+          onChange={e => onChange({...form, dueDate: new Date(e.target.value)})} 
           className="bg-slate-50 border-none h-11 text-sm font-bold"
         />
       </div>
