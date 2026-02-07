@@ -17,7 +17,6 @@ import {
 import { cn } from '@/lib/utils';
 import { format, isValid } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 
 const TypeIcon = ({ type }: { type: TaskType }) => {
   switch (type) {
@@ -56,8 +55,9 @@ export function TaskCard({ task }: { task: OpsTask }) {
     zIndex: 50,
   } : undefined;
 
-  const completedChecks = task.checklist.filter(c => c.checked).length;
-  const totalChecks = task.checklist.length;
+  const checklist = task.checklist || [];
+  const completedChecks = checklist.filter(c => c.checked).length;
+  const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
   return (

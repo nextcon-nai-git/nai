@@ -53,7 +53,8 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
 
     // --- COMPLIANCE GATE (Regra de Negócio NextCon) ---
     if (newStatus === 'done') {
-      const pendingMandatory = currentTask.checklist.filter(item => item.mandatory && !item.checked);
+      const checklist = currentTask.checklist || [];
+      const pendingMandatory = checklist.filter(item => item.mandatory && !item.checked);
       if (pendingMandatory.length > 0) {
         toast({
           variant: "destructive",

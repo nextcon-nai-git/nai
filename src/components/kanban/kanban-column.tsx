@@ -1,14 +1,14 @@
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
-import { SSTTask, Status } from '@/types/kanban';
+import { OpsTask, TaskStatus } from '@/types/schema';
 import { TaskCard } from './task-card';
 import { cn } from '@/lib/utils';
 
 interface ColumnProps {
-  id: Status;
+  id: TaskStatus;
   title: string;
-  tasks: SSTTask[];
+  tasks: OpsTask[];
   color: string;
 }
 
