@@ -3,7 +3,6 @@
 import * as React from "react"
 import { 
   LayoutDashboard, 
-  ShieldAlert, 
   Stethoscope, 
   CheckSquare, 
   Users, 
@@ -16,10 +15,11 @@ import {
   Lock,
   Database,
   Sparkles,
-  ClipboardList,
   Map as MapIcon,
   DollarSign,
-  ClipboardCheck
+  ClipboardCheck,
+  Building2,
+  ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -39,47 +39,38 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
-import { NextconLogo } from "@/components/ui/logo"
 import { cn } from "@/lib/utils"
 
 const navGroups = [
   {
-    label: "Administração NextCon",
-    roles: ['admin', 'super_admin'],
+    label: "Administração",
+    roles: ['SUPER_ADMIN', 'admin'],
     items: [
       { title: "Centro de Comando", icon: Lock, href: "/agency/command-center" },
-      { title: "Módulo Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "Faturamento", icon: DollarSign, href: "/financial" },
       { title: "Mapa de Clientes", icon: MapIcon, href: "/agency/client-map" },
-      { title: "Importação de Dados", icon: Database, href: "/data-import" },
+      { title: "Base de Dados", icon: Database, href: "/data-import" },
     ]
   },
   {
     label: "Gestão Estratégica",
-    roles: ['admin', 'super_admin', 'client', 'client_admin'],
+    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'admin'],
     items: [
-      { title: "Dashboard Executivo", icon: LayoutDashboard, href: "/" },
-      { title: "Quadro de Colaboradores", icon: Users, href: "/employees" },
+      { title: "Dashboard", icon: LayoutDashboard, href: "/" },
+      { title: "Colaboradores", icon: Users, href: "/employees" },
+      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "ROI & Jurídico", icon: TrendingUp, href: "/legal-financial" },
-      { title: "Vigilante eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
   },
   {
-    label: "Operação SST",
-    roles: ['admin', 'super_admin', 'client', 'client_admin', 'provider'],
+    label: "Operação Técnica",
+    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'admin'],
     items: [
-      { title: "Hub de Checklists", icon: ClipboardCheck, href: "/checklists" },
-      { title: "Vigilância Médica", icon: Stethoscope, href: "/health-control" },
-      { title: "Sentinela do Limbo", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
+      { title: "Controle Médico", icon: Stethoscope, href: "/health-control" },
       { title: "Planos de Ação", icon: CheckSquare, href: "/action-plans" },
-    ]
-  },
-  {
-    label: "Área do Colaborador",
-    roles: ['admin', 'super_admin', 'client', 'client_admin', 'employee'],
-    items: [
-      { title: "Quiosque de EPI", icon: Camera, href: "/ppe-kiosk" },
-      { title: "Auto-Avaliação", icon: Activity, href: "/psychosocial" },
+      { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
     ]
   }
 ]
@@ -103,41 +94,26 @@ export function AppSidebar() {
     router.push("/login")
   }
 
-  const role = (profile?.role?.toLowerCase() || 'admin')
+  const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase()
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
-  const userRoleLabel = 
-    role.includes('admin') ? "Administrador NEXTCON" : 
-    role.includes('client') ? "Gestor de Empresa" : 
-    role.includes('provider') ? "Prestador / Clínica" : "Colaborador"
-    
-  const userInitial = userName.substring(0, 2).toUpperCase()
-
+  
   return (
-    <Sidebar variant="sidebar" collapsible="none" className="border-none bg-[#090e24] text-white w-[260px]">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar text-sidebar-foreground w-[260px]">
       <SidebarHeader className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="size-10 flex items-center justify-center text-[#00b4ff] shrink-0">
-            <NextconLogo className="size-full" />
-          </div>
-          <div className="flex flex-col leading-none overflow-hidden">
-            <span className="font-headline font-black text-white text-xl tracking-tighter">
-              NEXTCON
-            </span>
-            <span className="text-[9px] font-bold text-[#00b4ff] uppercase tracking-[0.25em] mt-1">
-              SAÚDE EMPRESARIAL
-            </span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <span className="text-2xl font-black tracking-tighter leading-none">NEXTCON</span>
+          <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">Saúde Empresarial</span>
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="pt-2">
+      <SidebarContent className="px-3">
         {navGroups.map((group) => {
           const hasAccess = group.roles.includes(role);
           if (!hasAccess) return null
           
           return (
-            <SidebarGroup key={group.label} className="px-3">
-              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] uppercase tracking-[0.2em] font-black mb-2">
+            <SidebarGroup key={group.label} className="py-2">
+              <SidebarGroupLabel className="text-white/40 px-4 text-[10px] font-black uppercase tracking-widest mb-2">
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>
@@ -150,21 +126,15 @@ export function AppSidebar() {
                         asChild 
                         isActive={isActive}
                         className={cn(
-                          "relative h-11 px-4 mb-1 transition-none rounded-lg",
+                          "h-10 px-4 rounded-md transition-all group",
                           isActive 
-                            ? "bg-[#00b4ff]/10 text-[#00b4ff]" 
-                            : "text-white/70 hover:text-white hover:bg-white/5"
+                            ? "bg-white/10 text-white font-semibold" 
+                            : "text-white/60 hover:bg-white/5 hover:text-white"
                         )}
                       >
-                        <Link href={item.href} className="flex items-center gap-3 w-full">
-                          <Icon className={cn(
-                            "size-5 shrink-0",
-                            isActive ? "text-[#00b4ff]" : "text-white/40"
-                          )} />
-                          <span className="font-medium tracking-wide text-sm whitespace-nowrap">
-                            {item.title}
-                          </span>
-                          {isActive && <div className="absolute left-0 w-1 h-6 bg-[#00b4ff] rounded-r-full" />}
+                        <Link href={item.href} className="flex items-center gap-3">
+                          <Icon className={cn("size-4", isActive ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
+                          <span className="text-sm">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -176,30 +146,19 @@ export function AppSidebar() {
         })}
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-white/10 mt-auto">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
-              <Avatar className="size-9 border-2 border-[#00b4ff]/20 shrink-0">
-                <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                <AvatarFallback className="bg-[#00b4ff] text-[#090e24] font-bold">{userInitial}</AvatarFallback>
-              </Avatar>
-              
-              <div className="flex flex-col flex-1 overflow-hidden">
-                <span className="text-xs font-bold text-white truncate">{userName}</span>
-                <span className="text-[9px] text-white/50 truncate uppercase font-black tracking-wider">{userRoleLabel}</span>
-              </div>
-              
-              <button 
-                onClick={handleLogout}
-                className="p-2 text-white/40 hover:text-[#00b4ff] transition-colors shrink-0"
-                title="Sair do sistema"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter className="p-4 border-t border-white/5">
+        <div className="flex items-center gap-3 p-2">
+          <Avatar className="size-8 rounded-md border border-white/10">
+            <AvatarFallback className="bg-white/10 text-[10px] font-bold">{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold truncate">{userName}</p>
+            <p className="text-[9px] text-white/40 uppercase font-black">{role.replace('_', ' ')}</p>
+          </div>
+          <button onClick={handleLogout} className="p-2 text-white/20 hover:text-white transition-colors">
+            <LogOut className="size-4" />
+          </button>
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

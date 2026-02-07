@@ -5,10 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
 import { TopNav } from '@/components/layout/top-nav';
+import { AppSidebar } from '@/components/layout/app-sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
-/**
- * AppContent redesenhado para refletir a UX moderna do site NextCon.
- */
 export function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const pathname = usePathname();
@@ -29,42 +28,32 @@ export function AppContent({ children }: { children: React.ReactNode }) {
 
   if (!mounted || (isUserLoading && !isLoginPage)) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#090e24] animate-in fade-in duration-700">
-        <div className="relative">
-          <div className="absolute inset-0 blur-3xl bg-[#00b4ff]/30 animate-pulse rounded-full" />
-          <Loader2 className="h-16 w-16 animate-spin text-[#00b4ff] relative z-10" />
-        </div>
-        <div className="mt-10 flex flex-col items-center gap-2">
-          <p className="text-[11px] font-black text-white uppercase tracking-[0.5em] animate-pulse">Sincronizando NAI Cloud</p>
-          <div className="h-px w-24 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        </div>
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#003366]">
+        <Loader2 className="h-12 w-12 animate-spin text-white opacity-20" />
+        <p className="mt-4 text-xs font-bold text-white/40 uppercase tracking-widest">NextCon Cloud Engine</p>
       </div>
     );
   }
 
   if (isLoginPage) {
-    return <div className="min-h-screen w-full bg-white animate-in fade-in duration-500">{children}</div>;
+    return <div className="min-h-screen w-full bg-white">{children}</div>;
   }
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/50 overflow-x-hidden selection:bg-accent selection:text-primary">
-      <TopNav />
-      <main className="flex-1 w-full max-w-7xl mx-auto p-6 md:p-12 transition-all duration-500">
-        {children}
-      </main>
-      <footer className="py-10 border-t bg-white text-primary/30 text-center">
-        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em]">
-            © 2026 NextCon SAÚDE EMPRESARIAL
-          </p>
-          <div className="flex gap-6">
-            <span className="text-[9px] font-bold uppercase tracking-widest">SST Intelligence</span>
-            <span className="text-[9px] font-bold uppercase tracking-widest">NAI v2.6</span>
-          </div>
-        </div>
-      </footer>
-    </div>
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <AppSidebar />
+        <SidebarInset className="flex flex-col h-full overflow-hidden">
+          <TopNav />
+          <main className="flex-1 overflow-y-auto p-6 md:p-10 scrollbar-thin">
+            <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }

@@ -4,10 +4,6 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import * as React from 'react';
 import { AppContent } from '@/components/layout/app-content';
 
-/**
- * Server Component de Layout.
- * Fix: Mantém a estrutura HTML/BODY estática para evitar erros de hidratação (mismatch).
- */
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -18,10 +14,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
-        <title>NextCon - SST Intelligence</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <title>Portal NextCon - Inteligência SST</title>
       </head>
-      <body className="font-body antialiased">
+      <body className="antialiased">
         <FirebaseClientProvider>
           <AppContent>{children}</AppContent>
           <Toaster />
