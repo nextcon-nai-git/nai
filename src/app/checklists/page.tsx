@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -20,7 +21,33 @@ import {
   Calendar as CalendarIcon,
   FileDown,
   Layers,
-  X
+  X,
+  Search,
+  Filter,
+  Ban,
+  Users,
+  ShieldCheck,
+  Thermometer,
+  Truck,
+  Settings,
+  Gauge,
+  Flame,
+  Bomb,
+  Droplets,
+  Sun,
+  Mountain,
+  Bath,
+  Trash2,
+  AlertTriangle,
+  Scale,
+  Anchor,
+  Ship,
+  Leaf,
+  Stethoscope,
+  Box,
+  Utensils,
+  HardHat,
+  Recycle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,24 +58,54 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } fro
 import { collection, addDoc, query, orderBy } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { analyzePgrPdf } from "@/ai/flows/pgr-analysis-flow"
 import { analyzeLtcatPdf } from "@/ai/flows/ltcat-analysis-flow"
 import { analyzePcmsoPdf } from "@/ai/flows/pcmso-analysis-flow"
 import { classifyDocument } from "@/ai/flows/document-classifier-flow"
-import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { SSTDocument } from "@/components/documents/sst-documents"
 import { Progress } from "@/components/ui/progress"
 
 const CHECKLIST_CATALOG = [
-  { id: "pgr", category: "Geral", title: "PGR - Gerenciamento de Riscos", icon: ShieldAlert, color: "text-red-600" },
-  { id: "pcmso", category: "Saúde", title: "PCMSO - Controle Médico", icon: HeartPulse, color: "text-emerald-600" },
-  { id: "ltcat", category: "Legal", title: "LTCAT - Aposentadoria", icon: FileText, color: "text-blue-600" },
-  { id: "ergonomia", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Brain, color: "text-blue-700" },
-  { id: "nr10", category: "Elétrica", title: "NR-10 - Elétrica", icon: Zap, color: "text-yellow-500" },
+  { id: "nr01", category: "Gestão", title: "NR-01 - Gerenciamento de Riscos (PGR)", icon: ShieldAlert, color: "text-red-600" },
+  { id: "nr03", category: "Legal", title: "NR-03 - Embargo e Interdição", icon: Ban, color: "text-red-700" },
+  { id: "nr04", category: "Gestão", title: "NR-04 - SESMT", icon: Users, color: "text-blue-600" },
+  { id: "nr05", category: "Gestão", title: "NR-05 - CIPA", icon: Users, color: "text-emerald-600" },
+  { id: "nr06", category: "EPI", title: "NR-06 - Equipamentos de Proteção Individual", icon: ShieldCheck, color: "text-blue-500" },
+  { id: "nr07", category: "Saúde", title: "NR-07 - PCMSO", icon: HeartPulse, color: "text-emerald-600" },
+  { id: "nr08", category: "Infra", title: "NR-08 - Edificações", icon: Building2, color: "text-gray-600" },
+  { id: "nr09", category: "Higiene", title: "NR-09 - Avaliação de Exposições", icon: Thermometer, color: "text-orange-600" },
+  { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Zap, color: "text-yellow-500" },
+  { id: "nr11", category: "Logística", title: "NR-11 - Transporte e Movimentação", icon: Truck, color: "text-blue-700" },
+  { id: "nr12", category: "Máquinas", title: "NR-12 - Máquinas e Equipamentos", icon: Settings, color: "text-gray-700" },
+  { id: "nr13", category: "Técnico", title: "NR-13 - Vasos de Pressão", icon: Gauge, color: "text-blue-400" },
+  { id: "nr14", category: "Técnico", title: "NR-14 - Fornos", icon: Flame, color: "text-orange-700" },
+  { id: "nr15", category: "Legal", title: "NR-15 - Insalubridade", icon: Hammer, color: "text-blue-800" },
+  { id: "nr16", category: "Legal", title: "NR-16 - Periculosidade", icon: Zap, color: "text-red-500" },
+  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Brain, color: "text-blue-700" },
+  { id: "nr18", category: "Obras", title: "NR-18 - Construção Civil", icon: HardHat, color: "text-orange-500" },
+  { id: "nr19", category: "Risco", title: "NR-19 - Explosivos", icon: Bomb, color: "text-red-600" },
+  { id: "nr20", category: "Risco", title: "NR-20 - Inflamáveis", icon: Droplets, color: "text-red-500" },
+  { id: "nr21", category: "Trabalho", title: "NR-21 - Trabalho a Céu Aberto", icon: Sun, color: "text-yellow-600" },
+  { id: "nr22", category: "Mineração", title: "NR-22 - Mineração", icon: Mountain, color: "text-gray-800" },
+  { id: "nr23", category: "Fogo", title: "NR-23 - Proteção Contra Incêndios", icon: Flame, color: "text-red-500" },
+  { id: "nr24", category: "Conforto", title: "NR-24 - Condições Sanitárias", icon: Bath, color: "text-blue-300" },
+  { id: "nr25", category: "Resíduos", title: "NR-25 - Resíduos Industriais", icon: Trash2, color: "text-emerald-700" },
+  { id: "nr26", category: "Sinalização", title: "NR-26 - Sinalização de Segurança", icon: AlertTriangle, color: "text-yellow-600" },
+  { id: "nr28", category: "Legal", title: "NR-28 - Fiscalização e Penalidades", icon: Scale, color: "text-blue-900" },
+  { id: "nr29", category: "Porto", title: "NR-29 - Trabalho Portuário", icon: Anchor, color: "text-blue-900" },
+  { id: "nr30", category: "Náutico", title: "NR-30 - Trabalho Aquaviário", icon: Ship, color: "text-blue-800" },
+  { id: "nr31", category: "Rural", title: "NR-31 - Agrícola e Florestal", icon: Leaf, color: "text-green-600" },
+  { id: "nr32", category: "Saúde", title: "NR-32 - Serviços de Saúde", icon: Stethoscope, color: "text-emerald-500" },
+  { id: "nr33", category: "Espaço", title: "NR-33 - Espaços Confinados", icon: Box, color: "text-blue-600" },
+  { id: "nr34", category: "Naval", title: "NR-34 - Construção Naval", icon: Ship, color: "text-blue-800" },
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
+  { id: "nr36", category: "Alimentos", title: "NR-36 - Abate e Processamento", icon: Utensils, color: "text-red-400" },
+  { id: "nr37", category: "Petróleo", title: "NR-37 - Plataformas de Petróleo", icon: HardHat, color: "text-gray-700" },
+  { id: "nr38", category: "Limpeza", title: "NR-38 - Limpeza Urbana", icon: Recycle, color: "text-green-500" },
 ]
 
 interface UploadingFile {
@@ -68,12 +125,28 @@ export default function ChecklistsPage() {
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [uploadQueue, setUploadQueue] = React.useState<UploadingFile[]>([])
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const [filterCategory, setFilterCategory] = React.useState("all")
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
   }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
+
+  const filteredCatalog = React.useMemo(() => {
+    return CHECKLIST_CATALOG.filter(item => {
+      const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           item.id.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesCategory = filterCategory === "all" || item.category === filterCategory
+      return matchesSearch && matchesCategory
+    })
+  }, [searchTerm, filterCategory])
+
+  const categories = React.useMemo(() => {
+    const cats = Array.from(new Set(CHECKLIST_CATALOG.map(i => i.category)))
+    return ["all", ...cats]
+  }, [])
 
   const handleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -95,7 +168,6 @@ export default function ChecklistsPage() {
     setUploadQueue(prev => [...newUploads, ...prev])
     setActiveTab("scanner")
 
-    // Processar cada arquivo
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const queueId = newUploads[i].id
@@ -107,13 +179,11 @@ export default function ChecklistsPage() {
         reader.onload = async (event) => {
           const dataUri = event.target?.result as string
           
-          // 1. Classificação Automática NAI
           updateFileStatus(queueId, { status: 'CLASSIFYING', progress: 30 })
           const classification = await classifyDocument({ pdfDataUri: dataUri, fileName: file.name })
           const detectedType = classification.docType
           updateFileStatus(queueId, { type: detectedType, progress: 50 })
 
-          // 2. Análise Técnica Profunda
           updateFileStatus(queueId, { status: 'ANALYZING', progress: 70 })
           let analysis: any;
           if (detectedType === "pgr") analysis = await analyzePgrPdf({ pdfDataUri: dataUri })
@@ -126,7 +196,6 @@ export default function ChecklistsPage() {
             }
           }
 
-          // 3. Upload e Persistência
           updateFileStatus(queueId, { status: 'UPLOADING', progress: 90 })
           const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, detectedType)
           const fileRef = ref(storage, storagePath)
@@ -169,13 +238,13 @@ export default function ChecklistsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Operações SST Inteligentes</h1>
-          <p className="text-muted-foreground font-medium">Classificação e análise automática de documentos em lote.</p>
+          <p className="text-muted-foreground font-medium">Gestão normativa completa e triagem automática NAI.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Catálogo NRs</TabsTrigger>
+          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Catálogo NRs 2026</TabsTrigger>
           <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold uppercase text-[10px]">
             <Layers className="size-4 text-[#00b4ff]" /> Upload em Lote
             {uploadQueue.length > 0 && <Badge className="ml-1 bg-[#00b4ff] text-white size-5 p-0 flex items-center justify-center rounded-full text-[10px]">{uploadQueue.length}</Badge>}
@@ -183,22 +252,54 @@ export default function ChecklistsPage() {
           <TabsTrigger value="history" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Arquivos Recentes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="catalog" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {CHECKLIST_CATALOG.map((item) => {
+        <TabsContent value="catalog" className="mt-6 space-y-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+              <Input 
+                placeholder="Pesquisar Norma (ex: NR-35, Altura, PGR)..." 
+                className="pl-10 h-11 bg-white border-none shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
+              <SelectTrigger className="w-full md:w-48 h-11 bg-white border-none shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Filter className="size-4 text-muted-foreground" />
+                  <SelectValue placeholder="Categoria" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => (
+                  <SelectItem key={cat} value={cat} className="capitalize">
+                    {cat === "all" ? "Todas Categorias" : cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredCatalog.map((item) => {
               const Icon = item.icon
               return (
                 <Card key={item.id} className="cursor-pointer hover:ring-2 ring-[#002d9c]/10 transition-all group bg-white border-none card-shadow">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#002d9c] group-hover:text-white transition-all", item.color)}><Icon className="size-6" /></div>
-                    <div>
-                      <p className="text-[9px] font-black uppercase opacity-50">{item.category}</p>
-                      <h3 className="text-sm font-bold text-[#002d9c]">{item.title}</h3>
+                  <CardContent className="p-5 flex items-center gap-4">
+                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#002d9c] group-hover:text-white transition-all shrink-0", item.color)}><Icon className="size-6" /></div>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-black uppercase opacity-50 truncate">{item.category}</p>
+                      <h3 className="text-[11px] font-bold text-[#002d9c] leading-tight line-clamp-2">{item.title}</h3>
                     </div>
                   </CardContent>
                 </Card>
               )
             })}
+            {filteredCatalog.length === 0 && (
+              <div className="col-span-full py-20 text-center text-muted-foreground italic">
+                Nenhuma norma encontrada para sua busca.
+              </div>
+            )}
           </div>
         </TabsContent>
 
