@@ -1,6 +1,6 @@
 'use client';
 
-import { useDroppable } from '@nd-kit/core';
+import { useDroppable } from '@dnd-kit/core';
 import { SSTTask, Status } from '@/types/kanban';
 import { TaskCard } from './task-card';
 import { cn } from '@/lib/utils';
@@ -33,9 +33,9 @@ export function KanbanColumn({ id, title, tasks, color }: ColumnProps) {
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 p-3 rounded-[2rem] transition-all duration-300 min-h-[500px] border border-transparent",
+          "flex-1 p-3 rounded-[2.5rem] transition-all duration-300 min-h-[500px] border border-transparent shadow-inner",
           color, 
-          isOver ? "ring-4 ring-primary/5 bg-primary/5 border-primary/10 scale-[1.01]" : ""
+          isOver ? "ring-4 ring-primary/5 bg-primary/10 border-primary/10 scale-[1.01]" : "bg-opacity-40"
         )}
       >
         <div className="space-y-1">
