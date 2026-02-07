@@ -10,3 +10,4 @@ import '@/ai/flows/enrich-provider-flow.ts';
 import '@/ai/flows/pgr-analysis-flow.ts';
 import '@/ai/flows/ltcat-analysis-flow.ts';
 import '@/ai/flows/pcmso-analysis-flow.ts';
+import '@/ai/flows/document-classifier-flow.ts';

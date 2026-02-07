@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -7,25 +6,21 @@ import {
   Loader2, 
   ShieldAlert, 
   Plus, 
-  ArrowLeft, 
   HeartPulse, 
   Building2, 
   Hammer, 
   ArrowUpCircle, 
   Zap,
   CheckCircle2,
-  Info,
   FileText,
   Sparkles,
   Brain,
   History,
   CloudUpload,
-  Stethoscope,
-  Scale,
   Calendar as CalendarIcon,
-  Bell,
   FileDown,
-  Settings
+  Layers,
+  X
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -36,23 +31,34 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } fro
 import { collection, addDoc, query, orderBy } from "firebase/firestore"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 import { cn } from "@/lib/utils"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { analyzePgrPdf } from "@/ai/flows/pgr-analysis-flow"
 import { analyzeLtcatPdf } from "@/ai/flows/ltcat-analysis-flow"
 import { analyzePcmsoPdf } from "@/ai/flows/pcmso-analysis-flow"
+import { classifyDocument } from "@/ai/flows/document-classifier-flow"
 import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { SSTDocument } from "@/components/documents/sst-documents"
+import { Progress } from "@/components/ui/progress"
 
 const CHECKLIST_CATALOG = [
-  { id: "nr01", category: "Geral", title: "NR-01 - Gerenciamento de Riscos (GRO/PGR)", icon: ShieldAlert, color: "text-red-600" },
-  { id: "nr06", category: "EPI", title: "NR-06 - Equipamentos de Proteção (EPI)", icon: HeartPulse, color: "text-amber-600" },
-  { id: "nr17", category: "Ergonomia", title: "NR-17 - Laboratório de Ergonomia", icon: Brain, color: "text-blue-700" },
-  { id: "nr18", category: "Obras", title: "NR-18 - Indústria da Construção", icon: Hammer, color: "text-orange-600" },
-  { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Zap, color: "text-yellow-500" },
+  { id: "pgr", category: "Geral", title: "PGR - Gerenciamento de Riscos", icon: ShieldAlert, color: "text-red-600" },
+  { id: "pcmso", category: "Saúde", title: "PCMSO - Controle Médico", icon: HeartPulse, color: "text-emerald-600" },
+  { id: "ltcat", category: "Legal", title: "LTCAT - Aposentadoria", icon: FileText, color: "text-blue-600" },
+  { id: "ergonomia", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Brain, color: "text-blue-700" },
+  { id: "nr10", category: "Elétrica", title: "NR-10 - Elétrica", icon: Zap, color: "text-yellow-500" },
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
 ]
+
+interface UploadingFile {
+  id: string
+  name: string
+  status: 'CLASSIFYING' | 'ANALYZING' | 'UPLOADING' | 'COMPLETED' | 'ERROR'
+  progress: number
+  type?: string
+  result?: any
+}
 
 export default function ChecklistsPage() {
   const { toast } = useToast()
@@ -60,11 +66,8 @@ export default function ChecklistsPage() {
   const db = useFirestore()
   const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("catalog")
-  const [selectedChecklistId, setSelectedChecklistId] = React.useState<string | null>(null)
-  const [isAnalyzing, setIsAnalyzing] = React.useState(false)
-  const [analysisResult, setAnalysisResult] = React.useState<any>(null)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
-  const [docType, setDocType] = React.useState<string>("pgr")
+  const [uploadQueue, setUploadQueue] = React.useState<UploadingFile[]>([])
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -72,102 +75,112 @@ export default function ChecklistsPage() {
   }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
     
     if (!selectedCompanyId) {
-      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir o documento." })
+      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir os documentos." })
       return
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      toast({ variant: "destructive", title: "Arquivo muito grande", description: "O PDF deve ter no máximo 15MB." })
-      return
-    }
+    const company = companies?.find(c => c.id === selectedCompanyId)
+    const newUploads: UploadingFile[] = Array.from(files).map(f => ({
+      id: Math.random().toString(36).substring(7),
+      name: f.name,
+      status: 'CLASSIFYING',
+      progress: 10
+    }))
 
-    setIsAnalyzing(true)
-    try {
-      const company = companies?.find(c => c.id === selectedCompanyId)
-      const reader = new FileReader()
-      
-      reader.onload = async (event) => {
-        const dataUri = event.target?.result as string
-        let result: any;
+    setUploadQueue(prev => [...newUploads, ...prev])
+    setActiveTab("scanner")
 
-        // Fallback para outros tipos de laudo se não houver fluxo específico
-        if (docType === "pgr") {
-          result = await analyzePgrPdf({ pdfDataUri: dataUri, fileName: file.name })
-        } else if (docType === "ltcat") {
-          result = await analyzeLtcatPdf({ pdfDataUri: dataUri, fileName: file.name })
-        } else if (docType === "pcmso") {
-          result = await analyzePcmsoPdf({ pdfDataUri: dataUri, fileName: file.name })
-        } else {
-          // Mock de resultado para outros laudos enquanto não houver fluxos dedicados
-          result = {
-            companyInfo: { name: company?.name || "Empresa Cliente", validity: "12 meses" },
-            aiInsight: `A análise preliminar do documento ${docType.toUpperCase()} indica conformidade com as normas vigentes de 2026.`
+    // Processar cada arquivo
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const queueId = newUploads[i].id
+
+      try {
+        if (file.size > 15 * 1024 * 1024) throw new Error("Arquivo excede 15MB")
+
+        const reader = new FileReader()
+        reader.onload = async (event) => {
+          const dataUri = event.target?.result as string
+          
+          // 1. Classificação Automática NAI
+          updateFileStatus(queueId, { status: 'CLASSIFYING', progress: 30 })
+          const classification = await classifyDocument({ pdfDataUri: dataUri, fileName: file.name })
+          const detectedType = classification.docType
+          updateFileStatus(queueId, { type: detectedType, progress: 50 })
+
+          // 2. Análise Técnica Profunda
+          updateFileStatus(queueId, { status: 'ANALYZING', progress: 70 })
+          let analysis: any;
+          if (detectedType === "pgr") analysis = await analyzePgrPdf({ pdfDataUri: dataUri })
+          else if (detectedType === "ltcat") analysis = await analyzeLtcatPdf({ pdfDataUri: dataUri })
+          else if (detectedType === "pcmso") analysis = await analyzePcmsoPdf({ pdfDataUri: dataUri })
+          else {
+            analysis = {
+              companyInfo: { name: company?.name || "Cliente", validity: "12 meses" },
+              aiInsight: classification.reasoning
+            }
           }
+
+          // 3. Upload e Persistência
+          updateFileStatus(queueId, { status: 'UPLOADING', progress: 90 })
+          const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, detectedType)
+          const fileRef = ref(storage, storagePath)
+          const uploadResult = await uploadBytes(fileRef, file)
+          const downloadUrl = await getDownloadURL(uploadResult.ref)
+
+          await addDoc(collection(db, "clients", user!.uid, "reports"), {
+            companyId: selectedCompanyId,
+            reportType: detectedType,
+            fileName: file.name,
+            fileUrl: downloadUrl,
+            analysisData: analysis,
+            analysisSummary: analysis.aiInsight,
+            createdAt: new Date().toISOString(),
+            status: "AVAILABLE"
+          })
+
+          updateFileStatus(queueId, { status: 'COMPLETED', progress: 100, result: analysis })
+          
+          toast({ title: "Arquivo Processado", description: `${file.name} identificado como ${detectedType.toUpperCase()}.` })
         }
-
-        setAnalysisResult(result)
-
-        const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, docType)
-        const fileRef = ref(storage, storagePath)
-        const uploadResult = await uploadBytes(fileRef, file)
-        const downloadUrl = await getDownloadURL(uploadResult.ref)
-
-        const timestamp = new Date().toISOString()
-        const nextYear = new Date()
-        nextYear.setFullYear(nextYear.getFullYear() + 1)
-
-        await addDoc(collection(db, "clients", user.uid, "reports"), {
-          companyId: selectedCompanyId,
-          reportType: docType,
-          fileName: file.name,
-          fileUrl: downloadUrl,
-          analysisData: result,
-          analysisSummary: result.aiInsight,
-          createdAt: timestamp,
-          status: "AVAILABLE"
-        })
-
-        await addDoc(collection(db, "users", user.uid, "notifications"), {
-          title: `NAI: Novo ${docType.toUpperCase()} Processado`,
-          message: `O documento de ${company?.name} foi analisado e arquivado com sucesso.`,
-          read: false,
-          createdAt: timestamp
-        })
-
-        toast({ 
-          title: `Análise ${docType.toUpperCase()} Concluída`, 
-          description: "Documento processado e disponível na Central de Relatórios." 
-        })
+        reader.readAsDataURL(file)
+      } catch (err: any) {
+        updateFileStatus(queueId, { status: 'ERROR', progress: 0 })
+        toast({ variant: "destructive", title: "Erro no arquivo", description: file.name })
       }
-      reader.readAsDataURL(file)
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro no Processamento", description: error.message })
-    } finally { 
-      setIsAnalyzing(false) 
     }
   }
 
-  const selectedCompany = companies?.find(c => c.id === selectedCompanyId);
+  const updateFileStatus = (id: string, updates: Partial<UploadingFile>) => {
+    setUploadQueue(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f))
+  }
+
+  const removeFileFromQueue = (id: string) => {
+    setUploadQueue(prev => prev.filter(f => f.id !== id))
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Hub de Operações SST</h1>
-          <p className="text-muted-foreground">Processamento inteligente de Laudos e Programas Ocupacionais.</p>
+          <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Operações SST Inteligentes</h1>
+          <p className="text-muted-foreground font-medium">Classificação e análise automática de documentos em lote.</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold">Catálogo NRs</TabsTrigger>
-          <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold"><Sparkles className="size-4 text-[#00b4ff]" /> Scanner IA</TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold">Histórico</TabsTrigger>
+          <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Catálogo NRs</TabsTrigger>
+          <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold uppercase text-[10px]">
+            <Layers className="size-4 text-[#00b4ff]" /> Upload em Lote
+            {uploadQueue.length > 0 && <Badge className="ml-1 bg-[#00b4ff] text-white size-5 p-0 flex items-center justify-center rounded-full text-[10px]">{uploadQueue.length}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Arquivos Recentes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="mt-6">
@@ -175,7 +188,7 @@ export default function ChecklistsPage() {
             {CHECKLIST_CATALOG.map((item) => {
               const Icon = item.icon
               return (
-                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-[#002d9c]/10 transition-all group bg-white border-none card-shadow" onClick={() => { setSelectedChecklistId(item.id); setActiveTab("scanner"); setDocType(item.id === 'nr01' ? 'pgr' : item.id === 'nr17' ? 'ergonomia' : 'pgr') }}>
+                <Card key={item.id} className="cursor-pointer hover:ring-2 ring-[#002d9c]/10 transition-all group bg-white border-none card-shadow">
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#002d9c] group-hover:text-white transition-all", item.color)}><Icon className="size-6" /></div>
                     <div>
@@ -189,62 +202,25 @@ export default function ChecklistsPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="scanner" className="mt-6">
+        <TabsContent value="scanner" className="mt-6 space-y-6">
           <Card className="border-none shadow-xl bg-white overflow-hidden">
             <CardHeader className="bg-muted/30 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2 text-[#002d9c]">Scanner Inteligente NAI</CardTitle>
-                <CardDescription>Extração de dados e automação documental (PDF até 15MB).</CardDescription>
+                <CardTitle className="flex items-center gap-2 text-[#002d9c]">Triagem Automática NAI</CardTitle>
+                <CardDescription>Arraste múltiplos arquivos. A IA identificará o tipo e a pasta correta.</CardDescription>
               </div>
-              <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                <div className="w-full md:w-64">
-                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Tipo de Documento:</label>
-                  <Select value={docType} onValueChange={(v: any) => setDocType(v)}>
-                    <SelectTrigger className="bg-white border-muted h-10 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Gestão Geral</SelectLabel>
-                        <SelectItem value="pgr">PGR (Riscos)</SelectItem>
-                        <SelectItem value="pcmso">PCMSO (Saúde)</SelectItem>
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Laudos Legais</SelectLabel>
-                        <SelectItem value="ltcat">LTCAT (Aposentadoria)</SelectItem>
-                        <SelectItem value="nr15">Laudo NR-15 (Insalubridade)</SelectItem>
-                        <SelectItem value="nr16">Laudo NR-16 (Periculosidade)</SelectItem>
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Engenharia & Op.</SelectLabel>
-                        <SelectItem value="ergonomia">Ergonomia (AEP/AET)</SelectItem>
-                        <SelectItem value="nr10">Elétrica (NR-10)</SelectItem>
-                        <SelectItem value="nr12">Máquinas (NR-12)</SelectItem>
-                        <SelectItem value="os">Ordem de Serviço (OS)</SelectItem>
-                        <SelectItem value="epi">Ficha de EPI</SelectItem>
-                        <SelectItem value="apr">APR (Checklist Diário)</SelectItem>
-                      </SelectGroup>
-                      <SelectGroup>
-                        <SelectLabel className="text-[10px] uppercase font-black opacity-50">Prog. Satélites</SelectLabel>
-                        <SelectItem value="pca">PCA (Auditivo)</SelectItem>
-                        <SelectItem value="ppr">PPR (Respiratório)</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full md:w-64">
-                  <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Vincular a:</label>
-                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-                    <SelectTrigger className="bg-white border-muted h-10 text-xs">
-                      <SelectValue placeholder="Selecione o Cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies?.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="w-full md:w-72">
+                <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Vincular Dossiês a:</label>
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <SelectTrigger className="bg-white border-muted h-10 text-xs">
+                    <SelectValue placeholder="Selecione o Cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies?.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
@@ -254,72 +230,67 @@ export default function ChecklistsPage() {
               )}>
                 <input 
                   type="file" 
+                  multiple 
                   accept=".pdf" 
                   className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
-                  onChange={handleFileUpload}
-                  disabled={!selectedCompanyId || isAnalyzing}
+                  onChange={handleFilesUpload}
+                  disabled={!selectedCompanyId}
                 />
-                {isAnalyzing ? (
-                  <div className="space-y-4">
-                    <Loader2 className="animate-spin size-12 mx-auto text-[#002d9c]" />
-                    <p className="text-xs font-black uppercase tracking-widest animate-pulse text-[#002d9c]">NAI Processando Dossiê Técnico...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <CloudUpload className="size-12 mx-auto text-[#002d9c] opacity-40 group-hover:scale-110 transition-transform" />
-                    <p className="font-bold text-[#002d9c]">
-                      {selectedCompanyId ? `Arraste ou Clique para importar ${docType.toUpperCase()}` : "Selecione um cliente acima para habilitar"}
-                    </p>
-                    <p className="text-[10px] uppercase font-black text-muted-foreground">O dossiê oficial será gerado automaticamente após o upload.</p>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <CloudUpload className="size-12 mx-auto text-[#002d9c] opacity-40 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-[#002d9c]">
+                    {selectedCompanyId ? `Solte o lote de arquivos aqui para triagem` : "Selecione um cliente para habilitar o lote"}
+                  </p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground">A NAI distribuirá os laudos nas pastas de PGR, PCMSO, LTCAT, etc.</p>
+                </div>
               </div>
 
-              {analysisResult && (
-                <div className="animate-in zoom-in-95 duration-300 space-y-6">
-                  <div className="p-6 bg-blue-50 rounded-2xl border-2 border-[#00b4ff]/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <h3 className="text-xl font-headline font-black text-[#002d9c]">{analysisResult.companyInfo.name}</h3>
-                      <p className="text-xs text-[#002d9c]/70 font-bold uppercase">
-                        Protocolo: {docType.toUpperCase()} | Data: {new Date().toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <Badge className="bg-[#002d9c] text-white px-4 py-1.5 font-black uppercase text-[10px]">NAI Processado</Badge>
-                      <span className="text-[9px] font-bold text-[#002d9c] uppercase flex items-center gap-1">
-                        <CheckCircle2 className="size-3" /> Arquivado na Pasta do Cliente
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-6 bg-[#00b4ff]/10 rounded-2xl space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="size-5 text-[#002d9c]" />
-                      <h4 className="font-black uppercase text-xs text-[#002d9c]">Parecer Técnico NAI</h4>
-                    </div>
-                    <p className="text-sm italic text-[#002d9c] leading-relaxed font-medium">"{analysisResult.aiInsight}"</p>
-                    <div className="flex flex-col md:flex-row gap-2">
-                      <Button 
-                        className="flex-1 bg-[#002d9c] text-white h-12 font-bold uppercase gap-2 text-xs"
-                        onClick={() => window.open(getWhatsAppLink("11999999999", `*Parecer NAI - ${docType.toUpperCase()}*\n\n${analysisResult.aiInsight}`))}
-                      >
-                        Enviar Resumo (WhatsApp)
-                      </Button>
-                      
-                      <Button asChild variant="outline" className="flex-1 bg-white border-[#002d9c] text-[#002d9c] h-12 font-bold uppercase text-[10px] gap-2">
-                        <PDFDownloadLink 
-                          document={<SSTDocument data={analysisResult} company={selectedCompany} type={docType.toUpperCase() as any} />} 
-                          fileName={`${docType.toUpperCase()}_NextCon_${analysisResult.companyInfo.name}.pdf`}
-                        >
-                          {({ loading }) => (
-                            <span className="flex items-center gap-2">
-                              {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-4" />}
-                              Baixar Documento Oficial (PDF)
-                            </span>
-                          )}
-                        </PDFDownloadLink>
-                      </Button>
-                    </div>
+              {uploadQueue.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-black uppercase text-muted-foreground tracking-widest px-1">Fila de Processamento Inteligente</h4>
+                  <div className="grid gap-2">
+                    {uploadQueue.map((file) => (
+                      <div key={file.id} className="p-4 bg-muted/20 rounded-2xl border flex items-center gap-4 group">
+                        <div className={cn(
+                          "size-10 rounded-xl flex items-center justify-center shrink-0",
+                          file.status === 'COMPLETED' ? "bg-emerald-100 text-emerald-600" : "bg-white text-[#002d9c]"
+                        )}>
+                          {file.status === 'COMPLETED' ? <CheckCircle2 className="size-5" /> : <Loader2 className="size-5 animate-spin" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <div>
+                              <p className="text-xs font-bold truncate pr-4">{file.name}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Badge className={cn(
+                                  "text-[8px] font-black uppercase border-none h-4",
+                                  file.status === 'COMPLETED' ? "bg-emerald-500 text-white" : "bg-[#00b4ff] text-white"
+                                )}>
+                                  {file.status}
+                                </Badge>
+                                {file.type && <span className="text-[9px] font-black text-[#002d9c] uppercase tracking-tighter">Tipo: {file.type}</span>}
+                              </div>
+                            </div>
+                            <button onClick={() => removeFileFromQueue(file.id)} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all">
+                              <X className="size-4" />
+                            </button>
+                          </div>
+                          <Progress value={file.progress} className="h-1 bg-white" />
+                        </div>
+                        {file.status === 'COMPLETED' && file.result && (
+                          <div className="shrink-0 flex gap-2">
+                            <Button variant="outline" size="sm" className="h-8 text-[9px] font-black uppercase border-[#002d9c] text-[#002d9c] gap-1" asChild>
+                              <PDFDownloadLink 
+                                document={<SSTDocument data={file.result} company={companies?.find(c => c.id === selectedCompanyId)} type={file.type?.toUpperCase() as any} />} 
+                                fileName={`${file.type?.toUpperCase()}_NextCon_${file.name}.pdf`}
+                              >
+                                {({ loading }) => loading ? "..." : "Dossiê"}
+                              </PDFDownloadLink>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -329,10 +300,10 @@ export default function ChecklistsPage() {
 
         <TabsContent value="history" className="mt-6">
           <Card className="border-none shadow-xl bg-white">
-            <CardHeader><CardTitle className="text-[#002d9c]">Documentos Processados</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-[#002d9c]">Documentos Distribuídos</CardTitle></CardHeader>
             <CardContent className="flex flex-col items-center py-20 text-center opacity-40">
               <History className="size-12 mb-4 text-[#002d9c]" />
-              <p className="text-sm font-bold uppercase tracking-widest">Os documentos analisados via Scanner aparecem na Central de Documentos do cliente.</p>
+              <p className="text-sm font-bold uppercase tracking-widest">Os arquivos distribuídos automaticamente aparecem na Central de Relatórios do cliente.</p>
             </CardContent>
           </Card>
         </TabsContent>
