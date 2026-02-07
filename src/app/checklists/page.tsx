@@ -108,21 +108,12 @@ const CHECKLIST_CATALOG = [
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
 ]
 
-interface UploadingFile {
-  id: string
-  name: string
-  status: 'CLASSIFYING' | 'ANALYZING' | 'UPLOADING' | 'COMPLETED' | 'ERROR'
-  progress: number
-  type?: string
-}
-
 type ChecklistStatus = 'C' | 'NC' | 'NA' | null;
 
 export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -181,6 +172,16 @@ export default function ChecklistsPage() {
     const answered = Object.values(responses).filter(v => v !== null).length;
     return (answered / activeNR.items.length) * 100;
   }, [responses, activeNR])
+
+  const getCriticalityBadge = (criticality: string) => {
+    switch(criticality) {
+      case 'critical': return { label: 'CRÍTICO', class: 'bg-slate-900 text-white' };
+      case 'high': return { label: 'ALTO', class: 'bg-red-100 text-red-700' };
+      case 'medium': return { label: 'MÉDIO', class: 'bg-orange-100 text-orange-700' };
+      case 'low': return { label: 'BAIXO', class: 'bg-blue-100 text-blue-700' };
+      default: return { label: 'BAIXO', class: 'bg-blue-100 text-blue-700' };
+    }
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -271,97 +272,96 @@ export default function ChecklistsPage() {
 
           <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
             <div className="space-y-4">
-              {activeNR?.items.map((item) => (
-                <Card key={item.id} className={cn(
-                  "border-none shadow-sm bg-white overflow-hidden transition-all",
-                  item.criticality === 'critical' ? "ring-1 ring-red-100" : ""
-                )}>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary uppercase">Item {item.legal_ref}</Badge>
-                            <Badge className={cn(
-                              "text-[8px] font-black uppercase border-none",
-                              item.criticality === 'critical' ? 'bg-slate-900 text-white' :
-                              item.criticality === 'high' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                            )}>
-                              {item.criticality === 'critical' ? 'CRÍTICO' : `Risco ${item.criticality.toUpperCase()}`}
-                            </Badge>
-                            <button 
-                              onClick={() => setSelectedLawItem(item)}
-                              className="text-slate-400 hover:text-primary transition-colors"
-                              title="Ver Base Legal"
-                            >
-                              <Gavel className="size-3.5" />
-                            </button>
+              {activeNR?.items.map((item) => {
+                const criticalityInfo = getCriticalityBadge(item.criticality);
+                return (
+                  <Card key={item.id} className={cn(
+                    "border-none shadow-sm bg-white overflow-hidden transition-all",
+                    item.criticality === 'critical' ? "ring-1 ring-red-100" : ""
+                  )}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary uppercase">Item {item.legal_ref}</Badge>
+                              <Badge className={cn("text-[8px] font-black uppercase border-none", criticalityInfo.class)}>
+                                {criticalityInfo.label}
+                              </Badge>
+                              <button 
+                                onClick={() => setSelectedLawItem(item)}
+                                className="text-slate-400 hover:text-primary transition-colors"
+                                title="Ver Base Legal"
+                              >
+                                <Gavel className="size-3.5" />
+                              </button>
+                            </div>
+                            <p className="text-sm font-bold text-primary leading-snug">{item.question}</p>
                           </div>
-                          <p className="text-sm font-bold text-primary leading-snug">{item.question}</p>
+                          
+                          <div className="flex gap-1 shrink-0">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(item, 'C')}
+                              className={cn(
+                                "h-10 px-4 font-black text-[10px]",
+                                responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-md" : "text-emerald-600 border-emerald-100"
+                              )}
+                            >
+                              C
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(item, 'NC')}
+                              className={cn(
+                                "h-10 px-4 font-black text-[10px]",
+                                responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-md" : "text-red-600 border-red-100"
+                              )}
+                            >
+                              NC
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleStatusChange(item, 'NA')}
+                              className={cn(
+                                "h-10 px-4 font-black text-[10px]",
+                                responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-md" : "text-slate-600 border-slate-100"
+                              )}
+                            >
+                              NA
+                            </Button>
+                          </div>
                         </div>
-                        
-                        <div className="flex gap-1 shrink-0">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleStatusChange(item, 'C')}
-                            className={cn(
-                              "h-10 px-4 font-black text-[10px]",
-                              responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-md" : "text-emerald-600 border-emerald-100"
-                            )}
-                          >
-                            C
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleStatusChange(item, 'NC')}
-                            className={cn(
-                              "h-10 px-4 font-black text-[10px]",
-                              responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-md" : "text-red-600 border-red-100"
-                            )}
-                          >
-                            NC
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleStatusChange(item, 'NA')}
-                            className={cn(
-                              "h-10 px-4 font-black text-[10px]",
-                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-md" : "text-slate-600 border-slate-100"
-                            )}
-                          >
-                            NA
-                          </Button>
-                        </div>
-                      </div>
 
-                      {item.criticality === 'critical' && responses[item.id] === 'C' && (
-                        <div className="bg-blue-50 p-2 rounded-lg flex items-center gap-2 animate-in slide-in-from-top-1">
-                          <Camera className="size-3 text-primary" />
-                          <span className="text-[9px] font-bold text-primary uppercase">Evidência fotográfica recomendada para este item.</span>
-                        </div>
-                      )}
-
-                      <div className="border-t border-dashed pt-3">
-                        <button 
-                          onClick={() => setExpandedHelp(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                          className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-primary transition-colors"
-                        >
-                          <Info className="size-3" /> Guia NAI Advisor
-                          {expandedHelp[item.id] ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
-                        </button>
-                        {expandedHelp[item.id] && (
-                          <p className="mt-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-[11px] leading-relaxed text-primary/80 italic">
-                            {item.help_text}
-                          </p>
+                        {item.criticality === 'critical' && responses[item.id] === 'C' && (
+                          <div className="bg-blue-50 p-2 rounded-lg flex items-center gap-2 animate-in slide-in-from-top-1">
+                            <Camera className="size-3 text-primary" />
+                            <span className="text-[9px] font-bold text-primary uppercase">Evidência fotográfica recomendada para este item.</span>
+                          </div>
                         )}
+
+                        <div className="border-t border-dashed pt-3">
+                          <button 
+                            onClick={() => setExpandedHelp(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                            className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-primary transition-colors"
+                          >
+                            <Info className="size-3" /> Guia NAI Advisor
+                            {expandedHelp[item.id] ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+                          </button>
+                          {expandedHelp[item.id] && (
+                            <p className="mt-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-[11px] leading-relaxed text-primary/80 italic">
+                              {item.help_text}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
