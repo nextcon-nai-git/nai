@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable } from '@nd-kit/core';
 import { SSTTask, Status } from '@/types/kanban';
 import { TaskCard } from './task-card';
 import { cn } from '@/lib/utils';

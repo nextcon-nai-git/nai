@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -62,35 +61,37 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
   }
 
   return (
-    <DndContext 
-      sensors={sensors} 
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart} 
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex h-full gap-6 overflow-x-auto pb-4 scrollbar-thin">
-        {KANBAN_COLUMNS.map((col) => (
-          <div key={col.id} className="h-full">
-             <KanbanColumn
-                id={col.id}
-                title={col.title}
-                color={col.color}
-                tasks={tasks.filter((t) => t.status === col.id)}
-              />
-          </div>
-        ))}
-      </div>
-
-      {typeof document !== 'undefined' && createPortal(
-        <DragOverlay adjustScale={true}>
-          {activeTask ? (
-            <div className="rotate-3 scale-105 opacity-90 cursor-grabbing drop-shadow-2xl">
-                <TaskCard task={activeTask} />
+    <div className="h-full overflow-hidden">
+      <DndContext 
+        sensors={sensors} 
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex h-full gap-6 overflow-x-auto pb-4 scrollbar-thin">
+          {KANBAN_COLUMNS.map((col) => (
+            <div key={col.id} className="h-full">
+               <KanbanColumn
+                  id={col.id}
+                  title={col.title}
+                  color={col.color}
+                  tasks={tasks.filter((t) => t.status === col.id)}
+                />
             </div>
-          ) : null}
-        </DragOverlay>,
-        document.body
-      )}
-    </DndContext>
+          ))}
+        </div>
+
+        {typeof document !== 'undefined' && createPortal(
+          <DragOverlay adjustScale={true}>
+            {activeTask ? (
+              <div className="rotate-3 scale-105 opacity-90 cursor-grabbing drop-shadow-2xl">
+                  <TaskCard task={activeTask} />
+              </div>
+            ) : null}
+          </DragOverlay>,
+          document.body
+        )}
+      </DndContext>
+    </div>
   );
 }
