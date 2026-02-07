@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, doc } from "firebase/firestore"
-import { addDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
   DialogContent,
@@ -43,24 +43,7 @@ import { cn } from "@/lib/utils"
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isValid } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { SSTTask, KANBAN_COLUMNS, Status, Priority, TaskType } from "@/types/kanban"
-import { TaskCard } from "@/components/kanban/task-card"
-import { KanbanColumn } from "@/components/kanban/kanban-column"
-
-// DnD Kit Imports
-import {
-  DndContext,
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-  DragEndEvent,
-  DragStartEvent,
-} from "@dnd-kit/core"
-import {
-  sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable"
+import { KanbanBoard } from "@/components/kanban/kanban-board"
 
 // Helper function to safely format dates
 function safeFormat(date: any, formatStr: string) {
@@ -83,8 +66,6 @@ export default function ActionPlans() {
 
   // Modal State
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
-  const [isEditOpen, setIsEditOpen] = React.useState(false)
-  const [selectedTask, setSelectedTask] = React.useState<SSTTask | null>(null)
   const [taskForm, setTaskForm] = React.useState<Partial<SSTTask>>({
     title: "",
     company: "",
@@ -102,35 +83,6 @@ export default function ActionPlans() {
 
   const { data: tasks, isLoading } = useCollection<SSTTask>(tasksQuery)
 
-  // DnD Sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  )
-
-  const [activeId, setActiveId] = React.useState<string | null>(null)
-
-  // Handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
-  }
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return
-
-    const taskId = active.id as string
-    const newStatus = over.id as Status
-
-    const task = tasks?.find(t => t.id === taskId)
-    if (task && task.status !== newStatus) {
-      const taskRef = doc(db!, "clients", user!.uid, "tasks", taskId)
-      updateDocumentNonBlocking(taskRef, { status: newStatus })
-      toast({ title: "Status Atualizado", description: `Intervenção movida para ${newStatus.toUpperCase()}.` })
-    }
-
-    setActiveId(null)
-  }
-
   const handleCreateTask = () => {
     if (!user || !db || !taskForm.title) return
     const colRef = collection(db, "clients", user.uid, "tasks")
@@ -141,6 +93,7 @@ export default function ActionPlans() {
     })
     setIsCreateOpen(false)
     setTaskForm({ title: "", company: "", type: "pgr", priority: "medium", status: "todo", dueDate: new Date() })
+    toast({ title: "Intervenção Criada", description: "A ação foi registrada com sucesso." })
   }
 
   const filteredTasks = React.useMemo(() => {
@@ -217,31 +170,9 @@ export default function ActionPlans() {
 
       {/* Views */}
       {activeView === 'board' && (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin">
-            {KANBAN_COLUMNS.map((col) => (
-              <KanbanColumn 
-                key={col.id}
-                id={col.id}
-                title={col.title}
-                color={col.color}
-                tasks={filteredTasks.filter(t => t.status === col.id)} 
-              />
-            ))}
-          </div>
-          <DragOverlay>
-            {activeId ? (
-              <TaskCard 
-                task={filteredTasks.find(t => t.id === activeId)!} 
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        <div className="min-h-[600px]">
+          <KanbanBoard />
+        </div>
       )}
 
       {activeView === 'list' && (

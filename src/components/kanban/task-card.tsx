@@ -79,7 +79,7 @@ export function TaskCard({ task }: { task: SSTTask }) {
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100/50">
         <div className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
           <Calendar className="w-3 h-3" />
-          <span>{safeFormat(task.dueDate, 'dd/MMM')}</span>
+          <span>{safeFormat(task.dueDate || new Date(), 'dd/MMM')}</span>
         </div>
         
         {/* Avatar (Placeholder) */}
