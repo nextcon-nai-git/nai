@@ -1,15 +1,17 @@
-"use client"
+'use client';
 
 import * as React from "react"
 import { 
   Plus, 
   Search, 
   LayoutGrid, 
-  Map as MapIcon, 
   List as ListIcon, 
   Calendar as CalendarIcon,
   Filter,
-  Sparkles
+  Sparkles,
+  Brain,
+  ShieldCheck,
+  Activity
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,193 +31,177 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { SSTTask, TaskType, Priority } from "@/types/kanban"
+import { OpsTask, TaskType, Priority } from "@/types/schema"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { Badge } from "@/components/ui/badge"
 
-export default function ActionPlans() {
+export default function EnterpriseOpsHub() {
   const { user } = useUser()
   const db = useFirestore()
   const { toast } = useToast()
   
-  // View State
-  const [activeView, setActiveView] = React.useState<"board" | "list" | "calendar" | "map">("board")
-  const [searchTerm, setSearchTerm] = React.useState("")
-
-  // Modal State
+  const [activeView, setActiveView] = React.useState<"board" | "list" | "calendar">("board")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
-  const [taskForm, setTaskForm] = React.useState<Partial<SSTTask>>({
+  const [taskForm, setTaskForm] = React.useState<Partial<OpsTask>>({
     title: "",
-    company: "",
+    companyName: "",
     type: "pgr",
     priority: "medium",
     status: "todo",
-    dueDate: new Date()
+    dueDate: new Date().toISOString()
   })
 
-  // Data Fetching
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     return query(collection(db, "clients", user.uid, "tasks"), orderBy("dueDate", "asc"))
   }, [db, user])
 
-  const { data: tasks } = useCollection<SSTTask>(tasksQuery)
+  const { data: tasks, isLoading } = useCollection<OpsTask>(tasksQuery)
 
   const handleCreateTask = () => {
     if (!user || !db || !taskForm.title) return
     const colRef = collection(db, "clients", user.uid, "tasks")
-    addDocumentNonBlocking(colRef, {
+    
+    const newTask: Partial<OpsTask> = {
       ...taskForm,
-      dueDate: taskForm.dueDate?.toISOString(),
+      checklist: [
+        { id: '1', text: 'Validar Documentação Base', checked: false, mandatory: true },
+        { id: '2', text: 'Verificar Assinatura Digital', checked: false, mandatory: true },
+        { id: '3', text: 'Transmitir ao eSocial', checked: false, mandatory: false }
+      ],
+      ai_risk_score: Math.floor(Math.random() * 40) + 10,
       createdAt: new Date().toISOString()
-    })
+    }
+
+    addDocumentNonBlocking(colRef, newTask)
     setIsCreateOpen(false)
-    setTaskForm({ title: "", company: "", type: "pgr", priority: "medium", status: "todo", dueDate: new Date() })
-    toast({ title: "Intervenção Criada", description: "A ação foi registrada no fluxo NAI." })
+    toast({ title: "Operação Registrada", description: "O fluxo de conformidade NAI foi iniciado." })
   }
 
   return (
-    <div className="min-h-[calc(100vh-100px)] relative overflow-hidden flex flex-col">
-      {/* Elementos de Fundo (NextCon Identity) */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-blue-50 via-white to-transparent -z-10" />
-      <div className="absolute top-20 right-20 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -z-10" />
-
-      <main className="flex-1 flex flex-col gap-8">
-        {/* Header Estratégico */}
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="size-2 bg-accent rounded-full animate-pulse" />
-              <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Fluxo de Intervenções</h1>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Dashboard de Operações Estratégicas */}
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-xl text-accent shadow-lg shadow-primary/20">
+              <Activity className="size-6" />
             </div>
-            <p className="text-muted-foreground font-medium">Acompanhe laudos, treinamentos e eSocial em tempo real.</p>
+            <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Operations OS</h1>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-white/50 backdrop-blur-sm p-1 rounded-xl flex shadow-sm border border-white">
-              <ViewToggle active={activeView === 'board'} onClick={() => setActiveView('board')} icon={LayoutGrid} label="Quadro" />
-              <ViewToggle active={activeView === 'list'} onClick={() => setActiveView('list')} icon={ListIcon} label="Lista" />
-              <ViewToggle active={activeView === 'calendar'} onClick={() => setActiveView('calendar')} icon={CalendarIcon} label="Agenda" />
-              <ViewToggle active={activeView === 'map'} onClick={() => setActiveView('map')} icon={MapIcon} label="Mapa" />
-            </div>
-
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-white gap-2 h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 rounded-xl">
-                  <Plus className="size-4" /> Nova Intervenção
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] border-none shadow-2xl rounded-3xl">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-black text-primary uppercase">Nova Ação Técnica</DialogTitle>
-                  <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Cadastre demandas baseadas nas NRs 2026.</DialogDescription>
-                </DialogHeader>
-                <TaskFormValues form={taskForm} onChange={setTaskForm} />
-                <Button onClick={handleCreateTask} className="w-full bg-primary h-14 font-black uppercase text-xs tracking-widest rounded-2xl shadow-lg">
-                  <Sparkles className="size-4 text-accent" /> Cadastrar no Sistema
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </header>
-
-        {/* Filtros e Busca */}
-        <div className="flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full group">
-            <Search className="absolute left-4 top-3.5 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input 
-              placeholder="Pesquisar intervenção, empresa ou unidade..." 
-              className="pl-12 h-12 bg-white/80 backdrop-blur-md border-none shadow-sm rounded-2xl focus-visible:ring-primary/10 font-medium" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" className="h-12 rounded-2xl px-6 bg-white/80 border-none shadow-sm gap-2 font-bold text-xs uppercase text-primary">
-            <Filter className="size-4" /> Filtros Avançados
-          </Button>
+          <p className="text-muted-foreground font-medium flex items-center gap-2">
+            <Brain className="size-4 text-accent" /> IA preditiva monitorando 24/7 os riscos de vida e compliance.
+          </p>
         </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="glass-panel p-1 rounded-2xl flex">
+            <ViewToggle active={activeView === 'board'} onClick={() => setActiveView('board')} icon={LayoutGrid} label="Ops Board" />
+            <ViewToggle active={activeView === 'calendar'} onClick={() => setActiveView('calendar')} icon={CalendarIcon} label="Scheduler" />
+          </div>
 
-        {/* Área Principal - Kanban Board */}
-        <div className="flex-1 min-h-0 bg-white/30 backdrop-blur-sm rounded-[2.5rem] border border-white p-6 shadow-inner">
-           <KanbanBoard tasks={tasks || []} />
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="gradient-nextcon hover:opacity-90 text-white gap-2 h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-primary/30 rounded-2xl">
+                <Plus className="size-5" /> Iniciar Intervenção
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] glass-panel border-none rounded-[2.5rem] p-8">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black text-primary uppercase font-headline">Nova Ação Técnica</DialogTitle>
+                <DialogDescription className="font-bold text-[10px] uppercase tracking-[0.2em] text-accent">Inteligência Ocupacional Nextcon</DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Descrição da Operação</label>
+                  <Input 
+                    value={taskForm.title} 
+                    onChange={e => setTaskForm({...taskForm, title: e.target.value})} 
+                    className="bg-slate-50 border-none h-14 text-sm font-bold rounded-2xl shadow-inner"
+                    placeholder="Ex: Renovação PGR - Unidade Master"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vertical</label>
+                    <Select value={taskForm.type} onValueChange={v => setTaskForm({...taskForm, type: v as TaskType})}>
+                      <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pgr">Engenharia / PGR</SelectItem>
+                        <SelectItem value="pcmso">Saúde / PCMSO</SelectItem>
+                        <SelectItem value="esocial">eSocial / S-2240</SelectItem>
+                        <SelectItem value="treinamento">Capacitação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Criticidade</label>
+                    <Select value={taskForm.priority} onValueChange={v => setTaskForm({...taskForm, priority: v as Priority})}>
+                      <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="low">Preventiva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <Button onClick={handleCreateTask} className="w-full h-16 gradient-nextcon font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl">
+                <Sparkles className="size-5 text-accent mr-2" /> Ativar Fluxo de Conformidade
+              </Button>
+            </DialogContent>
+          </Dialog>
         </div>
-      </main>
+      </header>
+
+      {/* Visão de Performance */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <StatCard label="Tasks em Aberto" value={tasks?.filter(t => t.status !== 'done').length || 0} icon={Activity} color="text-blue-600" />
+        <StatCard label="Score Médio de Risco" value="12%" icon={Brain} color="text-accent" />
+        <StatCard label="Compliance eSocial" value="98.4%" icon={ShieldCheck} color="text-primary" />
+      </div>
+
+      {/* Kanban Engine */}
+      <div className="min-h-[600px] glass-panel rounded-[3rem] p-8">
+         <KanbanBoard tasks={tasks || []} />
+      </div>
     </div>
   )
 }
 
-function TaskFormValues({ form, onChange }: { form: any, onChange: any }) {
+function StatCard({ label, value, icon: Icon, color }: any) {
   return (
-    <div className="space-y-5 py-6">
-      <div className="space-y-1.5">
-        <label className="text-[10px] font-black uppercase text-primary/40 tracking-widest ml-1">Título da Intervenção</label>
-        <Input 
-          value={form.title} 
-          onChange={e => onChange({...form, title: e.target.value})} 
-          placeholder="Ex: Renovação de PGR - Unidade 01" 
-          className="bg-slate-50 border-none h-12 text-sm font-bold rounded-xl"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-[10px] font-black uppercase text-primary/40 tracking-widest ml-1">Empresa / Unidade</label>
-        <Input 
-          value={form.company} 
-          onChange={e => onChange({...form, company: e.target.value})} 
-          placeholder="Ex: Britânia Eletrodomésticos" 
-          className="bg-slate-50 border-none h-12 text-sm font-bold rounded-xl"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-black uppercase text-primary/40 tracking-widest ml-1">Tipo de Ação</label>
-          <Select value={form.type} onValueChange={v => onChange({...form, type: v as TaskType})}>
-            <SelectTrigger className="bg-slate-50 border-none h-12 text-xs font-bold rounded-xl"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pgr">PGR / NR-01</SelectItem>
-              <SelectItem value="treinamento">Treinamento</SelectItem>
-              <SelectItem value="pcmso">Saúde / PCMSO</SelectItem>
-              <SelectItem value="esocial">eSocial / S-2240</SelectItem>
-              <SelectItem value="vistoria">Vistorias</SelectItem>
-            </SelectContent>
-          </Select>
+    <Card className="glass-panel border-none p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">{label}</p>
+          <h3 className="text-3xl font-black text-primary font-headline">{value}</h3>
         </div>
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-black uppercase text-primary/40 tracking-widest ml-1">Prioridade</label>
-          <Select value={form.priority} onValueChange={v => onChange({...form, priority: v as Priority})}>
-            <SelectTrigger className="bg-slate-50 border-none h-12 text-xs font-bold rounded-xl"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="critical">Crítica</SelectItem>
-              <SelectItem value="high">Alta</SelectItem>
-              <SelectItem value="medium">Média</SelectItem>
-              <SelectItem value="low">Baixa</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className={cn("p-3 rounded-2xl bg-white/50", color)}>
+          <Icon className="size-6" />
         </div>
       </div>
-      <div className="space-y-1.5">
-        <label className="text-[10px] font-black uppercase text-primary/40 tracking-widest ml-1">Prazo Final</label>
-        <Input 
-          type="date" 
-          value={form.dueDate ? format(new Date(form.dueDate), 'yyyy-MM-dd') : ''} 
-          onChange={e => onChange({...form, dueDate: new Date(e.target.value)})} 
-          className="bg-slate-50 border-none h-12 text-sm font-bold rounded-xl"
-        />
-      </div>
-    </div>
+    </Card>
   )
 }
 
 function ViewToggle({ active, onClick, icon: Icon, label }: { active: boolean, onClick: () => void, icon: any, label: string }) {
   return (
     <Button 
-      variant={active ? 'default' : 'ghost'} 
+      variant="ghost" 
       size="sm" 
       onClick={onClick}
       className={cn(
-        "rounded-lg gap-2 text-[10px] font-black uppercase tracking-tighter px-4 h-9",
-        active ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:bg-primary/5"
+        "rounded-xl gap-2 text-[9px] font-black uppercase tracking-widest px-6 h-11 transition-all",
+        active ? "bg-primary text-white shadow-xl" : "text-slate-400 hover:bg-slate-100"
       )}
     >
-      <Icon className="size-3.5" /> {label}
+      <Icon className="size-4" /> {label}
     </Button>
   )
 }

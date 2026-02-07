@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* NextCon Corporate Palette - HSL Mapped from HEX */
+    /* Nextcon Enterprise Palette */
     --background: 210 40% 98%;    /* #F8FAFC */
     --foreground: 215 32% 17%;    /* #1E293B */
     
@@ -46,6 +46,20 @@
   }
 }
 
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/50 shadow-sm transition-all duration-300;
+  }
+  
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-sm border border-white/30 shadow-sm hover:shadow-md transition-all duration-200;
+  }
+
+  .gradient-nextcon {
+    background: linear-gradient(135deg, #003366 0%, #0055A4 100%);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -53,35 +67,22 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
+    background-attachment: fixed;
+    background-image: radial-gradient(at 0% 0%, hsla(210, 100%, 95%, 1) 0, transparent 50%),
+                      radial-gradient(at 50% 0%, hsla(209, 100%, 96%, 1) 0, transparent 50%),
+                      radial-gradient(at 100% 0%, hsla(161, 84%, 97%, 1) 0, transparent 50%);
   }
 }
 
 .font-headline {
   @apply font-semibold tracking-tight;
-  font-family: 'Inter', sans-serif;
-}
-
-.card-shadow {
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  @apply border border-slate-200;
-}
-
-.card-shadow:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.table-dense td {
-  @apply py-2 px-4;
-}
-
-.table-zebra tr:nth-child(even) {
-  @apply bg-slate-50/50;
+  font-family: 'Montserrat', sans-serif;
 }
 
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 rounded-full;
+  @apply bg-primary/20 rounded-full hover:bg-primary/40;
 }
