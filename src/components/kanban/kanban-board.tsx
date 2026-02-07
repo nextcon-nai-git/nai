@@ -2,23 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
-import { SSTTask, KANBAN_COLUMNS, Status } from '@/types/kanban';
+import { OpsTask, TaskStatus } from '@/types/schema';
+import { KANBAN_COLUMNS } from '@/types/kanban';
 import { KanbanColumn } from './kanban-column';
 import { TaskCard } from './task-card';
 import { createPortal } from 'react-dom';
 import { useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from '@/hooks/use-toast';
 
 interface KanbanBoardProps {
-  tasks: SSTTask[];
+  tasks: OpsTask[];
 }
 
 export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
-  const [tasks, setTasks] = useState<SSTTask[]>(initialTasks);
-  const [activeTask, setActiveTask] = useState<SSTTask | null>(null);
+  const [tasks, setTasks] = useState<OpsTask[]>(initialTasks);
+  const [activeTask, setActiveTask] = useState<OpsTask | null>(null);
   const { user } = useUser();
   const db = useFirestore();
+  const { toast } = useToast();
 
   useEffect(() => {
     setTasks(initialTasks);
@@ -43,12 +46,25 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
     if (!over) return;
 
     const taskId = active.id as string;
-    const newStatus = over.id as Status;
+    const newStatus = over.id as TaskStatus;
 
     const currentTask = tasks.find((t) => t.id === taskId);
     if (!currentTask || currentTask.status === newStatus) return;
 
-    // Atualiza estado local para feedback instantâneo
+    // --- COMPLIANCE GATE (Regra de Negócio NextCon) ---
+    if (newStatus === 'done') {
+      const pendingMandatory = currentTask.checklist.filter(item => item.mandatory && !item.checked);
+      if (pendingMandatory.length > 0) {
+        toast({
+          variant: "destructive",
+          title: "Compliance Gate Bloqueado",
+          description: `Existem ${pendingMandatory.length} itens obrigatórios pendentes para finalizar esta tarefa.`,
+        });
+        return; // Interrompe o drop
+      }
+    }
+
+    // Atualiza estado local
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
@@ -57,6 +73,14 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
     if (user && db) {
       const taskRef = doc(db, "clients", user.uid, "tasks", taskId);
       updateDocumentNonBlocking(taskRef, { status: newStatus });
+      
+      // Trigger de Automação
+      if (newStatus === 'done') {
+        toast({
+          title: "Tarefa Finalizada",
+          description: "Gatilhando automação de documentos e envio eSocial...",
+        });
+      }
     }
   }
 
@@ -72,7 +96,7 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
           {KANBAN_COLUMNS.map((col) => (
             <div key={col.id} className="h-full">
                <KanbanColumn
-                  id={col.id}
+                  id={col.id as TaskStatus}
                   title={col.title}
                   color={col.color}
                   tasks={tasks.filter((t) => t.status === col.id)}
