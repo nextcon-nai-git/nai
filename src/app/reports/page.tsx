@@ -11,21 +11,22 @@ import {
   Eye, 
   FileSpreadsheet, 
   Search, 
-  Calendar,
-  Building2,
+  Building2, 
   Filter,
   ArrowRight,
   Info,
   Loader2,
   ExternalLink,
-  FileDown
+  FileDown,
+  ChevronRight,
+  FolderOpen
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, orderBy, where } from "firebase/firestore"
@@ -42,31 +43,23 @@ interface ReportItem {
 
 const REPORTS_MAPPING: Record<string, ReportItem[]> = {
   legal: [
-    { id: "pgr", legacyId: "1422", name: "PGR - Programa de Gerenciamento de Riscos", description: "Gera o documento base da NR-01 (Inventário + Plano de Ação).", icon: FileText },
-    { id: "pcmso", legacyId: "307", name: "PCMSO - Programa de Controle Médico", description: "Gera o documento base da NR-07.", icon: FileText },
-    { id: "ltcat", legacyId: "431", name: "LTCAT - Laudo Técnico", description: "Laudo para Aposentadoria Especial (INSS).", icon: FileText },
-    { id: "ppp", legacyId: "277", name: "PPP - Perfil Profissiográfico", description: "Histórico laboral do funcionário (Físico ou Digital).", icon: FileText },
-    { id: "insalubridade", legacyId: "1313", name: "Laudo de Insalubridade (NR-15)", description: "Avaliação de adicionais de insalubridade.", icon: FileText },
-    { id: "periculosidade", legacyId: "1383", name: "Laudo de Periculosidade (NR-16)", description: "Avaliação de adicionais de periculosidade.", icon: FileText },
-    { id: "anual", legacyId: "306", name: "Relatório Anual do PCMSO", description: "Estatística obrigatória de exames anuais.", icon: FileText },
+    { id: "pgr", legacyId: "1422", name: "PGR - Gerenciamento de Riscos", description: "Documento base NR-01 (Inventário + Plano de Ação).", icon: FileText },
+    { id: "pcmso", legacyId: "307", name: "PCMSO - Controle Médico", description: "Protocolos de saúde NR-07.", icon: FileText },
+    { id: "ltcat", legacyId: "431", name: "LTCAT - Laudo Previdenciário", description: "Enquadramento para Aposentadoria Especial.", icon: FileText },
+    { id: "ppp", legacyId: "277", name: "PPP - Perfil Profissiográfico", description: "Histórico laboral digital do funcionário.", icon: FileText },
   ],
   health: [
-    { id: "aso", legacyId: "321 / 1527", name: "ASOs Emitidos", description: "Lista de Atestados (Aptos, Inaptos, Restrições).", icon: HeartPulse },
-    { id: "due", legacyId: "302", name: "Vencimento de Exames", description: "Quem precisa renovar exames (Vencidos e a Vencer).", icon: HeartPulse },
-    { id: "absenteeism", legacyId: "226 / 1535", name: "Absenteísmo & Afastamentos", description: "Análise de faltas, atestados médicos e CIDs.", icon: HeartPulse },
-    { id: "audio", legacyId: "304 / 440", name: "Relatório de Audiometria / PCA", description: "Acompanhamento da saúde auditiva.", icon: HeartPulse },
-    { id: "epidemiological", legacyId: "324", name: "Perfil Epidemiológico", description: "Visão geral da saúde da população da empresa.", icon: BarChart3 },
+    { id: "aso", legacyId: "321", name: "ASOs Emitidos", description: "Lista de Atestados (Aptos e Inaptos).", icon: HeartPulse },
+    { id: "due", legacyId: "302", name: "Vencimento de Exames", description: "Próximas renovações por unidade.", icon: HeartPulse },
+    { id: "absenteeism", legacyId: "226", name: "Absenteísmo & CIDs", description: "Análise de faltas e afastamentos médicos.", icon: HeartPulse },
   ],
   safety: [
-    { id: "ppe", legacyId: "281 / 1511", name: "Comprovante de Entrega de EPI", description: "Histórico de fichas de EPI assinadas.", icon: ShieldAlert },
-    { id: "actions", legacyId: "1393", name: "Plano de Ação (Cronograma)", description: "Status das ações corretivas do PGR.", icon: ShieldAlert },
-    { id: "cat", legacyId: "322 / 1529", name: "Relatório de Acidentes/CAT", description: "Estatísticas de acidentes e taxas de gravidade.", icon: ShieldAlert },
-    { id: "risk_map", legacyId: "338", name: "Mapa de Riscos", description: "Representação gráfica dos riscos por setor.", icon: ShieldAlert },
-    { id: "training", legacyId: "260", name: "Status de Treinamentos", description: "Quem fez e quem precisa fazer cursos obrigatórios.", icon: ShieldAlert },
+    { id: "ppe", legacyId: "281", name: "Ficha de EPI", description: "Histórico de entregas e assinaturas digitais.", icon: ShieldAlert },
+    { id: "actions", legacyId: "1393", name: "Cronograma de Ações", description: "Status das medidas corretivas do PGR.", icon: ShieldAlert },
   ],
   indicators: [
-    { id: "census", legacyId: "267", name: "Listagem de Funcionários Ativos", description: "Relatório simples de quem está na base (Censo).", icon: BarChart3 },
-    { id: "ntep", legacyId: "350", name: "Relatório NTEP", description: "Nexo Técnico Epidemiológico (Relação Doença x Trabalho).", icon: BarChart3 },
+    { id: "census", legacyId: "267", name: "Censo de Funcionários", description: "Listagem de vidas ativas na base.", icon: BarChart3 },
+    { id: "ntep", legacyId: "350", name: "Fator Acidentário (FAP)", description: "Impacto tributário por nexo epidemiológico.", icon: BarChart3 },
   ]
 }
 
@@ -83,6 +76,14 @@ export default function ReportsCenter() {
   }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
 
+  const groupedCompanies = React.useMemo(() => {
+    if (!companies) return { parents: [], orphans: [] }
+    const parents = companies.filter(c => c.isParent)
+    const children = companies.filter(c => c.parentId)
+    const orphans = companies.filter(c => !c.parentId && !c.isParent)
+    return { parents, children, orphans }
+  }, [companies])
+
   const uploadedReportsQuery = useMemoFirebase(() => {
     if (!db || !user) return null
     let q = query(collection(db, "clients", user.uid, "reports"), orderBy("createdAt", "desc"))
@@ -93,26 +94,12 @@ export default function ReportsCenter() {
   }, [db, user, selectedCompanyId])
   const { data: uploadedReports } = useCollection(uploadedReportsQuery)
 
-  const handleAction = (report: ReportItem, action: string) => {
-    const realFile = uploadedReports?.find(r => r.reportType === report.id)
-    
-    if (realFile && action === 'Visualizar') {
-      window.open(realFile.fileUrl, '_blank')
-      return
-    }
-
-    toast({
-      title: `${action} Relatório`,
-      description: `Processando "${report.name}" (ID Legado: ${report.legacyId})...`
-    })
-  }
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight uppercase">Central de Relatórios NEXTCON</h1>
-          <p className="text-muted-foreground">Interface unificada para documentos técnicos e indicadores de SST.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Central de Relatórios NextCon</h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Interface unificada para pastas e unidades do cliente.</p>
         </div>
       </div>
 
@@ -120,29 +107,42 @@ export default function ReportsCenter() {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2 md:col-span-2">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Unidade / Cliente Selecionado</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Pasta / Unidade Selecionada</label>
               <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                 <SelectTrigger className="bg-muted/30 border-none h-12">
                   <div className="flex items-center gap-2">
-                    <Building2 className="size-4 opacity-50" />
+                    <FolderOpen className="size-4 opacity-50" />
                     <SelectValue placeholder="Todas as Unidades" />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Unidades</SelectItem>
-                  {companies?.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  {groupedCompanies.parents.map(parent => (
+                    <SelectGroup key={parent.id}>
+                      <SelectLabel className="font-black text-primary uppercase text-[9px] bg-primary/5 py-2">{parent.name}</SelectLabel>
+                      {groupedCompanies.children.filter(c => c.parentId === parent.id).map(child => (
+                        <SelectItem key={child.id} value={child.id} className="pl-6 text-[11px] uppercase">{child.name}</SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
+                  {groupedCompanies.orphans.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel className="font-black uppercase text-[9px]">Empresas Gerais</SelectLabel>
+                      {groupedCompanies.orphans.map(c => (
+                        <SelectItem key={c.id} value={c.id} className="text-[11px] uppercase">{c.name}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Data Inicial</label>
+              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Filtrar por Período</label>
               <Input type="date" className="bg-muted/30 border-none h-12" />
             </div>
             <div className="flex items-end">
-              <Button className="w-full gap-2 bg-[#090e24] font-bold h-12 uppercase text-[10px] tracking-widest">
-                <Filter className="size-4" /> Filtrar Relatórios
+              <Button className="w-full gap-2 bg-primary font-bold h-12 uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20">
+                <Filter className="size-4" /> Aplicar Filtro
               </Button>
             </div>
           </div>
@@ -151,18 +151,10 @@ export default function ReportsCenter() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="legal" className="rounded-lg gap-2 text-xs font-bold">
-            ⚖️ <span className="hidden sm:inline">Docs Legais</span>
-          </TabsTrigger>
-          <TabsTrigger value="health" className="rounded-lg gap-2 text-xs font-bold">
-            🩺 <span className="hidden sm:inline">Saúde</span>
-          </TabsTrigger>
-          <TabsTrigger value="safety" className="rounded-lg gap-2 text-xs font-bold">
-            🦺 <span className="hidden sm:inline">Segurança</span>
-          </TabsTrigger>
-          <TabsTrigger value="indicators" className="rounded-lg gap-2 text-xs font-bold">
-            📊 <span className="hidden sm:inline">Indicadores</span>
-          </TabsTrigger>
+          <TabsTrigger value="legal" className="rounded-lg gap-2 text-xs font-bold">Documentos Legais</TabsTrigger>
+          <TabsTrigger value="health" className="rounded-lg gap-2 text-xs font-bold">Saúde Ocupacional</TabsTrigger>
+          <TabsTrigger value="safety" className="rounded-lg gap-2 text-xs font-bold">Segurança do Trabalho</TabsTrigger>
+          <TabsTrigger value="indicators" className="rounded-lg gap-2 text-xs font-bold">Indicadores & BI</TabsTrigger>
         </TabsList>
 
         {Object.entries(REPORTS_MAPPING).map(([category, reports]) => (
@@ -174,76 +166,47 @@ export default function ReportsCenter() {
                 const ReportIcon = report.icon;
                 
                 return (
-                  <Card key={report.id} className={`card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white ${realFile ? 'border-l-4 border-l-[#f59e0b]' : ''}`}>
+                  <Card key={report.id} className={cn(
+                    "card-shadow border-none hover:ring-2 ring-primary/10 transition-all group bg-white",
+                    realFile ? "border-l-4 border-l-accent" : ""
+                  )}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
-                        <div className={`p-2 rounded-lg transition-colors ${realFile ? 'bg-[#f59e0b] text-[#090e24]' : 'bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white'}`}>
+                        <div className={cn(
+                          "p-2 rounded-lg transition-colors",
+                          realFile ? "bg-accent text-primary" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white"
+                        )}>
                           <ReportIcon className="size-5" />
                         </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-tighter">
-                            ID: {report.legacyId}
-                          </Badge>
-                          {realFile && (
-                            <Badge className="bg-emerald-600 text-[8px] uppercase font-black">Disponível</Badge>
-                          )}
-                        </div>
+                        <Badge variant="outline" className="text-[8px] font-black opacity-40 uppercase tracking-tighter">ID {report.legacyId}</Badge>
                       </div>
                       <CardTitle className="text-sm font-bold text-primary mt-2">{report.name}</CardTitle>
                       <CardDescription className="text-[11px] leading-tight line-clamp-2 min-h-[2.5rem]">
-                        {report.description}
+                        {realFile ? `Unidade: ${company?.name}` : report.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-2 border-t mt-2">
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-blue-50 text-blue-700"
-                          onClick={() => handleAction(report, 'Visualizar')}
-                        >
-                          <Eye className="size-3" /> Original
-                        </Button>
-                        
-                        {/* BOTÃO DINÂMICO PARA GERAR O PDF OFICIAL COM BASE NA ANÁLISE SALVA */}
+                      <div className="grid grid-cols-2 gap-2">
                         {realFile?.analysisData ? (
-                          <div className="flex flex-col items-center">
-                            <PDFDownloadLink 
-                              document={<SSTDocument data={realFile.analysisData} company={company} type={report.id.toUpperCase() as any} />} 
-                              fileName={`${report.id.toUpperCase()}_Nextcon_${company?.name || 'Relatorio'}.pdf`}
-                              className="w-full"
-                            >
-                              {({ loading }) => (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="w-full text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 bg-emerald-50 text-emerald-700"
-                                  disabled={loading}
-                                >
-                                  {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-3" />}
-                                  Dossiê
-                                </Button>
-                              )}
-                            </PDFDownloadLink>
-                          </div>
-                        ) : (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 text-muted-foreground opacity-30"
-                            disabled
+                          <PDFDownloadLink 
+                            document={<SSTDocument data={realFile.analysisData} company={company} type={report.id.toUpperCase() as any} />} 
+                            fileName={`${report.id.toUpperCase()}_NextCon_${company?.name}.pdf`}
+                            className="w-full"
                           >
-                            <FileDown className="size-3" /> Dossiê
+                            {({ loading }) => (
+                              <Button variant="ghost" size="sm" className="w-full text-[9px] font-black uppercase bg-emerald-50 text-emerald-700 hover:bg-emerald-100 h-9 gap-2">
+                                {loading ? <Loader2 className="size-3 animate-spin" /> : <FileDown className="size-3" />}
+                                Dossiê Oficial
+                              </Button>
+                            )}
+                          </PDFDownloadLink>
+                        ) : (
+                          <Button variant="ghost" size="sm" className="text-[9px] font-black uppercase text-muted-foreground opacity-30 h-9" disabled>
+                            <FileDown className="size-3 mr-2" /> Sem Dados
                           </Button>
                         )}
-
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-[9px] font-black uppercase p-0 h-8 flex flex-col gap-0.5 hover:bg-amber-50 text-amber-700"
-                          onClick={() => handleAction(report, 'Exportar Excel')}
-                        >
-                          <FileSpreadsheet className="size-3" /> Excel
+                        <Button variant="ghost" size="sm" className="text-[9px] font-black uppercase bg-primary/5 text-primary hover:bg-primary/10 h-9">
+                          <Eye className="size-3 mr-2" /> Detalhes
                         </Button>
                       </div>
                     </CardContent>
@@ -254,14 +217,6 @@ export default function ReportsCenter() {
           </TabsContent>
         ))}
       </Tabs>
-
-      <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex gap-3">
-        <Info className="size-5 text-primary shrink-0" />
-        <div className="text-xs text-primary/80 space-y-1">
-          <p><strong>Dica NEXTCON:</strong> Relatórios com a faixa lateral amarela possuem arquivos originais e análises NAI salvas.</p>
-          <p>Clique em <strong>"Dossiê"</strong> para gerar o documento oficial com a logo da sua empresa e o parecer técnico.</p>
-        </div>
-      </div>
     </div>
   )
 }

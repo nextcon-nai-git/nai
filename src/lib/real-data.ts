@@ -1,168 +1,72 @@
 /**
- * Base de dados real extraída para carga massiva no sistema NEXTCON.
- * Clientes e Colaboradores vinculados por companyId.
+ * Base de dados real extraída para carga massiva no sistema NextCon.
+ * Implementa Hierarquia de Unidades (Subpastas) para contratos master como Time Now.
  */
 
 export const REAL_COMPANIES = [
+  // --- CLIENTE MASTER: TIME NOW ---
   { 
     id: "CLI_TIMENOW", 
     name: "TIMENOW GESTÃO DE OBRAS LTDA", 
-    unit: "ArcelorMittal Vega",
-    city: "São Francisco do Sul", 
+    city: "Vitória", 
+    state: "ES",
     cnpj: "48.865.462/0001-06", 
     segment: "CONSTRUCTION", 
-    address: "BR-280, ArcelorMittal Vega", 
-    phone: "(27) 3348-1000",
-    email: "contato@timenow.com.br",
-    cnae: "4399-1/01",
-    riskGrade: "3"
+    isParent: true,
+    updatedAt: new Date().toISOString()
   },
-  { 
-    id: "CLI037", 
-    name: "BRITANIA ELETRODOMESTICOS SA", 
-    city: "Joinville", 
-    cnpj: "76.492.701/0011-29", 
-    segment: "INDUSTRY", 
-    address: "PIRABEIRABA, Joinville/SC", 
-    phone: "(41) 3218-7700",
-    email: "corporativo@britania.com.br"
-  },
-  { 
-    id: "CLI117", 
-    name: "BRITANIA ELETRODOMESTICOS SA (ANA SOFIA)", 
-    city: "Joinville", 
-    cnpj: "76.492.701/0014-71", 
-    segment: "INDUSTRY", 
-    address: "Joinville/SC"
-  },
-  {
-    id: "CLI_CONSTRUFAM",
-    name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA",
-    city: "Curitiba",
-    cnpj: "00.000.000/0001-00",
-    segment: "CONSTRUCTION",
-    address: "Curitiba/PR"
-  },
-  {
-    id: "CLI_NATIVA",
-    name: "NATIVA EMPREENDIMENTOS LTDA",
-    city: "Curitiba",
-    cnpj: "00.000.000/0001-99",
-    segment: "CONSTRUCTION",
-    address: "Curitiba/PR"
-  }
+  
+  // --- SUBUNIDADES TIME NOW (PASTAS) ---
+  { id: "TN_SUZANO_TL", parentId: "CLI_TIMENOW", name: "SUZANO TRÊS LAGOAS", city: "Três Lagoas", state: "MS", address: "ROD BR 158 KM 298, S/N", segment: "INDUSTRY", riskGrade: "3" },
+  { id: "TN_SUZANO_JAC", parentId: "CLI_TIMENOW", name: "SUZANO JACAREÍ", city: "Jacareí", state: "SP", address: "Rod. Gen. Euryale de Jesus Zerbine, Km 84", segment: "INDUSTRY" },
+  { id: "TN_SUZANO_CER", parentId: "CLI_TIMENOW", name: "SUZANO CERRADO", city: "Ribas do Rio Pardo", state: "MS", address: "Rodovia BR margem direita do Km 617", segment: "INDUSTRY", riskGrade: "3" },
+  { id: "TN_VALE_SALOBO", parentId: "CLI_TIMENOW", name: "VALE PARADAS GPPI SALOBO - 15", city: "Marabá", state: "PA", address: "Acampamento 3 Alfa – Floresta Nacional Tapirape", segment: "INDUSTRY" },
+  { id: "TN_VALE_PSHIFT", parentId: "CLI_TIMENOW", name: "VALE 13 - POWER SHIFT", city: "Vitória", state: "ES", address: "Avenida Dante Michelini, 5500", segment: "INDUSTRY", cnpj: "33.592.510/0220-42" },
+  { id: "TN_VALE_PREDITIVA", parentId: "CLI_TIMENOW", name: "VALE INSPEÇÃO PREDITIVA - 14", city: "Vitória", state: "ES", address: "Avenida Dante Michelini, 5500", segment: "INDUSTRY" },
+  { id: "TN_NESTLE_CAC", parentId: "CLI_TIMENOW", name: "NESTLE CAÇAPAVA - SP", city: "Caçapava", state: "SP", address: "AV: Henry Nestle, 1800", segment: "INDUSTRY", riskGrade: "3" },
+  { id: "TN_VALE_BRIQUET", parentId: "CLI_TIMENOW", name: "VALE 16 - BRIQUETAGEM VIX", city: "Vitória", state: "ES", address: "Avenida Dante Michelini, 5500", segment: "INDUSTRY" },
+  { id: "TN_VPORTS", parentId: "CLI_TIMENOW", name: "VPORTS 01", city: "Vitória", state: "ES", address: "AV GETULIO VARGAS, 556", segment: "GENERAL" },
+  { id: "TN_SUZANO_ARA", parentId: "CLI_TIMENOW", name: "SUZANO - ARACRUZ - ES", city: "Aracruz", state: "ES", address: "Rod. Aracruz x Barra do Riacho S/N Km 25", segment: "INDUSTRY" },
+  { id: "TN_BAYER_CAM", parentId: "CLI_TIMENOW", name: "BAYER 02 CAMAÇARI BA", city: "Camaçari", state: "BA", address: "Rua Eterno, 5001", segment: "INDUSTRY", riskGrade: "3" },
+  { id: "TN_SUZANO_MODAL", parentId: "CLI_TIMENOW", name: "SUZANO 18 - Impl.Terminal Modal", city: "Inocência", state: "MS", address: "Rod MS 316, Km 66", segment: "INDUSTRY" },
+  { id: "TN_SUZANO_SAN", parentId: "CLI_TIMENOW", name: "SUZANO 19", city: "Santos", state: "SP", address: "Av. Governador Mário Covas Junior, S/N", segment: "INDUSTRY" },
+  { id: "TN_ALCOA_POCOS", parentId: "CLI_TIMENOW", name: "ALCOA - POÇOS DE CALDAS", city: "Poços de Caldas", state: "MG", address: "ROD POCOS DE CALDAS - ANDRADAS KM 10", segment: "INDUSTRY", riskGrade: "3" },
+  { id: "TN_ALCOA_JURUTI", parentId: "CLI_TIMENOW", name: "ALCOA - UNIDADE JURUTI - PA", city: "Juruti", state: "PA", address: "LG ENSEADA DO LAGO GRANDE DE JURUTI", segment: "INDUSTRY" },
+  { id: "TN_BUNGE_MT", parentId: "CLI_TIMENOW", name: "Bunge - Projeto Caldeira - MT", city: "Rondonópolis", state: "MT", address: "ROD BR 364, SN", segment: "INDUSTRY" },
+  { id: "TN_BUNGE_BA", parentId: "CLI_TIMENOW", name: "Bunge - Corporativo - BA", city: "Luis Eduardo Magalhaes", state: "BA", address: "AV DIOCLECIO RAMOS, 1636", segment: "INDUSTRY" },
+  { id: "TN_CONTINENTAL", parentId: "CLI_TIMENOW", name: "CONTINENTAL PNEUS", city: "Camaçari", state: "BA", address: "Rod Ba 530 Via Cetrel", segment: "INDUSTRY" },
+  { id: "TN_VALE_INSP_PA", parentId: "CLI_TIMENOW", name: "VALE 15 - INSPEÇAO PARA", city: "Marabá", state: "PA", address: "Floresta Nacional Tapirape Aquiri", segment: "INDUSTRY" },
+  { id: "TN_VALE_FERROVIA", parentId: "CLI_TIMENOW", name: "VALE – FERROVIA (PA/MA)", city: "São Luis", state: "MA", address: "Av dos Portugueses, S/N", segment: "INDUSTRY" },
+  { id: "TN_DOW_PA", parentId: "CLI_TIMENOW", name: "DOW QUIMICOS ( BREU BCO - PA )", city: "Breu Branco", state: "PA", address: "ROD PA 263 KM 35", segment: "INDUSTRY" },
+  { id: "TN_DORF", parentId: "CLI_TIMENOW", name: "DORF KETAL BRASIL LTDA", city: "Nova Santa Rita", state: "RS", address: "RUA DA PEDREIRA, 559", segment: "INDUSTRY" },
+  { id: "TN_SOLENIS", parentId: "CLI_TIMENOW", name: "SOLENIS - PE", city: "Igarassu", state: "PE", address: "ROD PE-041, S/N", segment: "INDUSTRY" },
+  { id: "TN_AM_PECEM", parentId: "CLI_TIMENOW", name: "Arcelormittal-Pecem-CE", city: "Pecem", state: "CE", address: "ROD CE - 085", segment: "INDUSTRY" },
+  { id: "TN_VEGA", parentId: "CLI_TIMENOW", name: "Arcellor Mittal Vega", city: "São Francisco do Sul", state: "SC", address: "BR-280, Vega", segment: "INDUSTRY" },
+
+  // --- OUTROS CLIENTES ---
+  { id: "CLI037", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", state: "SC", cnpj: "76.492.701/0011-29", segment: "INDUSTRY" },
+  { id: "CLI_CONSTRUFAM", name: "CONSTRUFAM ENGENHARIA", city: "Curitiba", state: "PR", segment: "CONSTRUCTION" },
+  { id: "CLI_NATIVA", name: "NATIVA EMPREENDIMENTOS", city: "Curitiba", state: "PR", segment: "CONSTRUCTION" }
 ];
 
 export const REAL_EMPLOYEES = [
-  // --- TIMENOW GESTÃO DE OBRAS (ArcelorMittal Vega) ---
-  { name: "ANALISTA ADM MODELO", companyId: "CLI_TIMENOW", jobRole: "Analista Técnico", ghe: "GHE 01 - ADMINISTRATIVO", status: "ACTIVE" },
-  { name: "ENGENHEIRO ELETRICO MODELO", companyId: "CLI_TIMENOW", jobRole: "Engenheiro(a) de Projetos", ghe: "GHE 02 - PROJETOS ELÉTRICOS", status: "ACTIVE" },
-  { name: "ANALISTA PLANEJAMENTO MODELO", companyId: "CLI_TIMENOW", jobRole: "Analista de Planejamento", ghe: "GHE 03 - GESTÃO DE PROJETOS", status: "ACTIVE" },
-  { name: "TECNICO DE CAMPO MODELO", companyId: "CLI_TIMENOW", jobRole: "Técnico de Campo (Elétrico)", ghe: "GHE 04 - FISCALIZAÇÃO", status: "ACTIVE", hazard: "Ruído 90.4 dB", specialRetirement: true },
-
-  // --- BRITÂNIA SA (CLI037) ---
-  { name: "SIMONE MARAGNO DOS SANTOS", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "01/01/2023", status: "ACTIVE" },
-  { name: "BRUNA FELIX BRANCO", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "09/07/2024", status: "ACTIVE" },
-  { name: "HARANTHIA RODRIGUES SOUSA", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "22/11/2023", status: "ACTIVE" },
-  { name: "ELIANE VICENTIN", companyId: "CLI037", jobRole: "Operador de Produção", admissionDate: "10/05/2022", status: "ACTIVE" },
-
-  // --- CONSTRUFAM ENGENHARIA (CLI_CONSTRUFAM) ---
-  { id: "0000000012", name: "ADILSON JOSE DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000001", name: "ADMERSON MORAES DE OSTI", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000021", name: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000002", name: "EDERLEI ALVES DA SILVEIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000003", name: "EMANUELLY EDUARDA STRAUB FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR ADMINISTRATIVO", status: "ACTIVE" },
-  { id: "0000000013", name: "EVADI FERNANDES", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000018", name: "Felipe Gustavo Ruiz Vicari", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000019", name: "GEOVANI CAVALCANTE SILVA", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000016", name: "Heudrian Giovanni Motta Gonçalves", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000004", name: "JAIR CESAR DE LARA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000015", name: "JONATHAN BRUNO FERREIRA", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000020", name: "Lucas Miguel Santana Kokot", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000010", name: "MARCOS ANTONIO MUNIZ", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR DE HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000014", name: "MARLLON SOUZA PACHECO", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000017", name: "Marlos Moises Ribeiro Martins", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000005", name: "NICAMAQUE DE JESUS AMARAL DA SILVA MENDE", companyId: "CLI_CONSTRUFAM", jobRole: "AUXILIAR HIDROMETRIA", status: "ACTIVE" },
-  { id: "0000000011", name: "PAULO HENRIQUE MASTECK", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-  { id: "0000000008", name: "VANDERLAM MUNHOZ", companyId: "CLI_CONSTRUFAM", jobRole: "HIDROMETRISTA", status: "ACTIVE" },
-
-  // --- NATIVA EMPREENDIMENTOS (CLI_NATIVA) ---
-  { id: "0000000002", name: "Helder Leonei Becker de Souza", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO LAGUNA", status: "ACTIVE" },
-  { id: "0000000001", name: "JOÃO VICTOR NASCIMENTO DE OLIVEIRA", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
-  { id: "0000000004", name: "Kelvin dos Santos Costa", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
-  { id: "0000000003", name: "Sidney Gomes Perchis", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
-  { id: "0000000005", name: "Tiago Alves Santana da Silva", companyId: "CLI_NATIVA", jobRole: "Servente de Obras", location: "OBRAS - EDIFÍCIO MONACO", status: "ACTIVE" },
+  { name: "ANALISTA ADM MODELO", companyId: "TN_VEGA", jobRole: "Analista Técnico", status: "ACTIVE" },
+  { name: "TECNICO DE CAMPO MODELO", companyId: "TN_VEGA", jobRole: "Técnico de Campo", status: "ACTIVE" },
+  { name: "SIMONE MARAGNO", companyId: "CLI037", jobRole: "Operador de Produção", status: "ACTIVE" },
 ];
 
 export const REAL_EXPERTISES = [
-  {
-    id: "PER001",
-    companyId: "CLI037",
-    date: "2026-02-24T14:20:00",
-    employeeName: "Simone Maragno dos Santos",
-    value: 378700.08,
-    jobRole: "Operador de Produção",
-    caseNumber: "0002042-15.2025.5.12.0030",
-    disease: "Lesão no Ombro / Manguito Rotador",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "M75.1"
-  },
-  {
-    id: "PER011",
-    companyId: "CLI037",
-    date: "2026-02-10T12:00:00",
-    employeeName: "Jessica Gomes dos Santos",
-    value: 1252734.93,
-    jobRole: "Auxiliar Técnica",
-    caseNumber: "0001556-52.2025.5.12.0050",
-    disease: "Doença Ocupacional (9 anos)",
-    status: "Quesitos Protocolados",
-    type: "Médica",
-    cid: "M75"
-  }
+  { id: "PER001", companyId: "CLI037", date: "2026-02-24T14:20:00", employeeName: "Simone Maragno dos Santos", value: 378700.08, caseNumber: "0002042-15.2025.5.12.0030", disease: "Lesão no Ombro", status: "Quesitos Protocolados", type: "Médica", cid: "M75.1" }
 ];
 
 export const REAL_EXAMS = [
   { name: "Avaliação Clínica (ASO)" },
   { name: "Audiometria Tonal Ocupacional" },
-  { name: "Acuidade Visual (Ortho-Rater)" },
-  { name: "Espirometria (Prova de Função Pulmonar)" },
+  { name: "Espirometria" },
   { name: "Eletrocardiograma (ECG)" },
-  { name: "Eletroencefalograma (EEG)" },
   { name: "Radiografia de Tórax (Padrão OIT)" },
-  { name: "Radiografia de Coluna Lombo-Sacra" },
-  { name: "Hemograma Completo com Plaquetas" },
+  { name: "Hemograma Completo" },
   { name: "Glicemia de Jejum" },
-  { name: "Exame Toxicológico (Larga Janela - CNH)" },
-  { name: "Avaliação Psicossocial (NR-33 / NR-35)" },
-  { name: "Teste de Ishihara (Daltonismo)" },
-  { name: "Urina Tipo I (EAS)" },
-  { name: "Creatinina Sérica" },
-  { name: "TGO / TGP (Transaminases)" },
-  { name: "Gamma-GT" },
-  { name: "Lipidograma Completo" },
-  { name: "Colinesterase Plasmática / Eritrocitária" },
-  { name: "Ácido Hipúrico (Urina) - Tolueno" },
-  { name: "Ácido Metil-Hipúrico (Urina) - Xilenos" },
-  { name: "Ácido Trans, Trans-Mucônico (Urina) - Benzeno" },
-  { name: "Ácido Mandélico (Urina) - Estireno" },
-  { name: "Fenol na Urina" },
-  { name: "Chumbo Inorgânico no Sangue" },
-  { name: "Mercúrio na Urina" },
-  { name: "Cádmio na Urina" },
-  { name: "Manganês na Urina" },
-  { name: "Fluoretos na Urina" },
-  { name: "Cromo na Urina" },
-  { name: "Níquel na Urina" },
-  { name: "Carboxihemoglobina (CO)" },
-  { name: "Metahemoglobina" },
-  { name: "Coprocultura e Coproparasitológico" },
-  { name: "VDRL (Sífilis)" },
-  { name: "Pesquisa de BAAR (Tuberculose)" },
-  { name: "Dinamometria Escapular / Dorsal" },
-  { name: "Avaliação Ergonômica Analítica (AET)" },
-  { name: "Telerradiografia de Tórax" },
-  { name: "Ácido Delta Amino Levulínico (ALA-U)" },
-  { name: "Acetona na Urina" }
+  { name: "Avaliação Psicossocial" },
+  { name: "Acuidade Visual" }
 ];
