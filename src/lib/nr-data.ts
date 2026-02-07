@@ -35,6 +35,24 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
       },
       { 
         id: "1.2", 
+        category: "Saúde Mental / Psicossocial",
+        question: "O PGR identifica e avalia os riscos psicossociais e organizacionais (estresse, burnout, assédio) que podem comprometer a saúde mental dos trabalhadores?", 
+        legal_ref: "1.5.3.1.1",
+        legal_text: "A organização deve implementar, por unidade operacional, o gerenciamento de riscos ocupacionais... identificando os perigos, inclusive os psicossociais.",
+        criticality: "critical",
+        help_text: "Verificar se houve aplicação de Pulse Surveys, avaliações de clima ou protocolos de identificação de estresse crônico no ambiente."
+      },
+      { 
+        id: "1.3", 
+        category: "Prevenção de Assédio",
+        question: "Existem canais de denúncia e medidas preventivas implementadas contra o assédio moral e sexual no ambiente de trabalho?", 
+        legal_ref: "Lei 14.457/22 (Integrada à NR-01/05)",
+        legal_text: "As empresas devem incluir regras de conduta a respeito do assédio moral e sexual e de outras formas de violência nas normas internas da empresa.",
+        criticality: "critical",
+        help_text: "Item mandatório para conformidade 2026. Verificar existência de comitê de ética e treinamentos realizados sobre o tema."
+      },
+      { 
+        id: "1.4", 
         category: "Plano de Ação",
         question: "Existe um cronograma de implementação das medidas de controle com datas e responsáveis definidos?", 
         legal_ref: "1.5.5.2",
@@ -43,7 +61,7 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
         help_text: "O PGR não pode ser estático. Verifique se as datas passadas foram cumpridas."
       },
       { 
-        id: "1.3", 
+        id: "1.5", 
         category: "Direito de Recusa",
         question: "Os trabalhadores foram informados sobre o direito de recusa em situações de risco grave e iminente?", 
         legal_ref: "1.4.3",
@@ -107,15 +125,6 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
         legal_text: "As zonas de perigo das máquinas e equipamentos devem possuir sistemas de segurança, caracterizados por proteções fixas, proteções móveis e dispositivos de segurança intertravados.",
         criticality: "critical",
         help_text: "Não deve ser possível burlar a proteção. Distância de segurança conforme NBR ISO 13857."
-      },
-      {
-        id: "12.3",
-        category: "Dispositivos de Segurança",
-        question: "Sensores e intertravamentos de segurança são monitorados por relés de segurança?",
-        legal_ref: "12.5.1.1",
-        legal_text: "Os sistemas de segurança devem ser selecionados e instalados de modo a atender as categorias de segurança conforme análise de risco.",
-        criticality: "high",
-        help_text: "Verificar no painel elétrico a presença de relés de segurança (geralmente amarelos ou vermelhos)."
       }
     ]
   },
@@ -155,15 +164,6 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
         legal_text: "A PET deve ser emitida, em três vias, antes do início das atividades, pelo Responsável Técnico ou Supervisor de Entrada.",
         criticality: "critical",
         help_text: "Verificar se a PET está assinada e contém as medições de gases atualizadas."
-      },
-      {
-        id: "33.2",
-        category: "Vigilância",
-        question: "O Vigia permanece no exterior do espaço confinado durante todo o tempo de trabalho?",
-        legal_ref: "33.3.4.1",
-        legal_text: "O vigia deve permanecer fora do espaço confinado, junto à entrada, em contato permanente com os trabalhadores autorizados.",
-        criticality: "critical",
-        help_text: "O vigia não pode realizar outras tarefas ou abandonar o posto."
       }
     ]
   },
