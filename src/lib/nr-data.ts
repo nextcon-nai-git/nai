@@ -8,7 +8,7 @@ export interface ChecklistItem {
   category: string; // Ex: "Documentação", "Campo", "EPI"
   question: string;
   legal_ref: string; // O item exato da norma. Ex: "10.2.4"
-  criticality: 'high' | 'medium' | 'low'; // Para priorizar o plano de ação
+  criticality: 'critical' | 'high' | 'medium' | 'low'; // Para priorizar o plano de ação
   help_text: string; // Dica para o técnico (O que olhar?)
 }
 
@@ -25,35 +25,35 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
     items: [
       { 
         id: "1.1", 
-        category: "Gestão",
-        question: "A empresa possui o PGR (Programa de Gerenciamento de Riscos) implementado?", 
-        legal_ref: "1.5.3.1",
+        category: "Gerenciamento de Riscos (PGR)",
+        question: "O Inventário de Riscos contempla a caracterização dos processos, ambientes e identificação de perigos de forma individualizada?", 
+        legal_ref: "1.5.7.3.2",
         criticality: "high",
-        help_text: "Verifique se existe o documento físico ou digital assinado e se a data de emissão é inferior a 2 anos."
+        help_text: "Verificar se há distinção clara entre GHEs e se todos os perigos (físicos, químicos, biológicos, ergonômicos e acidentes) foram listados."
       },
       { 
         id: "1.2", 
-        category: "Campo",
-        question: "O inventário de riscos contempla todas as etapas do processo produtivo?", 
-        legal_ref: "1.5.4.4.1",
+        category: "Plano de Ação",
+        question: "Existe um cronograma de implementação das medidas de controle com datas e responsáveis definidos?", 
+        legal_ref: "1.5.5.2",
         criticality: "high",
-        help_text: "Compare o fluxograma operacional com o inventário. Verifique se existem atividades não mapeadas como limpeza ou manutenção."
+        help_text: "O PGR não pode ser estático. Verifique se as datas passadas foram cumpridas."
       },
       { 
         id: "1.3", 
-        category: "Gestão",
-        question: "Existe um plano de ação com cronograma de execução das medidas?", 
-        legal_ref: "1.5.5.2",
+        category: "Direito de Recusa",
+        question: "Os trabalhadores foram informados sobre o direito de recusa em situações de risco grave e iminente?", 
+        legal_ref: "1.4.3",
         criticality: "medium",
-        help_text: "O plano deve ter data, responsável e status. Itens 'atrasados' devem ter justificativa técnica."
+        help_text: "Verificar evidência em Ordem de Serviço ou treinamento de integração."
       },
       { 
         id: "1.4", 
-        category: "Jurídico",
-        question: "O PGR é assinado por profissional legalmente habilitado?", 
-        legal_ref: "1.5.7.2",
-        criticality: "high",
-        help_text: "Verifique o registro no conselho de classe (CREA/CRM) do engenheiro ou médico."
+        category: "Consultoria aos Trabalhadores",
+        question: "Houve consulta aos trabalhadores na percepção dos riscos ocupacionais para elaboração do PGR?", 
+        legal_ref: "1.5.3.3",
+        criticality: "medium",
+        help_text: "Verificar atas de reunião, CIPA ou formulários de consulta prévia."
       }
     ]
   },
@@ -63,27 +63,35 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
     items: [
       { 
         id: "10.1", 
-        category: "Documentação",
-        question: "O prontuário de instalações elétricas está atualizado?", 
-        legal_ref: "10.2.3",
+        category: "Prontuário (PIE)",
+        question: "O Prontuário das Instalações Elétricas (PIE) está organizado e atualizado dentro da empresa?", 
+        legal_ref: "10.2.4",
         criticality: "high",
-        help_text: "Deve conter esquemas unifilares, laudo de SPDA e certificações de equipamentos."
+        help_text: "Obrigatório para cargas acima de 75kW. Deve conter diagramas unifilares atualizados."
       },
       { 
         id: "10.2", 
-        category: "Campo",
-        question: "Os painéis elétricos possuem sinalização e barreira física?", 
-        legal_ref: "10.4.1",
-        criticality: "high",
-        help_text: "Check se existem partes vivas expostas e se há placa de 'Perigo: Alta Tensão'."
+        category: "Medidas de Controle",
+        question: "As partes vivas das instalações elétricas possuem isolamento, barreiras ou invólucros para impedir contato acidental?", 
+        legal_ref: "10.2.8.2",
+        criticality: "critical",
+        help_text: "Verificar quadros elétricos abertos ou fiação exposta. O IP (Índice de Proteção) deve ser adequado."
       },
       { 
         id: "10.3", 
-        category: "Treinamento",
-        question: "Trabalhadores possuem curso de NR-10 válido?", 
-        legal_ref: "10.8.8",
+        category: "EPI e EPC",
+        question: "As vestimentas de trabalho são adequadas às atividades e possuem proteção contra arco elétrico (ATP)?", 
+        legal_ref: "10.2.9.2",
         criticality: "high",
-        help_text: "Validade de 2 anos. Verifique se o certificado possui conteúdo programático conforme anexo III."
+        help_text: "Uniformes 100% algodão não são suficientes para alta tensão. Verificar etiqueta CA e nível de ATPV."
+      },
+      { 
+        id: "10.4", 
+        category: "Bloqueio e Etiquetagem (LOTO)",
+        question: "Existe procedimento documentado e materiais para bloqueio e impedimento de reenergização?", 
+        legal_ref: "10.5.1",
+        criticality: "critical",
+        help_text: "Verificar cadeados, garras de bloqueio e etiquetas de sinalização em uso."
       }
     ]
   },
@@ -93,27 +101,35 @@ export const NR_CHECKLISTS: Record<string, NRChecklist> = {
     items: [
       { 
         id: "35.1", 
-        category: "Capacitação",
-        question: "Trabalhadores possuem treinamento de NR-35 válido?", 
-        legal_ref: "35.4.1",
-        criticality: "high",
-        help_text: "Curso de 8h mínimo. Verifique a aptidão médica no ASO (Trabalho em Altura)."
+        category: "Planejamento",
+        question: "A Análise de Risco (AR) foi emitida antes do início da atividade, considerando os riscos inerentes e adicionais?", 
+        legal_ref: "35.4.5.1",
+        criticality: "critical",
+        help_text: "A AR deve estar assinada na frente de trabalho. Não aceitar AR genérica de escritório."
       },
       { 
         id: "35.2", 
-        category: "Operacional",
-        question: "A Análise de Risco (AR) foi elaborada?", 
-        legal_ref: "35.4.5",
-        criticality: "high",
-        help_text: "A AR deve ser específica para o local e dia da atividade, não pode ser genérica."
+        category: "Sistema de Ancoragem",
+        question: "Os pontos de ancoragem possuem projeto, inspeção e suportam a carga mínima exigida?", 
+        legal_ref: "35.5.3",
+        criticality: "critical",
+        help_text: "Verificar laudo dos pontos de ancoragem (olhais) assinado por PLH (Profissional Legalmente Habilitado)."
       },
       { 
         id: "35.3", 
-        category: "Equipamento",
-        question: "Os EPIs de retenção de queda estão inspecionados?", 
-        legal_ref: "35.5.1",
+        category: "Plano de Resgate",
+        question: "Existe plano de emergência e equipe capacitada para resgate rápido em caso de suspensão inerte?", 
+        legal_ref: "35.6.1",
         criticality: "high",
-        help_text: "Verifique fitas, costuras e conectores. Busque pelo CA (Certificado de Aprovação) válido."
+        help_text: "O trauma de suspensão mata em minutos. O plano não pode ser apenas 'chamar os bombeiros'."
+      },
+      { 
+        id: "35.4", 
+        category: "EPI",
+        question: "O cinturão de segurança é do tipo paraquedista e o talabarte/trava-quedas é compatível e está inspecionado?", 
+        legal_ref: "35.5.5",
+        criticality: "high",
+        help_text: "Verificar validade do CA e estado de conservação das fitas e costuras."
       }
     ]
   }

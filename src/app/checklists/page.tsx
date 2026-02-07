@@ -409,10 +409,11 @@ export default function ChecklistsPage() {
                             <Badge variant="secondary" className="text-[8px] font-black uppercase bg-slate-100">{item.category}</Badge>
                             <Badge className={cn(
                               "text-[8px] font-black uppercase border-none",
+                              item.criticality === 'critical' ? 'bg-slate-900 text-white' :
                               item.criticality === 'high' ? 'bg-red-100 text-red-700' :
                               item.criticality === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
                             )}>
-                              Risco {item.criticality === 'high' ? 'Alto' : item.criticality === 'medium' ? 'Médio' : 'Baixo'}
+                              {item.criticality === 'critical' ? 'CRÍTICO' : `Risco ${item.criticality === 'high' ? 'Alto' : item.criticality === 'medium' ? 'Médio' : 'Baixo'}`}
                             </Badge>
                           </div>
                           <p className="text-sm font-bold text-[#002d9c] leading-snug">{item.question}</p>
@@ -447,7 +448,7 @@ export default function ChecklistsPage() {
                             onClick={() => handleStatusChange(item.id, 'NA')}
                             className={cn(
                               "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-slate-500 shadow-md" : "hover:bg-slate-50 text-slate-600 border-slate-100"
+                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-slate-500 shadow-md" : "hover:bg-slate-600 text-slate-600 border-slate-100"
                             )}
                           >
                             <MinusCircle className="size-3" /> NA
