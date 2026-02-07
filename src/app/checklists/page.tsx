@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   FileText,
   Sparkles,
-  Brain,
   CloudUpload,
   Layers,
   Search,
@@ -47,7 +46,11 @@ import {
   MinusCircle,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Gavel,
+  ShieldX,
+  Camera,
+  BookOpen
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -71,7 +74,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { NR_CHECKLISTS, getGenericChecklist, NRChecklist } from "@/lib/nr-data"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { NR_CHECKLISTS, getGenericChecklist, NRChecklist, ChecklistItem } from "@/lib/nr-data"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Gestão", title: "NR-01 - Gerenciamento de Riscos (PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -89,27 +102,10 @@ const CHECKLIST_CATALOG = [
   { id: "nr14", category: "Técnico", title: "NR-14 - Fornos", icon: Flame, color: "text-orange-700" },
   { id: "nr15", category: "Legal", title: "NR-15 - Insalubridade", icon: Hammer, color: "text-blue-800" },
   { id: "nr16", category: "Legal", title: "NR-16 - Periculosidade", icon: Zap, color: "text-red-500" },
-  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: Brain, color: "text-blue-700" },
+  { id: "nr17", category: "Ergonomia", title: "NR-17 - Ergonomia", icon: BookOpen, color: "text-blue-700" },
   { id: "nr18", category: "Obras", title: "NR-18 - Construção Civil", icon: HardHat, color: "text-orange-500" },
-  { id: "nr19", category: "Risco", title: "NR-19 - Explosivos", icon: Bomb, color: "text-red-600" },
-  { id: "nr20", category: "Risco", title: "NR-20 - Inflamáveis", icon: Droplets, color: "text-red-500" },
-  { id: "nr21", category: "Trabalho", title: "NR-21 - Trabalho a Céu Aberto", icon: Sun, color: "text-yellow-600" },
-  { id: "nr22", category: "Mineração", title: "NR-22 - Mineração", icon: Mountain, color: "text-gray-800" },
-  { id: "nr23", category: "Fogo", title: "NR-23 - Proteção Contra Incêndios", icon: Flame, color: "text-red-500" },
-  { id: "nr24", category: "Conforto", title: "NR-24 - Condições Sanitárias", icon: Bath, color: "text-blue-300" },
-  { id: "nr25", category: "Resíduos", title: "NR-25 - Resíduos Industriais", icon: Trash2, color: "text-emerald-700" },
-  { id: "nr26", category: "Sinalização", title: "NR-26 - Sinalização de Segurança", icon: AlertTriangle, color: "text-yellow-600" },
-  { id: "nr28", category: "Legal", title: "NR-28 - Fiscalização e Penalidades", icon: Scale, color: "text-blue-900" },
-  { id: "nr29", category: "Porto", title: "NR-29 - Trabalho Portuário", icon: Anchor, color: "text-blue-900" },
-  { id: "nr30", category: "Náutico", title: "NR-30 - Trabalho Aquaviário", icon: Ship, color: "text-blue-800" },
-  { id: "nr31", category: "Rural", title: "NR-31 - Agrícola e Florestal", icon: Leaf, color: "text-green-600" },
-  { id: "nr32", category: "Saúde", title: "NR-32 - Serviços de Saúde", icon: Stethoscope, color: "text-emerald-500" },
   { id: "nr33", category: "Espaço", title: "NR-33 - Espaços Confinados", icon: Box, color: "text-blue-600" },
-  { id: "nr34", category: "Naval", title: "NR-34 - Construção Naval", icon: Ship, color: "text-blue-800" },
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: ArrowUpCircle, color: "text-blue-500" },
-  { id: "nr36", category: "Alimentos", title: "NR-36 - Abate e Processamento", icon: Utensils, color: "text-red-400" },
-  { id: "nr37", category: "Petróleo", title: "NR-37 - Plataformas de Petróleo", icon: HardHat, color: "text-gray-700" },
-  { id: "nr38", category: "Limpeza", title: "NR-38 - Limpeza Urbana", icon: Recycle, color: "text-green-500" },
 ]
 
 interface UploadingFile {
@@ -118,7 +114,6 @@ interface UploadingFile {
   status: 'CLASSIFYING' | 'ANALYZING' | 'UPLOADING' | 'COMPLETED' | 'ERROR'
   progress: number
   type?: string
-  result?: any
 }
 
 type ChecklistStatus = 'C' | 'NC' | 'NA' | null;
@@ -130,15 +125,19 @@ export default function ChecklistsPage() {
   const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("catalog")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
-  const [uploadQueue, setUploadQueue] = React.useState<UploadingFile[]>([])
   const [searchTerm, setSearchTerm] = React.useState("")
   const [filterCategory, setFilterCategory] = React.useState("all")
 
-  // Estados para o Checklist Ativo
+  // Estados do Checklist
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false)
   const [activeNR, setActiveNR] = React.useState<NRChecklist | null>(null)
   const [responses, setResponses] = React.useState<Record<string, ChecklistStatus>>({})
   const [expandedHelp, setExpandedHelp] = React.useState<Record<string, boolean>>({})
+  const [selectedLawItem, setSelectedLawItem] = React.useState<ChecklistItem | null>(null)
+  
+  // Alerta de Risco Grave
+  const [criticalAlertOpen, setCriticalAlertOpen] = React.useState(false)
+  const [lastCriticalItem, setLastCriticalItem] = React.useState<ChecklistItem | null>(null)
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -155,11 +154,6 @@ export default function ChecklistsPage() {
     })
   }, [searchTerm, filterCategory])
 
-  const categories = React.useMemo(() => {
-    const cats = Array.from(new Set(CHECKLIST_CATALOG.map(i => i.category)))
-    return ["all", ...cats]
-  }, [])
-
   const handleOpenChecklist = (nrId: string, title: string) => {
     if (!selectedCompanyId) {
       toast({ variant: "destructive", title: "Empresa Obrigatória", description: "Selecione um cliente no topo da página antes de iniciar o checklist." });
@@ -172,12 +166,14 @@ export default function ChecklistsPage() {
     setIsChecklistOpen(true);
   }
 
-  const handleStatusChange = (itemId: string, status: ChecklistStatus) => {
-    setResponses(prev => ({ ...prev, [itemId]: status }));
-  }
-
-  const toggleHelp = (itemId: string) => {
-    setExpandedHelp(prev => ({ ...prev, [itemId]: !prev[itemId] }));
+  const handleStatusChange = (item: ChecklistItem, status: ChecklistStatus) => {
+    setResponses(prev => ({ ...prev, [item.id]: status }));
+    
+    // Lógica de Intervenção Ativa para NC Crítico
+    if (status === 'NC' && item.criticality === 'critical') {
+      setLastCriticalItem(item);
+      setCriticalAlertOpen(true);
+    }
   }
 
   const checklistProgress = React.useMemo(() => {
@@ -186,93 +182,15 @@ export default function ChecklistsPage() {
     return (answered / activeNR.items.length) * 100;
   }, [responses, activeNR])
 
-  const handleFinishInspection = async () => {
-    if (!user || !db || !activeNR) return;
-    
-    try {
-      await addDoc(collection(db, "clients", user.uid, "inspections"), {
-        companyId: selectedCompanyId,
-        nr: activeNR.nr,
-        responses,
-        score: (Object.values(responses).filter(v => v === 'C').length / activeNR.items.length) * 100,
-        createdAt: new Date().toISOString(),
-        technician: user.email
-      });
-      
-      toast({ title: "Inspeção Finalizada", description: `Dados da ${activeNR.nr} salvos com sucesso.` });
-      setIsChecklistOpen(false);
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro ao salvar inspeção" });
-    }
-  }
-
-  const handleFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-    
-    if (!selectedCompanyId) {
-      toast({ variant: "destructive", title: "Empresa Não Selecionada", description: "Selecione um cliente antes de subir os documentos." })
-      return
-    }
-
-    const newUploads: UploadingFile[] = Array.from(files).map(f => ({
-      id: Math.random().toString(36).substring(7),
-      name: f.name,
-      status: 'CLASSIFYING',
-      progress: 10
-    }))
-
-    setUploadQueue(prev => [...newUploads, ...prev])
-    setActiveTab("scanner")
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
-      const queueId = newUploads[i].id
-
-      try {
-        const reader = new FileReader()
-        reader.onload = async (event) => {
-          const dataUri = event.target?.result as string
-          const classification = await classifyDocument({ pdfDataUri: dataUri, fileName: file.name })
-          const detectedType = classification.docType
-          
-          updateFileStatus(queueId, { status: 'UPLOADING', type: detectedType, progress: 90 })
-          const storagePath = STORAGE_PATHS.COMPANY_DOCS(selectedCompanyId, detectedType)
-          const fileRef = ref(storage, storagePath)
-          const uploadResult = await uploadBytes(fileRef, file)
-          const downloadUrl = await getDownloadURL(uploadResult.ref)
-
-          await addDoc(collection(db, "clients", user!.uid, "reports"), {
-            companyId: selectedCompanyId,
-            reportType: detectedType,
-            fileName: file.name,
-            fileUrl: downloadUrl,
-            createdAt: new Date().toISOString(),
-            status: "AVAILABLE"
-          })
-
-          updateFileStatus(queueId, { status: 'COMPLETED', progress: 100 })
-        }
-        reader.readAsDataURL(file)
-      } catch (err: any) {
-        updateFileStatus(queueId, { status: 'ERROR', progress: 0 })
-      }
-    }
-  }
-
-  const updateFileStatus = (id: string, updates: Partial<UploadingFile>) => {
-    setUploadQueue(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f))
-  }
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Operações SST Inteligentes</h1>
-          <p className="text-muted-foreground font-medium">Gestão normativa e checklists de campo em tempo real.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Audit System NAI</h1>
+          <p className="text-muted-foreground font-medium">Gestão normativa e inteligência de inspeção 2026.</p>
         </div>
         <div className="w-full md:w-72">
-          <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Vincular Atividades a:</label>
+          <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Auditando Unidade:</label>
           <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
             <SelectTrigger className="bg-white border-muted h-11 text-xs shadow-sm">
               <SelectValue placeholder="Selecione o Cliente" />
@@ -290,9 +208,9 @@ export default function ChecklistsPage() {
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="catalog" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Catálogo NRs 2026</TabsTrigger>
           <TabsTrigger value="scanner" className="rounded-lg gap-2 font-bold uppercase text-[10px]">
-            <Layers className="size-4 text-[#00b4ff]" /> Upload em Lote
+            <Layers className="size-4 text-[#00b4ff]" /> Scanner em Lote
           </TabsTrigger>
-          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Arquivos Recentes</TabsTrigger>
+          <TabsTrigger value="history" className="rounded-lg gap-2 font-bold uppercase text-[10px]">Histórico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalog" className="mt-6 space-y-6">
@@ -300,27 +218,12 @@ export default function ChecklistsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
               <Input 
-                placeholder="Pesquisar Norma (ex: NR-35, Altura, PGR)..." 
+                placeholder="Pesquisar Norma (ex: NR-12, Altura, PET)..." 
                 className="pl-10 h-11 bg-white border-none shadow-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-48 h-11 bg-white border-none shadow-sm">
-                <div className="flex items-center gap-2">
-                  <Filter className="size-4 text-muted-foreground" />
-                  <SelectValue placeholder="Categoria" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(cat => (
-                  <SelectItem key={cat} value={cat} className="capitalize">
-                    {cat === "all" ? "Todas Categorias" : cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -329,16 +232,16 @@ export default function ChecklistsPage() {
               return (
                 <Card 
                   key={item.id} 
-                  className="cursor-pointer hover:ring-2 ring-[#002d9c]/10 transition-all group bg-white border-none card-shadow"
+                  className="cursor-pointer hover:ring-2 ring-primary/10 transition-all group bg-white border-none card-shadow"
                   onClick={() => handleOpenChecklist(item.id, item.title)}
                 >
                   <CardContent className="p-5 flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-[#002d9c] group-hover:text-white transition-all shrink-0", item.color)}>
+                    <div className={cn("p-3 rounded-xl bg-muted/50 group-hover:bg-primary group-hover:text-white transition-all shrink-0", item.color)}>
                       <Icon className="size-6" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[9px] font-black uppercase opacity-50 truncate">{item.category}</p>
-                      <h3 className="text-[11px] font-bold text-[#002d9c] leading-tight line-clamp-2">{item.title}</h3>
+                      <h3 className="text-[11px] font-bold text-primary leading-tight line-clamp-2">{item.title}</h3>
                     </div>
                   </CardContent>
                 </Card>
@@ -346,52 +249,22 @@ export default function ChecklistsPage() {
             })}
           </div>
         </TabsContent>
-
-        <TabsContent value="scanner" className="mt-6 space-y-6">
-          <Card className="border-none shadow-xl bg-white overflow-hidden">
-            <CardHeader className="bg-muted/30 border-b">
-              <CardTitle className="flex items-center gap-2 text-[#002d9c]">Triagem Automática NAI</CardTitle>
-              <CardDescription>A IA identificará o tipo do laudo e vinculará à empresa selecionada.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-              <div className={cn(
-                "border-2 border-dashed rounded-3xl p-12 text-center relative group transition-all",
-                selectedCompanyId ? "bg-muted/10 hover:bg-muted/20 border-muted" : "bg-muted/5 border-muted/20 opacity-50 cursor-not-allowed"
-              )}>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept=".pdf" 
-                  className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
-                  onChange={handleFilesUpload}
-                  disabled={!selectedCompanyId}
-                />
-                <div className="space-y-2">
-                  <CloudUpload className="size-12 mx-auto text-[#002d9c] opacity-40 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-[#002d9c]">
-                    {selectedCompanyId ? `Solte o lote de laudos aqui` : "Selecione um cliente para habilitar o upload"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Dialog do Checklist Ativo */}
       <Dialog open={isChecklistOpen} onOpenChange={setIsChecklistOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
-          <DialogHeader className="p-6 bg-[#002d9c] text-white">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-3xl">
+          <DialogHeader className="p-6 bg-primary text-white">
             <div className="flex justify-between items-start">
               <div>
                 <DialogTitle className="text-xl font-headline font-black uppercase flex items-center gap-2">
-                  <ClipboardCheck className="size-6 text-[#00b4ff]" /> {activeNR?.nr} - Auditoria de Campo
+                  <ClipboardCheck className="size-6 text-accent" /> {activeNR?.nr} - Auditoria de Campo
                 </DialogTitle>
                 <DialogDescription className="text-white/70 font-bold uppercase text-[10px] mt-1">
-                  Cliente: {companies?.find(c => c.id === selectedCompanyId)?.name}
+                  Unidade: {companies?.find(c => c.id === selectedCompanyId)?.name}
                 </DialogDescription>
               </div>
-              <Badge className="bg-[#00b4ff] text-[#002d9c] font-black">{Math.round(checklistProgress)}%</Badge>
+              <Badge className="bg-accent text-primary font-black">{Math.round(checklistProgress)}%</Badge>
             </div>
             <Progress value={checklistProgress} className="h-1.5 mt-4 bg-white/20" />
           </DialogHeader>
@@ -399,79 +272,90 @@ export default function ChecklistsPage() {
           <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC]">
             <div className="space-y-4">
               {activeNR?.items.map((item) => (
-                <Card key={item.id} className="border-none shadow-sm bg-white overflow-hidden">
+                <Card key={item.id} className={cn(
+                  "border-none shadow-sm bg-white overflow-hidden transition-all",
+                  item.criticality === 'critical' ? "ring-1 ring-red-100" : ""
+                )}>
                   <CardContent className="p-4">
                     <div className="flex flex-col gap-4">
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-[8px] font-black border-[#002d9c]/20 text-[#002d9c] uppercase">Item {item.legal_ref}</Badge>
-                            <Badge variant="secondary" className="text-[8px] font-black uppercase bg-slate-100">{item.category}</Badge>
+                            <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary uppercase">Item {item.legal_ref}</Badge>
                             <Badge className={cn(
                               "text-[8px] font-black uppercase border-none",
                               item.criticality === 'critical' ? 'bg-slate-900 text-white' :
-                              item.criticality === 'high' ? 'bg-red-100 text-red-700' :
-                              item.criticality === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                              item.criticality === 'high' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                             )}>
-                              {item.criticality === 'critical' ? 'CRÍTICO' : `Risco ${item.criticality === 'high' ? 'Alto' : item.criticality === 'medium' ? 'Médio' : 'Baixo'}`}
+                              {item.criticality === 'critical' ? 'CRÍTICO' : `Risco ${item.criticality.toUpperCase()}`}
                             </Badge>
+                            <button 
+                              onClick={() => setSelectedLawItem(item)}
+                              className="text-slate-400 hover:text-primary transition-colors"
+                              title="Ver Base Legal"
+                            >
+                              <Gavel className="size-3.5" />
+                            </button>
                           </div>
-                          <p className="text-sm font-bold text-[#002d9c] leading-snug">{item.question}</p>
+                          <p className="text-sm font-bold text-primary leading-snug">{item.question}</p>
                         </div>
                         
                         <div className="flex gap-1 shrink-0">
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleStatusChange(item.id, 'C')}
+                            onClick={() => handleStatusChange(item, 'C')}
                             className={cn(
-                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                              responses[item.id] === 'C' ? "bg-emerald-500 text-white border-emerald-500 shadow-md" : "hover:bg-emerald-50 text-emerald-600 border-emerald-100"
+                              "h-10 px-4 font-black text-[10px]",
+                              responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-md" : "text-emerald-600 border-emerald-100"
                             )}
                           >
-                            <Check className="size-3" /> C
+                            C
                           </Button>
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleStatusChange(item.id, 'NC')}
+                            onClick={() => handleStatusChange(item, 'NC')}
                             className={cn(
-                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                              responses[item.id] === 'NC' ? "bg-red-500 text-white border-red-500 shadow-md" : "hover:bg-red-50 text-red-600 border-red-100"
+                              "h-10 px-4 font-black text-[10px]",
+                              responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-md" : "text-red-600 border-red-100"
                             )}
                           >
-                            <AlertOctagon className="size-3" /> NC
+                            NC
                           </Button>
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleStatusChange(item.id, 'NA')}
+                            onClick={() => handleStatusChange(item, 'NA')}
                             className={cn(
-                              "h-10 px-4 gap-2 font-black text-[10px] transition-all",
-                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-slate-500 shadow-md" : "hover:bg-slate-600 text-slate-600 border-slate-100"
+                              "h-10 px-4 font-black text-[10px]",
+                              responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-md" : "text-slate-600 border-slate-100"
                             )}
                           >
-                            <MinusCircle className="size-3" /> NA
+                            NA
                           </Button>
                         </div>
                       </div>
 
+                      {item.criticality === 'critical' && responses[item.id] === 'C' && (
+                        <div className="bg-blue-50 p-2 rounded-lg flex items-center gap-2 animate-in slide-in-from-top-1">
+                          <Camera className="size-3 text-primary" />
+                          <span className="text-[9px] font-bold text-primary uppercase">Evidência fotográfica recomendada para este item.</span>
+                        </div>
+                      )}
+
                       <div className="border-t border-dashed pt-3">
                         <button 
-                          onClick={() => toggleHelp(item.id)}
-                          className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-[#002d9c] transition-colors"
+                          onClick={() => setExpandedHelp(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                          className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-primary transition-colors"
                         >
-                          <Info className="size-3" /> 
-                          Guia de Inspeção NAI
+                          <Info className="size-3" /> Guia NAI Advisor
                           {expandedHelp[item.id] ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
                         </button>
-                        
                         {expandedHelp[item.id] && (
-                          <div className="mt-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 animate-in slide-in-from-top-2 duration-300">
-                            <p className="text-[11px] leading-relaxed text-[#002d9c]/80 italic">
-                              {item.help_text}
-                            </p>
-                          </div>
+                          <p className="mt-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-[11px] leading-relaxed text-primary/80 italic">
+                            {item.help_text}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -484,15 +368,58 @@ export default function ChecklistsPage() {
           <DialogFooter className="p-4 bg-white border-t">
             <Button variant="ghost" onClick={() => setIsChecklistOpen(false)} className="font-black uppercase text-[10px]">Cancelar</Button>
             <Button 
-              onClick={handleFinishInspection} 
               disabled={checklistProgress < 100}
-              className="bg-[#002d9c] text-white font-black uppercase text-[10px] tracking-widest px-8 h-12 shadow-lg"
+              className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-8 h-12"
             >
-              <Sparkles className="size-4 text-[#00b4ff] mr-2" /> Finalizar Inspeção
+              <Sparkles className="size-4 text-accent mr-2" /> Finalizar Inspeção
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Base Legal */}
+      <Dialog open={!!selectedLawItem} onOpenChange={() => setSelectedLawItem(null)}>
+        <DialogContent className="sm:max-w-[500px] rounded-3xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="outline" className="text-primary font-black uppercase border-primary/20">NR-Ref: {selectedLawItem?.legal_ref}</Badge>
+            </div>
+            <DialogTitle className="text-xl font-black text-primary uppercase">{activeNR?.nr} - Embasamento Legal</DialogTitle>
+          </DialogHeader>
+          <div className="bg-muted/30 p-6 rounded-2xl border border-muted-foreground/10">
+            <p className="text-sm leading-relaxed text-primary/80 font-medium italic">
+              "{selectedLawItem?.legal_text || "O conteúdo integral desta cláusula está sendo atualizado pela base legal 2026."}"
+            </p>
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase font-bold text-center mt-4">
+            Fonte: Portal do Governo Federal / MTE 2026
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Alerta de Risco Grave */}
+      <AlertDialog open={criticalAlertOpen} onOpenChange={setCriticalAlertOpen}>
+        <AlertDialogContent className="bg-red-50 border-red-200 rounded-[2.5rem]">
+          <AlertDialogHeader>
+            <div className="mx-auto size-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+              <ShieldX className="size-10" />
+            </div>
+            <AlertDialogTitle className="text-2xl font-black text-red-900 uppercase text-center">Risco Grave e Iminente!</AlertDialogTitle>
+            <AlertDialogDescription className="text-red-800 font-medium text-center">
+              Você identificou uma Não Conformidade em um item **CRÍTICO** ({lastCriticalItem?.legal_ref}). 
+              Isso pode resultar em acidentes graves ou interdição legal imediata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center gap-2 mt-6">
+            <AlertDialogCancel className="bg-white border-red-200 text-red-900 font-bold uppercase text-xs h-12 px-6">
+              Apenas Registrar
+            </AlertDialogCancel>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs h-12 px-6">
+              Abrir Plano de Ação Urgente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
