@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
@@ -18,12 +19,12 @@ export function KanbanColumn({ id, title, tasks, color }: ColumnProps) {
   });
 
   return (
-    <div className="flex flex-col h-full w-full min-w-[280px]">
+    <div className="flex flex-col h-full w-full min-w-[300px]">
       {/* Cabeçalho da Coluna */}
-      <div className="flex items-center justify-between mb-4 px-2">
-        <h3 className="font-bold text-slate-700 flex items-center gap-2 uppercase text-[10px] tracking-widest">
+      <div className="flex items-center justify-between mb-5 px-3">
+        <h3 className="font-black text-primary/60 flex items-center gap-3 uppercase text-[10px] tracking-[0.2em]">
           {title}
-          <span className="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-mono font-black">
+          <span className="bg-primary/5 text-primary text-[10px] px-2.5 py-0.5 rounded-full font-mono font-black">
             {tasks.length}
           </span>
         </h3>
@@ -33,18 +34,20 @@ export function KanbanColumn({ id, title, tasks, color }: ColumnProps) {
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 p-3 rounded-2xl transition-colors duration-200 min-h-[500px]",
-          color, // Cor de fundo suave vinda de KANBAN_COLUMNS
-          isOver ? "ring-2 ring-primary/20 ring-inset bg-primary/5" : ""
+          "flex-1 p-3 rounded-[2rem] transition-all duration-300 min-h-[500px] border border-transparent",
+          color, 
+          isOver ? "ring-4 ring-primary/5 bg-primary/5 border-primary/10 scale-[1.01]" : ""
         )}
       >
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+        <div className="space-y-1">
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} />
+          ))}
+        </div>
         
         {tasks.length === 0 && (
-          <div className="h-32 flex flex-col items-center justify-center text-slate-400 text-[10px] font-black uppercase border-2 border-dashed border-slate-200 rounded-xl gap-2 opacity-40">
-            <span>Solte aqui</span>
+          <div className="h-40 flex flex-col items-center justify-center text-primary/20 text-[10px] font-black uppercase border-2 border-dashed border-primary/5 rounded-3xl gap-2 mt-4">
+            <span className="tracking-widest">Arraste aqui</span>
           </div>
         )}
       </div>

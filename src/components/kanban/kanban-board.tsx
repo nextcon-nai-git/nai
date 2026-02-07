@@ -1,28 +1,33 @@
+
 'use client';
 
-import { useState } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useState, useEffect } from 'react';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
 import { SSTTask, KANBAN_COLUMNS, Status } from '@/types/kanban';
 import { KanbanColumn } from './kanban-column';
 import { TaskCard } from './task-card';
 import { createPortal } from 'react-dom';
+import { useFirestore, useUser } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
-// Dados de Exemplo (Mock) - Em produção, isso viria do Firestore
-const INITIAL_TASKS: SSTTask[] = [
-  { id: '1', title: 'PGR - Britânia Eletrodomésticos', company: 'Britânia', status: 'todo', priority: 'high', type: 'pgr', dueDate: new Date() },
-  { id: '2', title: 'Treinamento CIPA Turma 1', company: 'Noxi Quimica', status: 'doing', priority: 'medium', type: 'treinamento', dueDate: new Date() },
-  { id: '3', title: 'Envio S-2240 (Admissão)', company: 'Biavatti', status: 'done', priority: 'critical', type: 'esocial', dueDate: new Date() },
-  { id: '4', title: 'PCMSO Anual', company: 'MLS Serviços', status: 'review', priority: 'low', type: 'pcmso', dueDate: new Date() },
-];
+interface KanbanBoardProps {
+  tasks: SSTTask[];
+}
 
-export function KanbanBoard() {
-  const [tasks, setTasks] = useState<SSTTask[]>(INITIAL_TASKS);
+export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
+  const [tasks, setTasks] = useState<SSTTask[]>(initialTasks);
   const [activeTask, setActiveTask] = useState<SSTTask | null>(null);
+  const { user } = useUser();
+  const db = useFirestore();
 
-  // Configuração dos sensores (para funcionar bem em mobile e desktop)
+  useEffect(() => {
+    setTasks(initialTasks);
+  }, [initialTasks]);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 5 }, // Previne drag acidental ao clicar
+      activationConstraint: { distance: 5 },
     })
   );
 
@@ -42,29 +47,30 @@ export function KanbanBoard() {
     const newStatus = over.id as Status;
 
     const currentTask = tasks.find((t) => t.id === taskId);
-    if (currentTask?.status === newStatus) return;
+    if (!currentTask || currentTask.status === newStatus) return;
 
-    // Atualiza o estado visualmente
+    // Atualiza estado local para feedback instantâneo
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
 
-    // Lógica de Negócio Nextcon
-    if (newStatus === 'done' && currentTask?.type === 'esocial') {
-        // Automação: Iniciando validação do XML eSocial
-        console.log("Automação Nextcon: Iniciando validação do XML eSocial...");
+    // Persiste no Firestore
+    if (user && db) {
+      const taskRef = doc(db, "clients", user.uid, "tasks", taskId);
+      updateDocumentNonBlocking(taskRef, { status: newStatus });
     }
   }
 
   return (
     <DndContext 
       sensors={sensors} 
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart} 
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full gap-6 overflow-x-auto pb-4 px-2 snap-x scrollbar-thin">
+      <div className="flex h-full gap-6 overflow-x-auto pb-4 scrollbar-thin">
         {KANBAN_COLUMNS.map((col) => (
-          <div key={col.id} className="snap-center h-full">
+          <div key={col.id} className="h-full">
              <KanbanColumn
                 id={col.id}
                 title={col.title}
@@ -75,11 +81,10 @@ export function KanbanBoard() {
         ))}
       </div>
 
-      {/* Overlay: O card flutuante que segue o mouse */}
       {typeof document !== 'undefined' && createPortal(
-        <DragOverlay>
+        <DragOverlay adjustScale={true}>
           {activeTask ? (
-            <div className="rotate-3 scale-105 opacity-90 cursor-grabbing">
+            <div className="rotate-3 scale-105 opacity-90 cursor-grabbing drop-shadow-2xl">
                 <TaskCard task={activeTask} />
             </div>
           ) : null}
