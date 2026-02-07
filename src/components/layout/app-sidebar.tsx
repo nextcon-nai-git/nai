@@ -106,7 +106,7 @@ export function AppSidebar() {
   const role = (profile?.role?.toLowerCase() || 'admin')
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   const userRoleLabel = 
-    role.includes('admin') ? "Administrador NextCon" : 
+    role.includes('admin') ? "Administrador NEXTCON" : 
     role.includes('client') ? "Gestor de Empresa" : 
     role.includes('provider') ? "Prestador / Clínica" : "Colaborador"
     
@@ -116,14 +116,14 @@ export function AppSidebar() {
     <Sidebar variant="sidebar" collapsible="none" className="border-none bg-[#090e24] text-white w-[260px]">
       <SidebarHeader className="p-6">
         <div className="flex items-center gap-3">
-          <div className="size-10 flex items-center justify-center text-[#f59e0b] shrink-0">
+          <div className="size-10 flex items-center justify-center text-[#00b4ff] shrink-0">
             <NextconLogo className="size-full" />
           </div>
           <div className="flex flex-col leading-none overflow-hidden">
             <span className="font-headline font-black text-white text-xl tracking-tighter">
-              NextCon
+              NEXTCON
             </span>
-            <span className="text-[9px] font-bold text-[#f59e0b] uppercase tracking-[0.25em] mt-1">
+            <span className="text-[9px] font-bold text-[#00b4ff] uppercase tracking-[0.25em] mt-1">
               SAÚDE EMPRESARIAL
             </span>
           </div>
@@ -152,19 +152,19 @@ export function AppSidebar() {
                         className={cn(
                           "relative h-11 px-4 mb-1 transition-none rounded-lg",
                           isActive 
-                            ? "bg-[#f59e0b]/10 text-[#f59e0b]" 
+                            ? "bg-[#00b4ff]/10 text-[#00b4ff]" 
                             : "text-white/70 hover:text-white hover:bg-white/5"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3 w-full">
                           <Icon className={cn(
                             "size-5 shrink-0",
-                            isActive ? "text-[#f59e0b]" : "text-white/40"
+                            isActive ? "text-[#00b4ff]" : "text-white/40"
                           )} />
                           <span className="font-medium tracking-wide text-sm whitespace-nowrap">
                             {item.title}
                           </span>
-                          {isActive && <div className="absolute left-0 w-1 h-6 bg-[#f59e0b] rounded-r-full" />}
+                          {isActive && <div className="absolute left-0 w-1 h-6 bg-[#00b4ff] rounded-r-full" />}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -180,9 +180,9 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
-              <Avatar className="size-9 border-2 border-[#f59e0b]/20 shrink-0">
+              <Avatar className="size-9 border-2 border-[#00b4ff]/20 shrink-0">
                 <AvatarImage src={`https://picsum.photos/seed/${user?.uid}/40/40`} />
-                <AvatarFallback className="bg-[#f59e0b] text-[#090e24] font-bold">{userInitial}</AvatarFallback>
+                <AvatarFallback className="bg-[#00b4ff] text-[#090e24] font-bold">{userInitial}</AvatarFallback>
               </Avatar>
               
               <div className="flex flex-col flex-1 overflow-hidden">
@@ -192,7 +192,7 @@ export function AppSidebar() {
               
               <button 
                 onClick={handleLogout}
-                className="p-2 text-white/40 hover:text-[#f59e0b] transition-colors shrink-0"
+                className="p-2 text-white/40 hover:text-[#00b4ff] transition-colors shrink-0"
                 title="Sair do sistema"
               >
                 <LogOut className="size-4" />
