@@ -10,22 +10,22 @@ export function NextconLogo({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg" 
       className={className}
     >
-      {/* Texto: NEXTCON */}
+      {/* Texto: NEXTCON - Estilo Bold Montserrat Style */}
       <text 
         x="0" 
         y="75" 
-        fill="#002d9c" 
-        style={{ font: '900 85px Arial, sans-serif', letterSpacing: '-2px' }}
+        fill="currentColor" 
+        style={{ font: '900 85px Montserrat, sans-serif', letterSpacing: '-3px' }}
       >
         NEXTCON
       </text>
       
-      {/* Texto: saúde empresarial */}
+      {/* Texto: saúde empresarial - Estilo Light/Regular Ciano */}
       <text 
         x="5" 
         y="108" 
         fill="#00b4ff" 
-        style={{ font: 'bold 28px Arial, sans-serif', letterSpacing: '4px', textTransform: 'lowercase' }}
+        style={{ font: '500 28px Montserrat, sans-serif', letterSpacing: '5.5px', textTransform: 'lowercase' }}
       >
         saúde empresarial
       </text>
