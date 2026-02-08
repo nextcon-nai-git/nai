@@ -15,6 +15,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='20' y='20' width='60' height='60' fill='none' stroke='%2300b4ff' stroke-width='10'/><path d='M10 30 V90 H40 M60 10 H90 V70' fill='none' stroke='%23003366' stroke-width='15'/></svg>" />
         <title>Portal NextCon - Inteligência SST</title>
       </head>
       <body className="antialiased">
