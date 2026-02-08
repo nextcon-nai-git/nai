@@ -55,7 +55,7 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
-        let path = 'collection-query';
+        let path = 'collection-group';
         try {
           const anyQuery = memoizedTargetRefOrQuery as any;
           // Tenta extrair o nome do grupo caso seja uma collectionGroup query
