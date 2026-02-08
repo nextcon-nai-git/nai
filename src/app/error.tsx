@@ -4,6 +4,9 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCcw } from 'lucide-react';
 
+/**
+ * Error boundary para rotas internas da plataforma.
+ */
 export default function Error({
   error,
   reset,
@@ -12,8 +15,7 @@ export default function Error({
   reset: () => void;
 }) {
   React.useEffect(() => {
-    // Log do erro para monitoramento interno
-    console.error('Nextcon Platform Error:', error);
+    console.error('Platform UI Error:', error);
   }, [error]);
 
   const handleReset = () => {
@@ -34,18 +36,18 @@ export default function Error({
       
       <div className="space-y-2 max-w-md">
         <h2 className="text-2xl font-black text-primary uppercase font-headline tracking-tight">
-          {isPermissionError ? 'Falha de Sincronização' : 'Instabilidade na Interface'}
+          {isPermissionError ? 'Bloqueio de Acesso' : 'Instabilidade na Interface'}
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed font-medium">
           {isPermissionError 
-            ? 'Identificamos uma restrição de acesso aos dados. Isso pode ocorrer se sua sessão expirou ou se os privilégios da conta foram alterados.' 
+            ? 'Identificamos uma restrição de acesso aos dados. Isso ocorre quando as permissões do Firestore (RBAC) ainda estão sendo propagadas ou a sessão expirou.' 
             : 'Ocorreu um erro inesperado ao processar esta visualização. Nossa inteligência operacional já foi notificada.'}
         </p>
       </div>
       
       {isPermissionError && (
         <div className="bg-slate-50 p-4 rounded-xl text-[10px] font-mono text-left overflow-auto max-w-lg w-full border border-slate-200 opacity-70 shadow-inner">
-          <p className="font-bold text-slate-400 uppercase mb-1">Diagnóstico Técnico:</p>
+          <p className="font-bold text-slate-400 uppercase mb-1">Diagnóstico de Segurança:</p>
           {error.message}
         </div>
       )}

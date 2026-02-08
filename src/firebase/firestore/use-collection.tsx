@@ -20,6 +20,10 @@ export interface UseCollectionResult<T> {
   error: FirestoreError | Error | null;
 }
 
+/**
+ * Hook profissional para subscrição em tempo real de coleções Firestore.
+ * Suporta consultas globais (Collection Groups) e fornece erros contextuais ricos.
+ */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData>) | null | undefined,
 ): UseCollectionResult<T> {
@@ -53,13 +57,13 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group';
         try {
+          // Extração resiliente de caminhos para depuração de segurança
           const anyQuery = memoizedTargetRefOrQuery as any;
-          if (memoizedTargetRefOrQuery.type === 'collection') {
-            path = (memoizedTargetRefOrQuery as CollectionReference).path;
-          } else if (anyQuery._query?.path) {
-            const queryPath = anyQuery._query.path.canonicalString();
-            // Se o caminho for vazio em um Query, provavelmente é um Collection Group
-            path = queryPath || `group:${anyQuery._query.collectionGroup || 'unknown'}`;
+          if (memoizedTargetRefOrQuery && 'path' in memoizedTargetRefOrQuery) {
+            path = (memoizedTargetRefOrQuery as any).path;
+          } else if (anyQuery?._query?.path) {
+            const canonical = anyQuery._query.path.canonicalString();
+            path = canonical || `group:${anyQuery._query.collectionGroup || 'unknown'}`;
           }
         } catch (e) {
           path = 'error-identifying-path';
