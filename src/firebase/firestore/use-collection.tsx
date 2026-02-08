@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -65,28 +64,29 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group-query';
         try {
-          // Heuristic extraction of path for better debugging context
+          // Extração resiliente de caminho para erros contextuais
           const anyQuery = memoizedTargetRefOrQuery as any;
           if (memoizedTargetRefOrQuery.type === 'collection') {
             path = (memoizedTargetRefOrQuery as CollectionReference).path;
           } else if (anyQuery._query?.path?.canonicalString) {
             path = anyQuery._query.path.canonicalString();
           } else if (anyQuery.path) {
-            path = anyQuery.path;
+            path = typeof anyQuery.path === 'string' ? anyQuery.path : (anyQuery.path?.canonicalString?.() || 'unknown-path');
           }
         } catch (e) {
-          // fallback remains 'collection-group-query'
+          // fallback para casos de queries complexas
         }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
-          path,
+          path: path || 'collection-group',
         } satisfies SecurityRuleContext);
 
         setError(contextualError);
         setData(null);
         setIsLoading(false);
 
+        // Notifica o listener global de erros
         errorEmitter.emit('permission-error', contextualError);
       }
     );

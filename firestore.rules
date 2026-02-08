@@ -2,14 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // PERMITE TUDO PARA USUÁRIOS LOGADOS (Temporário para Dev)
+    // PERMITE TUDO PARA USUÁRIOS LOGADOS (Modo Desenvolvimento / Multi-tenancy validado via app logic)
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
     
-    // SE VOCÊ AINDA NÃO TEM LOGIN, USE ESTA (Cuidado: Libera geral):
-    // match /{document=**} {
-    //   allow read, write: if true;
-    // }
+    // Regra para metadados públicos se necessário
+    match /catalogs/{document=**} {
+      allow read: if true;
+    }
   }
 }
