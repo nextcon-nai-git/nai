@@ -15,12 +15,14 @@ export default function Error({
   reset: () => void;
 }) {
   React.useEffect(() => {
-    console.error('Platform UI Error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Platform UI Error:', error);
+    }
   }, [error]);
 
   const handleReset = () => {
     // Fallback robusto para evitar "reset is not a function"
-    if (typeof reset === 'function') {
+    if (reset && typeof reset === 'function') {
       try {
         reset();
       } catch (e) {
@@ -31,7 +33,9 @@ export default function Error({
     }
   };
 
-  const isPermissionError = error?.message?.includes('insufficient permissions') || error?.name === 'FirebaseError';
+  const isPermissionError = error?.message?.includes('insufficient permissions') || 
+                           error?.name === 'FirebaseError' ||
+                           error?.message?.includes('denied');
 
   return (
     <div className="flex h-[70vh] w-full flex-col items-center justify-center p-6 text-center space-y-6 animate-in fade-in duration-500">
@@ -45,7 +49,7 @@ export default function Error({
         </h2>
         <p className="text-muted-foreground text-sm leading-relaxed font-medium">
           {isPermissionError 
-            ? 'Seu perfil está aguardando a sincronização final das permissões multi-tenant. Por favor, tente atualizar a visão.' 
+            ? 'Seu perfil está aguardando a sincronização final das permissões multi-tenant ou há uma falha na regra de segurança.' 
             : 'Ocorreu um erro inesperado ao processar esta visualização. Nossa inteligência operacional já foi notificada.'}
         </p>
       </div>
