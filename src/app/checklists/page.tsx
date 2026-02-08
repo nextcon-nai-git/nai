@@ -137,8 +137,8 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Audit System NAI 2026</h1>
-          <p className="text-muted-foreground font-medium">Motor de conformidade ativa e inspeção de campo.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Inspeção de Campo</h1>
+          <p className="text-muted-foreground font-medium">Motor de conformidade ativa e auditoria técnica.</p>
         </div>
         <div className="w-full md:w-72">
           <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Unidade em Auditoria:</label>
