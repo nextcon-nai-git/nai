@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -12,7 +11,6 @@ import {
   ExternalLink,
   Camera,
   Image as ImageIcon,
-  CheckCircle2,
   ChevronRight,
   FolderOpen,
   ChevronDown
@@ -41,10 +39,11 @@ export default function ClientMapPage() {
   const [isUploadingLogo, setIsUploadingLogo] = React.useState(false)
   const [expandedParents, setExpandedParents] = React.useState<string[]>(["CLI_TIMENOW"])
 
+  // Busca centralizada na coleção raiz 'companies' para todos os clientes gerenciados
   const companiesQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
-  }, [db, user])
+    if (!db) return null
+    return query(collection(db, "companies"), orderBy("name", "asc"))
+  }, [db])
 
   const { data: companies, isLoading } = useCollection(companiesQuery)
 
@@ -95,7 +94,7 @@ export default function ClientMapPage() {
         city: company.city || "Curitiba"
       })
       
-      const companyRef = doc(db, "clients", user.uid, "managedCompanies", company.id)
+      const companyRef = doc(db, "companies", company.id)
       const updateData = {
         address: result.formatted_address || company.address,
         dataEnriched: true,
@@ -117,7 +116,7 @@ export default function ClientMapPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Mapa de Unidades & Hierarquia</h1>
-          <p className="text-muted-foreground">Gestão de contratos master e suas subunidades operacionais.</p>
+          <p className="text-muted-foreground">Gestão unificada de contratos master e subunidades operacionais.</p>
         </div>
       </div>
 

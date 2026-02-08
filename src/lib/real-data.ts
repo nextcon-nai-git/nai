@@ -1,7 +1,7 @@
-
 /**
- * Base de dados real extraída para carga massiva no sistema NextCon.
- * Implementa Desnormalização de Cargos e Hierarquia de Unidades.
+ * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
+ * Fonte única de verdade para carga massiva e testes de integração.
+ * Implementa Desnormalização de Cargos e Hierarquia Master/Unidade.
  */
 
 export const REAL_COMPANIES = [
@@ -12,37 +12,64 @@ export const REAL_COMPANIES = [
     state: "ES", 
     cnpj: "48.865.462/0001-06", 
     segment: "CONSTRUCTION", 
-    isParent: true 
+    isParent: true,
+    risk_degree: 3,
+    cnae: "41.20-4-00",
+    active: true
   },
-  { id: "CLI_CONSTRUFAM", name: "CONSTRUFAM ENGENHARIA", city: "Curitiba", state: "PR", cnpj: "12.345.678/0001-90", segment: "CONSTRUCTION" },
-  { id: "CLI_GULA", name: "GULA ALIMENTOS", city: "Curitiba", state: "PR", cnpj: "98.765.432/0001-10", segment: "INDUSTRY" },
+  { 
+    id: "CLI_BRITANIA", 
+    name: "BRITÂNIA ELETRODOMÉSTICOS", 
+    city: "Curitiba", 
+    state: "PR", 
+    cnpj: "76.492.701/0001-57", 
+    segment: "INDUSTRY",
+    parentId: "CLI_TIMENOW",
+    risk_degree: 2,
+    cnae: "27.51-1-00",
+    active: true
+  },
+  { 
+    id: "CLI_GULA", 
+    name: "GULA ALIMENTOS", 
+    city: "Curitiba", 
+    state: "PR", 
+    cnpj: "98.765.432/0001-10", 
+    segment: "INDUSTRY",
+    risk_degree: 2,
+    cnae: "10.91-1-01",
+    active: true
+  },
 ];
 
 export const REAL_EMPLOYEES = [
   { 
-    id: "EMP_CON_01", 
+    id: "EMP_001", 
     name: "BRUNO GADELHA DA SILVA", 
-    companyId: "CLI_CONSTRUFAM", 
+    companyId: "CLI_BRITANIA", 
     job_role: { id: "ROL_HIDRO", title: "Hidrometrista", cbo: "3111-05" },
-    status: "active"
+    status: "active",
+    cpf: "123.456.789-00"
   },
   { 
-    id: "EMP_CON_02", 
+    id: "EMP_002", 
     name: "JOÃO BESTEL DE DEUS", 
-    companyId: "CLI_CONSTRUFAM", 
+    companyId: "CLI_BRITANIA", 
     job_role: { id: "ROL_TEC", title: "Técnico de Saneamento", cbo: "3111-10" },
-    status: "active"
+    status: "active",
+    cpf: "987.654.321-11"
   },
   { 
-    id: "EMP_GUL_01", 
+    id: "EMP_003", 
     name: "ERICK DE OLIVEIRA HENRIQUE", 
     companyId: "CLI_GULA", 
     job_role: { id: "ROL_PROD", title: "Auxiliar de Produção", cbo: "7843-05" },
-    status: "active"
+    status: "active",
+    cpf: "456.789.123-22"
   }
 ];
 
 export const REAL_EXAMS_HISTORY = [
-  { employeeName: "BRUNO GADELHA DA SILVA", companyId: "CLI_CONSTRUFAM", date: "2026-02-02", type: "AD", provider: "ACRE", aso: "OK" },
-  { employeeName: "ERICK DE OLIVEIRA HENRIQUE", companyId: "CLI_GULA", date: "2026-02-03", type: "PE", provider: "WORKING", aso: "OK" },
+  { employeeName: "BRUNO GADELHA DA SILVA", companyId: "CLI_BRITANIA", date: "2026-02-02", type: "AD", provider: "ACRE", aso: "OK", s2220: "OK", s2240: "OK" },
+  { employeeName: "ERICK DE OLIVEIRA HENRIQUE", companyId: "CLI_GULA", date: "2026-02-03", type: "PE", provider: "WORKING", aso: "OK", s2220: "OK", s2240: "OK" },
 ];

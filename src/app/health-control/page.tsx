@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -7,13 +6,10 @@ import {
   Calendar as CalendarIcon, 
   Bell, 
   MessageSquare, 
-  ChevronRight, 
   Stethoscope, 
-  Clock, 
   CheckCircle2,
   MoreHorizontal,
   CalendarPlus,
-  SendHorizontal,
   Building2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -37,40 +33,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore } from "@/firebase"
+import { useUser } from "@/firebase"
 import { getWhatsAppLink } from "@/lib/whatsapp-utils"
 import { cn } from "@/lib/utils"
 
+// Fila de atendimentos higienizada - Sem duplicatas de funcionários
 const upcomingAlerts = [
   { 
-    employeeName: "Carlos Eduardo", 
-    company: "LAVIERS ARTIGOS MASCULINOS", 
+    employeeName: "Bruno Gadelha da Silva", 
+    company: "BRITÂNIA ELETRODOMÉSTICOS", 
     id: "#1164165", 
     date: "10/01/2026", 
-    type: "Periódico", 
-    phone: "11999999999", 
+    type: "Admissional", 
     status: "Aguardando",
     clinic: "Clinica SQV - Matriz",
     clinicPhone: "11988887777"
   },
   { 
-    employeeName: "Carlos Eduardo", 
-    company: "NXC SST EMPRESARIAL", 
+    employeeName: "Erick de Oliveira Henrique", 
+    company: "GULA ALIMENTOS", 
     id: "#1005519", 
     date: "30/01/2026", 
     type: "Periódico", 
-    phone: "11888888888", 
     status: "Concluído",
     clinic: "Working Segurança",
     clinicPhone: "11977776666"
   },
   { 
-    employeeName: "Carlos Eduardo", 
-    company: "INCORPORADORA GRAN-PARA", 
+    employeeName: "João Bestel de Deus", 
+    company: "BRITÂNIA ELETRODOMÉSTICOS", 
     id: "#1177322", 
     date: "01/01/2026", 
     type: "Periódico", 
-    phone: "11777777777", 
     status: "Em Atendimento",
     clinic: "Clinica SQV - Filial",
     clinicPhone: "11988887777"
@@ -108,7 +102,7 @@ export default function HealthControl() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-bold text-[#090e24] tracking-tight uppercase">Saúde Ocupacional (PCMSO)</h1>
-          <p className="text-muted-foreground">Fila de atendimento, agendamentos e vigilância médica.</p>
+          <p className="text-muted-foreground">Fila de atendimento, agendamentos e vigilância médica consolidada.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button className="bg-[#f59e0b] text-[#090e24] hover:bg-[#f59e0b]/90 gap-2 h-11 px-6 shadow-lg font-bold">
@@ -161,10 +155,10 @@ export default function HealthControl() {
           <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between py-4">
             <div>
               <CardTitle className="text-lg font-bold text-[#090e24] uppercase tracking-tight">Fila de Atendimento (ASO)</CardTitle>
-              <CardDescription>Acompanhamento de exames em tempo real na clínica.</CardDescription>
+              <CardDescription>Acompanhamento higienizado dos eventos de saúde do dia.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px] px-3">{upcomingAlerts.length} Na Fila</Badge>
+              <Badge variant="outline" className="border-primary text-primary font-black uppercase text-[10px] px-3">{upcomingAlerts.length} Ativos</Badge>
             </div>
           </CardHeader>
           <CardContent className="p-0 flex-1">
@@ -244,7 +238,7 @@ export default function HealthControl() {
                 <div>
                   <p className="text-[11px] font-black uppercase leading-none mb-1">Clínicas Parceiras Online</p>
                   <p className="text-[10px] font-medium leading-tight opacity-80">
-                    O sistema está sincronizado com a grade da Clinica SQV e Working Segurança. Use o botão de WhatsApp para envio imediato de guias.
+                    Base de dados sanitizada. Todos os agendamentos estão vinculados aos clientes ativos na rede Nextcon.
                   </p>
                 </div>
               </div>
