@@ -51,17 +51,18 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (serverError: FirestoreError) => {
-        let path = 'collection-group-query';
+        let path = 'collection-group';
         try {
-          // Extração resiliente de caminho para logs de auditoria
           const anyQuery = memoizedTargetRefOrQuery as any;
           if (memoizedTargetRefOrQuery.type === 'collection') {
             path = (memoizedTargetRefOrQuery as CollectionReference).path;
-          } else if (anyQuery._query?.path?.canonicalString) {
-            path = anyQuery._query.path.canonicalString();
+          } else if (anyQuery._query?.path) {
+            const queryPath = anyQuery._query.path.canonicalString();
+            // Se o caminho for vazio em um Query, provavelmente é um Collection Group
+            path = queryPath || `group:${anyQuery._query.collectionGroup || 'unknown'}`;
           }
         } catch (e) {
-          path = 'unknown-path';
+          path = 'error-identifying-path';
         }
 
         if (serverError.code === 'permission-denied') {
