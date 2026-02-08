@@ -9,6 +9,14 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const handleReset = () => {
+    if (typeof reset === 'function') {
+      reset();
+    } else {
+      window.location.reload();
+    }
+  };
+
   return (
     <html>
       <body className="bg-[#003366] text-white flex flex-col items-center justify-center h-screen p-10 text-center font-sans">
@@ -16,8 +24,8 @@ export default function GlobalError({
           <h1 className="text-4xl font-black uppercase tracking-tighter">Erro Crítico de Sistema</h1>
           <p className="opacity-70 font-medium">Ocorreu uma falha fatal no motor da plataforma. Por favor, reinicie a aplicação.</p>
           <button 
-            onClick={() => reset()}
-            className="bg-accent text-primary font-black uppercase text-xs py-4 px-10 rounded-2xl shadow-2xl"
+            onClick={handleReset}
+            className="bg-accent text-primary font-black uppercase text-xs py-4 px-10 rounded-2xl shadow-2xl transition-transform active:scale-95"
           >
             Reiniciar Nextcon Engine
           </button>

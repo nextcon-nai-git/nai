@@ -16,6 +16,14 @@ export default function Error({
     console.error('Nextcon Platform Error:', error);
   }, [error]);
 
+  const handleReset = () => {
+    if (typeof reset === 'function') {
+      reset();
+    } else {
+      window.location.reload();
+    }
+  };
+
   const isPermissionError = error.message.includes('insufficient permissions') || error.name === 'FirebaseError';
 
   return (
@@ -46,7 +54,7 @@ export default function Error({
         <Button variant="outline" onClick={() => window.location.reload()} className="gap-2 font-black uppercase text-[10px] tracking-widest h-12 px-6">
           <RefreshCcw size={14} /> Atualizar Portal
         </Button>
-        <Button onClick={() => reset()} className="bg-primary font-black uppercase text-[10px] tracking-widest h-12 px-8 shadow-lg shadow-primary/20">
+        <Button onClick={handleReset} className="bg-primary font-black uppercase text-[10px] tracking-widest h-12 px-8 shadow-lg shadow-primary/20">
           Tentar Recuperação
         </Button>
       </div>
