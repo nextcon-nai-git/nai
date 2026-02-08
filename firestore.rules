@@ -2,15 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 1. Regra de Acesso Direto: Permite qualquer operação para usuários autenticados.
-    // Isso cobre documentos específicos e sub-coleções quando acessados via caminho completo.
+    // 1. Regra Global: Permite qualquer operação para usuários autenticados.
+    // Essencial para o desenvolvimento e operação multi-tenant inicial.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
     
-    // 2. Regras de Collection Group (Obrigatórias para Dashboards Globais)
-    // No Firestore, consultas que abrangem múltiplas sub-coleções em toda a base (collectionGroup)
-    // exigem o padrão {path=**}/collectionId/{doc} para serem autorizadas.
+    // 2. Regras de Collection Group (Obrigatórias para Consultas Globais)
+    // No Firestore, consultas via collectionGroup exigem o padrão {path=**} 
+    // para que as regras encontrem a coleção em qualquer profundidade.
     
     match /{path=**}/tasks/{task} {
       allow read: if request.auth != null;

@@ -53,7 +53,7 @@ export default function Error({
       {isPermissionError && (
         <div className="bg-slate-50 p-4 rounded-xl text-[10px] font-mono text-left overflow-auto max-w-lg w-full border border-slate-200 opacity-70 shadow-inner">
           <p className="font-bold text-slate-400 uppercase mb-1">Diagnóstico NAI:</p>
-          {error.message}
+          <pre className="whitespace-pre-wrap whitespace-normal">{error.message}</pre>
         </div>
       )}
 

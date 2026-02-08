@@ -14,7 +14,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   const handleReset = () => {
-    // Fallback robusto para evitar "reset is not a function"
+    // Fallback robusto caso a função reset não tenha sido injetada ou falhe
     if (typeof reset === 'function') {
       try {
         reset();
