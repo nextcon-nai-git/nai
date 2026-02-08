@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -24,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,16 +42,18 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
+  // Dashboards administrativos buscam em todas as empresas via collectionGroup
   const auditsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
-  }, [db, user]);
+    if (!db) return null;
+    return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
+  }, [db]);
   const { data: audits } = useCollection(auditsQuery);
 
   const eventsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return query(collection(db, "clients", user.uid, "sst_events"), orderBy("date", "asc"), limit(3));
-  }, [db, user]);
+    if (!db) return null;
+    // Fallback: em produção usaríamos uma sub-coleção específica ou collectionGroup
+    return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(3));
+  }, [db]);
   const { data: events } = useCollection(eventsQuery);
 
   React.useEffect(() => {
@@ -70,7 +73,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
-      {/* Header Estilo Site */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -88,7 +90,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Grid de Cards Institucionais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="card-shadow border-none bg-white relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-all duration-500 scale-150 group-hover:rotate-12">
@@ -205,7 +206,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Lado Direito: Insights Estilo Site */}
         <div className="space-y-8">
           <Card className="border-none gradient-nextcon text-white card-shadow relative overflow-hidden">
             <div className="absolute top-0 right-0 p-6 opacity-10"><Sparkles className="size-32 text-accent" /></div>

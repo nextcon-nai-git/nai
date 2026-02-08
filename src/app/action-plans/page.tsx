@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react"
@@ -12,13 +13,14 @@ import {
   Brain,
   ShieldCheck,
   Activity,
-  ArrowUpRight
+  ArrowUpRight,
+  Building2
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy } from "firebase/firestore"
+import { collection, query, orderBy, collectionGroup, where } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
@@ -43,28 +45,47 @@ export default function EnterpriseOpsHub() {
   
   const [activeView, setActiveView] = React.useState<"board" | "list" | "calendar">("board")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
+  
   const [taskForm, setTaskForm] = React.useState<Partial<OpsTask>>({
     title: "",
-    companyName: "",
+    companyId: "",
     type: "pgr",
     priority: "medium",
     status: "todo",
     dueDate: new Date().toISOString()
   })
 
+  // Busca de empresas para o filtro
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, "companies"), orderBy("name", "asc"))
+  }, [db])
+  const { data: companies } = useCollection(companiesQuery)
+
+  // Busca de tarefas via CollectionGroup para visão global ou filtrada
   const tasksQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "tasks"), orderBy("dueDate", "asc"))
-  }, [db, user])
+    if (!db) return null
+    if (selectedCompanyId === "all") {
+      return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
+    }
+    return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
+  }, [db, selectedCompanyId])
 
   const { data: tasks, isLoading } = useCollection<OpsTask>(tasksQuery)
 
   const handleCreateTask = () => {
-    if (!user || !db || !taskForm.title) return
-    const colRef = collection(db, "clients", user.uid, "tasks")
+    if (!db || !taskForm.title || !taskForm.companyId) {
+      toast({ variant: "destructive", title: "Unidade Obrigatória", description: "Selecione uma empresa para vincular a tarefa." })
+      return
+    }
+    
+    const company = companies?.find(c => c.id === taskForm.companyId)
+    const colRef = collection(db, "companies", taskForm.companyId, "tasks")
     
     const newTask: Partial<OpsTask> = {
       ...taskForm,
+      companyName: company?.name || "Unidade Técnica",
       checklist: [
         { id: '1', text: 'Validar Documentação Base', checked: false, mandatory: true },
         { id: '2', text: 'Verificar Assinatura Digital', checked: false, mandatory: true },
@@ -87,7 +108,7 @@ export default function EnterpriseOpsHub() {
             <div className="p-2 bg-primary rounded-xl text-accent shadow-lg shadow-primary/20">
               <Activity className="size-6" />
             </div>
-            <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Operations Engine</h1>
+            <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Cards Operação</h1>
           </div>
           <p className="text-muted-foreground font-medium flex items-center gap-2">
             <Brain className="size-4 text-accent" /> IA preditiva monitorando PGR, PCMSO e eSocial em tempo real.
@@ -95,15 +116,23 @@ export default function EnterpriseOpsHub() {
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="glass-panel p-1 rounded-2xl flex">
-            <ViewToggle active={activeView === 'board'} onClick={() => setActiveView('board')} icon={LayoutGrid} label="Ops Board" />
-            <ViewToggle active={activeView === 'calendar'} onClick={() => setActiveView('calendar')} icon={CalendarIcon} label="Scheduler" />
+          <div className="w-64 mr-2">
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+              <SelectTrigger className="bg-white border-muted h-11 text-xs">
+                <Building2 className="size-4 mr-2" />
+                <SelectValue placeholder="Filtrar Unidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Unidades</SelectItem>
+                {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-nextcon hover:opacity-90 text-white gap-2 h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-primary/30 rounded-2xl">
-                <Plus className="size-5" /> Nova Intervenção Técnica
+                <Plus className="size-5" /> Nova Intervenção
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] glass-panel border-none rounded-[2.5rem] p-8">
@@ -122,10 +151,20 @@ export default function EnterpriseOpsHub() {
                     placeholder="Ex: Atualização PGR Unidade Fabril"
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Responsável</label>
+                  <Select value={taskForm.companyId} onValueChange={v => setTaskForm({...taskForm, companyId: v})}>
+                    <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vertical de Conformidade</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vertical</label>
                     <Select value={taskForm.type} onValueChange={v => setTaskForm({...taskForm, type: v as TaskType})}>
                       <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -160,11 +199,10 @@ export default function EnterpriseOpsHub() {
         </div>
       </header>
 
-      {/* Visão de Performance de Conformidade */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard label="Conformidade eSocial" value="98.4%" icon={ShieldCheck} color="text-emerald-600" trend="+2.1%" />
         <StatCard label="Eficácia PGR" value="94%" icon={Activity} color="text-blue-600" trend="Estável" />
-        <StatCard label="Score de Vida NAI" value="12" icon={Brain} color="text-accent" trend="-5%" />
+        <StatCard label="Tarefas Ativas" value={tasks?.length || 0} icon={LayoutGrid} color="text-accent" />
       </div>
 
       <div className="min-h-[600px] glass-panel rounded-[3rem] p-8">
@@ -194,19 +232,5 @@ function StatCard({ label, value, icon: Icon, color, trend }: any) {
         </div>
       </div>
     </Card>
-  )
-}
-
-function ViewToggle({ active, onClick, icon: Icon, label }: { active: boolean, onClick: () => void, icon: any, label: string }) {
-  return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        "rounded-xl gap-2 text-[9px] font-black uppercase tracking-widest px-6 h-11 transition-all flex items-center",
-        active ? "bg-primary text-white shadow-xl" : "text-slate-400 hover:bg-slate-100"
-      )}
-    >
-      <Icon className="size-4" /> {label}
-    </button>
   )
 }

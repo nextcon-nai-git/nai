@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -5,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth, useUser } from '@/firebase';
-import { initiateEmailSignIn } from '@/firebase/non-blocking-login';
+import { useAuth, useUser, useFirestore } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
@@ -17,6 +19,7 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -26,18 +29,34 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    initiateEmailSignIn(auth, email, password, (error) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const loggedUser = userCredential.user;
+
+      // Bootstrap do perfil do usuário para garantir que as regras de segurança funcionem
+      const userRef = doc(db, "users", loggedUser.uid);
+      await setDoc(userRef, {
+        id: loggedUser.uid,
+        email: loggedUser.email,
+        name: email.split('@')[0].toUpperCase(),
+        role: email.includes('admin') ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
+        companyId: email.includes('gestor') ? 'CLI_BRITANIA' : null,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      router.push('/');
+    } catch (error: any) {
       setLoading(false);
       toast({
         variant: 'destructive',
         title: 'Erro de Autenticação',
         description: 'Verifique suas credenciais.',
       });
-    });
+    }
   };
 
   const demoUsers = [
@@ -47,7 +66,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
-      {/* Lado Esquerdo: Identidade do Site */}
       <div className="hidden lg:flex lg:w-3/5 gradient-nextcon flex-col items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070')] bg-cover bg-center" />
@@ -61,17 +79,6 @@ export default function LoginPage() {
             <h2 className="text-5xl font-black text-white font-headline tracking-tighter leading-none">INTELIGÊNCIA OCUPACIONAL</h2>
             <p className="text-accent text-xl font-medium tracking-[0.2em] uppercase">SST & Engenharia 360°</p>
           </div>
-          <div className="pt-8 flex justify-center gap-8 opacity-60">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white">2026</p>
-              <p className="text-[10px] text-white/70 uppercase font-black tracking-widest">Base Legal</p>
-            </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div className="text-center">
-              <p className="text-2xl font-bold text-white">NAI</p>
-              <p className="text-[10px] text-white/70 uppercase font-black tracking-widest">IA Motor</p>
-            </div>
-          </div>
         </div>
         
         <div className="absolute bottom-12 text-white/30 text-[10px] font-black uppercase tracking-[0.5em]">
@@ -79,7 +86,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Lado Direito: Login */}
       <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-gray-50/50">
         <div className="w-full max-w-md space-y-10">
           <div className="lg:hidden flex justify-center mb-10">

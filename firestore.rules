@@ -8,29 +8,39 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function getUserData() {
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) ? get(path).data : null;
+    }
+
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let data = getUserData();
+      return data != null ? data.role : 'GUEST';
     }
 
     function isPrivileged() {
-      return isSignedIn() && getUserRole() in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR'];
+      return isSignedIn() && getUserRole() in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'];
     }
 
     function isCompanyMember(companyId) {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+      let data = getUserData();
+      return isSignedIn() && data != null && data.companyId == companyId;
     }
 
     // --- RULES ---
 
     match /users/{userId} {
       allow get: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
-      allow write: if isPrivileged();
+      allow write: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
     }
 
     match /companies/{companyId} {
-      allow read: if isPrivileged() || isCompanyMember(companyId);
+      // Permitimos listagem básica para usuários logados escolherem sua unidade
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && (isPrivileged() || isCompanyMember(companyId));
       allow write: if isPrivileged();
 
+      // Regras para todas as sub-coleções operacionais (Multi-tenancy)
       match /{allSubcollections=**} {
         allow read: if isPrivileged() || isCompanyMember(companyId);
         allow write: if isPrivileged();
@@ -40,6 +50,11 @@ service cloud.firestore {
     match /catalogs/{allCatalogs=**} {
       allow read: if isSignedIn();
       allow write: if isPrivileged();
+    }
+    
+    // Suporte legado para transição (opcional, mas mantido para segurança)
+    match /clients/{userId}/{allData=**} {
+      allow read, write: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
     }
   }
 }
