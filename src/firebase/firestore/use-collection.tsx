@@ -74,7 +74,7 @@ export function useCollection<T = any>(
           try {
             const contextualError = new FirestorePermissionError({
               operation: 'list',
-              path: path,
+              path: path || 'collection-group',
             } satisfies SecurityRuleContext);
 
             setError(contextualError);

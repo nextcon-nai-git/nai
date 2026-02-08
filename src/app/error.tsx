@@ -31,7 +31,7 @@ export default function Error({
     }
   };
 
-  const isPermissionError = error.message.includes('insufficient permissions') || error.name === 'FirebaseError';
+  const isPermissionError = error?.message?.includes('insufficient permissions') || error?.name === 'FirebaseError';
 
   return (
     <div className="flex h-[70vh] w-full flex-col items-center justify-center p-6 text-center space-y-6 animate-in fade-in duration-500">
@@ -50,7 +50,7 @@ export default function Error({
         </p>
       </div>
       
-      {isPermissionError && (
+      {isPermissionError && error?.message && (
         <div className="bg-slate-50 p-4 rounded-xl text-[10px] font-mono text-left overflow-auto max-w-lg w-full border border-slate-200 opacity-70 shadow-inner">
           <p className="font-bold text-slate-400 uppercase mb-1">Diagnóstico NAI:</p>
           <pre className="whitespace-pre-wrap whitespace-normal">{error.message}</pre>
