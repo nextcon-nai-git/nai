@@ -1,48 +1,59 @@
 
 {
   "entities": {
-    "SstEvent": {
-      "title": "SstEvent",
-      "description": "Representa um evento de SST na agenda (exame, visita, treinamento).",
+    "UserProfile": {
+      "title": "UserProfile",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "type": { "type": "string", "description": "Tipo do evento (Exame Admissional, PGR, etc)" },
-        "time": { "type": "string", "description": "Horário formatado (HH:MM)" },
-        "date": { "type": "string", "format": "date-time" },
-        "companyName": { "type": "string", "description": "Nome da empresa cliente" },
-        "location": { "type": "string", "description": "Local ou unidade" },
-        "status": { "type": "string", "enum": ["SCHEDULED", "COMPLETED", "CANCELED"] }
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "ENGINEER", "DOCTOR", "PROVIDER"] },
+        "email": { "type": "string" },
+        "companyId": { "type": "string", "description": "ID da empresa caso o usuário seja CLIENT_ADMIN" }
       },
-      "required": ["id", "type", "date", "companyName"]
+      "required": ["id", "name", "role", "email"]
     },
-    "Client": {
-      "title": "Client",
+    "Company": {
+      "title": "Company",
       "type": "object",
-      "description": "Represents a client company with its specific industry segment.",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "cnpj": { "type": "string" },
-        "segment": { 
-          "type": "string", 
-          "enum": ["CONSTRUCTION", "HOSPITAL", "INDUSTRY", "GENERAL"],
-          "description": "Determina o foco normativo do sistema."
-        },
-        "city": { "type": "string" }
+        "segment": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "address": { "type": "string" }
       },
-      "required": ["id", "name", "cnpj", "segment"]
+      "required": ["id", "name", "cnpj"]
     },
-    "ProductService": {
-      "title": "ProductService",
+    "Employee": {
+      "title": "Employee",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
-        "description": { "type": "string" },
-        "serviceGroupId": { "type": "string" }
-      },
-      "required": ["id", "name", "description", "serviceGroupId"]
+        "cpf": { "type": "string" },
+        "job_role": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "cbo": { "type": "string" }
+          }
+        },
+        "status": { "type": "string", "enum": ["active", "leave", "fired"] }
+      }
+    },
+    "Task": {
+      "title": "OpsTask",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "type": { "type": "string" },
+        "priority": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -54,33 +65,42 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
-          "schema": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "name": { "type": "string" },
-              "role": { "type": "string" },
-              "email": { "type": "string" },
-              "companyId": { "type": "string" }
-            }
-          },
-          "description": "Perfil do usuário."
+          "description": "Perfis de acesso e permissões RBAC."
         }
       },
       {
-        "path": "/clients/{clientId}/managedCompanies/{companyId}",
+        "path": "/companies/{companyId}",
         "definition": {
-          "entityName": "Client",
-          "schema": { "$ref": "#/backend/entities/Client" },
-          "description": "Empresas gerencias pela agência."
+          "entityName": "Company",
+          "description": "Empresas clientes (Contratos Master ou Unidades)."
         }
       },
       {
-        "path": "/clients/{clientId}/sst_events/{eventId}",
+        "path": "/companies/{companyId}/employees/{employeeId}",
         "definition": {
-          "entityName": "SstEvent",
-          "schema": { "$ref": "#/backend/entities/SstEvent" },
-          "description": "Eventos de agenda."
+          "entityName": "Employee",
+          "description": "Funcionários vinculados à empresa."
+        }
+      },
+      {
+        "path": "/companies/{companyId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "description": "Cards de operação (PGR, PCMSO, eSocial) específicos da empresa."
+        }
+      },
+      {
+        "path": "/companies/{companyId}/documents/{docId}",
+        "definition": {
+          "entityName": "Document",
+          "description": "Metadados de laudos e arquivos técnicos."
+        }
+      },
+      {
+        "path": "/catalogs/{catalogId}",
+        "definition": {
+          "schema": { "type": "object" },
+          "description": "Dados compartilhados (Riscos eSocial, Tabela de Exames)."
         }
       }
     ]

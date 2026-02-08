@@ -1,106 +1,45 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * NEXTCON SECURITY RULES 2026
-     * 
-     * Implementa o isolamento de dados por usuário e cliente (multi-tenant).
-     */
-
     // --- HELPER FUNCTIONS ---
-
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isOwner(ownerId) {
-      return isSignedIn() && request.auth.uid == ownerId;
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
-    function isExistingOwner(ownerId) {
-      return isOwner(ownerId) && resource != null;
+    function isPrivileged() {
+      return isSignedIn() && getUserRole() in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR'];
     }
 
-    // --- COLLECTION RULES ---
+    function isCompanyMember(companyId) {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
+    }
 
-    /**
-     * @description Perfil do Usuário
-     */
+    // --- RULES ---
+
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow create, update: if isOwner(userId);
-      
-      match /notifications/{notificationId} {
-        allow read, write: if isOwner(userId);
-      }
+      allow get: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
+      allow write: if isPrivileged();
     }
 
-    /**
-     * @description Catálogo Global de Prestadores
-     */
-    match /providers/{providerId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn();
-    }
+    match /companies/{companyId} {
+      allow read: if isPrivileged() || isCompanyMember(companyId);
+      allow write: if isPrivileged();
 
-    /**
-     * @description Catálogo de Serviços e Precificação
-     */
-    match /product_services/{productServiceId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn();
-    }
-
-    match /service_groups/{serviceGroupId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn();
-    }
-
-    match /price_tables/{priceTableId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn();
-
-      match /price_table_items/{priceTableItemId} {
-        allow get, list: if isSignedIn();
-        allow create, update, delete: if isSignedIn();
-      }
-    }
-
-    match /exam_costs/{examCostId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isSignedIn();
-    }
-
-    /**
-     * @description Redes Credenciadas (Clínicas Parceiras)
-     */
-    match /credentialed_networks/{credentialedNetworkId} {
-      allow get, list: if isSignedIn(); // Permitir visualização da rede
-      allow create, update, delete: if isOwner(credentialedNetworkId);
-
-      match /provider_invoices/{providerInvoiceId} {
-        allow get, list: if isOwner(credentialedNetworkId) || isSignedIn();
-        allow create, update, delete: if isOwner(credentialedNetworkId);
-
-        match /provider_invoice_items/{providerInvoiceItemId} {
-          allow get, list: if isOwner(credentialedNetworkId) || isSignedIn();
-          allow create, update, delete: if isOwner(credentialedNetworkId);
-        }
-      }
-    }
-
-    /**
-     * @description Dados Específicos de Clientes
-     */
-    match /clients/{clientId} {
-      allow get, list: if isOwner(clientId) || isSignedIn();
-      allow create, update, delete: if isOwner(clientId);
-
-      // Subcoleções Operacionais e Financeiras
       match /{allSubcollections=**} {
-        allow read, write: if isOwner(clientId) || isSignedIn();
+        allow read: if isPrivileged() || isCompanyMember(companyId);
+        allow write: if isPrivileged();
       }
+    }
+
+    match /catalogs/{allCatalogs=**} {
+      allow read: if isSignedIn();
+      allow write: if isPrivileged();
     }
   }
 }
