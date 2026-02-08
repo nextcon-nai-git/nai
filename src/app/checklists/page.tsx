@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -22,14 +23,15 @@ import {
   BookOpen,
   PenTool,
   AlertTriangle,
-  Save
+  Save,
+  Zap
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
-import { collection, query, orderBy, addDoc } from "firebase/firestore"
+import { collection, query, orderBy, addDoc, doc } from "firebase/firestore"
 import { ref, uploadBytes } from "firebase/storage"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
@@ -55,13 +57,16 @@ import {
 } from "@/components/ui/alert-dialog"
 import { NR_CHECKLISTS, getGenericChecklist, NRChecklist, ChecklistItem } from "@/lib/nr-data"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Gestão", title: "NR-01 - Gerenciamento de Riscos (PGR)", icon: ShieldAlert, color: "text-red-600" },
   { id: "nr07", category: "Saúde", title: "NR-07 - PCMSO", icon: HeartPulse, color: "text-emerald-600" },
+  { id: "nr09", category: "Ambiental", title: "NR-09 - Agentes Nocivos", icon: Layers, color: "text-blue-600" },
   { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Hammer, color: "text-yellow-500" },
   { id: "nr12", category: "Máquinas", title: "NR-12 - Máquinas e Equipamentos", icon: BookOpen, color: "text-gray-700" },
   { id: "nr18", category: "Obras", title: "NR-18 - Construção Civil", icon: Building2, color: "text-orange-500" },
+  { id: "nr33", category: "Confinado", title: "NR-33 - Espaço Confinado", icon: Zap, color: "text-purple-600" },
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: Layers, color: "text-blue-500" },
 ]
 
@@ -86,6 +91,7 @@ export default function ChecklistsPage() {
   // Alerta de Risco Grave (Protocolo Ativo)
   const [criticalAlertOpen, setCriticalAlertOpen] = React.useState(false)
   const [lastCriticalItem, setLastCriticalItem] = React.useState<ChecklistItem | null>(null)
+  const [isCreatingUrgentTask, setIsCreatingUrgentTask] = React.useState(false)
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -115,10 +121,49 @@ export default function ChecklistsPage() {
   const handleStatusChange = (item: ChecklistItem, status: ChecklistStatus) => {
     setResponses(prev => ({ ...prev, [item.id]: status }));
     
-    // --- LÓGICA DE NÃO CONFORMIDADE ATIVA ---
+    // --- LÓGICA DE NÃO CONFORMIDADE ATIVA (INTERDIÇÃO) ---
     if (status === 'NÃO CONFORME' && item.criticality === 'critical') {
       setLastCriticalItem(item);
       setCriticalAlertOpen(true);
+    }
+  }
+
+  const handleCreateUrgentAction = async () => {
+    if (!user || !db || !lastCriticalItem || !selectedCompanyId) return;
+    
+    setIsCreatingUrgentTask(true);
+    try {
+      const company = companies?.find(c => c.id === selectedCompanyId);
+      const tasksRef = collection(db, "clients", user.uid, "tasks");
+      
+      const urgentTask = {
+        title: `URGENTE: Falha Crítica ${activeNR?.nr} - ${lastCriticalItem.category}`,
+        companyId: selectedCompanyId,
+        companyName: company?.name || "Unidade em Inspeção",
+        type: activeNR?.nr.toLowerCase().replace('-', '') as any,
+        status: "todo",
+        priority: "critical",
+        dueDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        ai_risk_score: 95,
+        checklist: [
+          { id: '1', text: `Corrigir: ${lastCriticalItem.question}`, checked: false, mandatory: true },
+          { id: '2', text: 'Validar Medida de Engenharia', checked: false, mandatory: true },
+          { id: '3', text: 'Liberar Frente de Trabalho', checked: false, mandatory: true }
+        ]
+      };
+
+      await addDocumentNonBlocking(tasksRef, urgentTask);
+      
+      toast({ 
+        title: "Plano de Ação Criado", 
+        description: "A falha crítica foi enviada para o Cards Operação com prioridade máxima." 
+      });
+      setCriticalAlertOpen(false);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro ao criar card urgente" });
+    } finally {
+      setIsCreatingUrgentTask(false);
     }
   }
 
@@ -147,14 +192,12 @@ export default function ChecklistsPage() {
         status: checklistProgress === 100 ? 'COMPLETED' : 'PARTIAL'
       };
 
-      // 1. Salvar no Storage como arquivo JSON (Dossiê Técnico)
       const storagePath = STORAGE_PATHS.FIELD_INSPECTION(selectedCompanyId, activeNR.nr);
       const storageRef = ref(storage, storagePath);
       const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: 'application/json' });
       
       await uploadBytes(storageRef, blob);
 
-      // 2. Registrar no Firestore (para aparecer na Central de Documentos / Relatórios)
       await addDoc(collection(db, "clients", user.uid, "reports"), {
         reportType: activeNR.nr.toLowerCase().replace('-', ''),
         name: `Inspeção de Campo - ${activeNR.nr}`,
@@ -174,11 +217,10 @@ export default function ChecklistsPage() {
       
       setIsChecklistOpen(false);
     } catch (error: any) {
-      console.error(error);
       toast({ 
         variant: "destructive", 
         title: "Erro ao Salvar", 
-        description: "Não foi possível arquivar a inspeção. Verifique sua conexão." 
+        description: "Não foi possível arquivar a inspeção." 
       });
     } finally {
       setIsFinalizing(false);
@@ -464,8 +506,13 @@ export default function ChecklistsPage() {
             <AlertDialogCancel className="bg-white border-red-200 text-red-900 font-bold uppercase text-xs h-14 px-8 rounded-2xl">
               Apenas Registrar
             </AlertDialogCancel>
-            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs h-14 px-8 rounded-2xl shadow-xl shadow-red-600/20">
-              <AlertTriangle className="size-4 mr-2" /> Abrir Plano Urgente
+            <AlertDialogAction 
+              onClick={handleCreateUrgentAction}
+              disabled={isCreatingUrgentTask}
+              className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs h-14 px-8 rounded-2xl shadow-xl shadow-red-600/20 gap-2"
+            >
+              {isCreatingUrgentTask ? <Loader2 className="size-4 animate-spin" /> : <AlertTriangle className="size-4" />}
+              {isCreatingUrgentTask ? "Criando Plano..." : "Abrir Plano Urgente"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
