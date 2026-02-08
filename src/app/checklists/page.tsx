@@ -21,14 +21,16 @@ import {
   Camera,
   BookOpen,
   PenTool,
-  AlertTriangle
+  AlertTriangle,
+  Save
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage } from "@/firebase"
+import { collection, query, orderBy, addDoc } from "firebase/firestore"
+import { ref, uploadBytes } from "firebase/storage"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -52,6 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { NR_CHECKLISTS, getGenericChecklist, NRChecklist, ChecklistItem } from "@/lib/nr-data"
+import { STORAGE_PATHS } from "@/lib/storage-paths"
 
 const CHECKLIST_CATALOG = [
   { id: "nr01", category: "Gestão", title: "NR-01 - Gerenciamento de Riscos (PGR)", icon: ShieldAlert, color: "text-red-600" },
@@ -62,17 +65,19 @@ const CHECKLIST_CATALOG = [
   { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: Layers, color: "text-blue-500" },
 ]
 
-type ChecklistStatus = 'C' | 'NC' | 'NA' | null;
+type ChecklistStatus = 'CONFORME' | 'NÃO CONFORME' | 'NÃO AVALIADO' | null;
 
 export default function ChecklistsPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
+  const storage = useStorage()
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [searchTerm, setSearchTerm] = React.useState("")
 
   // Estados do Checklist
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false)
+  const [isFinalizing, setIsFinalizing] = React.useState(false)
   const [activeNR, setActiveNR] = React.useState<NRChecklist | null>(null)
   const [responses, setResponses] = React.useState<Record<string, ChecklistStatus>>({})
   const [expandedHelp, setExpandedHelp] = React.useState<Record<string, boolean>>({})
@@ -111,7 +116,7 @@ export default function ChecklistsPage() {
     setResponses(prev => ({ ...prev, [item.id]: status }));
     
     // --- LÓGICA DE NÃO CONFORMIDADE ATIVA ---
-    if (status === 'NC' && item.criticality === 'critical') {
+    if (status === 'NÃO CONFORME' && item.criticality === 'critical') {
       setLastCriticalItem(item);
       setCriticalAlertOpen(true);
     }
@@ -122,6 +127,63 @@ export default function ChecklistsPage() {
     const answered = Object.values(responses).filter(v => v !== null).length;
     return (answered / activeNR.items.length) * 100;
   }, [responses, activeNR])
+
+  const handleFinalizeAuditoria = async () => {
+    if (!user || !storage || !db || !activeNR || !selectedCompanyId) return;
+
+    setIsFinalizing(true);
+    try {
+      const company = companies?.find(c => c.id === selectedCompanyId);
+      const auditData = {
+        nr: activeNR.nr,
+        nrTitle: activeNR.title,
+        companyId: selectedCompanyId,
+        companyName: company?.name || "Unidade Desconhecida",
+        auditorId: user.uid,
+        auditorEmail: user.email,
+        timestamp: new Date().toISOString(),
+        responses: responses,
+        progress: Math.round(checklistProgress),
+        status: checklistProgress === 100 ? 'COMPLETED' : 'PARTIAL'
+      };
+
+      // 1. Salvar no Storage como arquivo JSON (Dossiê Técnico)
+      const storagePath = STORAGE_PATHS.FIELD_INSPECTION(selectedCompanyId, activeNR.nr);
+      const storageRef = ref(storage, storagePath);
+      const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: 'application/json' });
+      
+      await uploadBytes(storageRef, blob);
+
+      // 2. Registrar no Firestore (para aparecer na Central de Documentos / Relatórios)
+      await addDoc(collection(db, "clients", user.uid, "reports"), {
+        reportType: activeNR.nr.toLowerCase().replace('-', ''),
+        name: `Inspeção de Campo - ${activeNR.nr}`,
+        companyId: selectedCompanyId,
+        companyName: company?.name,
+        storagePath: storagePath,
+        createdAt: new Date().toISOString(),
+        analysisData: {
+          aiInsight: `Inspeção ${activeNR.nr} finalizada com ${auditData.progress}% de cobertura. Unidade: ${company?.name}.`
+        }
+      });
+
+      toast({ 
+        title: "Auditoria Finalizada!", 
+        description: "Os dados foram arquivados com segurança na pasta do cliente." 
+      });
+      
+      setIsChecklistOpen(false);
+    } catch (error: any) {
+      console.error(error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao Salvar", 
+        description: "Não foi possível arquivar a inspeção. Verifique sua conexão." 
+      });
+    } finally {
+      setIsFinalizing(false);
+    }
+  }
 
   const getCriticalityBadge = (criticality: string) => {
     switch(criticality) {
@@ -191,7 +253,7 @@ export default function ChecklistsPage() {
       </div>
 
       {/* Dialog do Checklist Ativo */}
-      <Dialog open={isChecklistOpen} onOpenChange={setIsChecklistOpen}>
+      <Dialog open={isChecklistOpen} onOpenChange={(open) => !isFinalizing && setIsChecklistOpen(open)}>
         <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2rem]">
           <DialogHeader className="p-8 bg-primary text-white shrink-0">
             <div className="flex justify-between items-start">
@@ -246,10 +308,10 @@ export default function ChecklistsPage() {
                             <Button 
                               size="lg" 
                               variant="outline"
-                              onClick={() => handleStatusChange(item, 'C')}
+                              onClick={() => handleStatusChange(item, 'CONFORME')}
                               className={cn(
                                 "flex-1 md:flex-none h-14 px-6 font-black text-[10px] uppercase tracking-widest transition-all",
-                                responses[item.id] === 'C' ? "bg-emerald-500 text-white border-none shadow-lg scale-105" : "text-emerald-600 border-emerald-100 hover:bg-emerald-50"
+                                responses[item.id] === 'CONFORME' ? "bg-emerald-500 text-white border-none shadow-lg scale-105" : "text-emerald-600 border-emerald-100 hover:bg-emerald-50"
                               )}
                             >
                               CONFORME
@@ -257,10 +319,10 @@ export default function ChecklistsPage() {
                             <Button 
                               size="lg" 
                               variant="outline"
-                              onClick={() => handleStatusChange(item, 'NC')}
+                              onClick={() => handleStatusChange(item, 'NÃO CONFORME')}
                               className={cn(
                                 "flex-1 md:flex-none h-14 px-6 font-black text-[10px] uppercase tracking-widest transition-all",
-                                responses[item.id] === 'NC' ? "bg-red-500 text-white border-none shadow-lg scale-105" : "text-red-600 border-red-100 hover:bg-red-50"
+                                responses[item.id] === 'NÃO CONFORME' ? "bg-red-500 text-white border-none shadow-lg scale-105" : "text-red-600 border-red-100 hover:bg-red-50"
                               )}
                             >
                               NÃO CONFORME
@@ -268,10 +330,10 @@ export default function ChecklistsPage() {
                             <Button 
                               size="lg" 
                               variant="outline"
-                              onClick={() => handleStatusChange(item, 'NA')}
+                              onClick={() => handleStatusChange(item, 'NÃO AVALIADO')}
                               className={cn(
                                 "flex-1 md:flex-none h-14 px-6 font-black text-[10px] uppercase tracking-widest transition-all",
-                                responses[item.id] === 'NA' ? "bg-slate-500 text-white border-none shadow-lg" : "text-slate-600 border-slate-100 hover:bg-slate-50"
+                                responses[item.id] === 'NÃO AVALIADO' ? "bg-slate-500 text-white border-none shadow-lg" : "text-slate-600 border-slate-100 hover:bg-slate-50"
                               )}
                             >
                               NÃO AVALIADO
@@ -280,7 +342,7 @@ export default function ChecklistsPage() {
                         </div>
 
                         {/* Evidência Fotográfica Obrigatória */}
-                        {isCritical && responses[item.id] === 'C' && (
+                        {isCritical && responses[item.id] === 'CONFORME' && (
                           <div className="bg-blue-50/50 p-4 rounded-2xl flex items-center justify-between border border-blue-100 animate-in slide-in-from-top-2">
                             <div className="flex items-center gap-3">
                               <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
@@ -340,12 +402,14 @@ export default function ChecklistsPage() {
               <ShieldAlert className="size-3" /> Segurança de Dados LGPD
             </div>
             <div className="flex gap-3">
-              <Button variant="ghost" onClick={() => setIsChecklistOpen(false)} className="font-black uppercase text-[10px] h-12 px-6">Descartar</Button>
+              <Button variant="ghost" onClick={() => setIsChecklistOpen(false)} disabled={isFinalizing} className="font-black uppercase text-[10px] h-12 px-6">Descartar</Button>
               <Button 
-                disabled={checklistProgress < 100}
-                className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 shadow-xl shadow-primary/20"
+                onClick={handleFinalizeAuditoria}
+                disabled={checklistProgress < 100 || isFinalizing}
+                className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-10 h-12 shadow-xl shadow-primary/20 gap-2"
               >
-                <Sparkles className="size-4 text-accent mr-2" /> Finalizar Auditoria
+                {isFinalizing ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4 text-accent" />}
+                {isFinalizing ? "Arquivando no Storage..." : "Finalizar Auditoria"}
               </Button>
             </div>
           </DialogFooter>
