@@ -3,12 +3,14 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // 1. Regra de Acesso Direto: Permite qualquer operação para usuários autenticados.
+    // Isso cobre documentos específicos e sub-coleções quando acessados via caminho completo.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
     
     // 2. Regras de Collection Group (Obrigatórias para Dashboards Globais)
-    // O Firestore exige o padrão {path=**}/collectionId/{doc} para autorizar consultas de grupo.
+    // No Firestore, consultas que abrangem múltiplas sub-coleções em toda a base (collectionGroup)
+    // exigem o padrão {path=**}/collectionId/{doc} para serem autorizadas.
     
     match /{path=**}/tasks/{task} {
       allow read: if request.auth != null;
