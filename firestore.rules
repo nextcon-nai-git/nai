@@ -9,28 +9,28 @@ service cloud.firestore {
     
     // 2. Regras de Collection Group (Obrigatórias para Dashboards Globais)
     // No Firestore, consultas via collectionGroup exigem o padrão {path=**} 
-    // para que as regras autorizem a listagem em qualquer profundidade.
+    // e permissões explícitas de 'list' para autorizar a listagem em qualquer profundidade.
     
     match /{path=**}/tasks/{task} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/employees/{employee} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/reports/{report} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/examHistory/{exam} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/auditHistory/{audit} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/legalExpertises/{expertise} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
     match /{path=**}/sst_events/{event} {
-      allow read, write: if request.auth != null;
+      allow get, list, create, update, delete: if request.auth != null;
     }
 
     // 3. Catálogos e Tabelas de Referência
