@@ -61,8 +61,8 @@ export function useCollection<T = any>(
           // Tenta extrair o nome do grupo caso seja uma collectionGroup query
           if (anyQuery?._query?.collectionGroup) {
             path = `group:${anyQuery._query.collectionGroup}`;
-          } else if ('path' in memoizedTargetRefOrQuery) {
-            path = memoizedTargetRefOrQuery.path;
+          } else if (anyQuery?.path) {
+            path = anyQuery.path;
           } else if (anyQuery?._query?.path) {
             path = anyQuery._query.path.canonicalString();
           }
@@ -71,14 +71,19 @@ export function useCollection<T = any>(
         }
 
         if (serverError.code === 'permission-denied') {
-          const contextualError = new FirestorePermissionError({
-            operation: 'list',
-            path: path,
-          } satisfies SecurityRuleContext);
+          try {
+            const contextualError = new FirestorePermissionError({
+              operation: 'list',
+              path: path,
+            } satisfies SecurityRuleContext);
 
-          setError(contextualError);
-          // Emitimos o erro para ser capturado pelo Error Boundary Listener
-          errorEmitter.emit('permission-error', contextualError);
+            setError(contextualError);
+            // Emitimos o erro para ser capturado pelo Error Boundary Listener
+            errorEmitter.emit('permission-error', contextualError);
+          } catch (e) {
+            // Fallback caso a criação do erro contextual falhe
+            setError(serverError);
+          }
         } else {
           setError(serverError);
         }

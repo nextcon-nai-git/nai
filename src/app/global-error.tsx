@@ -15,6 +15,7 @@ export default function GlobalError({
 }) {
   const handleReset = () => {
     // Fallback robusto caso a função reset não tenha sido injetada ou falhe
+    // Isso evita o erro "TypeError: reset is not a function"
     if (typeof reset === 'function') {
       try {
         reset();
@@ -40,7 +41,7 @@ export default function GlobalError({
           </div>
           <h1 className="text-4xl font-black uppercase tracking-tighter font-headline">Falha Crítica NAI</h1>
           <p className="opacity-70 font-medium leading-relaxed text-sm">
-            Detectamos uma instabilidade no motor de sincronização. Por favor, reinicie a interface para restaurar o acesso aos dados operacionais.
+            Detectamos uma instabilidade no motor de sincronização de dados. Por favor, reinicie a interface para restaurar o acesso aos dados operacionais.
           </p>
           <button 
             onClick={handleReset}

@@ -2,8 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 1. Regra Global: Permite qualquer operação para usuários autenticados.
-    // Essencial para o desenvolvimento e operação multi-tenant inicial.
+    // 1. Regra de Desenvolvimento: Permite qualquer operação para usuários autenticados.
+    // O padrão {document=**} cobre documentos individuais.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
@@ -11,6 +11,7 @@ service cloud.firestore {
     // 2. Regras de Collection Group (Obrigatórias para Consultas Globais)
     // No Firestore, consultas via collectionGroup exigem o padrão {path=**} 
     // para que as regras encontrem a coleção em qualquer profundidade.
+    // Sem isso, o motor de regras nega a listagem global mesmo com a regra acima.
     
     match /{path=**}/tasks/{task} {
       allow read: if request.auth != null;
