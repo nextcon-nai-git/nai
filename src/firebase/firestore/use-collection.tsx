@@ -57,15 +57,14 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group';
         try {
+          // Extração resiliente do caminho para reporte de erro
           const anyQuery = memoizedTargetRefOrQuery as any;
-          // Tenta extrair o nome do grupo de forma resiliente
           if (anyQuery?._query?.collectionGroup) {
             path = `group:${anyQuery._query.collectionGroup}`;
           } else if (anyQuery?.path) {
             path = anyQuery.path;
-          } else if (anyQuery?._query?.path) {
-            // Fallback para paths internos do SDK
-            path = anyQuery._query.path.canonicalString?.() || 'complex-query';
+          } else if (anyQuery?._query?.path?.canonicalString) {
+            path = anyQuery._query.path.canonicalString();
           }
         } catch (e) {
           path = 'complex-query';
@@ -80,10 +79,9 @@ export function useCollection<T = any>(
 
             setError(contextualError);
             // Emitimos o erro para ser capturado pelo Error Boundary Listener
-            // Isso aciona o global-error.tsx ou error.tsx mais próximo
             errorEmitter.emit('permission-error', contextualError);
           } catch (e) {
-            // Fallback caso a criação do erro contextual falhe (evita crash infinito)
+            // Fallback caso a criação do erro contextual falhe
             setError(serverError);
           }
         } else {
