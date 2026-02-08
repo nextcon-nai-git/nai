@@ -51,7 +51,7 @@ const navGroups = [
     label: "Operação Técnica",
     roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'admin'],
     items: [
-      { title: "Ops Engine (Kanban)", icon: CheckSquare, href: "/action-plans" },
+      { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
       { title: "Controle Médico", icon: Stethoscope, href: "/health-control" },
