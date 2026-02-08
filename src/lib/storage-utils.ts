@@ -1,10 +1,9 @@
-
 import { ref, uploadBytes, getDownloadURL, FirebaseStorage } from "firebase/storage";
 import { doc, updateDoc, Firestore } from "firebase/firestore";
 
 /**
  * Faz upload da Logo e atualiza o cadastro da empresa no Firestore.
- * O caminho é padronizado como clients/{userId}/logos/{companyId} para facilitar a gestão.
+ * Segue a arquitetura Multi-tenant: /companies/{companyId}
  */
 export async function uploadCompanyLogo(
   storage: FirebaseStorage, 
@@ -15,14 +14,14 @@ export async function uploadCompanyLogo(
 ) {
   try {
     const fileExtension = file.name.split('.').pop();
-    const storagePath = `clients/${userId}/logos/${companyId}.${fileExtension}`;
+    const storagePath = `companies/${companyId}/branding/logo.${fileExtension}`;
     
     const storageRef = ref(storage, storagePath);
     const snapshot = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(snapshot.ref);
 
-    // Atualiza o documento da empresa dentro da subcoleção managedCompanies do cliente
-    const companyRef = doc(db, "clients", userId, "managedCompanies", companyId);
+    // Atualiza o documento da empresa na coleção raiz
+    const companyRef = doc(db, "companies", companyId);
     await updateDoc(companyRef, {
       logoUrl: downloadURL,
       updatedAt: new Date().toISOString()

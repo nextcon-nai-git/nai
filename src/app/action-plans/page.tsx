@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react"
@@ -53,24 +52,29 @@ export default function EnterpriseOpsHub() {
     type: "pgr",
     priority: "medium",
     status: "todo",
-    dueDate: new Date().toISOString()
+    dueDate: "" // Inicia vazio para evitar erro de hidratação
   })
+
+  // Define data padrão após a montagem para evitar Hydration Mismatch
+  React.useEffect(() => {
+    setTaskForm(prev => ({ ...prev, dueDate: new Date().toISOString() }));
+  }, []);
 
   // Busca de empresas para o filtro
   const companiesQuery = useMemoFirebase(() => {
-    if (!db) return null
+    if (!db || !user) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
-  }, [db])
+  }, [db, user])
   const { data: companies } = useCollection(companiesQuery)
 
   // Busca de tarefas via CollectionGroup para visão global ou filtrada
   const tasksQuery = useMemoFirebase(() => {
-    if (!db) return null
+    if (!db || !user) return null
     if (selectedCompanyId === "all") {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     }
     return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
-  }, [db, selectedCompanyId])
+  }, [db, user, selectedCompanyId])
 
   const { data: tasks, isLoading } = useCollection<OpsTask>(tasksQuery)
 

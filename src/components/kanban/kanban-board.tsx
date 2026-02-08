@@ -61,7 +61,7 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
           title: "Compliance Gate Bloqueado",
           description: `Existem ${pendingMandatory.length} itens obrigatórios pendentes para finalizar esta tarefa.`,
         });
-        return; // Interrompe o drop
+        return; 
       }
     }
 
@@ -70,12 +70,11 @@ export function KanbanBoard({ tasks: initialTasks }: KanbanBoardProps) {
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
 
-    // Persiste no Firestore
-    if (user && db) {
-      const taskRef = doc(db, "clients", user.uid, "tasks", taskId);
+    // Persiste no Firestore usando a hierarquia Multi-tenant
+    if (user && db && currentTask.companyId) {
+      const taskRef = doc(db, "companies", currentTask.companyId, "tasks", taskId);
       updateDocumentNonBlocking(taskRef, { status: newStatus });
       
-      // Trigger de Automação
       if (newStatus === 'done') {
         toast({
           title: "Tarefa Finalizada",
