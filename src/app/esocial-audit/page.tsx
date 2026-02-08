@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -35,8 +36,8 @@ import {
 } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { runEsocialAudit, type EsocialAuditOutput } from "@/ai/flows/esocial-audit-flow"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, addDoc, query, orderBy, limit } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { collection, addDoc, query, orderBy, limit, doc, collectionGroup } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 export default function EsocialAudit() {
@@ -46,6 +47,12 @@ export default function EsocialAudit() {
   const [isAuditing, setIsAuditing] = React.useState(false)
   const [aiReport, setAiReport] = React.useState<EsocialAuditOutput | null>(null)
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, "users", user.uid)
+  }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
   // Status simulado dos eventos eSocial
   const esocialEvents = [
     { id: "S-2210", title: "CAT (Acidentes)", status: "OK", lastSent: "12/05/2025", pending: 0, color: "text-emerald-600" },
@@ -54,17 +61,22 @@ export default function EsocialAudit() {
   ]
 
   const historyQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return query(
-      collection(db, "clients", user.uid, "auditHistory"),
-      orderBy("createdAt", "desc"),
-      limit(5)
-    )
-  }, [db, user])
+    if (!db || !profile) return null
+    
+    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5))
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "auditHistory"), orderBy("createdAt", "desc"), limit(5))
+    }
+    return null
+  }, [db, profile])
 
   const { data: history } = useCollection(historyQuery)
 
   const handleRunAiAudit = async () => {
+    if (!profile) return;
     setIsAuditing(true)
     setAiReport(null)
     
@@ -77,8 +89,8 @@ export default function EsocialAudit() {
       
       setAiReport(result)
       
-      if (db && user) {
-        await addDoc(collection(db, "clients", user.uid, "auditHistory"), {
+      if (db && profile.companyId) {
+        await addDoc(collection(db, "companies", profile.companyId, "auditHistory"), {
           ...result,
           sector: "Produção e Metalurgia",
           createdAt: new Date().toISOString()

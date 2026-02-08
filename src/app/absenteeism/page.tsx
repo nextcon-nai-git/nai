@@ -25,8 +25,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { collection, query, orderBy, collectionGroup, doc } from "firebase/firestore"
 import { generateNtepContestation } from "@/ai/flows/ntep-contestation-generator"
 import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
 
@@ -37,11 +37,26 @@ export default function LimboSentinel() {
   const [isGenerating, setIsGenerating] = React.useState(false)
   const [aiDraft, setAiDraft] = React.useState<string | null>(null)
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, "users", user.uid)
+  }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
   // Busca perícias que envolvem absenteísmo/doença ocupacional
   const expertisesQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "legalExpertises"), orderBy("date", "desc"))
-  }, [db, user])
+    if (!db || !profile) return null
+    
+    // Se for admin, vê tudo via collectionGroup. Se for cliente, vê apenas da sua empresa.
+    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "legalExpertises"), orderBy("date", "desc"))
+    }
+    return null
+  }, [db, profile])
 
   const { data: expertises, isLoading } = useCollection(expertisesQuery)
 
@@ -58,7 +73,7 @@ export default function LimboSentinel() {
       const result = await generateNtepContestation({
         cnae: "25.3", // Padrão metalúrgica
         cid: record.cid || "M75.1",
-        jobRole: record.jobRole,
+        jobRole: record.jobRole || "Operacional",
         workEnvironment: "Linha de Produção / Metalurgia"
       })
       setAiDraft(result.contestationDraft)
@@ -117,7 +132,7 @@ export default function LimboSentinel() {
                       <TableCell>
                         <div>
                           <p className="font-bold text-primary">{record.employeeName}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase font-black">{record.jobRole}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black">{record.jobRole || 'Não informado'}</p>
                         </div>
                       </TableCell>
                       <TableCell>

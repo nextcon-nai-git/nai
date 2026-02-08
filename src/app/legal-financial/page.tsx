@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase"
-import { collection, query, orderBy } from "firebase/firestore"
+import { useCollection, useUser, useMemoFirebase, useFirestore, useDoc } from "@/firebase"
+import { collection, query, orderBy, collectionGroup, doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 export default function LegalFinancial() {
@@ -18,14 +18,25 @@ export default function LegalFinancial() {
   const [fapValue, setFapValue] = React.useState([0.74])
   const [payroll, setPayroll] = React.useState(150000)
 
-  // Busca perícias reais do Firestore
-  const expertisesQuery = useMemoFirebase(() => {
+  const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
-    return query(
-      collection(db, "clients", user.uid, "legalExpertises"),
-      orderBy("date", "desc")
-    )
+    return doc(db, "users", user.uid)
   }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
+  // Busca perícias reais do Firestore (Multi-tenant)
+  const expertisesQuery = useMemoFirebase(() => {
+    if (!db || !profile) return null
+    
+    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "legalExpertises"), orderBy("date", "desc"))
+    }
+    return null
+  }, [db, profile])
 
   const { data: expertises, isLoading: loadingExpertises } = useCollection(expertisesQuery)
 
@@ -105,7 +116,7 @@ export default function LegalFinancial() {
           <CardHeader className="bg-muted/30 border-b">
             <div className="flex items-center gap-2">
               <Scale className="size-5 text-primary" />
-              <CardTitle className="text-lg font-headline font-bold">Controle de Perícias (Britânia CLI037)</CardTitle>
+              <CardTitle className="text-lg font-headline font-bold">Controle de Perícias (Operacional)</CardTitle>
             </div>
             <CardDescription>Acompanhamento detalhado de processos judiciais reais.</CardDescription>
           </CardHeader>
@@ -173,7 +184,7 @@ export default function LegalFinancial() {
                  <Landmark className="size-12 mx-auto text-muted-foreground" />
                  <div className="space-y-1">
                    <p className="text-sm font-bold uppercase tracking-widest">Base de Perícias Vazia</p>
-                   <p className="text-xs">Vá em 'Importação' e use a 'Carga Real (Britânia)'.</p>
+                   <p className="text-xs">Aguardando registros na base multi-tenant.</p>
                  </div>
               </div>
             )}

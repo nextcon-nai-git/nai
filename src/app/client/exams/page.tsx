@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -32,8 +33,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { collection, query, orderBy, collectionGroup, doc } from "firebase/firestore"
 
 export default function ExamsHistoryPage() {
   const { user } = useUser()
@@ -41,10 +42,24 @@ export default function ExamsHistoryPage() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [filterResult, setFilterResult] = React.useState("all")
 
-  const examsQuery = useMemoFirebase(() => {
+  const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "examHistory"), orderBy("date", "desc"))
+    return doc(db, "users", user.uid)
   }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
+  const examsQuery = useMemoFirebase(() => {
+    if (!db || !profile) return null
+    
+    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "examHistory"), orderBy("date", "desc"))
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "examHistory"), orderBy("date", "desc"))
+    }
+    return null
+  }, [db, profile])
 
   const { data: exams, isLoading } = useCollection(examsQuery)
 

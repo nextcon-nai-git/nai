@@ -31,8 +31,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy, where } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { collection, query, orderBy, where, doc, collectionGroup } from "firebase/firestore"
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import { SSTDocument } from "@/components/documents/sst-documents"
 import { cn } from "@/lib/utils"
@@ -78,10 +78,17 @@ export default function ReportsCenter() {
   const [activeTab, setActiveTab] = React.useState("general")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState("all")
 
-  const companiesQuery = useMemoFirebase(() => {
+  const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
+    return doc(db, "users", user.uid)
   }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
+  // Lista de empresas para o filtro
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, "companies"), orderBy("name", "asc"))
+  }, [db])
   const { data: companies } = useCollection(companiesQuery)
 
   const groupedCompanies = React.useMemo(() => {
@@ -92,14 +99,24 @@ export default function ReportsCenter() {
     return { parents, children, orphans }
   }, [companies])
 
+  // Busca documentos reais nas sub-coleções
   const uploadedReportsQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    let q = query(collection(db, "clients", user.uid, "reports"), orderBy("createdAt", "desc"))
-    if (selectedCompanyId !== "all") {
-      q = query(collection(db, "clients", user.uid, "reports"), where("companyId", "==", selectedCompanyId))
+    if (!db || !profile) return null
+    
+    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    
+    // Se selecionou uma empresa específica ou se é cliente (que tem companyId travado no profile)
+    const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+
+    if (companyIdToFilter) {
+      return query(collection(db, "companies", companyIdToFilter, "reports"), orderBy("createdAt", "desc"))
+    } else if (isPrivileged) {
+      // Admin vendo tudo
+      return query(collectionGroup(db, "reports"), orderBy("createdAt", "desc"))
     }
-    return q
-  }, [db, user, selectedCompanyId])
+    return null
+  }, [db, profile, selectedCompanyId])
+
   const { data: uploadedReports } = useCollection(uploadedReportsQuery)
 
   return (
