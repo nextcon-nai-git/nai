@@ -14,7 +14,7 @@ import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
-  const [email, setEmail] = React.useState('admin@nextcon.com.br');
+  const [email, setEmail] = React.useState('nextcon@nextconsaude.com.br');
   const [password, setPassword] = React.useState('2025');
   const [loading, setLoading] = React.useState(false);
   const { user, isUserLoading } = useUser();
@@ -38,13 +38,16 @@ export default function LoginPage() {
       const loggedUser = userCredential.user;
 
       // Bootstrap do perfil do usuário para garantir que as regras de segurança funcionem
+      // E-mails nextcon ou que contenham 'admin' são SUPER_ADMIN
+      const isAdmin = email.includes('admin') || email.includes('nextcon');
+      
       const userRef = doc(db, "users", loggedUser.uid);
       await setDoc(userRef, {
         id: loggedUser.uid,
         email: loggedUser.email,
         name: email.split('@')[0].toUpperCase(),
-        role: email.includes('admin') ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-        companyId: email.includes('gestor') ? 'CLI_BRITANIA' : null,
+        role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
+        companyId: !isAdmin ? 'CLI_BRITANIA' : null,
         updatedAt: serverTimestamp()
       }, { merge: true });
 
@@ -60,7 +63,7 @@ export default function LoginPage() {
   };
 
   const demoUsers = [
-    { email: 'admin@nextcon.com.br', label: 'ADMIN', icon: ShieldAlert },
+    { email: 'nextcon@nextconsaude.com.br', label: 'ADMIN NXC', icon: ShieldAlert },
     { email: 'gestor@cliente.com.br', label: 'CLIENTE', icon: Building2 },
   ];
 

@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useCollection, useUser, useMemoFirebase, useFirestore } from "@/firebase"
-import { collection, query, orderBy, collectionGroup } from "firebase/firestore"
+import { useCollection, useUser, useMemoFirebase, useFirestore, useDoc } from "@/firebase"
+import { collection, query, orderBy, collectionGroup, doc } from "firebase/firestore"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function EmployeesPage() {
@@ -32,15 +32,38 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
+  const isPrivileged = React.useMemo(() => {
+    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+  }, [profile]);
+
+  // Se o usuário não for privilegiado, forçamos o filtro pela sua empresa
+  React.useEffect(() => {
+    if (profile && !isPrivileged && profile.companyId) {
+      setSelectedCompanyId(profile.companyId);
+    }
+  }, [profile, isPrivileged]);
+
   // Busca global via CollectionGroup ou Filtrada por Empresa
   const employeesQuery = useMemoFirebase(() => {
-    if (!db) return null
+    if (!db || !profile) return null
+    
     if (selectedCompanyId === "all") {
-      // Nota: CollectionGroup exige índice no Firestore
-      return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
+      if (isPrivileged) {
+        return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
+      } else if (profile.companyId) {
+        return query(collection(db, "companies", profile.companyId, "employees"), orderBy("name", "asc"))
+      }
+    } else {
+      return query(collection(db, "companies", selectedCompanyId, "employees"), orderBy("name", "asc"))
     }
-    return query(collection(db, "companies", selectedCompanyId, "employees"), orderBy("name", "asc"))
-  }, [db, selectedCompanyId])
+    return null;
+  }, [db, profile, selectedCompanyId, isPrivileged])
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
@@ -69,24 +92,26 @@ export default function EmployeesPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
           <Input 
-            placeholder="Buscar em todas as empresas..." 
+            placeholder="Buscar funcionários..." 
             className="pl-10 h-11" 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="w-64">
-          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-            <SelectTrigger className="h-11">
-              <Building2 className="size-4 mr-2" />
-              <SelectValue placeholder="Filtrar Unidade" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Visão Global</SelectItem>
-              {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        {isPrivileged && (
+          <div className="w-64">
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+              <SelectTrigger className="h-11">
+                <Building2 className="size-4 mr-2" />
+                <SelectValue placeholder="Filtrar Unidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Visão Global</SelectItem>
+                {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <Card className="border-none shadow-xl bg-white">

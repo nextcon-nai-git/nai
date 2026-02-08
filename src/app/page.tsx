@@ -42,18 +42,34 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
+  const isPrivileged = React.useMemo(() => {
+    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+  }, [profile]);
+
   // Dashboards administrativos buscam em todas as empresas via collectionGroup
+  // Dashboards de cliente buscam apenas na sua sub-coleção
   const auditsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
-  }, [db]);
+    if (!db || !profile) return null;
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
+    }
+    return null;
+  }, [db, profile, isPrivileged]);
   const { data: audits } = useCollection(auditsQuery);
 
   const eventsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    // Fallback: em produção usaríamos uma sub-coleção específica ou collectionGroup
-    return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(3));
-  }, [db]);
+    if (!db || !profile) return null;
+    
+    if (isPrivileged) {
+      return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(3));
+    } else if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(3));
+    }
+    return null;
+  }, [db, profile, isPrivileged]);
   const { data: events } = useCollection(eventsQuery);
 
   React.useEffect(() => {
@@ -104,7 +120,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="card-shadow border-none gradient-primary text-white overflow-hidden relative">
+        <Card className="card-shadow border-none gradient-nextcon text-white overflow-hidden relative">
           <div className="absolute inset-0 bg-white/5 opacity-20 pointer-events-none" />
           <CardContent className="p-8">
             <p className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] mb-2">Compliance eSocial</p>
