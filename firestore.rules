@@ -2,12 +2,35 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // PERMITE TUDO PARA USUÁRIOS LOGADOS (Modo Desenvolvimento / Multi-tenancy validado via app logic)
+    // Regra global: permite tudo para usuários autenticados (Modo Dev/Operacional)
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
     
-    // Regra para metadados públicos se necessário
+    // Regras explícitas para Collection Groups (necessário para Dashboards Globais)
+    match /{path=**}/tasks/{task} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/employees/{employee} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/auditHistory/{audit} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/reports/{report} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/examHistory/{exam} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/legalExpertises/{expertise} {
+      allow read: if request.auth != null;
+    }
+    match /{path=**}/sst_events/{event} {
+      allow read: if request.auth != null;
+    }
+
+    // Regra para catálogos públicos
     match /catalogs/{document=**} {
       allow read: if true;
     }

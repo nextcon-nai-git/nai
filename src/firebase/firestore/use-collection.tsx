@@ -77,17 +77,21 @@ export function useCollection<T = any>(
           // fallback para casos de queries complexas
         }
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path: path || 'collection-group',
-        } satisfies SecurityRuleContext);
+        if (serverError.code === 'permission-denied') {
+          const contextualError = new FirestorePermissionError({
+            operation: 'list',
+            path: path || 'collection-group',
+          } satisfies SecurityRuleContext);
 
-        setError(contextualError);
+          setError(contextualError);
+          // Notifica o listener global de erros
+          errorEmitter.emit('permission-error', contextualError);
+        } else {
+          setError(serverError);
+        }
+        
         setData(null);
         setIsLoading(false);
-
-        // Notifica o listener global de erros
-        errorEmitter.emit('permission-error', contextualError);
       }
     );
 
