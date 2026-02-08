@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -76,7 +75,7 @@ export default function EsocialAudit() {
   const { data: history } = useCollection(historyQuery)
 
   const handleRunAiAudit = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
     setIsAuditing(true)
     setAiReport(null)
     
@@ -93,6 +92,7 @@ export default function EsocialAudit() {
         await addDoc(collection(db, "companies", profile.companyId, "auditHistory"), {
           ...result,
           sector: "Produção e Metalurgia",
+          userId: user.uid,
           createdAt: new Date().toISOString()
         })
       }
