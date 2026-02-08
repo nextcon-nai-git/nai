@@ -12,30 +12,19 @@ import {
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
-/** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
 
-/**
- * Interface for the return value of the useCollection hook.
- * @template T Type of the document data.
- */
 export interface UseCollectionResult<T> {
-  data: WithId<T>[] | null; // Document data with ID, or null.
-  isLoading: boolean;       // True if loading.
-  error: FirestoreError | Error | null; // Error object, or null.
+  data: WithId<T>[] | null;
+  isLoading: boolean;
+  error: FirestoreError | Error | null;
 }
 
-/**
- * React hook to subscribe to a Firestore collection or query in real-time.
- * Handles nullable references/queries.
- */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData>) | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
-  type StateDataType = ResultItemType[] | null;
-
-  const [data, setData] = useState<StateDataType>(null);
+  const [data, setData] = useState<ResultItemType[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
@@ -64,18 +53,14 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group-query';
         try {
-          // Extração resiliente de caminho para erros contextuais
+          // Extração resiliente de caminho
           const anyQuery = memoizedTargetRefOrQuery as any;
           if (memoizedTargetRefOrQuery.type === 'collection') {
             path = (memoizedTargetRefOrQuery as CollectionReference).path;
           } else if (anyQuery._query?.path?.canonicalString) {
             path = anyQuery._query.path.canonicalString();
-          } else if (anyQuery.path) {
-            path = typeof anyQuery.path === 'string' ? anyQuery.path : (anyQuery.path?.canonicalString?.() || 'unknown-path');
           }
-        } catch (e) {
-          // fallback para casos de queries complexas
-        }
+        } catch (e) {}
 
         if (serverError.code === 'permission-denied') {
           const contextualError = new FirestorePermissionError({
@@ -84,7 +69,6 @@ export function useCollection<T = any>(
           } satisfies SecurityRuleContext);
 
           setError(contextualError);
-          // Notifica o listener global de erros
           errorEmitter.emit('permission-error', contextualError);
         } else {
           setError(serverError);
