@@ -53,19 +53,21 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group-query';
         try {
-          // Extração resiliente de caminho
+          // Extração resiliente de caminho para logs de auditoria
           const anyQuery = memoizedTargetRefOrQuery as any;
           if (memoizedTargetRefOrQuery.type === 'collection') {
             path = (memoizedTargetRefOrQuery as CollectionReference).path;
           } else if (anyQuery._query?.path?.canonicalString) {
             path = anyQuery._query.path.canonicalString();
           }
-        } catch (e) {}
+        } catch (e) {
+          path = 'unknown-path';
+        }
 
         if (serverError.code === 'permission-denied') {
           const contextualError = new FirestorePermissionError({
             operation: 'list',
-            path: path || 'collection-group',
+            path: path,
           } satisfies SecurityRuleContext);
 
           setError(contextualError);
