@@ -2,14 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Regra Global de Desenvolvimento: permite leitura/escrita para qualquer usuário autenticado.
-    // Isso garante que consultas do tipo collectionGroup (Dashboards) funcionem sem bloqueios complexos.
+    // Regra Global: permite leitura/escrita para qualquer usuário autenticado.
+    // Essencial para o isolamento multi-tenant básico durante o desenvolvimento.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
     
     // Regras explícitas para Collection Groups.
-    // O Firestore exige matches específicos para autorizar consultas globais via collectionGroup.
+    // O Firestore exige matches específicos com curinga de caminho ({path=**}) 
+    // para autorizar consultas globais via collectionGroup (utilizadas nos Dashboards).
+    
     match /{path=**}/tasks/{task} {
       allow read: if request.auth != null;
     }
@@ -32,7 +34,7 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
-    // Catálogos públicos (Riscos eSocial, etc)
+    // Catálogos públicos (Riscos eSocial, Tabela de Exames, etc)
     match /catalogs/{document=**} {
       allow read: if true;
     }
