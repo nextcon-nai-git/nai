@@ -93,10 +93,11 @@ export default function ChecklistsPage() {
   const [lastCriticalItem, setLastCriticalItem] = React.useState<ChecklistItem | null>(null)
   const [isCreatingUrgentTask, setIsCreatingUrgentTask] = React.useState(false)
 
+  // Busca centralizada na coleção raiz 'companies'
   const companiesQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
-    return query(collection(db, "clients", user.uid, "managedCompanies"), orderBy("name", "asc"))
-  }, [db, user])
+    if (!db) return null
+    return query(collection(db, "companies"), orderBy("name", "asc"))
+  }, [db])
   const { data: companies } = useCollection(companiesQuery)
 
   const filteredCatalog = React.useMemo(() => {
@@ -121,7 +122,6 @@ export default function ChecklistsPage() {
   const handleStatusChange = (item: ChecklistItem, status: ChecklistStatus) => {
     setResponses(prev => ({ ...prev, [item.id]: status }));
     
-    // --- LÓGICA DE NÃO CONFORMIDADE ATIVA (INTERDIÇÃO) ---
     if (status === 'NÃO CONFORME' && item.criticality === 'critical') {
       setLastCriticalItem(item);
       setCriticalAlertOpen(true);
@@ -134,7 +134,8 @@ export default function ChecklistsPage() {
     setIsCreatingUrgentTask(true);
     try {
       const company = companies?.find(c => c.id === selectedCompanyId);
-      const tasksRef = collection(db, "clients", user.uid, "tasks");
+      // Salva na sub-coleção 'tasks' da empresa para multi-tenancy
+      const tasksRef = collection(db, "companies", selectedCompanyId, "tasks");
       
       const urgentTask = {
         title: `URGENTE: Falha Crítica ${activeNR?.nr} - ${lastCriticalItem.category}`,
@@ -198,7 +199,8 @@ export default function ChecklistsPage() {
       
       await uploadBytes(storageRef, blob);
 
-      await addDoc(collection(db, "clients", user.uid, "reports"), {
+      // Salva na sub-coleção 'reports' da empresa
+      await addDoc(collection(db, "companies", selectedCompanyId, "reports"), {
         reportType: activeNR.nr.toLowerCase().replace('-', ''),
         name: `Inspeção de Campo - ${activeNR.nr}`,
         companyId: selectedCompanyId,
@@ -294,7 +296,6 @@ export default function ChecklistsPage() {
         })}
       </div>
 
-      {/* Dialog do Checklist Ativo */}
       <Dialog open={isChecklistOpen} onOpenChange={(open) => !isFinalizing && setIsChecklistOpen(open)}>
         <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2rem]">
           <DialogHeader className="p-8 bg-primary text-white shrink-0">
@@ -383,7 +384,6 @@ export default function ChecklistsPage() {
                           </div>
                         </div>
 
-                        {/* Evidência Fotográfica Obrigatória */}
                         {isCritical && responses[item.id] === 'CONFORME' && (
                           <div className="bg-blue-50/50 p-4 rounded-2xl flex items-center justify-between border border-blue-100 animate-in slide-in-from-top-2">
                             <div className="flex items-center gap-3">
@@ -421,7 +421,6 @@ export default function ChecklistsPage() {
                 );
               })}
 
-              {/* Seção de Assinaturas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-10">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest ml-1">Assinatura do Inspetor</label>
@@ -458,7 +457,6 @@ export default function ChecklistsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Base Legal (📜) */}
       <Dialog open={!!selectedLawItem} onOpenChange={() => setSelectedLawItem(null)}>
         <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <DialogHeader className="p-8 bg-[#090e24] text-white">
@@ -483,7 +481,6 @@ export default function ChecklistsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Alerta de Risco Grave (Não Conformidade Ativa) */}
       <AlertDialog open={criticalAlertOpen} onOpenChange={setCriticalAlertOpen}>
         <AlertDialogContent className="bg-red-50 border-red-200 rounded-[3rem] p-10 max-w-xl">
           <AlertDialogHeader>

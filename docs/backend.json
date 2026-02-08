@@ -22,7 +22,9 @@
         "cnpj": { "type": "string" },
         "segment": { "type": "string" },
         "logoUrl": { "type": "string" },
-        "address": { "type": "string" }
+        "address": { "type": "string" },
+        "risk_degree": { "type": "number" },
+        "cnae": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
     },
@@ -52,7 +54,8 @@
         "title": { "type": "string" },
         "status": { "type": "string" },
         "type": { "type": "string" },
-        "priority": { "type": "string" }
+        "priority": { "type": "string" },
+        "ai_risk_score": { "type": "number" }
       }
     }
   },
@@ -60,49 +63,29 @@
     "providers": ["password", "anonymous"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "description": "Perfis de acesso e permissões RBAC."
-        }
-      },
-      {
-        "path": "/companies/{companyId}",
-        "definition": {
-          "entityName": "Company",
-          "description": "Empresas clientes (Contratos Master ou Unidades)."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/employees/{employeeId}",
-        "definition": {
-          "entityName": "Employee",
-          "description": "Funcionários vinculados à empresa."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/tasks/{taskId}",
-        "definition": {
-          "entityName": "Task",
-          "description": "Cards de operação (PGR, PCMSO, eSocial) específicos da empresa."
-        }
-      },
-      {
-        "path": "/companies/{companyId}/documents/{docId}",
-        "definition": {
-          "entityName": "Document",
-          "description": "Metadados de laudos e arquivos técnicos."
-        }
-      },
-      {
-        "path": "/catalogs/{catalogId}",
-        "definition": {
-          "schema": { "type": "object" },
-          "description": "Dados compartilhados (Riscos eSocial, Tabela de Exames)."
-        }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": "#/entities/UserProfile",
+      "description": "Perfis de acesso e permissões RBAC."
+    },
+    "/companies/{companyId}": {
+      "schema": "#/entities/Company",
+      "description": "Empresas clientes (Raiz)."
+    },
+    "/companies/{companyId}/employees/{employeeId}": {
+      "schema": "#/entities/Employee",
+      "description": "Funcionários isolados por empresa."
+    },
+    "/companies/{companyId}/tasks/{taskId}": {
+      "schema": "#/entities/Task",
+      "description": "Cards de operação (Kanban) da empresa."
+    },
+    "/companies/{companyId}/reports/{reportId}": {
+      "schema": { "type": "object" },
+      "description": "Metadados de auditorias e laudos técnicos."
+    },
+    "/catalogs/{catalogId}": {
+      "schema": { "type": "object" },
+      "description": "Dados compartilhados (Riscos eSocial, Tabela de Exames)."
+    }
   }
 }
