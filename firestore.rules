@@ -15,17 +15,22 @@ service cloud.firestore {
 
     function isPrivileged() {
       let data = getUserData();
-      return isSignedIn() && data != null && (data.role in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin']);
+      return isSignedIn() && 
+             data != null && 
+             'role' in data && 
+             (data.role in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin']);
     }
 
     function isCompanyMember(companyId) {
       let data = getUserData();
-      return isSignedIn() && data != null && data.companyId == companyId;
+      return isSignedIn() && 
+             data != null && 
+             'companyId' in data && 
+             data.companyId == companyId;
     }
 
     // --- COLLECTION GROUP RULES ---
-    // Necessário para consultas globais dos Dashboards Administrativos
-    // Nota: O Firestore avalia estas regras para cada documento no resultado da consulta.
+    // Essencial para Dashboards Administrativos Globais
     match /{path=**}/employees/{id} { allow read: if isPrivileged(); }
     match /{path=**}/tasks/{id} { allow read: if isPrivileged(); }
     match /{path=**}/reports/{id} { allow read: if isPrivileged(); }
@@ -37,21 +42,15 @@ service cloud.firestore {
     // --- STANDARD PATH RULES ---
 
     match /users/{userId} {
-      // O próprio usuário ou um admin pode ler/escrever o perfil
       allow get, write: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
-      // Admins podem listar usuários (opcional, dependendo da necessidade de UI)
       allow list: if isPrivileged();
     }
 
     match /companies/{companyId} {
-      // Usuários logados podem listar empresas para filtros
       allow list: if isSignedIn();
-      // Leitura permitida para membros da empresa ou admins
       allow get: if isSignedIn() && (isPrivileged() || isCompanyMember(companyId));
-      // Apenas admins criam/editam empresas
       allow write: if isPrivileged();
 
-      // Sub-coleções operacionais (Multi-tenancy)
       match /{allSubcollections=**} {
         allow read: if isPrivileged() || isCompanyMember(companyId);
         allow write: if isPrivileged();
