@@ -64,6 +64,7 @@ export default function EsocialAudit() {
     
     const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
     
+    // Admins veem via Collection Group global. Clientes veem apenas sua sub-coleção.
     if (isPrivileged) {
       return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5))
     } else if (profile.companyId) {
