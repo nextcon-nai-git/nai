@@ -1,65 +1,15 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // --- HELPER FUNCTIONS ---
-    function isSignedIn() {
-      return request.auth != null;
+    
+    // PERMITE TUDO PARA USUÁRIOS LOGADOS (Temporário para Dev)
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    function getUserData() {
-      let path = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(path) ? get(path).data : null;
-    }
-
-    function isPrivileged() {
-      let data = getUserData();
-      return isSignedIn() && 
-             data != null && 
-             'role' in data && 
-             (data.role in ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin']);
-    }
-
-    function isCompanyMember(companyId) {
-      let data = getUserData();
-      return isSignedIn() && 
-             data != null && 
-             'companyId' in data && 
-             data.companyId == companyId;
-    }
-
-    // --- COLLECTION GROUP RULES ---
-    // Essencial para Dashboards Administrativos Globais
-    match /{path=**}/employees/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/tasks/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/reports/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/auditHistory/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/examHistory/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/legalExpertises/{id} { allow read: if isPrivileged(); }
-    match /{path=**}/sst_events/{id} { allow read: if isPrivileged(); }
-
-    // --- STANDARD PATH RULES ---
-
-    match /users/{userId} {
-      allow get, write: if isSignedIn() && (request.auth.uid == userId || isPrivileged());
-      allow list: if isPrivileged();
-    }
-
-    match /companies/{companyId} {
-      allow list: if isSignedIn();
-      allow get: if isSignedIn() && (isPrivileged() || isCompanyMember(companyId));
-      allow write: if isPrivileged();
-
-      match /{allSubcollections=**} {
-        allow read: if isPrivileged() || isCompanyMember(companyId);
-        allow write: if isPrivileged();
-      }
-    }
-
-    match /catalogs/{allCatalogs=**} {
-      allow read: if isSignedIn();
-      allow write: if isPrivileged();
-    }
+    
+    // SE VOCÊ AINDA NÃO TEM LOGIN, USE ESTA (Cuidado: Libera geral):
+    // match /{document=**} {
+    //   allow read, write: if true;
+    // }
   }
 }
