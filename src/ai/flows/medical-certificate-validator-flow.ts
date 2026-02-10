@@ -1,8 +1,4 @@
 'use server';
-/**
- * @fileOverview Validador Forense de Atestados Médicos da NextCon.
- * Analisa a autenticidade do documento digital (PDF/Imagem).
- */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
@@ -24,7 +20,7 @@ const ValidatorOutputSchema = z.object({
     cid: z.string().optional(),
     clinicName: z.string().optional(),
   }),
-  redFlags: z.array(z.string()).describe("Lista de pontos suspeitos encontrados."),
+  redFlags: z.array(z.string()).describe("Lista de pontos suspeitos encontrados. Se nenhum for encontrado, retorne []."),
   reasoning: z.string().describe("Explicação detalhada da análise forense."),
 });
 export type ValidatorOutput = z.infer<typeof ValidatorOutputSchema>;
@@ -51,6 +47,12 @@ REGRAS DE CLASSIFICAÇÃO:
 - Suspicious: Pequenas inconsistências ou dados que não cruzam 100%.
 - Forged: Sinais claros de fraude (fontes diferentes, CRM inexistente, montagem visual óbvia).
 
+IMPORTANTE:
+- Retorne SEMPRE o objeto JSON completo seguindo rigorosamente o esquema de saída.
+- Se não encontrar pontos suspeitos, o campo 'redFlags' DEVE ser um array vazio [].
+- O campo 'reasoning' DEVE ser preenchido com sua análise técnica.
+- Limpe os textos extraídos removendo quebras de linha excessivas ou espaços desnecessários.
+
 Documento: {{media url=fileDataUri}}`,
 });
 
@@ -63,6 +65,15 @@ const validatorFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     if (!output) throw new Error('A NAI não conseguiu processar este documento agora.');
-    return output;
+    
+    return {
+      ...output,
+      redFlags: output.redFlags || [],
+      reasoning: output.reasoning || "Análise concluída sem observações adicionais.",
+      extractedData: {
+        ...output.extractedData,
+        patientName: output.extractedData?.patientName?.replace(/\n+/g, ' ').trim()
+      }
+    } as ValidatorOutput;
   }
 );
