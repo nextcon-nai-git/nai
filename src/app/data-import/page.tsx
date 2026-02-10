@@ -151,7 +151,7 @@ export default function UnifiedImportCenter() {
           <CardContent className="p-8 space-y-4">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
               <p className="text-[10px] font-black uppercase text-accent mb-1">Estrutura Injetada:</p>
-              <p className="text-xs font-medium opacity-70">TimeNow (Master) > Britânia (Unidade)</p>
+              <p className="text-xs font-medium opacity-70">TimeNow (Master) &gt; Britânia (Unidade)</p>
             </div>
           </CardContent>
         </Card>
