@@ -68,10 +68,11 @@ export default function EnterpriseOpsHub() {
     return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
   }, [profile]);
 
-  // Trava unidade para clientes
+  // Trava unidade para clientes assim que o perfil carregar
   React.useEffect(() => {
     if (profile && !isPrivileged && profile.companyId) {
       setSelectedCompanyId(profile.companyId);
+      setTaskForm(prev => ({ ...prev, companyId: profile.companyId }));
     }
   }, [profile, isPrivileged]);
 
@@ -79,23 +80,22 @@ export default function EnterpriseOpsHub() {
     setTaskForm(prev => ({ ...prev, dueDate: new Date().toISOString() }));
   }, []);
 
-  // Busca de empresas para o filtro
+  // Busca de empresas para o filtro - SEMPRE ativa para usuários autenticados
   const companiesQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
-  }, [db, user])
+  }, [db])
   const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
   // Busca de tarefas com proteção de permissão
   const tasksQuery = useMemoFirebase(() => {
-    if (!db || !user || !profile) return null
+    if (!db || !profile) return null
     
     // Se selecionou "Todas" e é privilegiado, usa collectionGroup
     if (selectedCompanyId === "all") {
       if (isPrivileged) {
         return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
       } else if (profile.companyId) {
-        // Fallback seguro para cliente
         return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
       }
     } else {
@@ -103,7 +103,7 @@ export default function EnterpriseOpsHub() {
       return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
     }
     return null;
-  }, [db, user, profile, selectedCompanyId, isPrivileged])
+  }, [db, profile, selectedCompanyId, isPrivileged])
 
   const { data: tasks, isLoading: loadingTasks } = useCollection<OpsTask>(tasksQuery)
 
@@ -187,7 +187,11 @@ export default function EnterpriseOpsHub() {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Responsável</label>
-                  <Select value={taskForm.companyId} onValueChange={v => setTaskForm({...taskForm, companyId: v})}>
+                  <Select 
+                    value={taskForm.companyId} 
+                    onValueChange={v => setTaskForm({...taskForm, companyId: v})}
+                    disabled={!isPrivileged && !!profile?.companyId}
+                  >
                     <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl">
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>

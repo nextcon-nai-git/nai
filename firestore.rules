@@ -3,41 +3,40 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- REGRAS DE COLLECTION GROUP (PRIORIDADE) ---
-    // Permite consultas globais em sub-coleções específicas para usuários autenticados
-    match /{path=**}/auditHistory/{id} { allow read, list: if request.auth != null; }
+    // --- 1. REGRAS DE COLLECTION GROUP (PRIORIDADE MÁXIMA) ---
+    // Essencial para Dashboards que consultam múltiplas unidades/empresas ao mesmo tempo.
     match /{path=**}/tasks/{id} { allow read, list: if request.auth != null; }
+    match /{path=**}/auditHistory/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/employees/{id} { allow read, list: if request.auth != null; }
+    match /{path=**}/examHistory/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/trainings/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/reports/{id} { allow read, list: if request.auth != null; }
-    match /{path=**}/examHistory/{id} { allow read, list: if request.auth != null; }
-    match /{path=**}/legalExpertises/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/sst_events/{id} { allow read, list: if request.auth != null; }
 
-    // --- USUÁRIOS E PERFIS ---
+    // --- 2. PERFIS DE USUÁRIO ---
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // --- EMPRESAS E UNIDADES (RAIZ) ---
+    // --- 3. EMPRESAS E UNIDADES (RAIZ) ---
     match /companies/{companyId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null; // Em produção, restringir a ADMIN
       
-      // Sub-coleções diretas
+      // Sub-coleções diretas (Fallback caso não seja via Group Query)
       match /{allSubcollections=**} {
         allow read, write: if request.auth != null;
       }
     }
 
-    // --- ACESSO GLOBAL DE SEGURANÇA ---
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // --- CATÁLOGOS PÚBLICOS ---
+    // --- 4. CATÁLOGOS PÚBLICOS ---
     match /catalogs/{document=**} {
       allow read: if true;
+    }
+
+    // --- 5. ACESSO GLOBAL (DESENVOLVIMENTO) ---
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }

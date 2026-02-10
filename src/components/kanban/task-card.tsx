@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
@@ -100,7 +101,9 @@ export function TaskCard({ task }: { task: OpsTask }) {
         <div className="size-5 rounded-md bg-slate-100 flex items-center justify-center">
           <Building2 className="size-3 text-slate-400" />
         </div>
-        <span className="text-[10px] font-bold text-slate-500 truncate uppercase">{task.companyName}</span>
+        <span className="text-[10px] font-bold text-slate-500 truncate uppercase">
+          {task.companyName || "Unidade Técnica"}
+        </span>
       </div>
 
       <div className="space-y-2">
