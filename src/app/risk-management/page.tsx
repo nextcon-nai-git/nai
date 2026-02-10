@@ -54,7 +54,7 @@ export default function RiskInventoryPGR() {
         <TabsList className="grid w-full md:w-[500px] grid-cols-2 bg-muted/50 p-1 rounded-xl h-14">
           <TabsTrigger value="inventory" className="rounded-lg gap-2 text-xs font-bold">
             <ShieldAlert className="size-4" /> Inventário PGR
-          </Badge>
+          </TabsTrigger>
           <TabsTrigger value="heatmap" className="rounded-lg gap-2 text-xs font-bold">
             <Activity className="size-4" /> Matriz de Calor
           </TabsTrigger>
@@ -77,7 +77,7 @@ export default function RiskInventoryPGR() {
             </Card>
 
             <div className="space-y-6">
-              <Card className="card-shadow border-none gradient-primary text-white">
+              <Card className="card-shadow border-none gradient-nextcon text-white">
                 <CardHeader>
                   <CardTitle className="text-xs font-black uppercase flex items-center gap-2">
                     <Sparkles className="size-3 text-accent" /> Auditoria NAI
