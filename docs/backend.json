@@ -46,6 +46,22 @@
         "status": { "type": "string", "enum": ["active", "leave", "fired"] }
       }
     },
+    "Training": {
+      "title": "Training",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "companyId": { "type": "string" },
+        "nrs": { "type": "array", "items": { "type": "string" } },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "totalHours": { "type": "number" },
+        "modality": { "type": "string" },
+        "status": { "type": "string", "enum": ["planned", "in_progress", "completed"] },
+        "students": { "type": "array", "items": { "type": "string" } }
+      }
+    },
     "Task": {
       "title": "OpsTask",
       "type": "object",
@@ -78,6 +94,10 @@
     "/companies/{companyId}/tasks/{taskId}": {
       "schema": "#/entities/Task",
       "description": "Cards de operação (Kanban) da empresa."
+    },
+    "/companies/{companyId}/trainings/{trainingId}": {
+      "schema": "#/entities/Training",
+      "description": "Treinamentos de NRs vinculados à empresa."
     },
     "/companies/{companyId}/reports/{reportId}": {
       "schema": { "type": "object" },

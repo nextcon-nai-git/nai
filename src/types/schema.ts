@@ -1,3 +1,4 @@
+
 /**
  * NEXTCON PLATFORM - ENTERPRISE SCHEMA 2026
  * Core data structures for the Risk & Life Operating System.
@@ -40,6 +41,24 @@ export interface Employee {
   admissionDate: string;
   status: 'active' | 'leave' | 'fired';
   jobRole: string;
+}
+
+export interface Training {
+  id: string;
+  title: string;
+  companyId: string;
+  companyName: string;
+  nrs: string[];
+  startDate: string;
+  endDate: string;
+  totalHours: number;
+  modality: 'Presencial' | 'EAD' | 'Híbrido';
+  status: 'planned' | 'in_progress' | 'completed';
+  students: {
+    id: string;
+    name: string;
+    status: 'pending' | 'present' | 'certified';
+  }[];
 }
 
 export interface ComplianceItem {

@@ -1,12 +1,13 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
     // --- REGRAS DE COLLECTION GROUP (PRIORIDADE) ---
-    // Essencial para permitir que consultas que cruzam a hierarquia multi-tenant funcionem (Dashboards).
     match /{path=**}/auditHistory/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/tasks/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/employees/{id} { allow read, list: if request.auth != null; }
+    match /{path=**}/trainings/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/reports/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/examHistory/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/legalExpertises/{id} { allow read, list: if request.auth != null; }

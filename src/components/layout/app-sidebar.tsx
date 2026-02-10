@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -17,7 +18,8 @@ import {
   DollarSign,
   ClipboardCheck,
   BarChart3,
-  FileSearch
+  FileSearch,
+  GraduationCap
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -56,6 +58,7 @@ const navGroups = [
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
       { title: "Controle Médico", icon: Stethoscope, href: "/health-control" },
+      { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
     ]
   },
   {
