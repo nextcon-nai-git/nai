@@ -117,7 +117,12 @@ export default function FinancialModule() {
   const [dreYear, setDreYear] = React.useState("2026")
   
   const [remittanceType, setRemittanceType] = React.useState("240")
-  const [convenioCode, setConvenioCode] = React.useState("")
+  const [convenioCodes, setConvenioCodes] = React.useState({
+    santander: "",
+    itau: "",
+    bradesco: "",
+    bb: ""
+  })
 
   const dre2025Ref = useMemoFirebase(() => {
     if (!db) return null
@@ -162,6 +167,13 @@ export default function FinancialModule() {
     }
   }
 
+  const handleSaveConvenio = (bank: string) => {
+    toast({
+      title: "Configuração Salva",
+      description: `Código de convênio para ${bank.toUpperCase()} atualizado.`
+    })
+  }
+
   const summary = [
     { title: "Valor Total Contratos", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Conquistado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -174,7 +186,7 @@ export default function FinancialModule() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Gestão Financeira Corporativa</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">ERP Integrado: Fluxo, DRE, Parcelamentos e Integração Santander.</p>
+          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">ERP Integrado: Fluxo, DRE, Parcelamentos e Integração Bancária.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" asChild>
@@ -383,6 +395,7 @@ export default function FinancialModule() {
 
         <TabsContent value="integrations" className="mt-8 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Santander */}
             <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-[#EC1C24] text-white p-10">
                 <div className="flex items-center gap-4 mb-4">
@@ -395,13 +408,97 @@ export default function FinancialModule() {
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Código de Convênio</label>
                   <Input 
                     placeholder="Ex: 1234567" 
-                    value={convenioCode}
-                    onChange={(e) => setConvenioCode(e.target.value)}
+                    value={convenioCodes.santander}
+                    onChange={(e) => setConvenioCodes({...convenioCodes, santander: e.target.value})}
                     className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
                   />
                 </div>
-                <Button className="w-full h-16 bg-[#EC1C24] hover:bg-[#EC1C24]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
+                <Button 
+                  onClick={() => handleSaveConvenio('Santander')}
+                  className="w-full h-16 bg-[#EC1C24] hover:bg-[#EC1C24]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
                   <Zap className="size-5" /> Salvar Santander
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Itaú */}
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-[#FF7000] text-white p-10">
+                <div className="flex items-center gap-4 mb-4">
+                  <Landmark className="size-10" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Banco Itaú</h3>
+                </div>
+              </CardHeader>
+              <CardContent className="p-10 space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Código de Convênio (API)</label>
+                  <Input 
+                    placeholder="Ex: 987654" 
+                    value={convenioCodes.itau}
+                    onChange={(e) => setConvenioCodes({...convenioCodes, itau: e.target.value})}
+                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleSaveConvenio('Itaú')}
+                  className="w-full h-16 bg-[#FF7000] hover:bg-[#FF7000]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  <Zap className="size-5" /> Salvar Itaú
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Bradesco */}
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-[#CC092F] text-white p-10">
+                <div className="flex items-center gap-4 mb-4">
+                  <Landmark className="size-10" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Bradesco</h3>
+                </div>
+              </CardHeader>
+              <CardContent className="p-10 space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Carteira de Cobrança</label>
+                  <Input 
+                    placeholder="Ex: 09" 
+                    value={convenioCodes.bradesco}
+                    onChange={(e) => setConvenioCodes({...convenioCodes, bradesco: e.target.value})}
+                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleSaveConvenio('Bradesco')}
+                  className="w-full h-16 bg-[#CC092F] hover:bg-[#CC092F]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  <Zap className="size-5" /> Salvar Bradesco
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Banco do Brasil */}
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-[#FCF000] text-[#0038A8] p-10 border-b border-blue-100">
+                <div className="flex items-center gap-4 mb-4">
+                  <Landmark className="size-10 text-[#0038A8]" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Banco do Brasil</h3>
+                </div>
+              </CardHeader>
+              <CardContent className="p-10 space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Número do Convênio</label>
+                  <Input 
+                    placeholder="Ex: 3456789" 
+                    value={convenioCodes.bb}
+                    onChange={(e) => setConvenioCodes({...convenioCodes, bb: e.target.value})}
+                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
+                  />
+                </div>
+                <Button 
+                  onClick={() => handleSaveConvenio('BB')}
+                  className="w-full h-16 bg-[#0038A8] hover:bg-[#0038A8]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  <Zap className="size-5" /> Salvar Banco do Brasil
                 </Button>
               </CardContent>
             </Card>
@@ -411,23 +508,60 @@ export default function FinancialModule() {
         <TabsContent value="fiscal" className="mt-8 space-y-8">
           <Card className="card-shadow border-none bg-white overflow-hidden">
             <CardHeader className="bg-primary/5 border-b pb-6">
-              <CardTitle className="text-xl font-headline font-black text-primary uppercase">Cenário Fiscal (Homologação)</CardTitle>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <CardTitle className="text-xl font-headline font-black text-primary uppercase">Cenário Fiscal (Homologação)</CardTitle>
+                <Button 
+                  onClick={handleAiFiscalAnalysis} 
+                  disabled={isAnalyzingFiscal}
+                  className="bg-accent text-primary font-black uppercase text-[10px] h-10 px-6 rounded-xl"
+                >
+                  {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin mr-2" /> : <Sparkles className="size-4 mr-2" />}
+                  Analisar Reforma 2026
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="p-8">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">IBS (Estadual)</p>
-                  <p className="text-lg font-black text-primary">0,1%</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IBS (Estadual/Muni.)</p>
+                  <p className="text-3xl font-black text-primary">0,1%</p>
+                  <Badge variant="outline" className="text-[8px] uppercase">Homologação</Badge>
                 </div>
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">CBS (Federal)</p>
-                  <p className="text-lg font-black text-primary">0,9%</p>
+                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CBS (Federal)</p>
+                  <p className="text-3xl font-black text-primary">0,9%</p>
+                  <Badge variant="outline" className="text-[8px] uppercase">Produção Restrita</Badge>
                 </div>
-                <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">ISS Municipal</p>
-                  <p className="text-lg font-black text-primary">5,0%</p>
+                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ISS Municipal</p>
+                  <p className="text-3xl font-black text-slate-300">5,0%</p>
+                  <Badge variant="outline" className="text-[8px] uppercase">Alíquota Residual</Badge>
                 </div>
               </div>
+
+              {fiscalAiResult && (
+                <div className="mt-8 p-6 bg-accent/5 rounded-3xl border border-accent/20 animate-in slide-in-from-bottom-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Sparkles className="size-5 text-accent" />
+                    <h4 className="font-black text-primary uppercase text-sm">Análise NAI Intelligence</h4>
+                  </div>
+                  <p className="text-sm text-primary/80 leading-relaxed italic mb-4">
+                    "{fiscalAiResult.analysis}"
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black uppercase text-accent tracking-widest">Dicas de Eficiência:</p>
+                      <ul className="space-y-1">
+                        {fiscalAiResult.taxEfficiencyTips.map((tip: string, i: number) => (
+                          <li key={i} className="text-xs font-medium text-slate-600 flex items-start gap-2">
+                            <CheckCircle2 className="size-3 text-accent mt-0.5" /> {tip}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
