@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -91,7 +92,7 @@ export default function ClientMapPage() {
     try {
       const result = await enrichProviderData({
         name: company.name,
-        city: company.city || "Curitiba"
+        city: company.city || "Guaratuba"
       })
       
       const companyRef = doc(db, "companies", company.id)

@@ -9,7 +9,7 @@ export const REAL_COMPANIES = [
   { 
     id: "CLI_NATIVA", 
     name: "NATIVA EMPREENDIMENTOS", 
-    city: "Curitiba", 
+    city: "Guaratuba", 
     state: "PR", 
     cnpj: "12.345.678/0001-90", 
     segment: "CONSTRUCTION", 

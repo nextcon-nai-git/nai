@@ -1,16 +1,14 @@
+
 "use client"
 
 import * as React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Bell,
   Search,
   Settings,
   ChevronDown,
-  Menu,
-  Building2,
-  MessageSquare
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,7 +60,7 @@ export function TopNav() {
 
       <div className="flex items-center gap-3">
         <Badge variant="outline" className="bg-slate-50 border-slate-200 text-slate-600 font-bold text-[10px] px-3 py-1 uppercase hidden md:flex">
-          <Building2 className="size-3 mr-2 text-primary" /> Unidade: Matriz Curitiba
+          <Building2 className="size-3 mr-2 text-primary" /> Unidade: Matriz Guaratuba
         </Badge>
 
         <PlatformFeedback />
