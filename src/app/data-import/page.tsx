@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Database, Scale, CheckCircle2, LayoutGrid } from "lucide-react"
+import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -56,32 +56,6 @@ export default function UnifiedImportCenter() {
         type: "Indenizatória"
       })
 
-      // 5. Importar Casos para o Kanban (Cards Operação)
-      const kanbanTasks = [
-        { cid: "CLI_NATIVA", name: "NATIVA EMPREENDIMENTOS", tasks: [{ id: "T_NAT_01", title: "Treinamento NR Integrada (18, 35, 11, 12)", type: "treinamento", priority: "high", status: "doing" }] },
-        { cid: "CLI_TIMENOW", name: "TIMENOW GESTÃO DE OBRAS", tasks: [{ id: "T_TIME_01", title: "Auditagem Agrupador 859 (Download XML)", type: "esocial", priority: "critical", status: "todo" }] },
-        { cid: "CLI_BRITANIA", name: "BRITÂNIA ELETRODOMÉSTICOS", tasks: [{ id: "T_BRIT_01", title: "Renovação PGR 2026 - Unidade Fabril", type: "pgr", priority: "medium", status: "todo" }] },
-        { cid: "CLI_GULA", name: "GULA ALIMENTOS", tasks: [{ id: "T_GULA_01", title: "Triagem Forense de Atestados (NAI Forensic)", type: "pcmso", priority: "high", status: "review" }] }
-      ]
-
-      kanbanTasks.forEach(comp => {
-        comp.tasks.forEach(t => {
-          const taskRef = doc(db, "companies", comp.cid, "tasks", t.id)
-          batch.set(taskRef, {
-            ...t,
-            companyId: comp.cid,
-            companyName: comp.name,
-            dueDate: now,
-            createdAt: now,
-            ai_risk_score: 85,
-            checklist: [
-              { id: '1', text: 'Coletar evidências de campo', checked: true, mandatory: true },
-              { id: '2', text: 'Validar com Engenheiro Responsável', checked: false, mandatory: true }
-            ]
-          }, { merge: true })
-        })
-      })
-
       await batch.commit()
       toast({ title: "Ecossistema Real Carregado", description: "Empresas, Funcionários e Cards de Operação sincronizados." })
     } catch (e) {
@@ -96,8 +70,8 @@ export default function UnifiedImportCenter() {
     <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-headline font-black text-primary uppercase tracking-tight">Importador de Elite 2026</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Motor de sincronização massiva para base real multi-tenant.</p>
+          <h1 className="text-4xl font-headline font-black text-primary uppercase tracking-tight">Carga de Elite 2026</h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Importação massiva para Multiapp, Contas e Operações.</p>
         </div>
         <Button 
           className="h-16 px-10 bg-primary text-white hover:bg-primary/90 rounded-2xl shadow-2xl shadow-primary/20 gap-3 font-black uppercase text-xs tracking-widest" 
@@ -105,37 +79,46 @@ export default function UnifiedImportCenter() {
           disabled={uploading}
         >
           {uploading ? <Loader2 className="size-5 animate-spin" /> : <Database className="size-5 text-accent" />}
-          Carregar Base Real (Nativa/TimeNow)
+          Sincronizar Base Global
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
           <CardHeader className="bg-primary/5 pb-8">
             <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
-              <Scale className="size-6 text-primary" />
+              <FileSpreadsheet className="size-6 text-primary" />
             </div>
-            <CardTitle className="text-xl font-black text-primary uppercase">Multi-tenant Real</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase opacity-60">Isolamento total por unidade.</CardDescription>
+            <CardTitle className="text-xl font-black text-primary uppercase">Estratégia de Importação</CardTitle>
+            <CardDescription className="text-xs font-bold uppercase opacity-60">Dicas para organização de planilhas.</CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
-            <p className="text-sm text-slate-500 leading-relaxed italic">
-              "As sub-coleções garantem que os dados da Nativa e da Britânia nunca se cruzem indevidamente, respeitando a LGPD e o sigilo médico."
-            </p>
+          <CardContent className="p-8 space-y-4">
+            <div className="flex gap-3">
+              <div className="size-6 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0"><Sparkles className="size-3" /></div>
+              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                Inclua o <strong>Nome do Cliente</strong> ao lado do CNPJ para facilitar a conferência visual no motor multiapp.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <div className="size-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><Zap className="size-3" /></div>
+              <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                Utilize <strong>Cores nos Lançamentos</strong> para identificar prioridades de fluxo de caixa (Entradas/Saídas).
+              </p>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-emerald-500/10 transition-all">
           <CardHeader className="bg-emerald-50 pb-8">
             <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
-              <CheckCircle2 className="size-6 text-emerald-600" />
+              <Layers className="size-6 text-emerald-600" />
             </div>
-            <CardTitle className="text-xl font-black text-emerald-900 uppercase">Carga de Operação</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase opacity-60">Sincronização do Kanban.</CardDescription>
+            <CardTitle className="text-xl font-black text-emerald-900 uppercase">Multiapp & CNPJs</CardTitle>
+            <CardDescription className="text-xs font-bold uppercase opacity-60">Sincronização de múltiplos CNPJs.</CardDescription>
           </CardHeader>
           <CardContent className="p-8">
-            <p className="text-sm text-emerald-700/70 leading-relaxed font-medium">
-              Importa automaticamente os cards de treinamento da Nativa e auditorias da TimeNow para o dashboard de Cards Operação.
+            <p className="text-sm text-emerald-700/70 leading-relaxed font-medium italic">
+              "A sincronização de clientes, produtos e fornecedores é automática entre empresas do mesmo grupo, com segregação de contas bancárias por segurança."
             </p>
           </CardContent>
         </Card>
@@ -143,16 +126,19 @@ export default function UnifiedImportCenter() {
         <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2rem] overflow-hidden">
           <CardHeader className="pb-8">
             <div className="p-3 bg-white/10 rounded-2xl w-fit shadow-sm mb-4">
-              <LayoutGrid className="size-6 text-accent" />
+              <AlertCircle className="size-6 text-accent" />
             </div>
-            <CardTitle className="text-xl font-black uppercase">Hierarquia 2026</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase text-white/40">Contratos Master vs Unidades.</CardDescription>
+            <CardTitle className="text-xl font-black uppercase">Segurança Bancária</CardTitle>
+            <CardDescription className="text-xs font-bold uppercase text-white/40">Remessa Santander & API.</CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-4">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <p className="text-[10px] font-black uppercase text-accent mb-1">Estrutura Injetada:</p>
-              <p className="text-xs font-medium opacity-70">TimeNow (Master) &gt; Britânia (Unidade)</p>
+              <p className="text-[10px] font-black uppercase text-accent mb-1">Tipo de Remessa:</p>
+              <p className="text-xs font-medium opacity-70">240 e 102 (Cobrança Simples sem Protesto)</p>
             </div>
+            <p className="text-[10px] text-white/30 font-bold uppercase italic leading-relaxed">
+              * Verifique seu Código de Convênio no Santander antes de gerar remessas.
+            </p>
           </CardContent>
         </Card>
       </div>
