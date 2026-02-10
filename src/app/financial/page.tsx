@@ -92,7 +92,7 @@ import { useToast } from "@/hooks/use-toast"
 import { analyzeFiscalScenario } from "@/ai/flows/fiscal-intelligence-flow"
 import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
 import { doc, collectionGroup, query, orderBy } from "firebase/firestore"
-import { DRE_2025_HISTORY, REAL_CONTRACTS } from "@/lib/real-data"
+import { DRE_2025_HISTORY, REAL_CONTRACTS, DRE_2026_DATA } from "@/lib/real-data"
 
 const cashFlowData = [
   { day: '01/02', entradas: 45000, saidas: 32000, saldo: 13000 },
@@ -101,15 +101,6 @@ const cashFlowData = [
   { day: '15/02', entradas: 65000, saidas: 31000, saldo: 64000 },
   { day: '20/02', entradas: 42000, saidas: 22000, saldo: 84000 },
   { day: '25/02', entradas: 58000, saidas: 35000, saldo: 107000 },
-]
-
-const dre2026Data = [
-  { month: 'Set', receita: 120000, despesa: 80000, lucro: 40000 },
-  { month: 'Out', receita: 145000, despesa: 85000, lucro: 60000 },
-  { month: 'Nov', receita: 130000, despesa: 90000, lucro: 40000 },
-  { month: 'Dez', receita: 180000, despesa: 110000, lucro: 70000 },
-  { month: 'Jan', receita: 155000, despesa: 95000, lucro: 60000 },
-  { month: 'Fev', receita: 165000, despesa: 98000, lucro: 67000 },
 ]
 
 export default function FinancialModule() {
@@ -150,7 +141,7 @@ export default function FinancialModule() {
     if (dreYear === "2025") {
       return remoteDre2025?.data || DRE_2025_HISTORY;
     }
-    return dre2026Data;
+    return DRE_2026_DATA;
   }, [dreYear, remoteDre2025])
 
   const handleAiFiscalAnalysis = async () => {

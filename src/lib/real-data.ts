@@ -83,6 +83,11 @@ export const REAL_TRAININGS = [
   }
 ];
 
+export const DRE_2026_DATA = [
+  { month: 'Jan', receita: 99146.50, despesa: 83052.78, lucro: 16093.72 },
+  { month: 'Fev', receita: 105000.00, despesa: 85000.00, lucro: 20000.00 }, // Projeção
+];
+
 export const DRE_2025_HISTORY = [
   { month: 'Jan', receita: 110000, despesa: 75000, lucro: 35000 },
   { month: 'Fev', receita: 115000, despesa: 78000, lucro: 37000 },
