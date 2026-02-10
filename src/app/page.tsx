@@ -19,7 +19,9 @@ import {
   History,
   Sparkles,
   Layers,
-  Activity
+  Activity,
+  BarChart3,
+  Users
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,34 +44,30 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
-  const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
-  }, [profile]);
+  const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
+  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(role);
 
   // Dashboards administrativos buscam em todas as empresas via collectionGroup
-  // Dashboards de cliente buscam apenas na sua sub-coleção
   const auditsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
-    
-    if (isPrivileged) {
+    if (isAdmin) {
       return query(collectionGroup(db, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
     } else if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "auditHistory"), orderBy("createdAt", "desc"), limit(5));
     }
     return null;
-  }, [db, profile, isPrivileged]);
+  }, [db, profile, isAdmin]);
   const { data: audits } = useCollection(auditsQuery);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
-    
-    if (isPrivileged) {
+    if (isAdmin) {
       return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(3));
     } else if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(3));
     }
     return null;
-  }, [db, profile, isPrivileged]);
+  }, [db, profile, isAdmin]);
   const { data: events } = useCollection(eventsQuery);
 
   React.useEffect(() => {
@@ -92,35 +90,44 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-1.5 bg-accent rounded-full" />
+            <div className={cn("h-8 w-1.5 rounded-full", isAdmin ? "bg-accent" : "bg-primary")} />
             <h1 className="text-4xl font-black text-primary tracking-tight font-headline uppercase leading-none">
-              {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-3">{saudacao}, <span className="text-accent">{nomeExibicao}</span></div>}
+              {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-3">{saudacao}, <span className={isAdmin ? "text-accent" : "text-primary"}>{nomeExibicao}</span></div>}
             </h1>
           </div>
           <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.3em] ml-4">{dataAtual}</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10">
-            NextCon SST Intelligence v2.6
+          <Badge className={cn(
+            "text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10",
+            isAdmin ? "bg-[#001F3F]" : "bg-primary"
+          )}>
+            {isAdmin ? 'Backoffice Intelligence v2.6' : 'Portal do Cliente NAI'}
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="card-shadow border-none bg-white relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-all duration-500 scale-150 group-hover:rotate-12">
-            <Layers size={80} className="text-primary" />
-          </div>
           <CardContent className="p-8">
-            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2">Unidades Ativas</p>
-            <h3 className="text-2xl font-black text-primary">25 <span className="text-xs text-gray-300 font-medium">Plantas</span></h3>
+            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2">
+              {isAdmin ? 'Unidades Gerenciadas' : 'Status da Unidade'}
+            </p>
+            <h3 className="text-2xl font-black text-primary">
+              {isAdmin ? '25' : 'ATIVA'} <span className="text-xs text-gray-300 font-medium">{isAdmin ? 'Plantas' : 'SST'}</span>
+            </h3>
             <div className="mt-4 flex items-center gap-2">
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-black text-[8px] uppercase tracking-tighter">Time Now Master</Badge>
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-black text-[8px] uppercase tracking-tighter">
+                {isAdmin ? 'Visão Global' : '100% Conforme'}
+              </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-shadow border-none gradient-nextcon text-white overflow-hidden relative">
+        <Card className={cn(
+          "card-shadow border-none text-white overflow-hidden relative",
+          isAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
+        )}>
           <div className="absolute inset-0 bg-white/5 opacity-20 pointer-events-none" />
           <CardContent className="p-8">
             <p className="text-[10px] font-black uppercase text-white/50 tracking-[0.2em] mb-2">Compliance eSocial</p>
@@ -128,14 +135,16 @@ export default function Dashboard() {
               <h3 className="text-4xl font-black text-white">98%</h3>
               <TrendingUp className="size-4 text-accent" />
             </div>
-            <p className="text-[9px] font-bold text-white/70 mt-4 uppercase tracking-widest">S-2220 & S-2240 Atualizados</p>
+            <p className="text-[9px] font-bold text-white/70 mt-4 uppercase tracking-widest">S-2220 & S-2240 Sincronizados</p>
           </CardContent>
         </Card>
 
         <Card className="card-shadow border-none bg-white relative overflow-hidden group">
           <CardContent className="p-8">
-            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2">Vidas Gerenciadas</p>
-            <h3 className="text-2xl font-black text-primary">1.402 <span className="text-xs text-gray-300 font-medium">Colaboradores</span></h3>
+            <p className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-2">Vidas Ativas</p>
+            <h3 className="text-2xl font-black text-primary">
+              {isAdmin ? '1.402' : '128'} <span className="text-xs text-gray-300 font-medium">Colaboradores</span>
+            </h3>
             <div className="mt-4 flex items-center gap-2">
               <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div className="h-full bg-accent rounded-full w-[85%]" />
@@ -163,7 +172,9 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/5 rounded-xl text-primary"><Calendar className="size-5" /></div>
                   <div>
-                    <CardTitle className="text-lg font-black text-primary uppercase tracking-tight font-headline">Agenda Estratégica SST</CardTitle>
+                    <CardTitle className="text-lg font-black text-primary uppercase tracking-tight font-headline">
+                      {isAdmin ? 'Agenda de Operações Rede' : 'Sua Agenda SST'}
+                    </CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Renovações e Visitas Técnicas</CardDescription>
                   </div>
                 </div>
@@ -223,7 +234,10 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-8">
-          <Card className="border-none gradient-nextcon text-white card-shadow relative overflow-hidden">
+          <Card className={cn(
+            "border-none text-white card-shadow relative overflow-hidden",
+            isAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
+          )}>
             <div className="absolute top-0 right-0 p-6 opacity-10"><Sparkles className="size-32 text-accent" /></div>
             <CardHeader className="pb-4 relative z-10">
               <CardTitle className="text-sm flex items-center gap-2 font-black uppercase italic tracking-[0.2em] text-accent">
@@ -234,7 +248,10 @@ export default function Dashboard() {
               <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Inteligência Operacional</p>
                 <p className="text-xs leading-relaxed text-white/90 font-medium italic">
-                  "Identificamos que 85% dos seus eventos S-2240 estão sendo transmitidos em menos de 24h após a emissão do laudo. Performance acima do mercado."
+                  {isAdmin 
+                    ? '"Identificamos que 85% dos eventos S-2240 de toda a rede estão sendo transmitidos em menos de 24h. Meta alcançada."'
+                    : '"Sua unidade apresenta 100% de conformidade nos treinamentos de NR-18 realizados na última semana. Ótimo desempenho."'
+                  }
                 </p>
               </div>
               <Button asChild variant="outline" className="w-full h-14 bg-white/5 border-white/10 text-white hover:bg-white hover:text-primary transition-all font-black uppercase text-[10px] tracking-widest rounded-2xl">
@@ -246,7 +263,7 @@ export default function Dashboard() {
           <Card className="card-shadow border-none bg-white relative overflow-hidden group">
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] font-black text-primary/40 uppercase tracking-[0.3em] flex items-center gap-2">
-                <TrendingUp className="size-3 text-accent" /> ROI em Segurança
+                <TrendingUp className="size-3 text-accent" /> {isAdmin ? 'ROI Médio Rede' : 'Seu ROI em Segurança'}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
@@ -254,11 +271,14 @@ export default function Dashboard() {
                 <h2 className="text-4xl font-black text-primary tracking-tighter">94.8%</h2>
                 <Badge className="bg-accent/10 text-primary text-[9px] font-black border-none uppercase px-3">Alta Performance</Badge>
               </div>
-              <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden mb-4 shadow-inner">
+              <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-4 shadow-inner">
                 <div className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000" style={{ width: '94.8%' }} />
               </div>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter leading-relaxed">
-                Índice consolidado de conformidade técnica, jurídica e operacional de todas as suas unidades gerenciadas.
+                {isAdmin 
+                  ? 'Índice consolidado de todas as unidades gerenciadas pela sua equipe.'
+                  : 'Sua pontuação de conformidade técnica, jurídica e operacional desta unidade.'
+                }
               </p>
             </CardContent>
           </Card>

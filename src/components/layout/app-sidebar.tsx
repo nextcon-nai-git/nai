@@ -19,7 +19,9 @@ import {
   ClipboardCheck,
   BarChart3,
   FileSearch,
-  GraduationCap
+  GraduationCap,
+  Building2,
+  Settings
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -43,11 +45,14 @@ import { cn } from "@/lib/utils"
 
 const navGroups = [
   {
-    label: "Performance & ROI",
-    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'admin'],
+    label: "Equipe Nextcon (Interno)",
+    roles: ['SUPER_ADMIN', 'admin'],
     items: [
-      { title: "Executive Dashboard", icon: BarChart3, href: "/analytics" },
-      { title: "ROI Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
+      { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
+      { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
+      { title: "Carga de Dados", icon: Database, href: "/data-import" },
     ]
   },
   {
@@ -62,7 +67,7 @@ const navGroups = [
     ]
   },
   {
-    label: "Gestão de Vidas",
+    label: "Segurança de Vidas",
     roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'admin'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
@@ -93,14 +98,20 @@ export function AppSidebar() {
   }
 
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase()
+  const isAdmin = ['SUPER_ADMIN', 'admin'].includes(role)
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   
   return (
-    <Sidebar className="border-r border-sidebar-border bg-[#003366] text-white w-[260px]">
+    <Sidebar className={cn(
+      "border-r border-sidebar-border text-white w-[260px] transition-colors duration-500",
+      isAdmin ? "bg-[#001F3F]" : "bg-[#003366]"
+    )}>
       <SidebarHeader className="p-8">
         <div className="flex flex-col gap-1">
           <span className="text-3xl font-black tracking-tighter leading-none">NEXTCON</span>
-          <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">Saúde Empresarial</span>
+          <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">
+            {isAdmin ? 'Backoffice Intelligence' : 'Saúde Empresarial'}
+          </span>
         </div>
       </SidebarHeader>
       
@@ -111,7 +122,8 @@ export function AppSidebar() {
           
           return (
             <SidebarGroup key={group.label} className="py-4">
-              <SidebarGroupLabel className="text-white/30 px-2 text-[9px] font-black uppercase tracking-widest mb-2">
+              <SidebarGroupLabel className="text-white/30 px-2 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                {group.label === "Equipe Nextcon (Interno)" && <Lock className="size-3" />}
                 {group.label}
               </SidebarGroupLabel>
               <SidebarMenu>
@@ -145,12 +157,15 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-6 border-t border-white/5">
-        <div className="flex items-center gap-3 p-2 bg-white/5 rounded-2xl">
-          <Avatar className="size-9 rounded-xl border border-white/10">
-            <AvatarFallback className="bg-primary text-[10px] font-bold">{userName.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
+        <div className="flex items-center gap-3 p-2 bg-white/5 rounded-2xl border border-white/5">
+          <div className={cn(
+            "size-9 rounded-xl flex items-center justify-center font-black text-[10px] shadow-inner",
+            isAdmin ? "bg-accent text-primary" : "bg-primary text-white"
+          )}>
+            {userName.substring(0, 2).toUpperCase()}
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate">{userName}</p>
+            <p className="text-xs font-black truncate uppercase tracking-tight">{userName}</p>
             <p className="text-[8px] text-white/40 uppercase font-black">{role.replace('_', ' ')}</p>
           </div>
           <button onClick={handleLogout} className="p-2 text-white/20 hover:text-accent transition-colors">

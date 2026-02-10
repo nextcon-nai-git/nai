@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles } from 'lucide-react';
+import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles, ChevronRight, LayoutDashboard, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth, useUser, useFirestore } from '@/firebase';
@@ -13,8 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 
+type LoginMode = 'ADMIN' | 'CLIENT';
+
 export default function LoginPage() {
-  const [email, setEmail] = React.useState('nextcon@nextconsaude.com.br');
+  const [mode, setMode] = React.useState<LoginMode>('CLIENT');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('2025');
   const [loading, setLoading] = React.useState(false);
   const { user, isUserLoading } = useUser();
@@ -29,6 +32,12 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
+  // Facilita o teste inicial
+  React.useEffect(() => {
+    if (mode === 'ADMIN') setEmail('nextcon@nextconsaude.com.br');
+    else setEmail('gestor@nativa.com.br');
+  }, [mode]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -37,17 +46,15 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const loggedUser = userCredential.user;
 
-      // Bootstrap do perfil do usuário para garantir que as regras de segurança funcionem
-      // E-mails nextcon ou que contenham 'admin' são SUPER_ADMIN
-      const isAdmin = email.includes('admin') || email.includes('nextcon');
+      const isAdmin = mode === 'ADMIN';
       
       const userRef = doc(db, "users", loggedUser.uid);
       await setDoc(userRef, {
         id: loggedUser.uid,
         email: loggedUser.email,
-        name: email.split('@')[0].toUpperCase(),
+        name: isAdmin ? "FELIPE BIANCA" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
         role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-        companyId: !isAdmin ? 'CLI_BRITANIA' : null,
+        companyId: isAdmin ? null : (email.includes('nativa') ? 'CLI_NATIVA' : 'CLI_TIMENOW'),
         updatedAt: serverTimestamp()
       }, { merge: true });
 
@@ -56,71 +63,81 @@ export default function LoginPage() {
       setLoading(false);
       toast({
         variant: 'destructive',
-        title: 'Erro de Autenticação',
-        description: 'Verifique suas credenciais.',
+        title: 'Falha no Acesso',
+        description: 'Credenciais inválidas para este portal.',
       });
     }
   };
 
-  const demoUsers = [
-    { email: 'nextcon@nextconsaude.com.br', label: 'ADMIN NXC', icon: ShieldAlert },
-    { email: 'gestor@cliente.com.br', label: 'CLIENTE', icon: Building2 },
-  ];
-
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
-      <div className="hidden lg:flex lg:w-3/5 gradient-nextcon flex-col items-center justify-center p-12 relative overflow-hidden">
+      {/* Lado Esquerdo - Branding Dinâmico */}
+      <div className={cn(
+        "hidden lg:flex lg:w-3/5 flex-col items-center justify-center p-12 relative overflow-hidden transition-colors duration-700",
+        mode === 'ADMIN' ? "bg-[#001F3F]" : "bg-primary"
+      )}>
         <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070')] bg-cover bg-center" />
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070')] bg-cover bg-center grayscale" />
         </div>
         
-        <div className="relative z-10 text-center max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          <div className="bg-white/10 backdrop-blur-md p-12 rounded-[3rem] border border-white/20 shadow-2xl inline-block mb-6">
+        <div className="relative z-10 text-center max-w-xl space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+          <div className="bg-white/10 backdrop-blur-xl p-14 rounded-[4rem] border border-white/20 shadow-2xl inline-block mb-6 ring-1 ring-white/10">
             <NextconLogo className="h-32 w-auto text-white" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-5xl font-black text-white font-headline tracking-tighter leading-none">INTELIGÊNCIA OCUPACIONAL</h2>
-            <p className="text-accent text-xl font-medium tracking-[0.2em] uppercase">SST & Engenharia 360°</p>
+            <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase">
+              {mode === 'ADMIN' ? 'Backoffice' : 'Client Hub'}
+            </h2>
+            <p className="text-accent text-xl font-bold tracking-[0.4em] uppercase">
+              {mode === 'ADMIN' ? 'Gestão Estratégica NAI' : 'Sua Unidade Conectada'}
+            </p>
           </div>
         </div>
         
-        <div className="absolute bottom-12 text-white/30 text-[10px] font-black uppercase tracking-[0.5em]">
-          NextCon Group • Brazil 
+        <div className="absolute bottom-12 flex items-center gap-4 text-white/30 text-[10px] font-black uppercase tracking-[0.5em]">
+          <Globe className="size-4" /> NextCon Intelligence 2026
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-gray-50/50">
-        <div className="w-full max-w-md space-y-10">
-          <div className="lg:hidden flex justify-center mb-10">
-            <NextconLogo className="h-20 w-auto text-primary" />
+      {/* Lado Direito - Formulário */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-gray-50/30">
+        <div className="w-full max-w-md space-y-12">
+          <div className="space-y-4 text-center lg:text-left">
+            <Badge className={cn(
+              "px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest border-none shadow-sm mb-4",
+              mode === 'ADMIN' ? "bg-primary text-white" : "bg-accent text-primary"
+            )}>
+              {mode === 'ADMIN' ? 'Acesso Restrito Equipe Nextcon' : 'Acesso Restrito ao Cliente'}
+            </Badge>
+            <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase leading-none">
+              Bem-vindo ao <br /> <span className="text-accent">Portal NAI</span>
+            </h1>
           </div>
 
-          <div className="space-y-3 text-center lg:text-left">
-            <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase">Portal NAI</h1>
-            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest leading-relaxed">Acesse o sistema de gestão estratégica de segurança e saúde do trabalho.</p>
+          {/* Seletor de Modo */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
+            <button
+              onClick={() => setMode('CLIENT')}
+              className={cn(
+                "flex items-center justify-center gap-3 h-14 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                mode === 'CLIENT' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+              )}
+            >
+              <UserCircle className="size-4" /> Sou Cliente
+            </button>
+            <button
+              onClick={() => setMode('ADMIN')}
+              className={cn(
+                "flex items-center justify-center gap-3 h-14 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                mode === 'ADMIN' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+              )}
+            >
+              <ShieldAlert className="size-4" /> Time Nextcon
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-8">
-            <div className="flex gap-3 justify-center lg:justify-start">
-              {demoUsers.map((u) => (
-                <button
-                  key={u.email}
-                  type="button"
-                  onClick={() => setEmail(u.email)}
-                  className={cn(
-                    "flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all h-14 group shadow-sm",
-                    email === u.email 
-                      ? "bg-primary text-white border-primary ring-8 ring-primary/5" 
-                      : "bg-white hover:bg-gray-100 border-gray-100 text-gray-400"
-                  )}
-                >
-                  <u.icon className={cn("h-4 w-4", email === u.email ? "text-accent" : "text-gray-300")} />
-                  <span className="text-[10px] font-black uppercase tracking-tighter">{u.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="space-y-5 pt-2">
+            <div className="space-y-5">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-1">E-mail Corporativo</label>
                 <div className="relative group">
@@ -130,12 +147,13 @@ export default function LoginPage() {
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     className="pl-12 h-14 bg-white border-gray-100 rounded-2xl focus-visible:ring-primary/10 font-bold shadow-inner"
+                    placeholder="ex@empresa.com.br"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-1">Chave de Acesso</label>
+                <label className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-1">Senha de Acesso</label>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-4 h-4 w-4 text-gray-300 group-focus-within:text-primary transition-colors" />
                   <Input 
@@ -149,19 +167,33 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-16 bg-primary text-white text-md font-black uppercase tracking-widest hover:bg-primary/90 transition-all rounded-2xl shadow-2xl shadow-primary/20 gap-3" disabled={loading}>
-              {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : (
+            <Button 
+              type="submit" 
+              className={cn(
+                "w-full h-16 text-white text-sm font-black uppercase tracking-widest transition-all rounded-2xl shadow-2xl gap-3",
+                mode === 'ADMIN' ? "bg-primary shadow-primary/20" : "bg-accent text-primary shadow-accent/20"
+              )} 
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center animate-bounce">
+                    <span className="font-black text-lg">N</span>
+                  </div>
+                  Autenticando...
+                </div>
+              ) : (
                 <>
-                  <Sparkles className="size-5 text-accent" />
-                  Entrar no Sistema
+                  {mode === 'ADMIN' ? <ShieldAlert className="size-5" /> : <LayoutDashboard className="size-5" />}
+                  Entrar no {mode === 'ADMIN' ? 'Backoffice' : 'Portal'}
                 </>
               )}
             </Button>
           </form>
 
-          <div className="text-center pt-10">
+          <div className="text-center pt-6">
             <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em]">
-              © 2026 NextCon Saúde Empresarial • Tecnology by NAI
+              © 2026 NextCon Saúde Empresarial • NAI Forensic Engine
             </p>
           </div>
         </div>

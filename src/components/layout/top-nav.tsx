@@ -8,7 +8,9 @@ import {
   Search,
   Settings,
   ChevronDown,
-  Building2
+  Building2,
+  ShieldCheck,
+  UserCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
 import { PlatformFeedback } from '@/components/feedback/platform-feedback';
+import { cn } from '@/lib/utils';
 
 export function TopNav() {
   const { user } = useUser();
@@ -36,15 +39,31 @@ export function TopNav() {
   }, [db, user]);
 
   const { data: profile } = useDoc(profileRef);
+  
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
+  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(role);
+
+  // Lógica de Unidades solicitada
+  const getUnitLabel = () => {
+    if (isAdmin) return "Matriz Curitiba";
+    if (profile?.companyId === 'CLI_NATIVA') return "Matriz Guaratuba";
+    if (profile?.companyId === 'CLI_TIMENOW') return "Matriz Espírito Santo";
+    return "Unidade Operacional";
+  };
+
+  const unitLabel = getUnitLabel();
 
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-6 sticky top-0 z-40">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
-          <span>Portal NextCon</span>
+          <span className="font-black uppercase tracking-widest text-[9px] text-primary/40">
+            {isAdmin ? 'Sistema Interno' : 'Portal do Cliente'}
+          </span>
           <span className="opacity-30">/</span>
-          <span className="text-slate-900 font-bold capitalize">{pathname === '/' ? 'Dashboard' : pathname.split('/').pop()?.replace('-', ' ')}</span>
+          <span className="text-slate-900 font-bold capitalize">
+            {pathname === '/' ? 'Dashboard' : pathname.split('/').pop()?.replace('-', ' ')}
+          </span>
         </div>
       </div>
 
@@ -52,15 +71,22 @@ export function TopNav() {
         <div className="relative group">
           <Search className="absolute left-3 top-2.5 size-4 text-slate-400 group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Pesquisar funcionários, laudos ou unidades..." 
+            placeholder={isAdmin ? "Pesquisar em toda a rede..." : "Pesquisar seus dados..."} 
             className="pl-10 h-10 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 transition-all text-sm"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <Badge variant="outline" className="bg-slate-50 border-slate-200 text-slate-600 font-bold text-[10px] px-3 py-1 uppercase hidden md:flex">
-          <Building2 className="size-3 mr-2 text-primary" /> Unidade: Matriz Guaratuba
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "border-slate-200 text-slate-600 font-bold text-[10px] px-3 py-1 uppercase hidden md:flex h-9 items-center gap-2",
+            isAdmin ? "bg-primary/5 border-primary/10 text-primary" : "bg-emerald-50 border-emerald-100 text-emerald-700"
+          )}
+        >
+          <Building2 className="size-3" />
+          {unitLabel}
         </Badge>
 
         <PlatformFeedback />
@@ -79,17 +105,20 @@ export function TopNav() {
                 <p className="text-xs font-bold text-slate-900 leading-none mb-1">{profile?.name || user?.email?.split('@')[0]}</p>
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{role.replace('_', ' ')}</p>
               </div>
-              <div className="size-8 rounded-md bg-primary flex items-center justify-center text-white font-bold text-xs">
-                {user?.email?.substring(0, 2).toUpperCase()}
+              <div className={cn(
+                "size-8 rounded-md flex items-center justify-center text-white font-bold text-xs shadow-sm",
+                isAdmin ? "bg-primary" : "bg-accent"
+              )}>
+                {isAdmin ? <ShieldCheck className="size-4" /> : <UserCircle className="size-4" />}
               </div>
               <ChevronDown className="size-3 text-slate-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 mt-2">
-            <DropdownMenuLabel className="text-[10px] font-black uppercase text-slate-400">Minha Conta</DropdownMenuLabel>
-            <DropdownMenuItem className="gap-2 cursor-pointer text-sm"><Settings className="size-4 opacity-50" /> Configurações</DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-none shadow-2xl">
+            <DropdownMenuLabel className="text-[10px] font-black uppercase text-slate-400 px-4 py-3">Minha Conta</DropdownMenuLabel>
+            <DropdownMenuItem className="gap-3 cursor-pointer text-sm px-4 py-3"><Settings className="size-4 opacity-50" /> Configurações</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive gap-2 cursor-pointer text-sm font-bold">Encerrar Sessão</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive gap-3 cursor-pointer text-sm font-bold px-4 py-3">Encerrar Sessão</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
