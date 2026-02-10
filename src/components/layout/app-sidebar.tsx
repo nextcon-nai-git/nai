@@ -16,7 +16,8 @@ import {
   Map as MapIcon,
   DollarSign,
   ClipboardCheck,
-  BarChart3
+  BarChart3,
+  FileSearch
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -63,6 +64,7 @@ const navGroups = [
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
       { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Validador Atestados", icon: FileSearch, href: "/medical-certificates" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
   }

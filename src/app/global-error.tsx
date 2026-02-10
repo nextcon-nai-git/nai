@@ -15,22 +15,18 @@ export default function GlobalError({
 }) {
   const handleReset = () => {
     // Fallback robusto caso a função reset não tenha sido injetada pelo Next.js
-    // Isso evita o erro fatal "TypeError: reset is not a function"
     if (reset && typeof reset === 'function') {
       try {
         reset();
       } catch (e) {
-        console.warn('Reset function failed, falling back to reload.');
         window.location.reload();
       }
     } else {
-      // Força o recarregamento da página se o motor do Next.js estiver travado
       window.location.reload();
     }
   };
 
   React.useEffect(() => {
-    // Log silencioso para auditoria técnica em ambiente de desenvolvimento
     if (process.env.NODE_ENV !== 'production') {
       console.error('Fatal Platform Crash:', error);
     }
