@@ -15,7 +15,9 @@ import {
   Building2,
   CheckCircle2,
   XCircle,
-  Sparkles
+  Sparkles,
+  ExternalLink,
+  ShieldQuestion
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,20 +28,19 @@ import { cn } from "@/lib/utils"
 
 export default function MedicalCertificatesPage() {
   const { toast } = useToast()
-  const [isAnalyzing, setIsAuditing] = React.useState(false)
+  const [isAnalyzing, setIsAnalyzing] = React.useState(false)
   const [result, setResult] = React.useState<ValidatorOutput | null>(null)
   const [dragActive, setDragActive] = React.useState(false)
 
   const handleFile = async (file: File) => {
     if (!file) return
     
-    // Validar tipo de arquivo
     if (!file.type.includes('pdf') && !file.type.includes('image')) {
       toast({ variant: "destructive", title: "Formato inválido", description: "Envie apenas PDF ou Imagem." })
       return
     }
 
-    setIsAuditing(true)
+    setIsAnalyzing(true)
     setResult(null)
 
     try {
@@ -62,7 +63,7 @@ export default function MedicalCertificatesPage() {
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro na NAI", description: "Não foi possível validar o atestado." })
     } finally {
-      setIsAuditing(false)
+      setIsAnalyzing(false)
     }
   }
 
@@ -92,9 +93,16 @@ export default function MedicalCertificatesPage() {
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Validador Forense de Atestados</h1>
           <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Triagem inteligente para detecção de fraudes e montagens digitais.</p>
         </div>
-        <Badge variant="outline" className="border-primary text-primary px-4 h-10 flex items-center gap-2 font-black uppercase text-[10px] bg-white">
-          <Sparkles className="size-4 text-accent" /> NAI Forensic Engine 2026
-        </Badge>
+        <div className="flex gap-3">
+          <Button variant="outline" className="h-10 text-[10px] font-black uppercase tracking-widest gap-2 bg-white" asChild>
+            <a href="https://atestacfm.org.br/" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="size-3.5 text-blue-600" /> Atesta CFM (Oficial)
+            </a>
+          </Button>
+          <Badge variant="outline" className="border-primary text-primary px-4 h-10 flex items-center gap-2 font-black uppercase text-[10px] bg-white">
+            <Sparkles className="size-4 text-accent" /> NAI Forensic Engine 2026
+          </Badge>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -146,17 +154,18 @@ export default function MedicalCertificatesPage() {
           <Card className="bg-[#090e24] text-white border-none p-6 rounded-[2rem] shadow-2xl">
             <CardHeader className="p-0 mb-4">
               <CardTitle className="text-xs font-black uppercase text-accent tracking-widest flex items-center gap-2">
-                <ShieldAlert className="size-4" /> Por que validar?
+                <ShieldAlert className="size-4" /> Importante: Validação Legal
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-4">
               <p className="text-xs leading-relaxed opacity-70">
-                O uso de atestados falsificados gera um prejuízo estimado em R$ 12bi por ano no Brasil. A NAI utiliza visão computacional para detectar montagens que o olho humano ignora.
+                A análise da NAI é uma triagem forense digital. Para uma consulta definitiva da autenticidade e evitar fraudes, utilize sempre a plataforma oficial <strong>Atesta CFM</strong>.
               </p>
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-start gap-3">
-                <CheckCircle2 className="size-4 text-accent shrink-0 mt-0.5" />
-                <p className="text-[10px] font-medium italic">"A análise forense reduz em 92% a aceitação inadvertida de documentos adulterados digitalmente."</p>
-              </div>
+              <Button className="w-full h-12 bg-white/10 hover:bg-white/20 text-accent font-black uppercase text-[10px] border border-accent/20" asChild>
+                <a href="https://atestacfm.org.br/" target="_blank" rel="noopener noreferrer">
+                  Acessar Plataforma Oficial CFM <ExternalLink className="size-3 ml-2" />
+                </a>
+              </Button>
             </CardContent>
           </Card>
         </div>

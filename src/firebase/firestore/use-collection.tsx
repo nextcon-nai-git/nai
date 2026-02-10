@@ -57,14 +57,11 @@ export function useCollection<T = any>(
       (serverError: FirestoreError) => {
         let path = 'collection-group';
         try {
-          // Extração resiliente do caminho para reporte de erro
           const anyQuery = memoizedTargetRefOrQuery as any;
           if (anyQuery?._query?.collectionGroup) {
             path = `group:${anyQuery._query.collectionGroup}`;
           } else if (anyQuery?.path) {
             path = anyQuery.path;
-          } else if (anyQuery?._query?.path?.canonicalString) {
-            path = anyQuery._query.path.canonicalString();
           }
         } catch (e) {
           path = 'complex-query';
@@ -78,10 +75,8 @@ export function useCollection<T = any>(
             } satisfies SecurityRuleContext);
 
             setError(contextualError);
-            // Emitimos o erro para ser capturado pelo Error Boundary Listener
             errorEmitter.emit('permission-error', contextualError);
           } catch (e) {
-            // Fallback caso a criação do erro contextual falhe
             setError(serverError);
           }
         } else {

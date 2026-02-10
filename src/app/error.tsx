@@ -6,6 +6,7 @@ import { AlertCircle, RefreshCcw } from 'lucide-react';
 
 /**
  * Error boundary para rotas internas da plataforma.
+ * Inclui verificação robusta para a função reset().
  */
 export default function Error({
   error,
@@ -21,7 +22,7 @@ export default function Error({
   }, [error]);
 
   const handleReset = () => {
-    // Fallback robusto para evitar "reset is not a function"
+    // Fallback caso a função reset não seja fornecida corretamente pelo Next.js
     if (reset && typeof reset === 'function') {
       try {
         reset();
@@ -57,7 +58,7 @@ export default function Error({
       {isPermissionError && error?.message && (
         <div className="bg-slate-50 p-4 rounded-xl text-[10px] font-mono text-left overflow-auto max-w-lg w-full border border-slate-200 opacity-70 shadow-inner">
           <p className="font-bold text-slate-400 uppercase mb-1">Diagnóstico NAI:</p>
-          <pre className="whitespace-pre-wrap whitespace-normal">{error.message}</pre>
+          <pre className="whitespace-pre-wrap">{error.message}</pre>
         </div>
       )}
 
