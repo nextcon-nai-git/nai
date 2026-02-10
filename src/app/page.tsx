@@ -24,11 +24,16 @@ import {
   Users,
   CheckCircle2,
   HeartPulse,
-  GraduationCap
+  GraduationCap,
+  Calculator,
+  TrendingDown,
+  DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -38,6 +43,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 /**
  * @fileOverview Dashboard Principal (Agenda SESMT)
  * Visão centralizada de tudo que o gestor deve se preocupar hoje.
+ * Agora inclui a Calculadora Automática de FAP.
  */
 
 export default function Dashboard() {
@@ -45,6 +51,10 @@ export default function Dashboard() {
   const db = useFirestore();
   const [saudacao, setSaudacao] = React.useState('');
   const [dataAtual, setDataAtual] = React.useState('');
+  
+  // Estados da Calculadora FAP
+  const [fapValue, setFapValue] = React.useState([1.0]);
+  const [payroll, setPayroll] = React.useState(150000);
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -78,6 +88,11 @@ export default function Dashboard() {
     setDataAtual(dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1));
   }, []);
 
+  const potentialSavings = React.useMemo(() => {
+    // Cálculo: Folha * 2% (RAT Médio) * (1 - FAP) * 12 meses
+    return (payroll * 0.02 * (1 - fapValue[0]) * 12);
+  }, [payroll, fapValue]);
+
   const rawName = profile?.name || user?.email?.split('@')[0] || 'Gestor';
   const nomeExibicao = rawName.toLowerCase() === 'nextcon' ? 'Felipe' : rawName;
 
@@ -103,9 +118,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Agenda SESMT Centralizada */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          {/* Agenda SESMT */}
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b pb-8 px-8">
               <div className="flex items-center justify-between">
@@ -165,6 +180,64 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-8">
+          {/* Calculadora Automática de FAP */}
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
+            <CardHeader className="bg-primary/5 pb-6 p-8 border-b">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary text-white rounded-xl shadow-lg">
+                  <Calculator className="size-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm font-black text-primary uppercase tracking-tight">Simulador ROI/FAP</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Arraste para calcular economia.</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Alvo</label>
+                  <span className="text-xl font-black text-primary tracking-tighter">{fapValue[0].toFixed(2)}</span>
+                </div>
+                <Slider 
+                  value={fapValue} 
+                  onValueChange={setFapValue} 
+                  max={2} 
+                  min={0.5} 
+                  step={0.01}
+                  className="py-4"
+                />
+                <div className="flex justify-between text-[8px] font-black text-slate-300 uppercase">
+                  <span>Bônus (0.5)</span>
+                  <span>Malus (2.0)</span>
+                </div>
+              </div>
+
+              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
+                <div className="flex justify-between mb-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Economia Anual Est.</p>
+                  <Badge variant="outline" className={cn(
+                    "text-[8px] font-black border-none px-2",
+                    potentialSavings > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                  )}>
+                    {potentialSavings > 0 ? "BÔNUS" : "MALUS"}
+                  </Badge>
+                </div>
+                <h3 className={cn(
+                  "text-2xl font-black font-headline tracking-tighter",
+                  potentialSavings >= 0 ? "text-emerald-600" : "text-red-600"
+                )}>
+                  {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </h3>
+                <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Ref: Folha Mensal R$ {payroll.toLocaleString('pt-BR')}</p>
+              </div>
+              
+              <Button variant="ghost" className="w-full h-10 rounded-xl text-[9px] font-black uppercase text-primary/40 hover:text-primary transition-colors">
+                Personalizar Folha <ChevronRight className="size-3 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card className={cn(
             "border-none text-white card-shadow relative overflow-hidden rounded-[2.5rem]",
             isAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
