@@ -56,7 +56,6 @@ const navGroups = [
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
-      { title: "Gestão da Clínica", icon: Monitor, href: "/clinic-hub" },
       { title: "Field Control", icon: HardHat, href: "/field-control" },
       { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
