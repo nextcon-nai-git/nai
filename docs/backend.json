@@ -28,6 +28,17 @@
       },
       "required": ["id", "name", "cnpj"]
     },
+    "EmailRoutine": {
+      "title": "EmailRoutine",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "frequency": { "type": "string", "enum": ["daily", "weekly", "monthly"] },
+        "customEmail": { "type": "string" },
+        "active": { "type": "boolean" },
+        "companyId": { "type": "string" }
+      }
+    },
     "Employee": {
       "title": "Employee",
       "type": "object",
@@ -86,6 +97,10 @@
     "/companies/{companyId}": {
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
+    },
+    "/companies/{companyId}/settings/emailRoutine": {
+      "schema": "#/entities/EmailRoutine",
+      "description": "Configurações de envio automático de relatórios NAI."
     },
     "/companies/{companyId}/employees/{employeeId}": {
       "schema": "#/entities/Employee",
