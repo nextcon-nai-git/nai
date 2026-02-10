@@ -2,19 +2,20 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap } from "lucide-react"
+import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap, TrendingUp, History } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
 import { doc, writeBatch, collection, serverTimestamp } from "firebase/firestore"
-import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY } from "@/lib/real-data"
+import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY } from "@/lib/real-data"
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
   const [uploading, setUploading] = React.useState(false)
+  const [uploadingDre, setUploadingDre] = React.useState(false)
 
   const handleRealBaseImport = async () => {
     if (!user || !db) return
@@ -66,6 +67,33 @@ export default function UnifiedImportCenter() {
     }
   }
 
+  const handleImportDre2025 = async () => {
+    if (!user || !db) return
+    setUploadingDre(true)
+    
+    try {
+      const batch = writeBatch(db)
+      const now = new Date().toISOString()
+
+      // Injeta DRE 2025 na Matriz Curitiba (Fictício para o Admin ver no dashboard)
+      const dreRef = doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
+      batch.set(dreRef, {
+        year: 2025,
+        data: DRE_2025_HISTORY,
+        importedAt: now,
+        status: "CLOSED",
+        description: "DRE Consolidada Exercício 2025"
+      }, { merge: true })
+
+      await batch.commit()
+      toast({ title: "DRE 2025 Importada!", description: "Dados históricos agora disponíveis para comparação no Dashboard Financeiro." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro ao importar DRE" })
+    } finally {
+      setUploadingDre(false)
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -73,14 +101,25 @@ export default function UnifiedImportCenter() {
           <h1 className="text-4xl font-headline font-black text-primary uppercase tracking-tight">Carga de Elite 2026</h1>
           <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Importação massiva para Multiapp, Contas e Operações.</p>
         </div>
-        <Button 
-          className="h-16 px-10 bg-primary text-white hover:bg-primary/90 rounded-2xl shadow-2xl shadow-primary/20 gap-3 font-black uppercase text-xs tracking-widest" 
-          onClick={handleRealBaseImport} 
-          disabled={uploading}
-        >
-          {uploading ? <Loader2 className="size-5 animate-spin" /> : <Database className="size-5 text-accent" />}
-          Sincronizar Base Global
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            variant="outline"
+            className="h-16 px-8 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl gap-3 font-black uppercase text-xs tracking-widest"
+            onClick={handleImportDre2025}
+            disabled={uploadingDre}
+          >
+            {uploadingDre ? <Loader2 className="size-5 animate-spin" /> : <History className="size-5" />}
+            Importar DRE 2025
+          </Button>
+          <Button 
+            className="h-16 px-10 bg-primary text-white hover:bg-primary/90 rounded-2xl shadow-2xl shadow-primary/20 gap-3 font-black uppercase text-xs tracking-widest" 
+            onClick={handleRealBaseImport} 
+            disabled={uploading}
+          >
+            {uploading ? <Loader2 className="size-5 animate-spin" /> : <Database className="size-5 text-accent" />}
+            Sincronizar Base Global
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -111,7 +150,7 @@ export default function UnifiedImportCenter() {
         <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-emerald-500/10 transition-all">
           <CardHeader className="bg-emerald-50 pb-8">
             <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
-              <Layers className="size-6 text-emerald-600" />
+              <TrendingUp className="size-6 text-emerald-600" />
             </div>
             <CardTitle className="text-xl font-black text-emerald-900 uppercase">Multiapp & CNPJs</CardTitle>
             <CardDescription className="text-xs font-bold uppercase opacity-60">Sincronização de múltiplos CNPJs.</CardDescription>
@@ -133,8 +172,8 @@ export default function UnifiedImportCenter() {
           </CardHeader>
           <CardContent className="p-8 space-y-4">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <p className="text-[10px] font-black uppercase text-accent mb-1">Tipo de Remessa:</p>
-              <p className="text-xs font-medium opacity-70">240 e 102 (Cobrança Simples sem Protesto)</p>
+              <p className="text-[10px] font-black uppercase text-accent mb-1">Estrutura Injetada:</p>
+              <p className="text-xs font-medium opacity-70">TimeNow (Master) &gt; Britânia (Unidade)</p>
             </div>
             <p className="text-[10px] text-white/30 font-bold uppercase italic leading-relaxed">
               * Verifique seu Código de Convênio no Santander antes de gerar remessas.

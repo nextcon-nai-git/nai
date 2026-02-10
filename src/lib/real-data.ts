@@ -87,3 +87,18 @@ export const REAL_EXAMS_HISTORY = [
   { employeeName: "BRUNO GADELHA DA SILVA", companyId: "CLI_BRITANIA", date: "2026-02-02", type: "AD", provider: "ACRE", aso: "OK", s2220: "OK", s2240: "OK" },
   { employeeName: "ERICK DE OLIVEIRA HENRIQUE", companyId: "CLI_GULA", date: "2026-02-03", type: "PE", provider: "WORKING", aso: "OK", s2220: "OK", s2240: "OK" },
 ];
+
+export const DRE_2025_HISTORY = [
+  { month: 'Jan', receita: 110000, despesa: 75000, lucro: 35000 },
+  { month: 'Fev', receita: 115000, despesa: 78000, lucro: 37000 },
+  { month: 'Mar', receita: 120000, despesa: 80000, lucro: 40000 },
+  { month: 'Abr', receita: 125000, despesa: 82000, lucro: 43000 },
+  { month: 'Mai', receita: 130000, despesa: 85000, lucro: 45000 },
+  { month: 'Jun', receita: 128000, despesa: 84000, lucro: 44000 },
+  { month: 'Jul', receita: 135000, despesa: 88000, lucro: 47000 },
+  { month: 'Ago', receita: 140000, despesa: 90000, lucro: 50000 },
+  { month: 'Set', receita: 145000, despesa: 92000, lucro: 53000 },
+  { month: 'Out', receita: 150000, despesa: 95000, lucro: 55000 },
+  { month: 'Nov', receita: 155000, despesa: 98000, lucro: 57000 },
+  { month: 'Dez', receita: 180000, despesa: 110000, lucro: 70000 },
+];

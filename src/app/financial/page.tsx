@@ -88,11 +88,15 @@ import {
   Bar,
   Cell,
   LineChart,
-  Line
+  Line,
+  Legend
 } from 'recharts'
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { analyzeFiscalScenario } from "@/ai/flows/fiscal-intelligence-flow"
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
+import { doc } from "firebase/firestore"
+import { DRE_2025_HISTORY } from "@/lib/real-data"
 
 const cashFlowData = [
   { day: '01/02', entradas: 45000, saidas: 32000, saldo: 13000 },
@@ -103,7 +107,7 @@ const cashFlowData = [
   { day: '25/02', entradas: 58000, saidas: 35000, saldo: 107000 },
 ]
 
-const dreData = [
+const dre2026Data = [
   { month: 'Set', receita: 120000, despesa: 80000, lucro: 40000 },
   { month: 'Out', receita: 145000, despesa: 85000, lucro: 60000 },
   { month: 'Nov', receita: 130000, despesa: 90000, lucro: 40000 },
@@ -115,12 +119,28 @@ const dreData = [
 export default function FinancialModule() {
   const [activeTab, setActiveTab] = React.useState("cashflow")
   const { toast } = useToast()
+  const db = useFirestore()
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
+  const [dreYear, setDreYear] = React.useState("2026")
   
   // Estados para Santander e Remessa
   const [remittanceType, setRemittanceType] = React.useState("240")
   const [convenioCode, setConvenioCode] = React.useState("")
+
+  // Busca DRE 2025 do Firestore se disponível
+  const dre2025Ref = useMemoFirebase(() => {
+    if (!db) return null
+    return doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
+  }, [db])
+  const { data: remoteDre2025 } = useDoc(dre2025Ref)
+
+  const activeDreData = React.useMemo(() => {
+    if (dreYear === "2025") {
+      return remoteDre2025?.data || DRE_2025_HISTORY;
+    }
+    return dre2026Data;
+  }, [dreYear, remoteDre2025])
 
   const handleAiFiscalAnalysis = async () => {
     setIsAnalyzingFiscal(true)
@@ -164,7 +184,7 @@ export default function FinancialModule() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase leading-none">Gestão Financeira Corporativa</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Gestão Financeira Corporativa</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">ERP Integrado: Fluxo, DRE, Parcelamentos e Integração Santander.</p>
         </div>
         <div className="flex gap-2">
@@ -262,17 +282,32 @@ export default function FinancialModule() {
         <TabsContent value="dre" className="mt-8 space-y-6">
           <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-emerald-50/50 pb-8 border-b">
-              <CardTitle className="text-xl font-headline font-black text-emerald-900 uppercase">Demonstrativo de Resultados (DRE)</CardTitle>
-              <CardDescription className="text-xs font-bold uppercase text-emerald-700/60">Análise de competência: Receita Bruta, Impostos e Lucro Líquido.</CardDescription>
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                <div>
+                  <CardTitle className="text-xl font-headline font-black text-emerald-900 uppercase">Demonstrativo de Resultados (DRE)</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase text-emerald-700/60">Análise de competência: Receita Bruta, Impostos e Lucro Líquido.</CardDescription>
+                </div>
+                <Select value={dreYear} onValueChange={setDreYear}>
+                  <SelectTrigger className="w-40 h-11 bg-white border-none shadow-sm text-xs font-bold">
+                    <History className="size-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2026">Exercício 2026</SelectItem>
+                    <SelectItem value="2025">Histórico 2025 (Fechado)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="p-8">
               <div className="h-[350px] mb-10">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dreData}>
+                  <BarChart data={activeDreData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="month" axisLine={false} tick={{fontSize: 10, fontWeight: 700}} />
                     <YAxis axisLine={false} tick={{fontSize: 10}} />
-                    <Tooltip />
+                    <Tooltip contentStyle={{borderRadius: '12px', border: 'none'}} />
+                    <Legend verticalAlign="top" align="right" wrapperStyle={{paddingBottom: '20px'}} />
                     <Bar dataKey="receita" fill="#003366" radius={[4, 4, 0, 0]} name="Receita" />
                     <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} name="Lucro Líquido" />
                   </BarChart>
@@ -281,16 +316,22 @@ export default function FinancialModule() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t">
                 <div className="p-4 bg-slate-50 rounded-2xl border">
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1">EBITDA Anual</p>
-                  <p className="text-2xl font-black text-primary">R$ 482.000</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1">EBITDA {dreYear}</p>
+                  <p className="text-2xl font-black text-primary">
+                    R$ {dreYear === '2025' ? '420.000' : '482.000'}
+                  </p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-2xl border">
                   <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Margem Líquida</p>
-                  <p className="text-2xl font-black text-emerald-600">38.4%</p>
+                  <p className={cn("text-2xl font-black", dreYear === '2025' ? 'text-blue-600' : 'text-emerald-600')}>
+                    {dreYear === '2025' ? '34.2%' : '38.4%'}
+                  </p>
                 </div>
                 <div className="p-4 bg-slate-50 rounded-2xl border">
-                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Impostos Provisionados</p>
-                  <p className="text-2xl font-black text-amber-600">R$ 18.250</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Status Exercício</p>
+                  <Badge className={cn("mt-1 font-black", dreYear === '2025' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700')}>
+                    {dreYear === '2025' ? 'AUDITADO & FECHADO' : 'EM PROCESSAMENTO'}
+                  </Badge>
                 </div>
               </div>
             </CardContent>
