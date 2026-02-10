@@ -21,7 +21,8 @@ import {
   FileSearch,
   GraduationCap,
   Building2,
-  Settings
+  Settings,
+  Zap
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -50,6 +51,7 @@ const navGroups = [
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "CRM Wonfly", icon: Zap, href: "/crm" },
       { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
