@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react"
@@ -13,13 +14,14 @@ import {
   ShieldCheck,
   Activity,
   ArrowUpRight,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy, collectionGroup, where } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { collection, query, orderBy, collectionGroup, where, doc } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
@@ -52,10 +54,27 @@ export default function EnterpriseOpsHub() {
     type: "pgr",
     priority: "medium",
     status: "todo",
-    dueDate: "" // Inicia vazio para evitar erro de hidratação
+    dueDate: ""
   })
 
-  // Define data padrão após a montagem para evitar Hydration Mismatch
+  // Perfil para controle RBAC
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
+  const isPrivileged = React.useMemo(() => {
+    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+  }, [profile]);
+
+  // Trava unidade para clientes
+  React.useEffect(() => {
+    if (profile && !isPrivileged && profile.companyId) {
+      setSelectedCompanyId(profile.companyId);
+    }
+  }, [profile, isPrivileged]);
+
   React.useEffect(() => {
     setTaskForm(prev => ({ ...prev, dueDate: new Date().toISOString() }));
   }, []);
@@ -65,18 +84,28 @@ export default function EnterpriseOpsHub() {
     if (!db || !user) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db, user])
-  const { data: companies } = useCollection(companiesQuery)
+  const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
-  // Busca de tarefas via CollectionGroup para visão global ou filtrada
+  // Busca de tarefas com proteção de permissão
   const tasksQuery = useMemoFirebase(() => {
-    if (!db || !user) return null
+    if (!db || !user || !profile) return null
+    
+    // Se selecionou "Todas" e é privilegiado, usa collectionGroup
     if (selectedCompanyId === "all") {
-      return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
+      if (isPrivileged) {
+        return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
+      } else if (profile.companyId) {
+        // Fallback seguro para cliente
+        return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
+      }
+    } else {
+      // Filtro por unidade específica
+      return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
     }
-    return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
-  }, [db, user, selectedCompanyId])
+    return null;
+  }, [db, user, profile, selectedCompanyId, isPrivileged])
 
-  const { data: tasks, isLoading } = useCollection<OpsTask>(tasksQuery)
+  const { data: tasks, isLoading: loadingTasks } = useCollection<OpsTask>(tasksQuery)
 
   const handleCreateTask = () => {
     if (!db || !taskForm.title || !taskForm.companyId) {
@@ -121,13 +150,13 @@ export default function EnterpriseOpsHub() {
         
         <div className="flex items-center gap-3">
           <div className="w-64 mr-2">
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
               <SelectTrigger className="bg-white border-muted h-11 text-xs">
                 <Building2 className="size-4 mr-2" />
-                <SelectValue placeholder="Filtrar Unidade" />
+                <SelectValue placeholder={loadingCompanies ? "Carregando Unidades..." : "Filtrar Unidade"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as Unidades</SelectItem>
+                {isPrivileged && <SelectItem value="all">Todas as Unidades</SelectItem>}
                 {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -159,9 +188,14 @@ export default function EnterpriseOpsHub() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Responsável</label>
                   <Select value={taskForm.companyId} onValueChange={v => setTaskForm({...taskForm, companyId: v})}>
-                    <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
                     <SelectContent>
-                      {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      {companies?.map(c => (
+                        (!isPrivileged && c.id !== profile?.companyId) ? null : 
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -206,11 +240,18 @@ export default function EnterpriseOpsHub() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard label="Conformidade eSocial" value="98.4%" icon={ShieldCheck} color="text-emerald-600" trend="+2.1%" />
         <StatCard label="Eficácia PGR" value="94%" icon={Activity} color="text-blue-600" trend="Estável" />
-        <StatCard label="Tarefas Ativas" value={tasks?.length || 0} icon={LayoutGrid} color="text-accent" />
+        <StatCard label="Tarefas Ativas" value={loadingTasks ? "..." : tasks?.length || 0} icon={LayoutGrid} color="text-accent" />
       </div>
 
       <div className="min-h-[600px] glass-panel rounded-[3rem] p-8">
-         <KanbanBoard tasks={tasks || []} />
+         {loadingTasks ? (
+           <div className="flex flex-col items-center justify-center h-96 gap-4 opacity-30">
+             <Loader2 className="size-12 animate-spin" />
+             <p className="text-xs font-black uppercase tracking-widest">Sincronizando Operações...</p>
+           </div>
+         ) : (
+           <KanbanBoard tasks={tasks || []} />
+         )}
       </div>
     </div>
   )
