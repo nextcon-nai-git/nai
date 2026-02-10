@@ -23,7 +23,11 @@ import {
   Building2,
   Settings,
   Zap,
-  HardHat
+  HardHat,
+  Monitor,
+  HeartPulse,
+  Scale,
+  Brain
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -52,6 +56,7 @@ const navGroups = [
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "Gestão da Clínica", icon: Monitor, href: "/clinic-hub" },
       { title: "CRM Wonfly", icon: Zap, href: "/crm" },
       { title: "Field Control", icon: HardHat, href: "/field-control" },
       { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
@@ -66,7 +71,7 @@ const navGroups = [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
-      { title: "Controle Médico", icon: Stethoscope, href: "/health-control" },
+      { title: "Saúde Ocupacional", icon: Stethoscope, href: "/health-control" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
     ]
   },
@@ -75,7 +80,10 @@ const navGroups = [
     roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'admin'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
+      { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
       { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
+      { title: "Quiosque EPI", icon: Lock, href: "/ppe-kiosk" },
       { title: "Validador Atestados", icon: FileSearch, href: "/medical-certificates" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
     ]
@@ -120,12 +128,30 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent className="px-4">
+        <SidebarMenuItem className="mb-4 list-none">
+          <SidebarMenuButton 
+            asChild 
+            isActive={pathname === '/'}
+            className={cn(
+              "h-11 px-4 rounded-xl transition-all group",
+              pathname === '/' 
+                ? "bg-white/10 text-white font-bold border-l-4 border-accent" 
+                : "text-white/60 hover:bg-white/5 hover:text-white"
+            )}
+          >
+            <Link href="/" className="flex items-center gap-3">
+              <LayoutDashboard className={cn("size-4", pathname === '/' ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
+              <span className="text-sm">Início (SESMT)</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+
         {navGroups.map((group) => {
           const hasAccess = group.roles.includes(role);
           if (!hasAccess) return null
           
           return (
-            <SidebarGroup key={group.label} className="py-4">
+            <SidebarGroup key={group.label} className="py-2">
               <SidebarGroupLabel className="text-white/30 px-2 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
                 {group.label === "Equipe Nextcon (Interno)" && <Lock className="size-3" />}
                 {group.label}

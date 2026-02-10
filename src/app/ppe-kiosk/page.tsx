@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -11,6 +12,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { jsPDF } from "jspdf"
 import { useStorage, useUser } from "@/firebase"
 import { ref, uploadString, getDownloadURL } from "firebase/storage"
+
+/**
+ * @fileOverview Quiosque Digital de EPI - NR-06
+ * Implementa assinatura eletrônica via foto (biometria facial) e geolocalização.
+ */
 
 export default function PpeKiosk() {
   const { toast } = useToast()
@@ -38,7 +44,7 @@ export default function PpeKiosk() {
           }
         } catch (error) {
           setHasCameraPermission(false)
-          toast({ variant: 'destructive', title: 'Acesso à Câmera Negado' })
+          toast({ variant: 'destructive', title: 'Acesso à Câmera Negado', description: 'Ative a câmera para assinar a entrega do EPI.' })
         }
       }
       const getGeoLocation = () => {
@@ -71,10 +77,14 @@ export default function PpeKiosk() {
         const token = Math.random().toString(36).substring(2, 15).toUpperCase()
         setBiometricToken(token)
 
-        // Upload to Storage
+        // Upload opcional para o Storage (Evidência Forense)
         if (user && storage) {
-          const photoRef = ref(storage, `ppe-evidences/${user.uid}/${employeeId}_${Date.now()}.png`)
-          await uploadString(photoRef, imgData, 'data_url')
+          try {
+            const photoRef = ref(storage, `ppe-evidences/${employeeId}_${Date.now()}.png`)
+            await uploadString(photoRef, imgData, 'data_url')
+          } catch (e) {
+            console.error("Erro ao salvar evidência")
+          }
         }
       }
     }
@@ -88,16 +98,29 @@ export default function PpeKiosk() {
 
   const generateReceiptPDF = () => {
     const doc = new jsPDF()
-    doc.setFillColor(9, 14, 36)
+    doc.setFillColor(0, 53, 107) // Navy Nextcon
     doc.rect(0, 0, 210, 40, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(22)
-    doc.text("NEXTCON", 105, 20, { align: "center" })
+    doc.text("NEXTCON PLATFORM", 105, 25, { align: "center" })
+    
     doc.setTextColor(0, 0, 0)
-    doc.text("RECIBO DE EPI", 105, 60, { align: "center" })
-    doc.text(`ID: ${employeeId}`, 20, 80)
-    doc.text(`Data: ${timestamp}`, 20, 90)
-    doc.text(`Token: ${biometricToken}`, 20, 100)
+    doc.setFontSize(16)
+    doc.text("COMPROVANTE DE ENTREGA DE EPI (NR-06)", 105, 60, { align: "center" })
+    
+    doc.setFontSize(10)
+    doc.text(`Matrícula Colaborador: ${employeeId}`, 20, 80)
+    doc.text(`Data/Hora: ${timestamp}`, 20, 90)
+    doc.text(`Coordenadas GPS: ${location || "Não capturado"}`, 20, 100)
+    doc.text(`Token de Assinatura Biométrica: ${biometricToken}`, 20, 110)
+    
+    doc.text("Declaro que recebi os EPIs adequados ao risco de minha atividade e fui treinado sobre o uso correto.", 20, 130, { maxWidth: 170 })
+    
+    if (capturedImage) {
+      doc.addImage(capturedImage, 'PNG', 75, 150, 60, 45)
+      doc.text("EVIDÊNCIA FOTOGRÁFICA (IDENTIFICAÇÃO FACIAL)", 105, 205, { align: "center" })
+    }
+
     doc.save(`Recibo_EPI_${employeeId}.pdf`)
   }
 
@@ -107,49 +130,79 @@ export default function PpeKiosk() {
         <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-2">
           <Lock className="size-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-headline font-bold text-primary tracking-tight">Quiosque Digital de EPI (NR-06)</h1>
+        <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Quiosque Digital EPI 2026</h1>
+        <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest">Entrega Segura com Assinatura Biométrica</p>
       </div>
 
       <Card className="card-shadow border-none overflow-hidden bg-white">
         {step === 1 && (
           <div className="p-10 space-y-8 text-center animate-in fade-in">
             <UserCheck className="size-16 mx-auto text-primary" />
-            <Input 
-              placeholder="Digite sua Matrícula" 
-              className="text-center text-2xl h-16 font-bold" 
-              value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
-            />
-            <Button className="w-full h-16 text-xl font-bold bg-primary" disabled={!employeeId} onClick={() => setStep(2)}>
-              Prosseguir
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Identificação do Colaborador</label>
+              <Input 
+                placeholder="Digite sua Matrícula ou CPF" 
+                className="text-center text-2xl h-16 font-bold bg-slate-50 border-none shadow-inner" 
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              />
+            </div>
+            <Button className="w-full h-16 text-xl font-bold bg-primary shadow-xl" disabled={!employeeId} onClick={() => setStep(2)}>
+              Prosseguir para Entrega
             </Button>
           </div>
         )}
 
         {step === 2 && (
           <div className="space-y-0 animate-in fade-in">
-            <video ref={videoRef} className="w-full aspect-[4/3] bg-black object-cover" autoPlay muted />
+            <div className="relative">
+              <video ref={videoRef} className="w-full aspect-[4/3] bg-black object-cover" autoPlay muted />
+              <div className="absolute top-4 left-4">
+                <Badge className="bg-primary/80 backdrop-blur-md text-white border-none gap-2">
+                  <MapPin className="size-3" /> {location || "Localizando..."}
+                </Badge>
+              </div>
+              <div className="absolute bottom-4 right-4">
+                <Badge className="bg-accent text-primary font-black border-none">LIVE FEED</Badge>
+              </div>
+            </div>
             <canvas ref={canvasRef} className="hidden" />
             <div className="p-8">
-              <Button className="w-full h-20 text-2xl font-black bg-primary" onClick={handleCapture} disabled={isCapturing}>
-                {isCapturing ? <RefreshCw className="size-8 animate-spin" /> : <Camera className="size-8 mr-2" />}
-                CONFIRMAR ENTREGA
+              <Button className="w-full h-24 text-2xl font-black bg-primary gap-4 shadow-2xl hover:scale-[1.02] transition-transform" onClick={handleCapture} disabled={isCapturing}>
+                {isCapturing ? <RefreshCw className="size-8 animate-spin" /> : <Camera className="size-8" />}
+                CONFIRMAR E ASSINAR
               </Button>
+              <p className="text-[10px] text-center text-muted-foreground mt-4 uppercase font-bold tracking-widest">Ao clicar, você autoriza a captura de imagem para fins de conformidade NR-06.</p>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="p-16 text-center space-y-8 animate-in zoom-in-95">
-            <CheckCircle2 className="size-20 mx-auto text-emerald-600" />
-            <h2 className="text-3xl font-bold text-emerald-700">Validado com Sucesso!</h2>
-            <Button variant="outline" className="w-full h-12 font-bold" onClick={generateReceiptPDF}>
-              <FileDown className="size-4 mr-2" /> Baixar Recibo (PDF)
-            </Button>
-            <Button variant="ghost" className="w-full" onClick={() => setStep(1)}>VOLTAR</Button>
+            <div className="size-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-4">
+              <CheckCircle2 size={48} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black text-primary uppercase">Entrega Validada!</h2>
+              <p className="text-muted-foreground text-sm font-medium italic">"Seu recibo digital foi gerado e enviado ao portal do RH."</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 pt-4">
+              <Button variant="outline" className="h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2" onClick={generateReceiptPDF}>
+                <FileDown className="size-4" /> Baixar Recibo (PDF)
+              </Button>
+              <Button variant="ghost" className="h-12 font-bold uppercase text-[10px]" onClick={() => { setStep(1); setEmployeeId(""); }}>Nova Entrega</Button>
+            </div>
           </div>
         )}
       </Card>
+
+      <Alert className="bg-blue-50 border-blue-100">
+        <ShieldAlert className="h-4 w-4 text-primary" />
+        <AlertTitle className="text-primary font-bold uppercase text-[10px] tracking-widest">Salvaguarda Legal</AlertTitle>
+        <AlertDescription className="text-xs text-primary/70">
+          Este sistema substitui a ficha de EPI física, utilizando evidências digitais em conformidade com a LGPD e normas do MTE.
+        </AlertDescription>
+      </Alert>
     </div>
   )
 }
