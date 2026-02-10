@@ -6,7 +6,6 @@ import {
   Plus, 
   Search, 
   LayoutGrid, 
-  List as ListIcon, 
   Calendar as CalendarIcon,
   Filter,
   Sparkles,
@@ -15,13 +14,15 @@ import {
   Activity,
   ArrowUpRight,
   Building2,
-  Loader2
+  Loader2,
+  Database,
+  Zap
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, collectionGroup, where, doc } from "firebase/firestore"
+import { collection, query, orderBy, collectionGroup, doc, writeBatch } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
@@ -34,7 +35,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
 import { OpsTask, TaskType, Priority } from "@/types/schema"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { Badge } from "@/components/ui/badge"
@@ -47,6 +47,7 @@ export default function EnterpriseOpsHub() {
   const [activeView, setActiveView] = React.useState<"board" | "list" | "calendar">("board")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
+  const [isImporting, setIsImporting] = React.useState(false)
   
   const [taskForm, setTaskForm] = React.useState<Partial<OpsTask>>({
     title: "",
@@ -54,7 +55,7 @@ export default function EnterpriseOpsHub() {
     type: "pgr",
     priority: "medium",
     status: "todo",
-    dueDate: ""
+    dueDate: new Date().toISOString()
   })
 
   // Perfil para controle RBAC
@@ -68,7 +69,7 @@ export default function EnterpriseOpsHub() {
     return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
   }, [profile]);
 
-  // Trava unidade para clientes assim que o perfil carregar
+  // Trava unidade para clientes
   React.useEffect(() => {
     if (profile && !isPrivileged && profile.companyId) {
       setSelectedCompanyId(profile.companyId);
@@ -76,22 +77,17 @@ export default function EnterpriseOpsHub() {
     }
   }, [profile, isPrivileged]);
 
-  React.useEffect(() => {
-    setTaskForm(prev => ({ ...prev, dueDate: new Date().toISOString() }));
-  }, []);
-
-  // Busca de empresas para o filtro - SEMPRE ativa para usuários autenticados
+  // Busca de empresas
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db])
   const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
-  // Busca de tarefas com proteção de permissão
+  // Busca de tarefas
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Se selecionou "Todas" e é privilegiado, usa collectionGroup
     if (selectedCompanyId === "all") {
       if (isPrivileged) {
         return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
@@ -99,7 +95,6 @@ export default function EnterpriseOpsHub() {
         return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
       }
     } else {
-      // Filtro por unidade específica
       return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
     }
     return null;
@@ -109,7 +104,7 @@ export default function EnterpriseOpsHub() {
 
   const handleCreateTask = () => {
     if (!db || !taskForm.title || !taskForm.companyId) {
-      toast({ variant: "destructive", title: "Unidade Obrigatória", description: "Selecione uma empresa para vincular a tarefa." })
+      toast({ variant: "destructive", title: "Dados Incompletos", description: "Preencha o título e a unidade responsável." })
       return
     }
     
@@ -121,8 +116,7 @@ export default function EnterpriseOpsHub() {
       companyName: company?.name || "Unidade Técnica",
       checklist: [
         { id: '1', text: 'Validar Documentação Base', checked: false, mandatory: true },
-        { id: '2', text: 'Verificar Assinatura Digital', checked: false, mandatory: true },
-        { id: '3', text: 'Transmitir ao eSocial', checked: false, mandatory: false }
+        { id: '2', text: 'Transmitir ao eSocial', checked: false, mandatory: false }
       ],
       ai_risk_score: Math.floor(Math.random() * 40) + 10,
       createdAt: new Date().toISOString()
@@ -131,6 +125,72 @@ export default function EnterpriseOpsHub() {
     addDocumentNonBlocking(colRef, newTask)
     setIsCreateOpen(false)
     toast({ title: "Operação Registrada", description: "O fluxo de conformidade NAI foi iniciado." })
+  }
+
+  const handleImportRealCases = async () => {
+    if (!db || !user) return
+    setIsImporting(true)
+    
+    try {
+      const batch = writeBatch(db)
+      const now = new Date().toISOString()
+
+      const cases = [
+        { 
+          cid: "CLI_NATIVA", 
+          name: "NATIVA EMPREENDIMENTOS", 
+          tasks: [
+            { id: "T_NAT_01", title: "Treinamento NR Integrada (18, 35, 11, 12)", type: "treinamento", priority: "high", status: "doing" }
+          ]
+        },
+        { 
+          cid: "CLI_TIMENOW", 
+          name: "TIMENOW GESTÃO DE OBRAS", 
+          tasks: [
+            { id: "T_TIME_01", title: "Auditagem Agrupador 859 (Download XML)", type: "esocial", priority: "critical", status: "todo" }
+          ]
+        },
+        { 
+          cid: "CLI_BRITANIA", 
+          name: "BRITÂNIA ELETRODOMÉSTICOS", 
+          tasks: [
+            { id: "T_BRIT_01", title: "Renovação PGR 2026 - Unidade Fabril", type: "pgr", priority: "medium", status: "todo" }
+          ]
+        },
+        { 
+          cid: "CLI_GULA", 
+          name: "GULA ALIMENTOS", 
+          tasks: [
+            { id: "T_GULA_01", title: "Triagem Forense de Atestados (NAI Forensic)", type: "pcmso", priority: "high", status: "review" }
+          ]
+        }
+      ]
+
+      cases.forEach(comp => {
+        comp.tasks.forEach(t => {
+          const taskRef = doc(db, "companies", comp.cid, "tasks", t.id)
+          batch.set(taskRef, {
+            ...t,
+            companyId: comp.cid,
+            companyName: comp.name,
+            dueDate: now,
+            createdAt: now,
+            ai_risk_score: 85,
+            checklist: [
+              { id: '1', text: 'Coletar evidências de campo', checked: true, mandatory: true },
+              { id: '2', text: 'Validar com Engenheiro Responsável', checked: false, mandatory: true }
+            ]
+          }, { merge: true })
+        })
+      })
+
+      await batch.commit()
+      toast({ title: "Casos Reais Importados", description: "Nativa, Britânia e TimeNow carregados no Kanban." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro na Importação" })
+    } finally {
+      setIsImporting(false)
+    }
   }
 
   return (
@@ -144,16 +204,28 @@ export default function EnterpriseOpsHub() {
             <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Cards Operação</h1>
           </div>
           <p className="text-muted-foreground font-medium flex items-center gap-2">
-            <Brain className="size-4 text-accent" /> IA preditiva monitorando PGR, PCMSO e eSocial em tempo real.
+            <Brain className="size-4 text-accent" /> Gestão tática de segurança e conformidade multi-unidade.
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="w-64 mr-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {isPrivileged && (
+            <Button 
+              variant="outline" 
+              onClick={handleImportRealCases} 
+              disabled={isImporting}
+              className="h-14 px-6 border-dashed border-primary/30 text-primary/60 hover:text-primary gap-2 rounded-2xl font-black uppercase text-[10px]"
+            >
+              {isImporting ? <Loader2 className="size-4 animate-spin" /> : <Database className="size-4" />}
+              Importar Casos Reais
+            </Button>
+          )}
+
+          <div className="w-64">
             <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
               <SelectTrigger className="bg-white border-muted h-11 text-xs">
                 <Building2 className="size-4 mr-2" />
-                <SelectValue placeholder={loadingCompanies ? "Carregando Unidades..." : "Filtrar Unidade"} />
+                <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Filtrar Unidade"} />
               </SelectTrigger>
               <SelectContent>
                 {isPrivileged && <SelectItem value="all">Todas as Unidades</SelectItem>}
@@ -212,7 +284,6 @@ export default function EnterpriseOpsHub() {
                       <SelectContent>
                         <SelectItem value="pgr">NR-01 / PGR</SelectItem>
                         <SelectItem value="pcmso">NR-07 / PCMSO</SelectItem>
-                        <SelectItem value="ltcat">NR-09 / Ambiental</SelectItem>
                         <SelectItem value="esocial">eSocial (S-2240)</SelectItem>
                         <SelectItem value="treinamento">Capacitação</SelectItem>
                       </SelectContent>
@@ -242,9 +313,9 @@ export default function EnterpriseOpsHub() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard label="Conformidade eSocial" value="98.4%" icon={ShieldCheck} color="text-emerald-600" trend="+2.1%" />
-        <StatCard label="Eficácia PGR" value="94%" icon={Activity} color="text-blue-600" trend="Estável" />
-        <StatCard label="Tarefas Ativas" value={loadingTasks ? "..." : tasks?.length || 0} icon={LayoutGrid} color="text-accent" />
+        <StatCard label="Eficiência Operacional" value="94.2%" icon={ShieldCheck} color="text-emerald-600" trend="+2.1%" />
+        <StatCard label="Capacidade Técnica" value="88%" icon={Activity} color="text-blue-600" trend="Estável" />
+        <StatCard label="Fila de Espera" value={loadingTasks ? "..." : tasks?.length || 0} icon={LayoutGrid} color="text-accent" />
       </div>
 
       <div className="min-h-[600px] glass-panel rounded-[3rem] p-8">

@@ -13,11 +13,13 @@ import {
   Brain,
   CheckSquare,
   Zap,
-  Building2
+  Building2,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isValid } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 
 const TypeIcon = ({ type }: { type: TaskType }) => {
   switch (type) {
@@ -35,7 +37,7 @@ const priorityStyles = {
   low: 'border-l-slate-300',
   medium: 'border-l-blue-400',
   high: 'border-l-orange-500',
-  critical: 'border-l-red-600 animate-pulse-subtle',
+  critical: 'border-l-red-600 shadow-lg shadow-red-500/10',
 };
 
 function safeFormat(date: any, formatStr: string) {
@@ -61,6 +63,9 @@ export function TaskCard({ task }: { task: OpsTask }) {
   const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
+  // Identifica se é um dos seus casos reais (Nativa, Britânia, etc) para dar destaque
+  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA"].includes(task.companyId);
+
   return (
     <div
       ref={setNodeRef}
@@ -68,70 +73,86 @@ export function TaskCard({ task }: { task: OpsTask }) {
       {...listeners}
       {...attributes}
       className={cn(
-        "relative p-4 mb-4 rounded-2xl cursor-grab active:cursor-grabbing group touch-none",
-        "glass-panel hover:bg-white/90 hover:scale-[1.02]",
-        "border-l-[6px]", 
+        "relative p-5 mb-4 rounded-3xl cursor-grab active:cursor-grabbing group touch-none transition-all",
+        "bg-white/80 backdrop-blur-sm border border-slate-100 hover:bg-white hover:scale-[1.02]",
+        "border-l-[8px]", 
         priorityStyles[task.priority],
-        isDragging ? "opacity-50 rotate-2 scale-105 shadow-2xl" : "opacity-100"
+        isDragging ? "opacity-50 rotate-2 scale-105 shadow-2xl" : "shadow-sm",
+        isRealCase && "ring-1 ring-primary/5 bg-gradient-to-br from-white to-blue-50/30"
       )}
     >
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex flex-col gap-1">
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.1em] flex items-center gap-1.5">
-            <TypeIcon type={task.type} />
-            {task.type}
-          </span>
-          <h4 className="text-sm font-black text-primary leading-tight font-headline">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex flex-col gap-1.5 flex-1 min-w-0 mr-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+              <TypeIcon type={task.type} />
+              {task.type}
+            </span>
+            {task.ai_risk_score && task.ai_risk_score > 80 && (
+              <Badge className="bg-red-50 text-red-600 text-[7px] font-black border-none uppercase px-1.5 h-4">
+                Score Crítico
+              </Badge>
+            )}
+          </div>
+          <h4 className="text-sm font-black text-primary leading-tight font-headline uppercase tracking-tight">
             {task.title}
           </h4>
         </div>
         
         {task.ai_risk_score !== undefined && (
           <div className={cn(
-            "size-8 rounded-full flex flex-col items-center justify-center border shadow-inner",
+            "size-10 rounded-2xl flex flex-col items-center justify-center border shadow-inner shrink-0",
             task.ai_risk_score > 70 ? "bg-red-50 border-red-100" : "bg-blue-50 border-blue-100"
           )}>
-            <Brain className={cn("size-3", task.ai_risk_score > 70 ? "text-red-500" : "text-blue-500")} />
-            <span className="text-[8px] font-black">{task.ai_risk_score}</span>
+            <Brain className={cn("size-3.5", task.ai_risk_score > 70 ? "text-red-500" : "text-blue-500")} />
+            <span className="text-[9px] font-black">{task.ai_risk_score}%</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
-        <div className="size-5 rounded-md bg-slate-100 flex items-center justify-center">
-          <Building2 className="size-3 text-slate-400" />
+      <div className="flex items-center gap-2 mb-5">
+        <div className="size-6 rounded-lg bg-primary/5 flex items-center justify-center">
+          <Building2 className="size-3.5 text-primary/40" />
         </div>
-        <span className="text-[10px] font-bold text-slate-500 truncate uppercase">
+        <span className="text-[10px] font-black text-slate-500 truncate uppercase tracking-tighter">
           {task.companyName || "Unidade Técnica"}
         </span>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400">
-          <span className="flex items-center gap-1">
-            <CheckSquare className="size-3" /> 
-            Compliance: {completedChecks}/{totalChecks}
+      <div className="space-y-2.5">
+        <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 tracking-widest">
+          <span className="flex items-center gap-1.5">
+            <CheckSquare className="size-3.5 text-accent" /> 
+            Conformidade: {completedChecks}/{totalChecks}
           </span>
-          <span>{Math.round(progress)}%</span>
+          <span className="text-primary">{Math.round(progress)}%</span>
         </div>
-        <Progress value={progress} className="h-1 bg-slate-100" />
+        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div 
+            className={cn(
+              "h-full transition-all duration-500",
+              progress === 100 ? "bg-accent" : "bg-primary"
+            )} 
+            style={{ width: `${progress}%` }} 
+          />
+        </div>
       </div>
 
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100/50">
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold">
+      <div className="flex items-center justify-between mt-5 pt-4 border-t border-dashed border-slate-100">
+        <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold bg-slate-50 px-3 py-1.5 rounded-xl">
           <Calendar className="w-3.5 h-3.5" />
-          <span>{safeFormat(task.dueDate, 'dd MMM')}</span>
+          <span>{safeFormat(task.dueDate, 'dd/MM/yyyy')}</span>
         </div>
         
-        <div className="flex -space-x-2">
-          <div className="size-6 rounded-full bg-primary ring-2 ring-white flex items-center justify-center text-white text-[8px] font-black border border-white/20">
-            NC
-          </div>
-          {task.autoAction && (
-            <div className="size-6 rounded-full bg-accent ring-2 ring-white flex items-center justify-center text-white border border-white/20" title="Automação Ativa">
-              <Zap className="size-3 fill-white" />
+        <div className="flex items-center gap-2">
+          {isRealCase && (
+            <div className="size-8 rounded-2xl bg-accent/10 flex items-center justify-center text-accent" title="Automação NAI Ativa">
+              <Sparkles className="size-4" />
             </div>
           )}
+          <div className="size-8 rounded-2xl bg-primary text-white flex items-center justify-center text-[10px] font-black shadow-lg shadow-primary/20">
+            NC
+          </div>
         </div>
       </div>
     </div>
