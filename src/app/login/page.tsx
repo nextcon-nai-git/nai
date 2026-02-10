@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -6,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles, ChevronRight, LayoutDashboard, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
