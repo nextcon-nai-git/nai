@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -84,6 +83,19 @@
         "priority": { "type": "string" },
         "ai_risk_score": { "type": "number" }
       }
+    },
+    "PlatformFeedback": {
+      "title": "PlatformFeedback",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "companyId": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "suggestion": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "rating"]
     }
   },
   "auth": {
@@ -121,6 +133,10 @@
     "/catalogs/{catalogId}": {
       "schema": { "type": "object" },
       "description": "Dados compartilhados (Riscos eSocial, Tabela de Exames)."
+    },
+    "/feedback/{feedbackId}": {
+      "schema": "#/entities/PlatformFeedback",
+      "description": "Avaliações e sugestões enviadas pelos usuários."
     }
   }
 }

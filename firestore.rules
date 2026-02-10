@@ -1,10 +1,8 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
     // --- 1. REGRAS DE COLLECTION GROUP (PRIORIDADE MÁXIMA) ---
-    // Essencial para Dashboards e Agrupador eSocial que consultam múltiplas unidades ao mesmo tempo.
     match /{path=**}/tasks/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/auditHistory/{id} { allow read, list: if request.auth != null; }
     match /{path=**}/employees/{id} { allow read, list: if request.auth != null; }
@@ -21,20 +19,25 @@ service cloud.firestore {
     // --- 3. EMPRESAS E UNIDADES (RAIZ) ---
     match /companies/{companyId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null; // Em produção, restringir a ADMIN
+      allow write: if request.auth != null;
       
-      // Sub-coleções diretas (Fallback caso não seja via Group Query)
       match /{allSubcollections=**} {
         allow read, write: if request.auth != null;
       }
     }
 
-    // --- 4. CATÁLOGOS PÚBLICOS ---
+    // --- 4. FEEDBACK DA PLATAFORMA ---
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null; // Em produção restringir a SUPER_ADMIN
+    }
+
+    // --- 5. CATÁLOGOS PÚBLICOS ---
     match /catalogs/{document=**} {
       allow read: if true;
     }
 
-    // --- 5. ACESSO GLOBAL (DESENVOLVIMENTO) ---
+    // --- 6. ACESSO GLOBAL (DESENVOLVIMENTO) ---
     match /{document=**} {
       allow read, write: if request.auth != null;
     }

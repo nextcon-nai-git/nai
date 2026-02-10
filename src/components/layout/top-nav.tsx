@@ -9,7 +9,8 @@ import {
   Settings,
   ChevronDown,
   Menu,
-  Building2
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from '@/components/ui/badge';
+import { PlatformFeedback } from '@/components/feedback/platform-feedback';
 
 export function TopNav() {
   const { user } = useUser();
@@ -62,6 +64,8 @@ export function TopNav() {
         <Badge variant="outline" className="bg-slate-50 border-slate-200 text-slate-600 font-bold text-[10px] px-3 py-1 uppercase hidden md:flex">
           <Building2 className="size-3 mr-2 text-primary" /> Unidade: Matriz Curitiba
         </Badge>
+
+        <PlatformFeedback />
 
         <Button variant="ghost" size="icon" className="relative text-slate-400 hover:bg-slate-50">
           <Bell className="size-5" />
