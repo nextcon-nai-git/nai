@@ -52,6 +52,42 @@ export const REAL_COMPANIES = [
     cnae: "10.91-1-01",
     active: true
   },
+  { id: "CLI_BRDE", name: "BRDE", cnpj: "00.000.000/0001-01", active: true, segment: "FINANCIAL" },
+  { id: "CLI_BRITANIA_B1B2", name: "Britânia Unidade B1/B2", cnpj: "76.492.701/0002-57", active: true, segment: "INDUSTRY" },
+  { id: "CLI_BIAVATTI_MAFRA", name: "Clínica Biavatti - Mafra", cnpj: "00.000.000/0001-02", active: true, segment: "HEALTH" },
+  { id: "CLI_DWMONTEC", name: "D W MONTEC LTDA", cnpj: "00.000.000/0001-03", active: true, segment: "INDUSTRY" },
+  { id: "CLI_KAEX", name: "Kaex Logistica", cnpj: "00.000.000/0001-04", active: true, segment: "LOGISTICS" },
+  { id: "CLI_KMINHO", name: "Kminho Engenharia e Empreendimentos", cnpj: "00.000.000/0001-05", active: true, segment: "CONSTRUCTION" },
+  { id: "CLI_LATWAN", name: "LatWan", cnpj: "00.000.000/0001-06", active: true, segment: "TECHNOLOGY" },
+  { id: "CLI_LVALLE", name: "LValle Engenharia LTDA", cnpj: "00.000.000/0001-07", active: true, segment: "CONSTRUCTION" },
+  { id: "CLI_NOXI", name: "NOXI QUIMICA LTDA", cnpj: "00.000.000/0001-08", active: true, segment: "INDUSTRY" },
+  { id: "CLI_PREMCELL", name: "Premcell", cnpj: "00.000.000/0001-09", active: true, segment: "INDUSTRY" },
+  { id: "CLI_SPRINGER", name: "SPRINGER CARRIER LTDA", cnpj: "00.000.000/0001-10", active: true, segment: "INDUSTRY" },
+  { id: "CLI_TRANSP_PRES", name: "Transportadora Presidente", cnpj: "00.000.000/0001-11", active: true, segment: "LOGISTICS" },
+];
+
+export const REAL_CONTRACTS = [
+  { id: "CT_001", companyId: "CLI_BRDE", companyName: "BRDE", title: "BRDE - Solução 01", value: 85836.0, status: "Conquistado" },
+  { id: "CT_002", companyId: "CLI_BRITANIA", companyName: "Britânia Eletrodomésticos", title: "Britânia Eletrodomésticos - Solução 01", value: 0.0, status: "Conquistado" },
+  { id: "CT_003", companyId: "CLI_BRITANIA_B1B2", companyName: "Britânia Unidade B1/B2", title: "Britânia Unidade B1/B2 - Solução 01", value: 26778.24, status: "Conquistado" },
+  { id: "CT_004", companyId: "CLI_BIAVATTI_MAFRA", companyName: "Clínica Biavatti - Mafra", title: "Clínica Biavatti - Mafra - Solução 01 (1)", value: 38727.76, status: "Conquistado" },
+  { id: "CT_005", companyId: "CLI_BIAVATTI_MAFRA", companyName: "Clínica Biavatti - Mafra", title: "Clínica Biavatti - Mafra - Solução 01", value: 692.13, status: "Conquistado" },
+  { id: "CT_006", companyId: "CLI_DWMONTEC", companyName: "D W MONTEC LTDA", title: "D W MONTEC LTDA - Solução 01", value: 1909.12, status: "Conquistado" },
+  { id: "CT_007", companyId: "CLI_GULA", companyName: "GULA ALIMENTOS", title: "Esquina da Gulla - Solução 01", value: 3405.76, status: "Conquistado" },
+  { id: "CT_008", companyId: "CLI_KAEX", companyName: "Kaex Logistica", title: "Kaex Logistica - Solução 01", value: 1000.0, status: "Conquistado" },
+  { id: "CT_009", companyId: "CLI_KMINHO", companyName: "Kminho Engenharia e Empreendimentos", title: "Kminho Engenharia e Empreendimentos - Solução 01 (1)", value: 614.13, status: "Conquistado" },
+  { id: "CT_010", companyId: "CLI_LATWAN", companyName: "LatWan", title: "LatWan - Solução 01", value: 1376.39, status: "Conquistado" },
+  { id: "CT_011", companyId: "CLI_LVALLE", companyName: "LValle Engenharia LTDA", title: "Leandro - Solução 01", value: 31988.1, status: "Conquistado" },
+  { id: "CT_012", companyId: "CLI_NATIVA", companyName: "NATIVA EMPREENDIMENTOS", title: "Nativa Empreendimentos - Solução 01", value: 88824.0, status: "Conquistado" },
+  { id: "CT_013", companyId: "CLI_NATIVA", companyName: "NATIVA EMPREENDIMENTOS", title: "Nativa Empreendimentos - Solução 01 (1)", value: 5898.72, status: "Conquistado" },
+  { id: "CT_014", companyId: "CLI_NOXI", companyName: "NOXI QUIMICA LTDA", title: "Elaine - Solução 01", value: 37275.93, status: "Conquistado" },
+  { id: "CT_015", companyId: "CLI_PREMCELL", companyName: "Premcell", title: "Premcell - Solução 01", value: 1640.0, status: "Conquistado" },
+  { id: "CT_016", companyId: "CLI_SPRINGER", companyName: "SPRINGER CARRIER LTDA", title: "SPRINGER CARRIER LTDA - Solução 02", value: 4770.45, status: "Conquistado" },
+  { id: "CT_017", companyId: "CLI_TIMENOW", companyName: "TIMENOW GESTÃO DE OBRAS LTDA", title: "Time Now - Solução 01", value: 4350.0, status: "Conquistado" },
+  { id: "CT_018", companyId: "CLI_TIMENOW", companyName: "TIMENOW GESTÃO DE OBRAS LTDA", title: "Time Now - Solução 01 (Refs)", value: 6691.0, status: "Conquistado" },
+  { id: "CT_019", companyId: "CLI_TIMENOW", companyName: "TIMENOW GESTÃO DE OBRAS LTDA", title: "Time Now - Solução (1)", value: 4168.27, status: "Conquistado" },
+  { id: "CT_020", companyId: "CLI_TIMENOW", companyName: "TIMENOW GESTÃO DE OBRAS LTDA", title: "Time Now - Solução 01 (2)", value: 9855.64, status: "Conquistado" },
+  { id: "CT_021", companyId: "CLI_TRANSP_PRES", companyName: "Transportadora Presidente", title: "Transportadora Presidente - Solução 01", value: 11589.66, status: "Conquistado" },
 ];
 
 export const REAL_EMPLOYEES = [

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
 import { doc, writeBatch, collection, serverTimestamp } from "firebase/firestore"
-import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY } from "@/lib/real-data"
+import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY, REAL_CONTRACTS } from "@/lib/real-data"
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
@@ -31,34 +31,26 @@ export default function UnifiedImportCenter() {
         batch.set(docRef, { ...comp, updatedAt: now }, { merge: true })
       })
 
-      // 2. Importar Funcionários como Sub-coleção
+      // 2. Importar Contratos Financeiros
+      REAL_CONTRACTS.forEach(contract => {
+        const docRef = doc(db, "companies", contract.companyId, "contracts", contract.id)
+        batch.set(docRef, { ...contract, createdAt: now }, { merge: true })
+      })
+
+      // 3. Importar Funcionários como Sub-coleção
       REAL_EMPLOYEES.forEach((emp) => {
         const docRef = doc(db, "companies", emp.companyId, "employees", emp.id)
         batch.set(docRef, { ...emp, createdAt: now })
       })
 
-      // 3. Importar Histórico de Exames
+      // 4. Importar Histórico de Exames
       REAL_EXAMS_HISTORY.forEach((hist, i) => {
         const docRef = doc(db, "companies", hist.companyId, "examHistory", `hist_${i}`)
         batch.set(docRef, { ...hist, createdAt: now })
       })
 
-      // 4. Importar Perícias Judiciais
-      const periciaRef = doc(db, "companies", "CLI_BRITANIA", "legalExpertises", "EXPERT_001")
-      batch.set(periciaRef, {
-        id: "EXPERT_001",
-        employeeName: "JOÃO BESTEL DE DEUS",
-        caseNumber: "0001234-56.2025.5.09.0001",
-        date: "2026-03-15",
-        disease: "Lombalgia Crônica (M54.5)",
-        cid: "M54.5",
-        status: "Em Andamento",
-        value: 45000,
-        type: "Indenizatória"
-      })
-
       await batch.commit()
-      toast({ title: "Ecossistema Real Carregado", description: "Empresas, Funcionários e Cards de Operação sincronizados." })
+      toast({ title: "Ecossistema Real Carregado", description: "Empresas, Contratos e Funcionários sincronizados." })
     } catch (e) {
       console.error(e)
       toast({ variant: "destructive", title: "Erro na Carga Real" })
@@ -75,7 +67,6 @@ export default function UnifiedImportCenter() {
       const batch = writeBatch(db)
       const now = new Date().toISOString()
 
-      // Injeta DRE 2025 na Matriz Curitiba (Fictício para o Admin ver no dashboard)
       const dreRef = doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
       batch.set(dreRef, {
         year: 2025,
@@ -86,7 +77,7 @@ export default function UnifiedImportCenter() {
       }, { merge: true })
 
       await batch.commit()
-      toast({ title: "DRE 2025 Importada!", description: "Dados históricos agora disponíveis para comparação no Dashboard Financeiro." })
+      toast({ title: "DRE 2025 Importada!", description: "Dados históricos disponíveis no Dashboard Financeiro." })
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao importar DRE" })
     } finally {
@@ -128,20 +119,14 @@ export default function UnifiedImportCenter() {
             <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
               <FileSpreadsheet className="size-6 text-primary" />
             </div>
-            <CardTitle className="text-xl font-black text-primary uppercase">Estratégia de Importação</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase opacity-60">Dicas para organização de planilhas.</CardDescription>
+            <CardTitle className="text-xl font-black text-primary uppercase">Contratos Importados</CardTitle>
+            <CardDescription className="text-xs font-bold uppercase opacity-60">Status de faturamento e vigência.</CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-4">
             <div className="flex gap-3">
               <div className="size-6 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0"><Sparkles className="size-3" /></div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Inclua o <strong>Nome do Cliente</strong> ao lado do CNPJ para facilitar a conferência visual no motor multiapp.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <div className="size-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><Zap className="size-3" /></div>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                Utilize <strong>Cores nos Lançamentos</strong> para identificar prioridades de fluxo de caixa (Entradas/Saídas).
+                <strong>{REAL_CONTRACTS.length} Contratos</strong> identificados na planilha mestra, incluindo BRDE, Britânia e TimeNow.
               </p>
             </div>
           </CardContent>
@@ -157,7 +142,7 @@ export default function UnifiedImportCenter() {
           </CardHeader>
           <CardContent className="p-8">
             <p className="text-sm text-emerald-700/70 leading-relaxed font-medium italic">
-              "A sincronização de clientes, produtos e fornecedores é automática entre empresas do mesmo grupo, com segregação de contas bancárias por segurança."
+              "A sincronização de clientes, produtos e fornecedores é automática entre empresas do mesmo grupo."
             </p>
           </CardContent>
         </Card>
@@ -175,9 +160,6 @@ export default function UnifiedImportCenter() {
               <p className="text-[10px] font-black uppercase text-accent mb-1">Estrutura Injetada:</p>
               <p className="text-xs font-medium opacity-70">TimeNow (Master) &gt; Britânia (Unidade)</p>
             </div>
-            <p className="text-[10px] text-white/30 font-bold uppercase italic leading-relaxed">
-              * Verifique seu Código de Convênio no Santander antes de gerar remessas.
-            </p>
           </CardContent>
         </Card>
       </div>
