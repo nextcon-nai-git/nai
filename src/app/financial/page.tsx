@@ -29,7 +29,15 @@ import {
   Sparkles,
   Loader2,
   Settings2,
-  ShieldCheck
+  ShieldCheck,
+  PauseCircle,
+  XCircle,
+  Copy,
+  PlayCircle,
+  Filter,
+  ArrowRight,
+  MoreVertical,
+  Calendar
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -44,6 +52,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import { 
   AreaChart, 
@@ -52,7 +69,10 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
 } from 'recharts'
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
@@ -67,11 +87,24 @@ const cashFlowData = [
   { day: '25/02', entradas: 58000, saidas: 35000, saldo: 107000 },
 ]
 
+const topProductsData = [
+  { name: 'PGR (NR-01)', value: 120, color: '#003366' },
+  { name: 'PCMSO (NR-07)', value: 98, color: '#0055A4' },
+  { name: 'LTCAT', value: 75, color: '#10B981' },
+  { name: 'Treinamento NR-35', value: 64, color: '#f59e0b' },
+  { name: 'Atestado Médico', value: 45, color: '#94a3b8' },
+]
+
 export default function FinancialModule() {
   const [activeTab, setActiveTab] = React.useState("cashflow")
   const { toast } = useToast()
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
+
+  // Filtros Avançados
+  const [filterAccount, setFilterAccount] = React.useState("all")
+  const [filterClient, setFilterClient] = React.useState("all")
+  const [filterPeriod, setFilterPeriod] = React.useState("30")
 
   const handleAiFiscalAnalysis = async () => {
     setIsAnalyzingFiscal(true)
@@ -90,6 +123,13 @@ export default function FinancialModule() {
     }
   }
 
+  const handleContractAction = (action: string, id: string) => {
+    toast({
+      title: "Ação Processada",
+      description: `O contrato/OS ${id} foi ${action} com sucesso.`
+    })
+  }
+
   const summary = [
     { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
     { title: "A Receber (Mês)", amount: "R$ 142.500,00", trend: "Estável", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
@@ -101,8 +141,8 @@ export default function FinancialModule() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Gestão Financeira & Fiscal 2026</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Controle tático de fluxo, automação bancária e conformidade tributária.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Gestão Financeira & Operacional 2026</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Controle tático de fluxo, contratos e performance comercial.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]">
@@ -135,18 +175,21 @@ export default function FinancialModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-muted/50 p-1 rounded-2xl h-16">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-muted/50 p-1 rounded-2xl h-16">
           <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <TrendingUp className="size-4" /> Fluxo Caixa
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <FileText className="size-4" /> Contratos/OS
           </TabsTrigger>
           <TabsTrigger value="billing" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Receipt className="size-4" /> Pagar/Receber
           </TabsTrigger>
-          <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Scale className="size-4" /> Fiscal & NF-e
+          <TabsTrigger value="bi" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <BarChart3 className="size-4" /> BI Vendas
           </TabsTrigger>
-          <TabsTrigger value="orders" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <ShoppingCart className="size-4" /> Compras
+          <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <Scale className="size-4" /> Fiscal
           </TabsTrigger>
           <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Zap className="size-4" /> Bancos
@@ -156,14 +199,34 @@ export default function FinancialModule() {
         <TabsContent value="cashflow" className="mt-8 space-y-6">
           <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-primary/5 pb-8">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                 <div>
-                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Projeção de Fluxo NAI</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Análise de Entradas vs Saídas acumuladas.</CardDescription>
+                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Saldo Previsto e Filtros</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Consulta por Conta, Cliente e Período.</CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-none px-3 font-black">ENTRADAS: R$ 357k</Badge>
-                  <Badge className="bg-red-100 text-red-700 border-none px-3 font-black">SAÍDAS: R$ 193k</Badge>
+                <div className="flex flex-wrap gap-3">
+                  <Select value={filterAccount} onValueChange={setFilterAccount}>
+                    <SelectTrigger className="w-48 bg-white h-11 text-[10px] font-black uppercase border-none shadow-sm">
+                      <Landmark className="size-3.5 mr-2" />
+                      <SelectValue placeholder="Conta Corrente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Contas</SelectItem>
+                      <SelectItem value="itau">Itaú (Matriz)</SelectItem>
+                      <SelectItem value="inter">Inter (Op.)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                    <SelectTrigger className="w-40 bg-white h-11 text-[10px] font-black uppercase border-none shadow-sm">
+                      <Calendar className="size-3.5 mr-2" />
+                      <SelectValue placeholder="Período" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Próx. 7 dias</SelectItem>
+                      <SelectItem value="30">Próx. 30 dias</SelectItem>
+                      <SelectItem value="90">Próx. 90 dias</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
@@ -186,6 +249,152 @@ export default function FinancialModule() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="contracts" className="mt-8 space-y-6">
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b flex flex-row items-center justify-between py-6 px-8">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase">Gestão de Vendas & Serviços</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Ciclo de Vida de Contratos e OS.</CardDescription>
+              </div>
+              <Button className="bg-primary text-white h-11 gap-2 rounded-xl font-black uppercase text-[10px] tracking-widest">
+                <Plus className="size-4" /> Novo Contrato/OS
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8">ID / Tipo</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Vencimento/Início</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right pr-8">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { id: "CON-8439", type: "Contrato Anual", client: "NATIVA EMPREENDIMENTOS", date: "15/02/2026", val: "R$ 45.000", status: "Ativo" },
+                    { id: "OS-1022", type: "Ordem de Serviço", client: "TIMENOW GESTÃO", date: "18/02/2026", val: "R$ 4.200", status: "Pendente" },
+                    { id: "CON-8438", type: "Contrato Mensal", client: "BRITÂNIA ELETRO", date: "12/02/2026", val: "R$ 8.900", status: "Suspenso" },
+                  ].map((item, i) => (
+                    <TableRow key={i} className="hover:bg-slate-50 transition-colors group">
+                      <TableCell className="pl-8">
+                        <div>
+                          <p className="font-black text-xs text-primary">{item.id}</p>
+                          <p className="text-[9px] text-slate-400 uppercase font-bold">{item.type}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-primary">{item.client}</TableCell>
+                      <TableCell className="text-xs font-medium text-slate-500">{item.date}</TableCell>
+                      <TableCell className="font-black text-xs text-primary">{item.val}</TableCell>
+                      <TableCell>
+                        <Badge className={cn("text-[8px] font-black uppercase border-none", 
+                          item.status === 'Ativo' ? 'bg-emerald-100 text-emerald-700' :
+                          item.status === 'Pendente' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                        )}>
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary">
+                              <MoreVertical className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56 rounded-xl border-none shadow-2xl">
+                            <DropdownMenuLabel className="text-[10px] font-black uppercase text-slate-400">Operações</DropdownMenuLabel>
+                            {item.status === 'Pendente' && (
+                              <DropdownMenuItem onClick={() => handleContractAction('ativado', item.id)} className="gap-3 cursor-pointer text-xs font-bold text-emerald-600">
+                                <PlayCircle className="size-4" /> Ativar e Faturar
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem className="gap-3 cursor-pointer text-xs font-bold">
+                              <FileText className="size-4 opacity-50" /> Consultar/Recibo
+                            </DropdownMenuItem>
+                            {item.type === 'Ordem de Serviço' && (
+                              <DropdownMenuItem onClick={() => handleContractAction('duplicado', item.id)} className="gap-3 cursor-pointer text-xs font-bold">
+                                <Copy className="size-4 opacity-50" /> Duplicar OS
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleContractAction('suspenso', item.id)} className="gap-3 cursor-pointer text-xs font-bold text-amber-600">
+                              <PauseCircle className="size-4" /> Suspender
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleContractAction('cancelado', item.id)} className="gap-3 cursor-pointer text-xs font-bold text-red-600">
+                              <XCircle className="size-4" /> Cancelar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="bi" className="mt-8 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b flex flex-row items-center justify-between py-6 px-8">
+                <div>
+                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Performance de Produtos</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Produtos mais vendidos por Cliente e Período.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Select defaultValue="30">
+                    <SelectTrigger className="w-32 bg-white h-9 text-[10px] font-black uppercase">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 dias</SelectItem>
+                      <SelectItem value="90">90 dias</SelectItem>
+                      <SelectItem value="365">1 ano</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topProductsData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700}} width={120} />
+                    <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                      {topProductsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-[#090e24] text-white border-none p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-5"><BarChart3 className="size-48 text-accent" /></div>
+              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-6 flex items-center gap-2">
+                <TrendingUp className="size-4" /> Insight Comercial
+              </CardTitle>
+              <div className="space-y-6 relative z-10">
+                <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                  <p className="text-[9px] font-black text-white/40 uppercase mb-2">Maior Ticket Médio</p>
+                  <p className="text-2xl font-black text-white">NATIVA EMPREENDIMENTOS</p>
+                  <p className="text-[10px] mt-1 text-accent font-bold">R$ 12.400 /mês</p>
+                </div>
+                <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                  <p className="text-[9px] font-black text-white/40 uppercase mb-2">Serviço com Maior Margem</p>
+                  <p className="text-xl font-black text-white">Auditoria eSocial (NAI)</p>
+                  <Progress value={85} className="h-1.5 bg-white/10 mt-3" />
+                </div>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="fiscal" className="mt-8 space-y-8">
@@ -248,48 +457,6 @@ export default function FinancialModule() {
                   </div>
                 </CardContent>
               </Card>
-
-              <Card className="card-shadow border-none bg-white">
-                <CardHeader className="border-b">
-                  <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
-                    <History className="size-5" /> Registros e Recebimentos Recentes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader className="bg-slate-50/50">
-                      <TableRow>
-                        <TableHead className="text-[10px] font-black uppercase py-4 pl-8">Doc / NF-e</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase">Cliente / Destinatário</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase">Valor (Bruto)</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase text-right pr-8">Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {[
-                        { doc: "NF-e 8439", client: "NATIVA EMPREENDIMENTOS", val: "R$ 12.450", status: "Autorizada" },
-                        { doc: "NFS-e 1022", client: "TIMENOW GESTÃO", val: "R$ 4.200", status: "Processando" },
-                        { doc: "NF-e 8438", client: "BRITÂNIA ELETRO", val: "R$ 8.900", status: "Cancelada" },
-                      ].map((nf, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="pl-8 font-bold text-xs">{nf.doc}</TableCell>
-                          <TableCell className="text-xs font-bold text-primary">{nf.client}</TableCell>
-                          <TableCell className="text-xs font-black">{nf.val}</TableCell>
-                          <TableCell className="text-right pr-8">
-                            <Badge className={cn(
-                              "text-[8px] font-black uppercase border-none",
-                              nf.status === 'Autorizada' ? "bg-emerald-100 text-emerald-700" :
-                              nf.status === 'Processando' ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
-                            )}>
-                              {nf.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
             </div>
 
             <div className="space-y-6">
@@ -327,24 +494,6 @@ export default function FinancialModule() {
                     {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-accent" />}
                     Analisar Cenário Fiscal
                   </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="card-shadow border-none bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100">
-                <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-[10px] font-black uppercase text-blue-900 tracking-widest flex items-center gap-2">
-                    <ShieldCheck className="size-4" /> Produção Restrita
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-blue-800">Status Transmissão</span>
-                    <Badge className="bg-emerald-500 text-white text-[8px] font-black uppercase border-none h-5">Ativo</Badge>
-                  </div>
-                  <Progress value={100} className="h-1.5 bg-blue-200" />
-                  <p className="text-[9px] text-blue-700/70 font-medium leading-relaxed">
-                    O envio de dados para NFS-e está operando em Produção Restrita. Todos os impostos são calculados com alíquotas de teste para validação do governo.
-                  </p>
                 </CardContent>
               </Card>
             </div>
@@ -412,62 +561,6 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="orders" className="mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-amber-50/50 border-b">
-                <CardTitle className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
-                  <Package className="size-6 text-amber-600" /> Ordens de Compra & Estoque
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-slate-50 text-[9px] font-black uppercase">
-                    <TableRow>
-                      <TableHead className="pl-8">Item / Mercadoria</TableHead>
-                      <TableHead>Qtd Solicitada</TableHead>
-                      <TableHead>Fornecedor</TableHead>
-                      <TableHead className="text-right pr-8">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[
-                      { item: "EPI: Capacete MSA Classe B", qty: "50 un", provider: "SST Suprimentos", status: "Em Trânsito" },
-                      { item: "Dosímetro de Ruído Digital", qty: "02 un", provider: "InstruLab", status: "Aguardando Apr." },
-                      { item: "Kit Primeiros Socorros NR-07", qty: "10 un", provider: "MedHealth", status: "Entregue" },
-                    ].map((order, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="pl-8 font-bold text-xs">{order.item}</TableCell>
-                        <TableCell className="text-xs font-black text-primary">{order.qty}</TableCell>
-                        <TableCell className="text-[10px] uppercase font-bold text-slate-400">{order.provider}</TableCell>
-                        <TableCell className="text-right pr-8">
-                          <Badge variant="outline" className="text-[8px] font-black uppercase border-slate-200">{order.status}</Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-[#090e24] text-white border-none p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-5"><ShoppingCart className="size-48 text-accent" /></div>
-              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-6 flex items-center gap-2">
-                <Zap className="size-4" /> Gestão de Ativos
-              </CardTitle>
-              <div className="space-y-6 relative z-10">
-                <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
-                  <p className="text-[9px] font-black text-white/40 uppercase mb-2">Valor Total em Trânsito</p>
-                  <p className="text-3xl font-black text-white font-headline">R$ 12.400</p>
-                </div>
-                <Button className="w-full h-14 bg-white text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:bg-slate-100 transition-all">
-                  Nova Ordem de Compra
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </TabsContent>
-
         <TabsContent value="integrations" className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -499,23 +592,6 @@ export default function FinancialModule() {
               </Card>
             ))}
           </div>
-          
-          <Card className="mt-8 border-none bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100">
-            <div className="flex flex-col md:flex-row items-center gap-8">
-              <div className="size-24 rounded-3xl bg-primary flex items-center justify-center shadow-2xl shrink-0">
-                <CheckCircle2 className="size-12 text-accent" />
-              </div>
-              <div className="flex-1 space-y-2 text-center md:text-left">
-                <h3 className="text-xl font-black text-primary uppercase font-headline">Automatização de Pagamentos Ativa</h3>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  A plataforma Nextcon agora realiza a liquidação automática de notas fiscais de prestadores assim que o ASO é validado pela NAI. Sem burocracia, sem erros de digitação.
-                </p>
-              </div>
-              <Button className="h-14 px-10 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl">
-                Configurar Regras de Automação
-              </Button>
-            </div>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>
