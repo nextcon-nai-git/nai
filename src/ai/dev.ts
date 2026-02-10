@@ -12,3 +12,4 @@ import '@/ai/flows/ltcat-analysis-flow.ts';
 import '@/ai/flows/pcmso-analysis-flow.ts';
 import '@/ai/flows/document-classifier-flow.ts';
 import '@/ai/flows/medical-certificate-validator-flow.ts';
+import '@/ai/flows/fiscal-intelligence-flow.ts';

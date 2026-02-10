@@ -23,7 +23,13 @@ import {
   Package,
   Zap,
   BarChart3,
-  Wallet
+  Wallet,
+  FileText,
+  Scale,
+  Sparkles,
+  Loader2,
+  Settings2,
+  ShieldCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,19 +46,17 @@ import {
 } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
 import { 
-  BarChart, 
-  Bar, 
+  AreaChart, 
+  Area, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
+  ResponsiveContainer
 } from 'recharts'
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+import { analyzeFiscalScenario } from "@/ai/flows/fiscal-intelligence-flow"
 
 const cashFlowData = [
   { day: '01/02', entradas: 45000, saidas: 32000, saldo: 13000 },
@@ -65,27 +69,40 @@ const cashFlowData = [
 
 export default function FinancialModule() {
   const [activeTab, setActiveTab] = React.useState("cashflow")
+  const { toast } = useToast()
+  const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
+  const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
+
+  const handleAiFiscalAnalysis = async () => {
+    setIsAnalyzingFiscal(true)
+    try {
+      const result = await analyzeFiscalScenario({
+        companySegment: "Serviços de Engenharia e Saúde",
+        location: "Curitiba - PR",
+        monthlyRevenue: 150000
+      })
+      setFiscalFiscalAiResult(result)
+      toast({ title: "Análise Fiscal Concluída", description: "O cenário 2026 foi processado pela NAI." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro na IA Fiscal" })
+    } finally {
+      setIsAnalyzingFiscal(false)
+    }
+  }
 
   const summary = [
     { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
     { title: "A Receber (Mês)", amount: "R$ 142.500,00", trend: "Estável", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "A Pagar (Rede)", amount: "R$ 58.200,00", trend: "-5%", icon: ArrowDownLeft, color: "text-red-600", bg: "bg-red-50" },
-    { title: "Compras Pendentes", amount: "R$ 12.400,00", trend: "Alerta", icon: ShoppingCart, color: "text-amber-600", bg: "bg-amber-50" },
-  ]
-
-  const bankIntegrations = [
-    { name: "Banco Itaú", status: "Conectado", type: "Automatizado", icon: Landmark },
-    { name: "Bradesco", status: "Conectado", type: "Open Banking", icon: Landmark },
-    { name: "Santander", status: "Pendente", type: "API Direta", icon: Landmark },
-    { name: "Banco Inter", status: "Conectado", type: "Automatizado", icon: Landmark },
+    { title: "IBS/CBS Provisionado", amount: "R$ 1.425,00", trend: "0.1%/0.9%", icon: Scale, color: "text-amber-600", bg: "bg-amber-50" },
   ]
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Gestão Financeira & Billing</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Controle tático de fluxo, suprimentos e automação bancária.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Gestão Financeira & Fiscal 2026</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Controle tático de fluxo, automação bancária e conformidade tributária.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]">
@@ -118,18 +135,21 @@ export default function FinancialModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-muted/50 p-1 rounded-2xl h-16">
           <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <TrendingUp className="size-4" /> Fluxo de Caixa
+            <TrendingUp className="size-4" /> Fluxo Caixa
           </TabsTrigger>
           <TabsTrigger value="billing" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Receipt className="size-4" /> Pagar & Receber
+            <Receipt className="size-4" /> Pagar/Receber
+          </TabsTrigger>
+          <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <Scale className="size-4" /> Fiscal & NF-e
           </TabsTrigger>
           <TabsTrigger value="orders" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <ShoppingCart className="size-4" /> Ordens & Compras
+            <ShoppingCart className="size-4" /> Compras
           </TabsTrigger>
           <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Zap className="size-4" /> Bancos & APIs
+            <Zap className="size-4" /> Bancos
           </TabsTrigger>
         </TabsList>
 
@@ -166,6 +186,169 @@ export default function FinancialModule() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="fiscal" className="mt-8 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="card-shadow border-none bg-white overflow-hidden">
+                <CardHeader className="bg-primary/5 border-b pb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-primary text-white rounded-2xl">
+                        <FileText className="size-6 text-accent" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-headline font-black text-primary uppercase">Emissão de NF-e (Homologação)</CardTitle>
+                        <CardDescription className="text-xs font-bold uppercase text-slate-400">Ambiente de Testes para Transmissão Fiscal 2026.</CardDescription>
+                      </div>
+                    </div>
+                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 font-black">TESTE: IBS/CBS</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Tipo de Operação</label>
+                      <Input value="Prestação de Serviço (SST)" readOnly className="bg-slate-50 border-none h-12 font-bold" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Finalidade da NF-e</label>
+                      <Input value="1 - NF-e Normal" readOnly className="bg-slate-50 border-none h-12 font-bold" />
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <h4 className="text-sm font-black text-primary uppercase mb-4 flex items-center gap-2">
+                      <Settings2 className="size-4" /> Novos Tributos (Cenário 2026)
+                    </h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">IBS (Estadual)</p>
+                        <p className="text-lg font-black text-primary">0,1% <span className="text-[10px] opacity-40">Testes</span></p>
+                      </div>
+                      <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">CBS (Federal)</p>
+                        <p className="text-lg font-black text-primary">0,9% <span className="text-[10px] opacity-40">Testes</span></p>
+                      </div>
+                      <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">ISS Municipal</p>
+                        <p className="text-lg font-black text-primary">5,0% <span className="text-[10px] opacity-40">Padrão</span></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex gap-3">
+                    <Button className="flex-1 h-14 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl">
+                      Transmitir NF-e Homologação
+                    </Button>
+                    <Button variant="outline" className="h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest border-primary/10">
+                      Visualizar XML
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-shadow border-none bg-white">
+                <CardHeader className="border-b">
+                  <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                    <History className="size-5" /> Registros e Recebimentos Recentes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-slate-50/50">
+                      <TableRow>
+                        <TableHead className="text-[10px] font-black uppercase py-4 pl-8">Doc / NF-e</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase">Cliente / Destinatário</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase">Valor (Bruto)</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase text-right pr-8">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[
+                        { doc: "NF-e 8439", client: "NATIVA EMPREENDIMENTOS", val: "R$ 12.450", status: "Autorizada" },
+                        { doc: "NFS-e 1022", client: "TIMENOW GESTÃO", val: "R$ 4.200", status: "Processando" },
+                        { doc: "NF-e 8438", client: "BRITÂNIA ELETRO", val: "R$ 8.900", status: "Cancelada" },
+                      ].map((nf, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="pl-8 font-bold text-xs">{nf.doc}</TableCell>
+                          <TableCell className="text-xs font-bold text-primary">{nf.client}</TableCell>
+                          <TableCell className="text-xs font-black">{nf.val}</TableCell>
+                          <TableCell className="text-right pr-8">
+                            <Badge className={cn(
+                              "text-[8px] font-black uppercase border-none",
+                              nf.status === 'Autorizada' ? "bg-emerald-100 text-emerald-700" :
+                              nf.status === 'Processando' ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
+                            )}>
+                              {nf.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <Card className="bg-[#090e24] text-white border-none p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-6 opacity-5"><Sparkles className="size-48 text-accent" /></div>
+                <CardHeader className="p-0 mb-6 relative z-10">
+                  <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.2em] flex items-center gap-2">
+                    <Sparkles className="size-4" /> IA Fiscal Assistant
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 space-y-6 relative z-10">
+                  <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                    <p className="text-[10px] font-black text-white/40 uppercase mb-3">Simulação Tributária Reformada</p>
+                    <p className="text-xs leading-relaxed opacity-80 italic">
+                      "Utilize a NAI para prever o impacto da CBS e IBS em seus contratos de prestação de serviço recorrente."
+                    </p>
+                  </div>
+                  
+                  {fiscalAiResult && (
+                    <div className="p-5 bg-accent/10 rounded-2xl border border-accent/20 animate-in zoom-in-95">
+                      <p className="text-[10px] font-black text-accent uppercase mb-2">Insight Estratégico:</p>
+                      <p className="text-xs font-bold text-white leading-relaxed">{fiscalAiResult.analysis}</p>
+                      <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="text-[9px] font-black uppercase text-accent/60">IBS Projetado: {fiscalAiResult.suggestedRates.ibs}%</div>
+                        <div className="text-[9px] font-black uppercase text-accent/60">CBS Projetado: {fiscalAiResult.suggestedRates.cbs}%</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button 
+                    onClick={handleAiFiscalAnalysis}
+                    disabled={isAnalyzingFiscal}
+                    className="w-full h-14 bg-white text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:bg-slate-100 transition-all gap-2"
+                  >
+                    {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-accent" />}
+                    Analisar Cenário Fiscal
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="card-shadow border-none bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100">
+                <CardHeader className="p-0 mb-4">
+                  <CardTitle className="text-[10px] font-black uppercase text-blue-900 tracking-widest flex items-center gap-2">
+                    <ShieldCheck className="size-4" /> Produção Restrita
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-blue-800">Status Transmissão</span>
+                    <Badge className="bg-emerald-500 text-white text-[8px] font-black uppercase border-none h-5">Ativo</Badge>
+                  </div>
+                  <Progress value={100} className="h-1.5 bg-blue-200" />
+                  <p className="text-[9px] text-blue-700/70 font-medium leading-relaxed">
+                    O envio de dados para NFS-e está operando em Produção Restrita. Todos os impostos são calculados com alíquotas de teste para validação do governo.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="billing" className="mt-8 space-y-6">
@@ -287,7 +470,12 @@ export default function FinancialModule() {
 
         <TabsContent value="integrations" className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bankIntegrations.map((bank) => (
+            {[
+              { name: "Banco Itaú", status: "Conectado", type: "Automatizado", icon: Landmark },
+              { name: "Bradesco", status: "Conectado", type: "Open Banking", icon: Landmark },
+              { name: "Santander", status: "Pendente", type: "API Direta", icon: Landmark },
+              { name: "Banco Inter", status: "Conectado", type: "Automatizado", icon: Landmark },
+            ].map((bank) => (
               <Card key={bank.name} className="border-none shadow-xl hover:ring-2 ring-accent/20 transition-all bg-white rounded-[2rem] overflow-hidden group">
                 <CardContent className="pt-8">
                   <div className="flex items-center justify-between mb-6">
