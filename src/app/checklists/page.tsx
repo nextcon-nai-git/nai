@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -24,7 +23,8 @@ import {
   PenTool,
   AlertTriangle,
   Save,
-  Zap
+  Zap,
+  X
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -80,20 +80,16 @@ export default function ChecklistsPage() {
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
   const [searchTerm, setSearchTerm] = React.useState("")
 
-  // Estados do Checklist
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false)
   const [isFinalizing, setIsFinalizing] = React.useState(false)
   const [activeNR, setActiveNR] = React.useState<NRChecklist | null>(null)
   const [responses, setResponses] = React.useState<Record<string, ChecklistStatus>>({})
   const [expandedHelp, setExpandedHelp] = React.useState<Record<string, boolean>>({})
-  const [selectedLawItem, setSelectedLawItem] = React.useState<ChecklistItem | null>(null)
   
-  // Alerta de Risco Grave
   const [criticalAlertOpen, setCriticalAlertOpen] = React.useState(false)
   const [lastCriticalItem, setLastCriticalItem] = React.useState<ChecklistItem | null>(null)
   const [isCreatingUrgentTask, setIsCreatingUrgentTask] = React.useState(false)
 
-  // Perfil para controle multi-tenant
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return doc(db, "users", user.uid);
@@ -104,14 +100,12 @@ export default function ChecklistsPage() {
     return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
   }, [profile]);
 
-  // Trava unidade para clientes
   React.useEffect(() => {
     if (profile && !isPrivileged && profile.companyId) {
       setSelectedCompanyId(profile.companyId);
     }
   }, [profile, isPrivileged]);
 
-  // Busca centralizada na coleção raiz 'companies'
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
@@ -127,7 +121,7 @@ export default function ChecklistsPage() {
 
   const handleOpenChecklist = (nrId: string, title: string) => {
     if (!selectedCompanyId) {
-      toast({ variant: "destructive", title: "Empresa Obrigatória", description: "Selecione um cliente antes de iniciar." });
+      toast({ variant: "destructive", title: "Unidade Obrigatória", description: "Selecione uma unidade antes de iniciar a inspeção." });
       return;
     }
     const config = NR_CHECKLISTS[nrId] || getGenericChecklist(nrId.toUpperCase(), title);
@@ -166,16 +160,15 @@ export default function ChecklistsPage() {
         ai_risk_score: 95,
         checklist: [
           { id: '1', text: `Corrigir: ${lastCriticalItem.question}`, checked: false, mandatory: true },
-          { id: '2', text: 'Validar Medida de Engenharia', checked: false, mandatory: true },
-          { id: '3', text: 'Liberar Frente de Trabalho', checked: false, mandatory: true }
+          { id: '2', text: 'Validar Medida de Engenharia', checked: false, mandatory: true }
         ]
       };
 
       await addDocumentNonBlocking(tasksRef, urgentTask);
-      toast({ title: "Plano de Ação Criado" });
+      toast({ title: "Plano de Ação Criado com Sucesso" });
       setCriticalAlertOpen(false);
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao criar card" });
+      toast({ variant: "destructive", title: "Erro ao criar ação corretiva" });
     } finally {
       setIsCreatingUrgentTask(false);
     }
@@ -218,14 +211,14 @@ export default function ChecklistsPage() {
         storagePath: storagePath,
         createdAt: new Date().toISOString(),
         analysisData: {
-          aiInsight: `Inspeção ${activeNR.nr} finalizada com ${auditData.progress}% de cobertura.`
+          aiInsight: `Inspeção ${activeNR.nr} finalizada com ${auditData.progress}% de cobertura técnica.`
         }
       });
 
-      toast({ title: "Auditoria Finalizada!" });
+      toast({ title: "Auditoria Finalizada e Protocolada!" });
       setIsChecklistOpen(false);
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Erro ao Salvar" });
+      toast({ variant: "destructive", title: "Erro ao Salvar Protocolo" });
     } finally {
       setIsFinalizing(false);
     }
@@ -235,8 +228,8 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Inspeção de Campo</h1>
-          <p className="text-muted-foreground font-medium">Motor de conformidade ativa e auditoria técnica.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Inspeção de Campo</h1>
+          <p className="text-muted-foreground font-medium">Motor de conformidade ativa e auditoria técnica 2026.</p>
         </div>
         <div className="w-full md:w-72">
           <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Unidade em Auditoria:</label>
@@ -258,7 +251,7 @@ export default function ChecklistsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
           <Input 
-            placeholder="Buscar Norma ou Requisito..." 
+            placeholder="Buscar Norma ou Requisito Técnico..." 
             className="pl-10 h-11 bg-white border-none shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -289,10 +282,12 @@ export default function ChecklistsPage() {
         })}
       </div>
 
-      {/* Dialogs omitidos por brevidade - mantidos conforme arquivo original */}
       <Dialog open={isChecklistOpen} onOpenChange={(open) => !isFinalizing && setIsChecklistOpen(open)}>
         <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2rem]">
-          <DialogHeader className="p-8 bg-primary text-white shrink-0">
+          <DialogHeader className="p-8 bg-primary text-white shrink-0 relative">
+            <button onClick={() => setIsChecklistOpen(false)} className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X className="size-5" />
+            </button>
             <DialogTitle className="text-2xl font-headline font-black uppercase flex items-center gap-3">
               <ClipboardCheck className="size-8 text-accent" /> {activeNR?.nr} - Auditoria Inteligente
             </DialogTitle>
@@ -301,16 +296,97 @@ export default function ChecklistsPage() {
             </DialogDescription>
             <Progress value={checklistProgress} className="h-2 mt-6 bg-white/10" />
           </DialogHeader>
+          
           <div className="flex-1 overflow-y-auto p-8 bg-[#F8FAFC]">
-             <p className="text-center py-10 opacity-50 font-bold">Conteúdo do checklist carregando...</p>
-             {/* Lógica de renderização de itens mantida igual ao original */}
+            {activeNR?.items.map((item) => (
+              <div key={item.id} className="p-6 bg-white rounded-3xl border mb-4 shadow-sm group hover:border-primary/20 transition-all">
+                <div className="flex justify-between items-start mb-4 gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 text-primary/60">{item.category}</Badge>
+                      {item.criticality === 'critical' && <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase">Risco Grave</Badge>}
+                    </div>
+                    <h4 className="text-sm font-bold text-primary leading-tight">{item.id}. {item.question}</h4>
+                  </div>
+                  <Button variant="ghost" size="icon" className="shrink-0 rounded-full hover:bg-primary/5" onClick={() => setExpandedHelp(prev => ({...prev, [item.id]: !prev[item.id]}))}>
+                    <Info className={cn("size-4 transition-colors", expandedHelp[item.id] ? "text-primary" : "text-slate-300")} />
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2">
+                  {(['CONFORME', 'NÃO CONFORME', 'NÃO AVALIADO'] as ChecklistStatus[]).map((status) => (
+                    <Button
+                      key={status}
+                      variant={responses[item.id] === status ? 'default' : 'outline'}
+                      className={cn(
+                        "h-10 text-[9px] font-black uppercase rounded-xl transition-all",
+                        responses[item.id] === status && status === 'NÃO CONFORME' ? 'bg-red-600 hover:bg-red-700' : 
+                        responses[item.id] === status && status === 'CONFORME' ? 'bg-accent hover:bg-accent/90' : 
+                        responses[item.id] === status ? 'bg-primary' : 'hover:bg-primary/5 border-slate-200'
+                      )}
+                      onClick={() => handleStatusChange(item, status)}
+                    >
+                      {status}
+                    </Button>
+                  ))}
+                </div>
+
+                {expandedHelp[item.id] && (
+                  <div className="mt-4 p-5 bg-blue-50 rounded-2xl border border-blue-100 text-[11px] animate-in slide-in-from-top-2 duration-300">
+                    <p className="font-black text-blue-800 flex items-center gap-2 mb-2 uppercase tracking-widest">
+                      <Gavel className="size-3" /> Referência: {item.legal_ref}
+                    </p>
+                    {item.legal_text && <p className="text-blue-700/70 italic mb-3 leading-relaxed border-l-2 border-blue-200 pl-3">"{item.legal_text}"</p>}
+                    <div className="flex gap-3 items-start p-3 bg-white/50 rounded-xl">
+                      <Zap className="size-4 text-accent shrink-0 mt-0.5" />
+                      <p className="text-blue-900 font-bold">Dica NAI: {item.help_text}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
+
           <DialogFooter className="p-6 bg-white border-t shrink-0 flex justify-between items-center sm:justify-between">
-            <Button variant="ghost" onClick={() => setIsChecklistOpen(false)} disabled={isFinalizing}>Fechar</Button>
-            <Button onClick={handleFinalizeAuditoria} disabled={checklistProgress < 100 || isFinalizing}>Finalizar</Button>
+            <div className="text-[10px] font-black uppercase text-slate-400">NAI Technical Auditing</div>
+            <div className="flex gap-2">
+              <Button variant="ghost" className="font-bold uppercase text-[10px]" onClick={() => setIsChecklistOpen(false)} disabled={isFinalizing}>Fechar</Button>
+              <Button 
+                onClick={handleFinalizeAuditoria} 
+                disabled={checklistProgress < 100 || isFinalizing}
+                className="bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-widest px-8 rounded-xl shadow-lg shadow-primary/20"
+              >
+                {isFinalizing ? <Loader2 className="size-4 animate-spin" /> : "Finalizar Auditoria"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={criticalAlertOpen} onOpenChange={setCriticalAlertOpen}>
+        <AlertDialogContent className="rounded-[2.5rem] border-none p-10 shadow-2xl">
+          <AlertDialogHeader className="flex flex-col items-center text-center">
+            <div className="size-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-6 animate-pulse">
+              <AlertTriangle size={40} />
+            </div>
+            <AlertDialogTitle className="text-2xl font-headline font-black uppercase text-red-700">Falha Crítica Identificada</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500 font-medium text-sm mt-4">
+              Você marcou uma **NÃO CONFORME** em um item de criticidade elevada. Deseja que a NAI gere automaticamente uma **Intervenção Urgente** no Kanban para o Engenheiro Responsável?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-10 gap-3 sm:justify-center">
+            <AlertDialogCancel className="rounded-xl h-14 px-8 font-bold uppercase text-[10px]">Ignorar por agora</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCreateUrgentAction}
+              disabled={isCreatingUrgentTask}
+              className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-14 px-10 font-black uppercase text-[10px] tracking-widest gap-2 shadow-xl shadow-red-600/20"
+            >
+              {isCreatingUrgentTask ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
+              Ativar Plano de Ação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

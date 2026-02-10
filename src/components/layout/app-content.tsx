@@ -49,7 +49,7 @@ export function AppContent({ children }: { children: React.ReactNode }) {
             <Loader2 className="h-5 w-5 animate-spin text-accent" />
             <span className="text-xs font-black text-white/60 uppercase tracking-[0.4em]">NextCon Intelligence</span>
           </div>
-          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Executando Protocolos 2026...</p>
+          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Iniciando Protocolos 2026...</p>
         </div>
       </div>
     );

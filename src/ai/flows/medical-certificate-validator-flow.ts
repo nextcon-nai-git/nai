@@ -34,24 +34,24 @@ const prompt = ai.definePrompt({
   input: {schema: ValidatorInputSchema},
   output: {schema: ValidatorOutputSchema},
   prompt: `Você é a NAI, perita forense digital da NextCon Saúde Empresarial.
-Sua missão é analisar o atestado médico em anexo e identificar sinais de fraude ou inconsistência.
+Sua missão é analisar o atestado médico em anexo e identificar sinais de fraude ou inconsistência técnica.
 
-ANALISE OS SEGUINTES PONTOS:
-1. Fontes e Alinhamento: Existem letras com fontes diferentes no mesmo campo? O texto está desalinhado em relação ao resto do documento?
-2. Carimbos e Assinaturas: O carimbo parece ter sido recortado e colado digitalmente? A assinatura apresenta pixels suspeitos ao redor?
-3. Dados Médicos: O CRM informado existe e é compatível com o nome do médico? O CID informado faz sentido para o tempo de afastamento?
-4. Estrutura: Existem bordas ou sombras que indicam montagem digital?
+ANALISE OS SEGUINTES PONTOS CRÍTICOS:
+1. Fontes e Alinhamento: Verifique se existem letras com fontes diferentes no mesmo campo ou texto desalinhado.
+2. Carimbos e Assinaturas: Identifique se o carimbo parece recortado ou se a assinatura apresenta pixels suspeitos (artefatos digitais).
+3. Dados Médicos: O CRM informado deve ser compatível com o nome do médico. O CID deve fazer sentido para o tempo de afastamento.
+4. Estrutura Visual: Procure por bordas ou sombras que indiquem montagem digital (copy-paste).
 
 REGRAS DE CLASSIFICAÇÃO:
 - Legitimate: Sem sinais óbvios de adulteração.
 - Suspicious: Pequenas inconsistências ou dados que não cruzam 100%.
-- Forged: Sinais claros de fraude (fontes diferentes, CRM inexistente, montagem visual óbvia).
+- Forged: Sinais claros de fraude (fontes diferentes, montagem visual óbvia, CRM inexistente).
 
 IMPORTANTE:
-- Retorne SEMPRE o objeto JSON completo seguindo rigorosamente o esquema de saída.
+- Retorne SEMPRE o objeto JSON completo.
 - Se não encontrar pontos suspeitos, o campo 'redFlags' DEVE ser um array vazio [].
-- O campo 'reasoning' DEVE ser preenchido com sua análise técnica.
-- Limpe os textos extraídos removendo quebras de linha excessivas ou espaços desnecessários.
+- No campo 'reasoning', forneça uma análise técnica e objetiva.
+- Limpe os textos extraídos removendo quebras de linha excessivas ou espaços duplos.
 
 Documento: {{media url=fileDataUri}}`,
 });
@@ -66,13 +66,16 @@ const validatorFlow = ai.defineFlow(
     const {output} = await prompt(input);
     if (!output) throw new Error('A NAI não conseguiu processar este documento agora.');
     
+    // Sanitização de saída para evitar erros de validação de esquema
     return {
       ...output,
       redFlags: output.redFlags || [],
       reasoning: output.reasoning || "Análise concluída sem observações adicionais.",
       extractedData: {
         ...output.extractedData,
-        patientName: output.extractedData?.patientName?.replace(/\n+/g, ' ').trim()
+        patientName: output.extractedData?.patientName?.replace(/\n+/g, ' ').trim() || "Não identificado",
+        doctorName: output.extractedData?.doctorName?.replace(/\n+/g, ' ').trim() || "Não identificado",
+        clinicName: output.extractedData?.clinicName?.replace(/\n+/g, ' ').trim() || "Não identificado"
       }
     } as ValidatorOutput;
   }
