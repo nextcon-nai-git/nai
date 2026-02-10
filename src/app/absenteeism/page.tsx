@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -43,13 +42,9 @@ export default function LimboSentinel() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  // Busca perícias que envolvem absenteísmo/doença ocupacional
   const expertisesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
-    // Se for admin, vê tudo via collectionGroup. Se for cliente, vê apenas da sua empresa.
     const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
-    
     if (isPrivileged) {
       return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
     } else if (profile.companyId) {
@@ -71,7 +66,7 @@ export default function LimboSentinel() {
     setAiDraft(null)
     try {
       const result = await generateNtepContestation({
-        cnae: "25.3", // Padrão metalúrgica
+        cnae: "25.3",
         cid: record.cid || "M75.1",
         jobRole: record.jobRole || "Operacional",
         workEnvironment: "Linha de Produção / Metalurgia"
@@ -101,8 +96,8 @@ export default function LimboSentinel() {
           <p className="text-muted-foreground">Vigilância ativa de afastamentos e nexo técnico baseado em processos reais.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2"><History className="size-4" /> Histórico</Button>
-          <Button className="bg-accent hover:bg-accent/90 gap-2 shadow-lg shadow-accent/20 font-bold"><AlertTriangle className="size-4" /> Novo Registro</Button>
+          <Button variant="outline" className="gap-2 h-11"><History className="size-4" /> Histórico</Button>
+          <Button className="bg-accent hover:bg-accent/90 gap-2 h-11 shadow-lg shadow-accent/20 font-bold"><AlertTriangle className="size-4" /> Novo Registro</Button>
         </div>
       </div>
 
@@ -124,7 +119,12 @@ export default function LimboSentinel() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={4} className="text-center py-10">Carregando base real...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={4} className="text-center py-20">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="size-12 rounded-2xl bg-[#090e24] flex items-center justify-center text-white font-black text-xl shadow-xl animate-bounce">N</div>
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronizando Base Jurídica...</span>
+                    </div>
+                  </TableCell></TableRow>
                 ) : expertises?.map((record) => {
                   const isNtep = checkNTEP(record.cid)
                   return (
@@ -154,51 +154,42 @@ export default function LimboSentinel() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="bg-green-50 text-green-700 border-green-200"
-                            onClick={() => handleNotifyWhatsApp(record)}
-                          >
-                            <MessageSquare className="size-3" />
-                          </Button>
-                          
+                          <Button variant="outline" size="sm" onClick={() => handleNotifyWhatsApp(record)}><MessageSquare className="size-3" /></Button>
                           {isNtep && (
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2 border-primary text-primary hover:bg-primary hover:text-white" onClick={() => handleGenerateContestation(record)}>
+                                <Button variant="outline" size="sm" className="gap-2 border-primary text-primary" onClick={() => handleGenerateContestation(record)}>
                                   <Sparkles className="size-3" /> NAI Defesa
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
-                                <DialogHeader className="p-6 bg-primary text-white">
-                                  <DialogTitle className="flex items-center gap-2 text-xl font-headline">
-                                    <Gavel className="size-6 text-accent" /> 
-                                    Contestação NAI - Nexo Técnico
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2rem]">
+                                <DialogHeader className="p-8 bg-primary text-white shrink-0">
+                                  <DialogTitle className="flex items-center gap-3 text-xl font-headline font-black uppercase">
+                                    <Gavel className="size-6 text-accent" /> Contestação NAI
                                   </DialogTitle>
-                                  <DialogDescription className="text-white/70">
-                                    Fundamentação jurídica para {record.employeeName} (CID: {record.cid}).
+                                  <DialogDescription className="text-white/70 font-bold uppercase text-[10px] mt-2">
+                                    Fundamentação para {record.employeeName} (CID: {record.cid}).
                                   </DialogDescription>
                                 </DialogHeader>
-                                <div className="flex-1 overflow-y-auto p-6 bg-muted/20">
+                                <div className="flex-1 overflow-y-auto p-8 bg-[#F8FAFC]">
                                   {isGenerating ? (
-                                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                      <Loader2 className="size-12 animate-spin text-primary" />
-                                      <p className="text-xs font-black uppercase tracking-widest animate-pulse text-primary">NAI Cruzando Base Legal 2026...</p>
+                                    <div className="flex flex-col items-center justify-center py-20 gap-6">
+                                      <div className="size-20 rounded-[2rem] bg-[#090e24] flex items-center justify-center text-white font-black text-4xl shadow-2xl animate-bounce">N</div>
+                                      <p className="text-xs font-black uppercase tracking-widest animate-pulse text-primary text-center">NAI Cruzando Base Legal 2026...</p>
                                     </div>
                                   ) : aiDraft ? (
-                                    <div className="bg-white p-8 rounded-xl border shadow-inner whitespace-pre-wrap text-sm leading-relaxed font-body">
+                                    <div className="bg-white p-8 rounded-3xl border shadow-inner whitespace-pre-wrap text-sm leading-relaxed font-body">
                                       {aiDraft}
                                     </div>
                                   ) : (
                                     <div className="text-center py-10 text-muted-foreground italic">Erro ao carregar rascunho NAI.</div>
                                   )}
                                 </div>
-                                <div className="p-4 bg-white border-t flex justify-between items-center">
-                                  <div className="text-[10px] text-muted-foreground uppercase font-black">NAI Intelligence 2026</div>
+                                <div className="p-6 bg-white border-t flex justify-between items-center shrink-0">
+                                  <div className="text-[10px] font-black uppercase text-slate-400">NAI Forensic Intelligence</div>
                                   <div className="flex gap-2">
-                                    <Button variant="ghost" onClick={() => setAiDraft(null)}>Descartar</Button>
-                                    <Button className="bg-primary gap-2">
+                                    <Button variant="ghost" className="font-bold uppercase text-[10px]" onClick={() => setAiDraft(null)}>Descartar</Button>
+                                    <Button className="bg-primary px-8 h-11 rounded-xl gap-2 font-black uppercase text-[10px]">
                                       <Copy className="size-4" /> Copiar Texto
                                     </Button>
                                   </div>
@@ -230,26 +221,16 @@ export default function LimboSentinel() {
                   {expertises?.filter(e => checkNTEP(e.cid)).length || 0}
                 </p>
               </div>
-              <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
-                <p className="text-[10px] font-black text-emerald-400 uppercase mb-1">Ação Preventiva</p>
-                <p className="text-xs leading-tight opacity-80">
-                  A revisão de AET reduz em até 40% o risco de nexo causal em doenças de coluna e ombro.
-                </p>
-              </div>
             </CardContent>
           </Card>
-          
           <Card className="card-shadow border-none bg-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Eficiência NAI</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-end justify-between">
-                <h2 className="text-2xl font-black text-primary">91%</h2>
-                <Badge className="bg-emerald-100 text-emerald-700 text-[8px] border-none font-black uppercase">Sucesso</Badge>
-              </div>
+              <h2 className="text-2xl font-black text-primary">91%</h2>
               <Progress value={91} className="h-1.5 mt-2" />
-              <p className="text-[10px] text-muted-foreground mt-2">Taxa de êxito em contestações de nexo epidemiológico.</p>
+              <p className="text-[10px] text-muted-foreground mt-2">Taxa de êxito em contestações.</p>
             </CardContent>
           </Card>
         </div>

@@ -26,11 +26,31 @@ export function AppContent({ children }: { children: React.ReactNode }) {
     }
   }, [user, isUserLoading, isLoginPage, router, mounted]);
 
+  // Splash Screen Global - Centralizado com Balão "N"
   if (!mounted || (isUserLoading && !isLoginPage)) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-[#003366]">
-        <Loader2 className="h-12 w-12 animate-spin text-white opacity-20" />
-        <p className="mt-4 text-xs font-bold text-white/40 uppercase tracking-widest">NextCon Cloud Engine</p>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-primary z-[9999] overflow-hidden">
+        {/* Efeito de brilho ao fundo */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)]" />
+        </div>
+
+        {/* O Balão N (Estilo NextCon) */}
+        <div className="relative animate-in zoom-in duration-500">
+          <div className="size-24 rounded-[2.5rem] bg-[#090e24] flex items-center justify-center text-white font-black text-5xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-bounce border-2 border-white/10">
+            N
+          </div>
+          <div className="absolute -inset-4 bg-accent/20 blur-2xl rounded-full -z-10 animate-pulse" />
+        </div>
+
+        {/* Texto de Status */}
+        <div className="mt-12 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-5 w-5 animate-spin text-accent" />
+            <span className="text-xs font-black text-white/60 uppercase tracking-[0.4em]">NextCon Intelligence</span>
+          </div>
+          <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Executando Protocolos 2026...</p>
+        </div>
       </div>
     );
   }
