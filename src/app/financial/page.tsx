@@ -43,7 +43,11 @@ import {
   ShieldAlert,
   HelpCircle,
   Play,
-  Briefcase
+  Briefcase,
+  Users,
+  FileBarChart,
+  UserCheck,
+  PieChart
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -130,7 +134,6 @@ export default function FinancialModule() {
   }, [db])
   const { data: remoteDre2025 } = useDoc(dre2025Ref)
 
-  // Busca contratos reais importados
   const contractsQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collectionGroup(db, "contracts"), orderBy("value", "desc"))
@@ -181,12 +184,57 @@ export default function FinancialModule() {
     { title: "Consolidação Multi-app", amount: "Multi CNPJs", trend: "Sincronizado", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
   ]
 
+  const reportCategories = [
+    { 
+      title: "Contas a Pagar & Receber", 
+      icon: Receipt, 
+      items: [
+        "Contas a Pagar em Aberto", 
+        "Pagamentos Realizados", 
+        "Contas a Receber em Aberto", 
+        "Recebimentos Realizados",
+        "Atrasadas (Geral)"
+      ] 
+    },
+    { 
+      title: "Fluxo de Caixa & Performance", 
+      icon: TrendingUp, 
+      items: [
+        "Fluxo por Categoria", 
+        "Fluxo por Cliente/Fornecedor", 
+        "Resumo de Caixa", 
+        "DRE (Competência)",
+        "Resumo Executivo de Finanças"
+      ] 
+    },
+    { 
+      title: "Cadastros & Atividades", 
+      icon: Users, 
+      items: [
+        "Clientes e Fornecedores", 
+        "Atividades dos Usuários (Logs)", 
+        "Comissão de Vendas", 
+        "Movimentação (Últimos 12 Meses)"
+      ] 
+    },
+    { 
+      title: "Filtros Avançados", 
+      icon: Filter, 
+      items: [
+        "Por Período Customizado", 
+        "Por Departamento", 
+        "Por Vendedor", 
+        "Por Projeto"
+      ] 
+    }
+  ]
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Gestão Financeira Corporativa</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">ERP Integrado: Fluxo, DRE, Parcelamentos e Integração Bancária.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">ERP Financeiro Nextcon</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">Motor de Inteligência Fiscal, Bancária e Governança 2026.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" asChild>
@@ -221,36 +269,44 @@ export default function FinancialModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-muted/50 p-1 rounded-2xl h-16">
-          <TabsTrigger value="contracts" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Briefcase className="size-4" /> Contratos
-          </TabsTrigger>
-          <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <TrendingUp className="size-4" /> Fluxo/Caixa
-          </TabsTrigger>
-          <TabsTrigger value="dre" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <BarChart3 className="size-4" /> DRE (Comp.)
-          </TabsTrigger>
-          <TabsTrigger value="receivables" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Receipt className="size-4" /> Receber
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Landmark className="size-4" /> Bancário
-          </TabsTrigger>
-          <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <Scale className="size-4" /> Fiscal
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-2 scrollbar-thin">
+          <TabsList className="flex w-fit bg-muted/50 p-1 rounded-2xl h-16">
+            <TabsTrigger value="contracts" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <Briefcase className="size-4" /> Contratos
+            </TabsTrigger>
+            <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <TrendingUp className="size-4" /> Fluxo/Caixa
+            </TabsTrigger>
+            <TabsTrigger value="dre" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <BarChart3 className="size-4" /> DRE
+            </TabsTrigger>
+            <TabsTrigger value="receivables" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <Receipt className="size-4" /> Receber
+            </TabsTrigger>
+            <TabsTrigger value="payables" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <ArrowDownLeft className="size-4" /> Pagar
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <FileBarChart className="size-4" /> Relatórios
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <Landmark className="size-4" /> Bancário
+            </TabsTrigger>
+            <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <Scale className="size-4" /> Fiscal
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="contracts" className="mt-8 space-y-6">
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black text-primary uppercase">Contratos Conquistados (Base Real)</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Gestão de soluções e faturamento recorrente.</CardDescription>
+                <CardTitle className="text-lg font-black text-primary uppercase">Contratos & OS</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Gestão de ciclo de vida e faturamento.</CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase">Relatório MEC</Button>
+                <Button variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase">Faturar Selecionados</Button>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -258,7 +314,7 @@ export default function FinancialModule() {
                 <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
                   <TableRow>
                     <TableHead className="pl-8">Cliente / Solução</TableHead>
-                    <TableHead>Valor Contrato</TableHead>
+                    <TableHead>Valor</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right pr-8">Ação</TableHead>
                   </TableRow>
@@ -279,7 +335,17 @@ export default function FinancialModule() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-8">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><ArrowRight className="size-4" /></Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem className="text-xs font-bold gap-2"><CheckCircle2 className="size-3 text-emerald-600" /> Ativar e Faturar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-xs font-bold gap-2"><Copy className="size-3" /> Duplicar OS</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-xs font-bold gap-2 text-destructive"><XCircle className="size-3" /> Suspender</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -289,10 +355,114 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="payables" className="mt-8 space-y-6">
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-red-50/30 border-b py-6 px-8">
+              <CardTitle className="text-lg font-black text-red-900 uppercase">Contas a Pagar</CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-red-700/60">Controle de saídas e fornecedores.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                  <TableRow>
+                    <TableHead className="pl-8">Fornecedor / Categoria</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right pr-8">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { prov: "Clinica SQV", cat: "Rede Credenciada", date: "15/02/2026", val: "R$ 1.200", status: "Aguardando Aprovação" },
+                    { prov: "Santander", cat: "Tarifas", date: "10/02/2026", val: "R$ 45,00", status: "Pago" },
+                  ].map((item, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="pl-8">
+                        <p className="font-black text-xs text-primary">{item.prov}</p>
+                        <p className="text-[9px] text-slate-400 uppercase font-bold">{item.cat}</p>
+                      </TableCell>
+                      <TableCell className="text-xs font-medium">{item.date}</TableCell>
+                      <TableCell className="font-black text-xs text-red-600">-{item.val}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[8px] font-black uppercase">{item.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button size="sm" className="h-8 px-4 text-[9px] font-black uppercase">Aprovar</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {reportCategories.map((cat) => (
+              <Card key={cat.title} className="card-shadow border-none bg-white rounded-3xl overflow-hidden">
+                <CardHeader className="bg-primary/5 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary text-white rounded-xl">
+                      <cat.icon className="size-4" />
+                    </div>
+                    <CardTitle className="text-xs font-black uppercase tracking-tight text-primary leading-tight">
+                      {cat.title}
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 space-y-1">
+                  {cat.items.map((item) => (
+                    <button 
+                      key={item}
+                      className="w-full text-left p-3 hover:bg-slate-50 rounded-xl transition-all group flex items-center justify-between"
+                    >
+                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-primary uppercase">{item}</span>
+                      <Download className="size-3 text-slate-300 group-hover:text-primary opacity-0 group-hover:opacity-100 transition-all" />
+                    </button>
+                  ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-10 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-10"><PieChart className="size-48 text-accent" /></div>
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
+              <div className="space-y-4">
+                <p className="text-[10px] font-black uppercase text-accent tracking-widest">Resumo Executivo NAI</p>
+                <h3 className="text-2xl font-black font-headline">Visão Macro de Performance</h3>
+                <p className="text-sm text-white/60 leading-relaxed italic">"Baseado na movimentação dos últimos 12 meses, sua margem líquida cresceu 8.4% com a otimização tributária 2026."</p>
+              </div>
+              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <ReportKpi label="EBITDA" value="+14.2%" trend="up" />
+                <ReportKpi label="Inadimplência" value="2.1%" trend="down" />
+                <ReportKpi label="ROI Segurança" value="94.8%" trend="up" />
+                <ReportKpi label="Vendas SST" value="R$ 1.4M" trend="up" />
+              </div>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="cashflow" className="mt-8 space-y-6">
           <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-primary/5 pb-8 h-20">
-              <CardTitle className="text-xl font-headline font-black text-primary uppercase">Visão por Competência e Caixa</CardTitle>
+            <CardHeader className="bg-primary/5 pb-8 border-b">
+              <div className="flex justify-between items-end">
+                <div>
+                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Fluxo de Caixa Preditivo</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest">Saldo Previsto por Conta e Período.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Select defaultValue="santander">
+                    <SelectTrigger className="w-40 h-10 text-[10px] font-black uppercase"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="santander">Santander</SelectItem>
+                      <SelectItem value="itau">Itaú</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="p-8 h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -347,55 +517,8 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="receivables" className="mt-8 space-y-6">
-          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b py-6 px-8">
-              <CardTitle className="text-lg font-black text-primary uppercase">Contas a Receber (Parcelados)</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                  <TableRow>
-                    <TableHead className="pl-8">Cliente / Documento</TableHead>
-                    <TableHead>Vencimento</TableHead>
-                    <TableHead>Parcela</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    { client: "NATIVA EMPREENDIMENTOS", date: "15/02/2026", installment: "2 de 3", val: "R$ 4.500", status: "Pendente" },
-                    { client: "TIMENOW GESTÃO", date: "18/02/2026", installment: "11 de 12", val: "R$ 12.200", status: "Atrasado" },
-                  ].map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="pl-8">
-                        <p className="font-black text-xs text-primary">{item.client}</p>
-                        <p className="text-[9px] text-slate-400 uppercase font-bold">FAT-8439</p>
-                      </TableCell>
-                      <TableCell className="text-xs font-medium text-slate-500">{item.date}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[9px] font-black uppercase bg-slate-50">{item.installment}</Badge>
-                      </TableCell>
-                      <TableCell className="font-black text-xs text-primary">{item.val}</TableCell>
-                      <TableCell>
-                        <Badge className={cn("text-[8px] font-black uppercase border-none", 
-                          item.status === 'Recebido' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                        )}>
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
         <TabsContent value="integrations" className="mt-8 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Santander */}
             <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-[#EC1C24] text-white p-10">
                 <div className="flex items-center gap-4 mb-4">
@@ -422,7 +545,6 @@ export default function FinancialModule() {
               </CardContent>
             </Card>
 
-            {/* Itaú */}
             <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-[#FF7000] text-white p-10">
                 <div className="flex items-center gap-4 mb-4">
@@ -445,60 +567,6 @@ export default function FinancialModule() {
                   className="w-full h-16 bg-[#FF7000] hover:bg-[#FF7000]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
                 >
                   <Zap className="size-5" /> Salvar Itaú
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Bradesco */}
-            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-[#CC092F] text-white p-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <Landmark className="size-10" />
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Bradesco</h3>
-                </div>
-              </CardHeader>
-              <CardContent className="p-10 space-y-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Carteira de Cobrança</label>
-                  <Input 
-                    placeholder="Ex: 09" 
-                    value={convenioCodes.bradesco}
-                    onChange={(e) => setConvenioCodes({...convenioCodes, bradesco: e.target.value})}
-                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
-                  />
-                </div>
-                <Button 
-                  onClick={() => handleSaveConvenio('Bradesco')}
-                  className="w-full h-16 bg-[#CC092F] hover:bg-[#CC092F]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-                >
-                  <Zap className="size-5" /> Salvar Bradesco
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Banco do Brasil */}
-            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-[#FCF000] text-[#0038A8] p-10 border-b border-blue-100">
-                <div className="flex items-center gap-4 mb-4">
-                  <Landmark className="size-10 text-[#0038A8]" />
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Banco do Brasil</h3>
-                </div>
-              </CardHeader>
-              <CardContent className="p-10 space-y-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Número do Convênio</label>
-                  <Input 
-                    placeholder="Ex: 3456789" 
-                    value={convenioCodes.bb}
-                    onChange={(e) => setConvenioCodes({...convenioCodes, bb: e.target.value})}
-                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
-                  />
-                </div>
-                <Button 
-                  onClick={() => handleSaveConvenio('BB')}
-                  className="w-full h-16 bg-[#0038A8] hover:bg-[#0038A8]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-                >
-                  <Zap className="size-5" /> Salvar Banco do Brasil
                 </Button>
               </CardContent>
             </Card>
@@ -548,24 +616,24 @@ export default function FinancialModule() {
                   <p className="text-sm text-primary/80 leading-relaxed italic mb-4">
                     "{fiscalAiResult.analysis}"
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-black uppercase text-accent tracking-widest">Dicas de Eficiência:</p>
-                      <ul className="space-y-1">
-                        {fiscalAiResult.taxEfficiencyTips.map((tip: string, i: number) => (
-                          <li key={i} className="text-xs font-medium text-slate-600 flex items-start gap-2">
-                            <CheckCircle2 className="size-3 text-accent mt-0.5" /> {tip}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+function ReportKpi({ label, value, trend }: any) {
+  return (
+    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
+      <p className="text-[9px] font-black text-white/40 uppercase mb-1">{label}</p>
+      <div className="flex items-center justify-center gap-2">
+        <span className="text-xl font-black">{value}</span>
+        {trend === 'up' ? <TrendingUp className="size-3 text-accent" /> : <ArrowDownLeft className="size-3 text-red-400" />}
+      </div>
     </div>
   )
 }
