@@ -4,7 +4,6 @@ import * as React from "react"
 import { 
   DollarSign, 
   Receipt, 
-  Tags, 
   ArrowUpRight, 
   ArrowDownLeft, 
   Database, 
@@ -17,7 +16,14 @@ import {
   CreditCard,
   History,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  Landmark,
+  ShoppingCart,
+  Package,
+  Zap,
+  BarChart3,
+  Wallet
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,44 +39,60 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area
+} from 'recharts'
 import { cn } from "@/lib/utils"
 
+const cashFlowData = [
+  { day: '01/02', entradas: 45000, saidas: 32000, saldo: 13000 },
+  { day: '05/02', entradas: 52000, saidas: 28000, saldo: 37000 },
+  { day: '10/02', entradas: 38000, saidas: 45000, saldo: 30000 },
+  { day: '15/02', entradas: 65000, saidas: 31000, saldo: 64000 },
+  { day: '20/02', entradas: 42000, saidas: 22000, saldo: 84000 },
+  { day: '25/02', entradas: 58000, saidas: 35000, saldo: 107000 },
+]
+
 export default function FinancialModule() {
-  const [activeTab, setActiveTab] = React.useState("billing")
+  const [activeTab, setActiveTab] = React.useState("cashflow")
 
   const summary = [
-    { title: "A Receber (Mês)", amount: "R$ 142.500,00", trend: "+12%", icon: ArrowUpRight, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { title: "A Pagar (Rede)", amount: "R$ 58.200,00", trend: "-5%", icon: ArrowDownLeft, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Inadimplência", amount: "2.4%", trend: "Estável", icon: AlertCircle, color: "text-red-600", bg: "bg-red-50" },
-    { title: "Ticket Médio/Vida", amount: "R$ 18,40", trend: "+3%", icon: DollarSign, color: "text-amber-600", bg: "bg-amber-50" },
+    { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "A Receber (Mês)", amount: "R$ 142.500,00", trend: "Estável", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
+    { title: "A Pagar (Rede)", amount: "R$ 58.200,00", trend: "-5%", icon: ArrowDownLeft, color: "text-red-600", bg: "bg-red-50" },
+    { title: "Compras Pendentes", amount: "R$ 12.400,00", trend: "Alerta", icon: ShoppingCart, color: "text-amber-600", bg: "bg-amber-50" },
   ]
 
-  const erpConnectors = [
-    { name: "Conta Azul", status: "Online", color: "bg-emerald-500" },
-    { name: "Omie", status: "Online", color: "bg-emerald-500" },
-    { name: "Senior", status: "Pendente", color: "bg-amber-500" },
-    { name: "Questor", status: "Online", color: "bg-emerald-500" },
-  ]
-
-  const recentInvoices = [
-    { id: "INV-2025-001", client: "Transportes Rapidez", date: "10/02/2025", amount: "R$ 4.250,00", status: "Pago" },
-    { id: "INV-2025-002", client: "Metalúrgica Norte", date: "12/02/2025", amount: "R$ 8.900,00", status: "Pendente" },
-    { id: "INV-2025-003", client: "Logística Express", date: "15/02/2025", amount: "R$ 2.100,00", status: "Atrasado" },
+  const bankIntegrations = [
+    { name: "Banco Itaú", status: "Conectado", type: "Automatizado", icon: Landmark },
+    { name: "Bradesco", status: "Conectado", type: "Open Banking", icon: Landmark },
+    { name: "Santander", status: "Pendente", type: "API Direta", icon: Landmark },
+    { name: "Banco Inter", status: "Conectado", type: "Automatizado", icon: Landmark },
   ]
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Módulo Financeiro (Billing)</h1>
-          <p className="text-muted-foreground">Faturamento, precificação e conectores ERP em tempo real.</p>
+          <h1 className="text-3xl font-headline font-bold text-primary tracking-tight uppercase">Gestão Financeira & Billing</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Controle tático de fluxo, suprimentos e automação bancária.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6">
-            <Download className="size-4" /> Exportar Tabelas
+          <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]">
+            <Download className="size-4" /> Exportar DRE
           </Button>
-          <Button className="bg-[#f59e0b] text-[#090e24] hover:bg-[#f59e0b]/90 gap-2 h-11 px-6 shadow-lg font-bold">
-            <Plus className="size-4" /> Nova Fatura
+          <Button className="bg-accent text-primary hover:bg-accent/90 gap-2 h-11 px-6 shadow-lg font-black uppercase text-[10px] tracking-widest rounded-xl">
+            <Plus className="size-4" /> Nova Operação
           </Button>
         </div>
       </div>
@@ -79,16 +101,16 @@ export default function FinancialModule() {
         {summary.map((item) => {
           const Icon = item.icon;
           return (
-            <Card key={item.title} className="border-none shadow-sm bg-white">
+            <Card key={item.title} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-2 rounded-lg ${item.bg}`}>
+                  <div className={`p-2.5 rounded-xl ${item.bg}`}>
                     <Icon className={`h-5 w-5 ${item.color}`} />
                   </div>
-                  <Badge variant="outline" className="text-[8px] font-black">{item.trend}</Badge>
+                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tighter">{item.trend}</Badge>
                 </div>
-                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{item.title}</p>
-                <h2 className="text-xl font-bold text-primary">{item.amount}</h2>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">{item.title}</p>
+                <h2 className="text-2xl font-black text-primary font-headline">{item.amount}</h2>
               </CardContent>
             </Card>
           );
@@ -96,188 +118,216 @@ export default function FinancialModule() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="billing" className="rounded-lg gap-2 text-xs font-bold">
-            <Receipt className="size-4" /> Faturamento
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
+          <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <TrendingUp className="size-4" /> Fluxo de Caixa
           </TabsTrigger>
-          <TabsTrigger value="pricing" className="rounded-lg gap-2 text-xs font-bold">
-            <Tags className="size-4" /> Precificação
+          <TabsTrigger value="billing" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <Receipt className="size-4" /> Pagar & Receber
           </TabsTrigger>
-          <TabsTrigger value="cadastros" className="rounded-lg gap-2 text-xs font-bold">
-            <Database className="size-4" /> Cadastros
+          <TabsTrigger value="orders" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <ShoppingCart className="size-4" /> Ordens & Compras
           </TabsTrigger>
-          <TabsTrigger value="integrations" className="rounded-lg gap-2 text-xs font-bold">
-            <Plug className="size-4" /> Integrações
+          <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <Zap className="size-4" /> Bancos & APIs
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="billing" className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-none shadow-lg bg-white overflow-hidden">
-              <CardHeader className="bg-gray-50 border-b flex flex-row items-center justify-between py-4">
+        <TabsContent value="cashflow" className="mt-8 space-y-6">
+          <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-primary/5 pb-8">
+              <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-bold text-primary">Faturas Recentes</CardTitle>
-                  <CardDescription>Histórico de cobranças e faturamentos emitidos.</CardDescription>
+                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Projeção de Fluxo NAI</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest opacity-60">Análise de Entradas vs Saídas acumuladas.</CardDescription>
                 </div>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                  <Input placeholder="Buscar fatura..." className="pl-9 bg-white text-xs h-10" />
+                <div className="flex gap-2">
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none px-3 font-black">ENTRADAS: R$ 357k</Badge>
+                  <Badge className="bg-red-100 text-red-700 border-none px-3 font-black">SAÍDAS: R$ 193k</Badge>
                 </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 h-96">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={cashFlowData}>
+                  <defs>
+                    <linearGradient id="colorEntradas" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} />
+                  <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                  <Area type="monotone" dataKey="entradas" stroke="#10B981" fillOpacity={1} fill="url(#colorEntradas)" strokeWidth={3} />
+                  <Area type="monotone" dataKey="saidas" stroke="#EF4444" fillOpacity={0} strokeWidth={3} strokeDasharray="5 5" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="billing" className="mt-8 space-y-6">
+          <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b flex flex-row items-center justify-between py-6 px-8">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase">Contas a Liquidar</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Faturas de clientes e pagamentos de rede credenciada.</CardDescription>
+              </div>
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-3 size-4 text-slate-400" />
+                <Input placeholder="Buscar por cliente ou documento..." className="pl-10 h-11 bg-white border-none rounded-xl shadow-inner text-xs" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black tracking-widest">
+                  <TableRow>
+                    <TableHead className="pl-8">Entidade</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Status Banco</TableHead>
+                    <TableHead className="text-right pr-8">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[
+                    { client: "NATIVA EMPREENDIMENTOS", date: "15/02", val: "R$ 18.450", status: "Confirmado", color: "text-emerald-600" },
+                    { client: "CLÍNICA SQV MATRIZ", date: "18/02", val: "R$ 4.200", status: "Agendado", color: "text-blue-600" },
+                    { client: "TIMENOW GESTÃO", date: "12/02", val: "R$ 32.100", status: "Atrasado", color: "text-red-600" },
+                  ].map((inv, i) => (
+                    <TableRow key={i} className="hover:bg-slate-50 transition-colors">
+                      <TableCell className="pl-8">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-lg bg-primary/5 flex items-center justify-center font-black text-[10px] text-primary">
+                            {inv.client.substring(0, 2)}
+                          </div>
+                          <span className="font-bold text-xs text-primary">{inv.client}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs font-medium text-slate-500">{inv.date}</TableCell>
+                      <TableCell className="font-black text-xs text-primary">{inv.val}</TableCell>
+                      <TableCell>
+                        <Badge className={cn("text-[8px] font-black uppercase border-none", 
+                          inv.status === 'Confirmado' ? 'bg-emerald-100 text-emerald-700' :
+                          inv.status === 'Agendado' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                        )}>
+                          {inv.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary">
+                          <RefreshCw className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="orders" className="mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2 border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-amber-50/50 border-b">
+                <CardTitle className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
+                  <Package className="size-6 text-amber-600" /> Ordens de Compra & Estoque
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader className="bg-gray-50/50 text-[10px] uppercase font-black tracking-widest">
+                  <TableHeader className="bg-slate-50 text-[9px] font-black uppercase">
                     <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Vencimento</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="pl-8">Item / Mercadoria</TableHead>
+                      <TableHead>Qtd Solicitada</TableHead>
+                      <TableHead>Fornecedor</TableHead>
+                      <TableHead className="text-right pr-8">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentInvoices.map((inv) => (
-                      <TableRow key={inv.id} className="hover:bg-gray-50">
-                        <TableCell className="font-bold text-xs">{inv.client}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{inv.date}</TableCell>
-                        <TableCell className="font-black text-xs">{inv.amount}</TableCell>
-                        <TableCell>
-                          <Badge className={cn(
-                            "text-[8px] font-black uppercase border-none",
-                            inv.status === 'Pago' ? 'bg-emerald-100 text-emerald-700' :
-                            inv.status === 'Pendente' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                          )}>
-                            {inv.status}
-                          </Badge>
+                    {[
+                      { item: "EPI: Capacete MSA Classe B", qty: "50 un", provider: "SST Suprimentos", status: "Em Trânsito" },
+                      { item: "Dosímetro de Ruído Digital", qty: "02 un", provider: "InstruLab", status: "Aguardando Apr." },
+                      { item: "Kit Primeiros Socorros NR-07", qty: "10 un", provider: "MedHealth", status: "Entregue" },
+                    ].map((order, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="pl-8 font-bold text-xs">{order.item}</TableCell>
+                        <TableCell className="text-xs font-black text-primary">{order.qty}</TableCell>
+                        <TableCell className="text-[10px] uppercase font-bold text-slate-400">{order.provider}</TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase border-slate-200">{order.status}</Badge>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-                <div className="p-4 bg-gray-50 border-t">
-                  <Button className="w-full bg-[#090e24] text-white font-black uppercase text-[10px] tracking-widest h-10">
-                    Gerar Faturamento em Lote
-                  </Button>
-                </div>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-lg bg-[#090e24] text-white">
-              <CardHeader>
-                <CardTitle className="text-sm font-black uppercase text-[#f59e0b] tracking-widest">Auditoria de Contas</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] font-bold uppercase">
-                    <span>Exames Realizados</span>
-                    <span>1,240</span>
-                  </div>
-                  <Progress value={100} className="h-1.5 bg-white/10" />
+            <Card className="bg-[#090e24] text-white border-none p-8 rounded-[2rem] shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-5"><ShoppingCart className="size-48 text-accent" /></div>
+              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-6 flex items-center gap-2">
+                <Zap className="size-4" /> Gestão de Ativos
+              </CardTitle>
+              <div className="space-y-6 relative z-10">
+                <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                  <p className="text-[9px] font-black text-white/40 uppercase mb-2">Valor Total em Trânsito</p>
+                  <p className="text-3xl font-black text-white font-headline">R$ 12.400</p>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-[10px] font-bold uppercase">
-                    <span>Exames Auditados</span>
-                    <span>982</span>
-                  </div>
-                  <Progress value={79} className="h-1.5 bg-white/10" />
-                </div>
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-2">
-                  <p className="text-[10px] text-[#f59e0b] font-black uppercase">Pronto para Faturar</p>
-                  <p className="text-xs leading-relaxed opacity-80 italic">
-                    Existem 258 eventos de saúde do mês anterior que ainda não foram convertidos em faturas.
-                  </p>
-                  <Button variant="outline" className="w-full text-[10px] font-black h-10 mt-2 text-white border-white/20 hover:bg-white/10 gap-2">
-                    <RefreshCw className="size-3" /> Conciliar Agora
-                  </Button>
-                </div>
-              </CardContent>
+                <Button className="w-full h-14 bg-white text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:bg-slate-100 transition-all">
+                  Nova Ordem de Compra
+                </Button>
+              </div>
             </Card>
           </div>
         </TabsContent>
 
-        <TabsContent value="integrations" className="mt-6">
+        <TabsContent value="integrations" className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {erpConnectors.map((erp) => (
-              <Card key={erp.name} className="border-none shadow-lg hover:ring-2 ring-primary/10 transition-all bg-white">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="size-12 bg-primary/5 rounded-2xl flex items-center justify-center font-black text-primary border border-primary/10">
-                      {erp.name.substring(0, 2).toUpperCase()}
+            {bankIntegrations.map((bank) => (
+              <Card key={bank.name} className="border-none shadow-xl hover:ring-2 ring-accent/20 transition-all bg-white rounded-[2rem] overflow-hidden group">
+                <CardContent className="pt-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="size-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <bank.icon className="size-7 text-accent" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className={cn("size-2.5 rounded-full shadow-sm", erp.color, erp.status === 'Online' && 'animate-pulse')}></div>
-                      <span className="text-[10px] font-black uppercase tracking-tighter opacity-60">{erp.status}</span>
+                    <div className="text-right">
+                      <div className="flex items-center justify-end gap-2 mb-1">
+                        <div className={cn("size-2 rounded-full", bank.status === 'Conectado' ? 'bg-accent animate-pulse' : 'bg-slate-300')}></div>
+                        <span className="text-[9px] font-black uppercase tracking-tighter opacity-60">{bank.status}</span>
+                      </div>
+                      <Badge className="bg-primary/5 text-primary text-[8px] border-none font-black uppercase">{bank.type}</Badge>
                     </div>
                   </div>
-                  <h3 className="font-black text-primary uppercase text-sm">{erp.name}</h3>
-                  <p className="text-[10px] text-muted-foreground mt-1 mb-6">Conector ERP oficial NEXTCON.</p>
-                  <Button variant="outline" className="w-full h-10 text-[10px] font-black uppercase tracking-widest border-primary/10 hover:bg-primary/5">
-                    Configurar
+                  <h3 className="font-black text-primary uppercase text-sm mb-1">{bank.name}</h3>
+                  <p className="text-[10px] text-slate-400 font-medium leading-tight mb-6">Integração bancária via Open Finance NAI.</p>
+                  <Button variant="outline" className="w-full h-11 text-[9px] font-black uppercase tracking-widest border-primary/10 hover:bg-primary hover:text-white transition-all rounded-xl">
+                    Sincronizar Agora
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="pricing" className="mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-none shadow-lg bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-primary">
-                  <Tags className="size-5 text-[#f59e0b]" /> Tabelas de Preço (Venda)
-                </CardTitle>
-                <CardDescription>Defina quanto seus clientes pagam por vida ou serviço.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 border rounded-2xl hover:bg-gray-50 transition-all cursor-pointer flex justify-between items-center group">
-                  <div>
-                    <p className="font-bold text-sm text-[#090e24]">Tabela Padrão Nextcon 2025</p>
-                    <p className="text-[10px] text-muted-foreground uppercase font-black">Global • 42 Itens</p>
-                  </div>
-                  <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-[#f59e0b]" />
-                </div>
-                <div className="p-4 border rounded-2xl border-[#f59e0b] bg-[#f59e0b]/5 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-sm text-[#090e24]">Acordo VIP: Transportes Rapidez</p>
-                    <p className="text-[10px] text-muted-foreground uppercase font-black">Especial • 12 Itens</p>
-                  </div>
-                  <Badge className="bg-[#f59e0b] text-[#090e24] font-black text-[8px]">Personalizada</Badge>
-                </div>
-                <Button className="w-full bg-[#090e24] font-black h-12 gap-2 uppercase text-[10px] tracking-widest">
-                  <Percent className="size-4" /> Reajuste em Massa (IPCA)
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 font-bold text-primary">
-                  <CreditCard className="size-5 text-primary" /> Custo de Exames (Compra)
-                </CardTitle>
-                <CardDescription>Monitoramento de custos da rede credenciada.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground">Exame Clínico (ASO)</span>
-                    <span className="font-black text-sm">R$ 25,00</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground">Audiometria Tonal</span>
-                    <span className="font-black text-sm">R$ 18,00</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b">
-                    <span className="text-xs font-bold text-muted-foreground">PGR (Anual / Unidade)</span>
-                    <span className="font-black text-sm">R$ 450,00</span>
-                  </div>
-                </div>
-                <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                  <p className="text-[10px] text-emerald-700 font-black uppercase tracking-widest">Margem Operacional</p>
-                  <p className="text-lg font-black text-emerald-600">82% <span className="text-[10px] font-medium">(Média do Mês)</span></p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          
+          <Card className="mt-8 border-none bg-blue-50/50 p-8 rounded-[2.5rem] border border-blue-100">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="size-24 rounded-3xl bg-primary flex items-center justify-center shadow-2xl shrink-0">
+                <CheckCircle2 className="size-12 text-accent" />
+              </div>
+              <div className="flex-1 space-y-2 text-center md:text-left">
+                <h3 className="text-xl font-black text-primary uppercase font-headline">Automatização de Pagamentos Ativa</h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  A plataforma Nextcon agora realiza a liquidação automática de notas fiscais de prestadores assim que o ASO é validado pela NAI. Sem burocracia, sem erros de digitação.
+                </p>
+              </div>
+              <Button className="h-14 px-10 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl">
+                Configurar Regras de Automação
+              </Button>
+            </div>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
