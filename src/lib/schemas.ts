@@ -12,17 +12,17 @@ export const UserProfileSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
   role: RoleEnum,
   email: z.string().email("E-mail inválido"),
-  companyId: z.string().optional(), // Opcional porque o SUPER_ADMIN pode não ter uma
+  companyId: z.string().optional(),
 });
 
 export const CompanySchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Nome da empresa é obrigatório"),
-  cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve conter 14 números sem pontuação"), // Validando CNPJ limpo
+  cnpj: z.string().regex(/^\d{14}$/, "CNPJ deve conter 14 números sem pontuação"),
   segment: z.string().optional(),
   logoUrl: z.string().url().optional(),
   address: z.string().optional(),
-  risk_degree: z.number().min(1).max(4).optional(), // Grau de risco geralmente é de 1 a 4
+  risk_degree: z.number().min(1).max(4).optional(),
   cnae: z.string().optional(),
 });
 
@@ -50,13 +50,13 @@ export const TrainingSchema = z.object({
   id: z.string(),
   title: z.string(),
   companyId: z.string(),
-  nrs: z.array(z.string()), // Ex: ["NR-10", "NR-35"]
-  startDate: z.string(), // Ou z.date() dependendo de como você salva
+  nrs: z.array(z.string()),
+  startDate: z.string(),
   endDate: z.string(),
   totalHours: z.number().positive(),
   modality: z.string(),
   status: TrainingStatusEnum,
-  students: z.array(z.string()), // Array de IDs de funcionários
+  students: z.array(z.string()),
 });
 
 export const TaskSchema = z.object({
@@ -65,7 +65,7 @@ export const TaskSchema = z.object({
   status: z.string(),
   type: z.string(),
   priority: z.string(),
-  ai_risk_score: z.number().min(0).max(100).optional(), // IA Score de 0 a 100
+  ai_risk_score: z.number().min(0).max(100).optional(),
 });
 
 export const PlatformFeedbackSchema = z.object({
@@ -77,7 +77,6 @@ export const PlatformFeedbackSchema = z.object({
   createdAt: z.string(), 
 });
 
-// 3. Tipagens TypeScript Geradas Automaticamente
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type Company = z.infer<typeof CompanySchema>;
 export type EmailRoutine = z.infer<typeof EmailRoutineSchema>;

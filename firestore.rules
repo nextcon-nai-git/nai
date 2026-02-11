@@ -3,25 +3,21 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ----------------------------------------------------------------------
-    // FUNÇÕES AUXILIARES (Deixam o código limpo e reaproveitável)
+    // FUNÇÕES AUXILIARES
     // ----------------------------------------------------------------------
     
-    // Verifica se o usuário está logado
     function isAuth() {
       return request.auth != null;
     }
 
-    // Busca os dados do usuário logado na coleção 'users'
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Verifica se o usuário é SUPER_ADMIN
     function isSuperAdmin() {
       return isAuth() && getUserData().role == 'SUPER_ADMIN';
     }
 
-    // Verifica se o usuário pertence à empresa que está tentando acessar
     function isUserInCompany(companyId) {
       return isAuth() && getUserData().companyId == companyId;
     }
@@ -30,43 +26,28 @@ service cloud.firestore {
     // REGRAS DAS COLEÇÕES
     // ----------------------------------------------------------------------
 
-    // Coleção: USUÁRIOS (/users/{userId})
     match /users/{userId} {
-      // O próprio usuário pode ler seus dados. SUPER_ADMIN pode ler/escrever tudo.
       allow read: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
       allow write: if isSuperAdmin();
     }
 
-    // Coleção: EMPRESAS (/companies/{companyId})
     match /companies/{companyId} {
-      // Qualquer um da empresa pode LER os dados da própria empresa
       allow read: if isUserInCompany(companyId) || isSuperAdmin();
-      
-      // Apenas o SUPER_ADMIN ou o CLIENT_ADMIN da própria empresa podem EDITAR
       allow update: if isSuperAdmin() || (isUserInCompany(companyId) && getUserData().role == 'CLIENT_ADMIN');
       allow create, delete: if isSuperAdmin();
 
-      // Subcoleções da Empresa (employees, tasks, trainings, reports, settings)
-      // Usamos o curinga {document=**} para aplicar a TODAS as pastas dentro da empresa
       match /{document=**} {
-        // Todo mundo da empresa tem acesso às subcoleções dela. SUPER_ADMIN acessa tudo.
         allow read, write: if isUserInCompany(companyId) || isSuperAdmin();
       }
     }
 
-    // Coleção: CATÁLOGOS (/catalogs/{catalogId}) - Tabelas do eSocial, NRs, etc.
     match /catalogs/{catalogId} {
-      // Qualquer usuário logado pode consultar os catálogos (leitura pública para usuários)
       allow read: if isAuth();
-      // Apenas SUPER_ADMIN pode alterar dados de catálogo
       allow write: if isSuperAdmin();
     }
 
-    // Coleção: FEEDBACKS (/feedback/{feedbackId})
     match /feedback/{feedbackId} {
-      // Qualquer usuário logado pode criar um feedback
       allow create: if isAuth();
-      // Apenas SUPER_ADMIN pode ler os feedbacks de todos
       allow read, update, delete: if isSuperAdmin();
     }
   }

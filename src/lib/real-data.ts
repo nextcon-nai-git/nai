@@ -1,8 +1,6 @@
-
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
- * Fonte única de verdade para carga massiva e testes de integração.
- * Atualizado com a lista completa de 27 clientes estratégicos.
+ * Fonte única de verdade para faturamento, contratos e clientes estratégicos.
  */
 
 export const REAL_COMPANIES = [
@@ -46,18 +44,6 @@ export const REAL_CONTRACTS = [
   { id: "CT_TIMENOW_01", companyId: "48865462000106", companyName: "TIMENOW GESTAO DE OBRAS", title: "Time Now - Solução 01", value: 4350.0, status: "Conquistado" },
 ];
 
-export const REAL_EMPLOYEES = [
-  { id: "EMP_NAT_01", name: "MARCOS SILVA", companyId: "51633820000151", job_role: { title: "Pedreiro", cbo: "7152-10" }, status: "active", cpf: "111.222.333-44" },
-  { id: "EMP_NAT_02", name: "ADRIANO SANTOS", companyId: "51633820000151", job_role: { title: "Servente", cbo: "7170-20" }, status: "active", cpf: "222.333.444-55" },
-  { id: "EMP_001", name: "BRUNO GADELHA DA SILVA", companyId: "76492701001129", job_role: { title: "Hidrometrista", cbo: "3111-05" }, status: "active", cpf: "123.456.789-00" },
-  { id: "EMP_002", name: "JOÃO BESTEL DE DEUS", companyId: "76492701001129", job_role: { title: "Técnico de Saneamento", cbo: "3111-10" }, status: "active", cpf: "987.654.321-11" },
-];
-
-export const REAL_EXAMS_HISTORY = [
-  { employeeName: "BRUNO GADELHA DA SILVA", employeeId: "EMP_001", companyId: "76492701001129", date: "2026-02-02", type: "Admissional", provider: "ACRE SST", aso: "OK", s2220: "Transmitido", s2240: "OK" },
-  { employeeName: "MARCOS SILVA", employeeId: "EMP_NAT_01", companyId: "51633820000151", date: "2026-02-05", type: "Periódico", provider: "SQV MATRIZ", aso: "OK", s2220: "Transmitido", s2240: "OK" },
-];
-
 export const DRE_2026_DATA = [
   { month: 'Jan', receita: 99146.50, despesa: 83052.78, lucro: 16093.72 },
   { month: 'Fev', receita: 105000.00, despesa: 85000.00, lucro: 20000.00 },
@@ -76,4 +62,35 @@ export const DRE_2025_HISTORY = [
   { month: 'Out', receita: 150000, despesa: 95000, lucro: 55000 },
   { month: 'Nov', receita: 155000, despesa: 98000, lucro: 57000 },
   { month: 'Dez', receita: 180000, despesa: 110000, lucro: 70000 },
+];
+
+export const REAL_EMPLOYEES = [
+  { id: "EMP_NAT_01", name: "MARCOS SILVA", companyId: "51633820000151", job_role: { title: "Pedreiro", cbo: "7152-10" }, status: "active", cpf: "111.222.333-44" },
+  { id: "EMP_NAT_02", name: "ADRIANO SANTOS", companyId: "51633820000151", job_role: { title: "Servente", cbo: "7170-20" }, status: "active", cpf: "222.333.444-55" },
+  { id: "EMP_001", name: "BRUNO GADELHA DA SILVA", companyId: "76492701001129", job_role: { title: "Hidrometrista", cbo: "3111-05" }, status: "active", cpf: "123.456.789-00" },
+  { id: "EMP_002", name: "JOÃO BESTEL DE DEUS", companyId: "76492701001129", job_role: { title: "Técnico de Saneamento", cbo: "3111-10" }, status: "active", cpf: "987.654.321-11" },
+];
+
+export const REAL_EXAMS_HISTORY = [
+  { employeeName: "BRUNO GADELHA DA SILVA", employeeId: "EMP_001", companyId: "76492701001129", date: "2026-02-02", type: "Admissional", provider: "ACRE SST", aso: "OK", s2220: "Transmitido", s2240: "OK" },
+  { employeeName: "MARCOS SILVA", employeeId: "EMP_NAT_01", companyId: "51633820000151", date: "2026-02-05", type: "Periódico", provider: "SQV MATRIZ", aso: "OK", s2220: "Transmitido", s2240: "OK" },
+];
+
+export const REAL_TRAININGS = [
+  {
+    id: "TRN_001",
+    title: "NR-18: Segurança na Construção Civil",
+    companyId: "51633820000151",
+    companyName: "Nativa Empreendimentos",
+    nrs: ["NR-18", "NR-35"],
+    startDate: "2026-02-10",
+    endDate: "2026-02-15",
+    totalHours: 40,
+    modality: "Presencial",
+    status: "in_progress",
+    students: [
+      { id: "EMP_NAT_01", name: "MARCOS SILVA", status: "present" },
+      { id: "EMP_NAT_02", name: "ADRIANO SANTOS", status: "present" }
+    ]
+  }
 ];
