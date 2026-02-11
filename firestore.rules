@@ -15,7 +15,12 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return isAuth() && getUserData().role == 'SUPER_ADMIN';
+      return isAuth() && (
+        getUserData().role == 'SUPER_ADMIN' || 
+        getUserData().role == 'ENGINEER' || 
+        getUserData().role == 'DOCTOR' ||
+        getUserData().role == 'ADMIN'
+      );
     }
 
     function isUserInCompany(companyId) {

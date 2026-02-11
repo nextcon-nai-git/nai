@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -63,7 +62,7 @@ export default function Dashboard() {
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
-  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(role);
+  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;

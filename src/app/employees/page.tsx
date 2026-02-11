@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -97,7 +96,7 @@ export default function EmployeesPage() {
   const { data: profile } = useDoc(profileRef)
 
   const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(profile.role.toUpperCase())
   }, [profile])
 
   // 2. Formulário de Cadastro
