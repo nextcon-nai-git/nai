@@ -41,6 +41,36 @@ service cloud.firestore {
       }
     }
 
+    // ----------------------------------------------------------------------
+    // REGRAS PARA COLLECTION GROUPS (Consultas Globais do Admin)
+    // ----------------------------------------------------------------------
+    
+    match /{path=**}/sst_events/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/legalExpertises/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/tasks/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/employees/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/reports/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/contracts/{id} {
+      allow read: if isSuperAdmin();
+    }
+    match /{path=**}/examHistory/{id} {
+      allow read: if isSuperAdmin();
+    }
+
+    // ----------------------------------------------------------------------
+    // OUTRAS COLEÇÕES
+    // ----------------------------------------------------------------------
+
     match /catalogs/{catalogId} {
       allow read: if isAuth();
       allow write: if isSuperAdmin();
@@ -49,6 +79,10 @@ service cloud.firestore {
     match /feedback/{feedbackId} {
       allow create: if isAuth();
       allow read, update, delete: if isSuperAdmin();
+    }
+
+    match /financialStats/{docId} {
+      allow read, write: if isSuperAdmin();
     }
   }
 }
