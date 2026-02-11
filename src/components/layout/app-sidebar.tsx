@@ -27,7 +27,9 @@ import {
   Monitor,
   HeartPulse,
   Scale,
-  Brain
+  Brain,
+  Cloud,
+  Terminal
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -58,6 +60,7 @@ const navGroups = [
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
       { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
+      { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
     ]
   },

@@ -13,7 +13,10 @@
     "build": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "infra:init": "gcloud init",
+    "infra:deploy": "firebase deploy --only hosting",
+    "infra:rules": "firebase deploy --only firestore:rules"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
