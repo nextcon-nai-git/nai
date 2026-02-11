@@ -41,26 +41,8 @@ service cloud.firestore {
       }
     }
 
-    match /{path=**}/sst_events/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/legalExpertises/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/tasks/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/employees/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/reports/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/contracts/{id} {
-      allow read: if isSuperAdmin();
-    }
-    match /{path=**}/examHistory/{id} {
-      allow read: if isSuperAdmin();
+    match /orcamentos/{allPaths=**} {
+      allow read, write: if true;
     }
 
     match /catalogs/{catalogId} {

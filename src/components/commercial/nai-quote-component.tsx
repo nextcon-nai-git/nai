@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -13,9 +12,8 @@ import {
   Save, 
   Download, 
   History, 
-  ExternalLink,
-  ChevronRight,
-  FileCheck
+  FileCheck,
+  ChevronRight
 } from "lucide-react";
 import { gerarOrcamentoComNai } from "@/actions/nai-quote";
 import { Button } from "@/components/ui/button";
@@ -24,10 +22,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, useStorage } from "@/firebase";
-import { collection, doc, query, orderBy, serverTimestamp, addDoc, updateDoc } from "firebase/firestore";
+import { useUser, useFirestore, useStorage } from "@/firebase";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 
@@ -58,67 +55,70 @@ export function NaiQuoteComponent() {
   });
   
   const [loading, setLoading] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
+  const [salvando, setSalvando] = React.useState(false);
   const [orcamento, setOrcamento] = React.useState<OrcamentoGerado | null>(null);
+  const [orcamentosEnviados, setOrcamentosEnviados] = React.useState<any[]>([]);
 
-  const profileRef = useMemoFirebase(() => {
-    if (!db || !user) return null;
-    return doc(db, "users", user.uid);
-  }, [db, user]);
-  const { data: profile } = useDoc(profileRef);
-
-  // Carrega histórico de propostas da unidade
-  const proposalsQuery = useMemoFirebase(() => {
-    if (!db || !profile?.companyId) return null;
-    return query(collection(db, "companies", profile.companyId, "proposals"), orderBy("createdAt", "desc"));
-  }, [db, profile]);
-  const { data: history, isLoading: loadingHistory } = useCollection(proposalsQuery);
+  // Escuta os orçamentos em tempo real
+  React.useEffect(() => {
+    if (!db) return;
+    const q = query(collection(db, "orcamentos"), orderBy("data", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setOrcamentosEnviados(docs);
+    });
+    return () => unsubscribe();
+  }, [db]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setOrcamento(null);
 
-    const res = await gerarOrcamentoComNai({
-      nomeEmpresa: formData.nomeEmpresa,
-      quantidadeFuncionarios: Number(formData.quantidadeFuncionarios),
-      grauDeRisco: Number(formData.grauDeRisco) as 1 | 2 | 3 | 4,
-      necessidades: formData.necessidades
-    });
+    try {
+      const res = await gerarOrcamentoComNai({
+        nomeEmpresa: formData.nomeEmpresa,
+        quantidadeFuncionarios: Number(formData.quantidadeFuncionarios),
+        grauDeRisco: Number(formData.grauDeRisco) as 1 | 2 | 3 | 4,
+        necessidades: formData.necessidades
+      });
 
-    if (res.sucesso && res.orcamento) {
-      setOrcamento(res.orcamento as OrcamentoGerado);
-      toast({ title: "Análise Concluída", description: "A NAI montou sua recomendação técnica." });
-    } else {
-      toast({ variant: "destructive", title: "Falha na NAI", description: res.mensagem });
+      if (res.sucesso && res.orcamento) {
+        setOrcamento(res.orcamento as OrcamentoGerado);
+        toast({ title: "Análise Concluída", description: "A NAI montou sua recomendação técnica." });
+      } else {
+        toast({ variant: "destructive", title: "Falha na NAI", description: res.mensagem });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro de Conexão", description: "Verifique sua internet." });
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
-  async function handleSaveAndExport() {
-    if (!db || !profile || !orcamento || !storage) return;
-    setIsSaving(true);
-    
+  async function handleSalvarEGerarPDF() {
+    if (!orcamento || !db || !storage) return;
+    setSalvando(true);
+
     try {
       // 1. Salva os dados no Firestore para obter ID
-      const proposalsRef = collection(db, "companies", profile.companyId || "leads", "proposals");
-      const docRef = await addDoc(proposalsRef, {
-        userId: user?.uid,
-        userName: profile.name,
+      const docRef = await addDoc(collection(db, "orcamentos"), {
         empresa: formData.nomeEmpresa,
-        status: "ENVIADO",
-        source: 'ai',
-        data: orcamento,
-        totalValue: orcamento.valorTotalAvulso,
-        createdAt: new Date().toISOString()
+        funcionarios: formData.quantidadeFuncionarios,
+        risco: formData.grauDeRisco,
+        resumoNai: orcamento,
+        status: "Enviado",
+        data: serverTimestamp()
       });
 
       // 2. Gera o PDF comercial
       const pdf = new jsPDF();
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(0, 53, 107); // Navy Nextcon
-      pdf.setFontSize(22);
+      pdf.setTextColor(0, 53, 107);
+      pdf.setFontSize(20);
       pdf.text("Proposta Técnica SST - Nextcon NAI", 20, 30);
       
       pdf.setFontSize(12);
@@ -157,7 +157,7 @@ export function NaiQuoteComponent() {
 
       // 3. Upload para Storage
       const pdfBlob = pdf.output("blob");
-      const storagePath = `proposals/${profile.companyId || 'general'}/${docRef.id}.pdf`;
+      const storagePath = `orcamentos/${docRef.id}.pdf`;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, pdfBlob);
       const downloadURL = await getDownloadURL(storageRef);
@@ -170,14 +170,14 @@ export function NaiQuoteComponent() {
       setFormData({ nomeEmpresa: "", quantidadeFuncionarios: "", grauDeRisco: "1", necessidades: "" });
     } catch (e) {
       console.error(e);
-      toast({ variant: "destructive", title: "Erro no Protocolo" });
+      toast({ variant: "destructive", title: "Erro no Protocolo", description: "Falha ao salvar no banco." });
     } finally {
-      setIsSaving(false);
+      setSalvando(false);
     }
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
         {/* FORMULÁRIO */}
         <Card className="lg:col-span-1 border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
@@ -243,7 +243,7 @@ export function NaiQuoteComponent() {
                 className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
               >
                 {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
-                {loading ? "Calculando..." : "Gerar Orçamento NAI"}
+                {loading ? "A NAI está calculando..." : "Gerar Orçamento NAI"}
               </Button>
             </form>
           </CardContent>
@@ -256,20 +256,16 @@ export function NaiQuoteComponent() {
               <Bot className="size-24 text-primary" />
               <div className="space-y-2">
                 <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
-                <p className="text-sm font-bold">Descreva a empresa para que a NAI monte a proposta perfeita.</p>
+                <p className="text-sm font-bold">Preencha os dados ao lado para a NAI montar a proposta perfeita.</p>
               </div>
             </div>
           )}
 
           {loading && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
-              <div className="relative">
-                <Loader2 className="size-20 animate-spin text-primary opacity-20" />
-                <Bot className="size-10 text-primary absolute inset-0 m-auto animate-bounce" />
-              </div>
+              <Loader2 className="size-20 animate-spin text-primary opacity-20" />
               <div className="space-y-3">
-                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Base Legal 2026...</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Calculando eSocial, Insalubridade e Treinamentos</p>
+                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">Cruzando NRs e eSocial...</p>
               </div>
             </div>
           )}
@@ -304,78 +300,71 @@ export function NaiQuoteComponent() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-none shadow-lg bg-white rounded-[2.5rem] p-8 text-center flex flex-col justify-center">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-lg border border-slate-100 text-center flex flex-col justify-center">
                   <p className="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Total Implementação</p>
                   <h2 className="text-4xl font-black text-primary font-headline tracking-tighter">
                     {orcamento.valorTotalAvulso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </h2>
-                </Card>
+                </div>
                 {orcamento.valorTotalMensal && (
-                  <Card className="border-none shadow-2xl bg-primary text-white rounded-[2.5rem] p-8 text-center relative overflow-hidden">
+                  <div className="bg-primary text-white p-8 rounded-[2.5rem] shadow-2xl text-center relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="size-20 text-accent" /></div>
-                    <div className="relative z-10">
-                      <p className="text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Gestão Mensal NAI</p>
-                      <h2 className="text-4xl font-black text-accent font-headline tracking-tighter">
-                        {orcamento.valorTotalMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </h2>
-                    </div>
-                  </Card>
+                    <p className="text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Gestão Mensal NAI</p>
+                    <h2 className="text-4xl font-black text-accent font-headline tracking-tighter">
+                      {orcamento.valorTotalMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </h2>
+                  </div>
                 )}
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button variant="outline" className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest border-primary text-primary" onClick={() => setOrcamento(null)}>
-                  Refazer Simulação
-                </Button>
-                <Button 
-                  onClick={handleSaveAndExport}
-                  disabled={isSaving}
-                  className="flex-1 h-14 rounded-2xl bg-accent text-primary font-black uppercase text-[10px] tracking-widest shadow-xl shadow-accent/20 gap-2"
-                >
-                  {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                  {isSaving ? "Protocolando..." : "Salvar e Gerar PDF"}
-                </Button>
-              </div>
+              <Button 
+                onClick={handleSalvarEGerarPDF}
+                disabled={salvando}
+                className="w-full h-16 bg-accent text-primary font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-accent/20 gap-3"
+              >
+                {salvando ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
+                {salvando ? "Salvando e Protocolando Dossiê..." : "Salvar e Gerar Proposta PDF"}
+              </Button>
             </div>
           )}
         </div>
       </div>
 
       {/* HISTÓRICO */}
-      <div className="pt-8 border-t space-y-6">
+      <div className="pt-12 border-t space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/5 rounded-lg text-primary"><History className="size-5" /></div>
-          <h2 className="text-xl font-headline font-black uppercase text-primary">Histórico de Propostas Enviadas</h2>
+          <h2 className="text-xl font-headline font-black uppercase text-primary">Histórico de Propostas (Real-time)</h2>
         </div>
 
-        {loadingHistory ? (
-          <div className="flex flex-col items-center py-12 gap-2 opacity-30">
-            <Loader2 className="size-8 animate-spin" />
-            <p className="text-[10px] font-black uppercase">Sincronizando Propostas...</p>
+        {orcamentosEnviados.length === 0 ? (
+          <div className="py-20 text-center opacity-20 border-2 border-dashed rounded-[3rem]">
+            <FileCheck className="size-16 mx-auto mb-4" />
+            <p className="font-black uppercase text-xs tracking-widest">Nenhum orçamento registrado ainda</p>
           </div>
-        ) : history && history.length > 0 ? (
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {history.map((orc) => (
-              <Card key={orc.id} className="card-shadow border-none bg-white rounded-3xl overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+            {orcamentosEnviados.map((orc) => (
+              <Card key={orc.id} className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0">
                       <h3 className="font-black text-primary uppercase text-sm truncate" title={orc.empresa}>{orc.empresa}</h3>
                       <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
-                        {new Date(orc.createdAt).toLocaleDateString('pt-BR')} às {new Date(orc.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        {orc.data?.toDate ? orc.data.toDate().toLocaleDateString('pt-BR') : 'Hoje'}
                       </p>
                     </div>
-                    <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">{orc.status}</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">ENVIADO</Badge>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="p-3 bg-slate-50 rounded-xl">
                       <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Vidas</p>
-                      <p className="text-xs font-bold text-primary">{orc.data?.quantidadeFuncionarios || orc.funcionarios || '---'}</p>
+                      <p className="text-xs font-bold text-primary">{orc.funcionarios}</p>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-xl">
                       <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Total</p>
-                      <p className="text-xs font-bold text-primary">R$ {orc.totalValue?.toFixed(2)}</p>
+                      <p className="text-xs font-bold text-primary">R$ {orc.resumoNai?.valorTotalAvulso?.toFixed(2)}</p>
                     </div>
                   </div>
 
@@ -387,17 +376,12 @@ export function NaiQuoteComponent() {
                     </Button>
                   ) : (
                     <Button disabled className="w-full h-11 rounded-xl gap-2 font-black uppercase text-[10px] opacity-50">
-                      <Loader2 className="size-3.5 animate-spin" /> Gerando Dossiê...
+                      <Loader2 className="size-3.5 animate-spin" /> Gerando Link...
                     </Button>
                   )}
                 </CardContent>
               </Card>
             ))}
-          </div>
-        ) : (
-          <div className="py-20 text-center opacity-20 border-2 border-dashed rounded-[3rem]">
-            <FileCheck className="size-16 mx-auto mb-4" />
-            <p className="font-black uppercase text-xs tracking-widest">Nenhuma proposta registrada</p>
           </div>
         )}
       </div>
