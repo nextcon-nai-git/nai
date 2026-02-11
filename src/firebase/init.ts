@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -7,20 +8,12 @@ import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage';
 
 /**
- * Inicializa os serviços do Firebase de forma resiliente.
- * Isolado em arquivo próprio para evitar dependências circulares com o index.ts.
+ * Inicializa os serviços do Firebase de forma resiliente para o ambiente de produção.
+ * Isolado para suportar o Hydration e o ciclo de vida do Next.js 15.
  */
 export function initializeFirebase() {
   if (!getApps().length) {
-    let firebaseApp;
-    try {
-      // Tenta inicializar via App Hosting (Env Vars)
-      firebaseApp = initializeApp();
-    } catch (e) {
-      // Fallback para o objeto de configuração manual
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-
+    const firebaseApp = initializeApp(firebaseConfig);
     return getSdks(firebaseApp);
   }
 
@@ -32,7 +25,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp),
-    // Força o uso do bucket definido no config para evitar erro de inicialização parcial
+    // Força o uso do bucket definido no config para garantir persistência de documentos SST
     storage: getStorage(firebaseApp, firebaseConfig.storageBucket)
   };
 }
