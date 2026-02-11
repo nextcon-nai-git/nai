@@ -29,7 +29,8 @@ import {
   Brain,
   Cloud,
   Terminal,
-  Upload
+  Upload,
+  ShoppingCart
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -62,6 +63,13 @@ const navGroups = [
       { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
       { title: "Importar Clientes", icon: Upload, href: "/importar" },
+    ]
+  },
+  {
+    label: "Crescimento & Vendas",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    items: [
+      { title: "Simulador Comercial", icon: ShoppingCart, href: "/comercial" },
     ]
   },
   {
