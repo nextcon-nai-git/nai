@@ -54,7 +54,7 @@ import { cn } from "@/lib/utils"
 const navGroups = [
   {
     label: "Equipe Nextcon (Interno)",
-    roles: ['SUPER_ADMIN', 'admin'],
+    roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
@@ -66,7 +66,7 @@ const navGroups = [
   },
   {
     label: "Operação Técnica",
-    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER', 'admin'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Field Control", icon: HardHat, href: "/field-control" },
@@ -78,7 +78,7 @@ const navGroups = [
   },
   {
     label: "Segurança de Vidas",
-    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'admin'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
       { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
@@ -111,7 +111,7 @@ export function AppSidebar() {
   }
 
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase()
-  const isAdmin = ['SUPER_ADMIN', 'admin'].includes(role)
+  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role)
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   
   return (
@@ -150,7 +150,7 @@ export function AppSidebar() {
         </SidebarMenuItem>
 
         {navGroups.map((group) => {
-          const hasAccess = group.roles.includes(role);
+          const hasAccess = group.roles.some(r => r.toUpperCase() === role);
           if (!hasAccess) return null
           
           return (

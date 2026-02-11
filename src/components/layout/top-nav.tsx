@@ -41,9 +41,8 @@ export function TopNav() {
   const { data: profile } = useDoc(profileRef);
   
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
-  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(role);
+  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role);
 
-  // Lógica de Unidades solicitada
   const getUnitLabel = () => {
     if (isAdmin) return "Matriz Curitiba";
     if (profile?.companyId === 'CLI_NATIVA') return "Matriz Guaratuba";
