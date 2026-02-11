@@ -19,10 +19,10 @@ service cloud.firestore {
     // que NÃO possui vínculo fixo com uma empresa cliente.
     function isSuperAdmin() {
       let userData = getUserData();
-      let role = userData.get('role', '');
+      let role = userData.get('role', '').upper();
       let companyId = userData.get('companyId', '');
       return isAuth() && 
-        (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN' || role == 'admin') &&
+        (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN') &&
         (companyId == null || companyId == "");
     }
 

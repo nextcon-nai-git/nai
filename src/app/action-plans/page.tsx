@@ -46,7 +46,6 @@ export default function EnterpriseOpsHub() {
   
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
-  const [isImporting, setIsImporting] = React.useState(false)
   
   const [taskForm, setTaskForm] = React.useState<Partial<OpsTask>>({
     title: "",
@@ -64,7 +63,6 @@ export default function EnterpriseOpsHub() {
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
 
-  // Define se é um administrador da equipe interna Nextcon (sem companyId fixo)
   const isGlobalAdmin = React.useMemo(() => {
     if (!profile) return false;
     const role = (profile.role || '').toUpperCase();
@@ -99,12 +97,12 @@ export default function EnterpriseOpsHub() {
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Se selecionou "Todas" e é Global Admin da NextCon, pode usar collectionGroup
+    // Proteção: Apenas administradores globais (sem companyId) podem fazer collectionGroup
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     } 
     
-    // Caso contrário, deve filtrar obrigatoriamente pela empresa logada ou selecionada
+    // Se não for admin global ou selecionou empresa, força o caminho multi-tenant
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
     
     if (companyIdToFilter) {

@@ -64,12 +64,12 @@ export default function Dashboard() {
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
     
-    // Se for administrador global da NextCon, vê tudo via Collection Group
+    // Se for administrador global da NextCon (sem companyId), vê tudo via Collection Group
     if (isGlobalAdmin) {
       return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(4));
     } 
     
-    // Caso contrário, restringe estritamente à sua empresa para evitar erros de permissão
+    // Usuários de clientes só veem dados da sua própria empresa
     if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(4));
     }
