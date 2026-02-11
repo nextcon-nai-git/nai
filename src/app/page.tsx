@@ -6,33 +6,19 @@ import {
   ChevronRight,
   Calendar,
   AlertTriangle,
-  SearchCheck,
   Clock,
-  ClipboardCheck,
   Stethoscope,
-  Construction,
-  Building2,
-  Factory,
   ShieldCheck,
-  TrendingUp,
-  History,
   Sparkles,
-  Layers,
-  Activity,
-  BarChart3,
-  Users,
-  CheckCircle2,
   HeartPulse,
   GraduationCap,
   Calculator,
-  TrendingDown,
   DollarSign
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
@@ -54,15 +40,16 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
+  // Trava de segurança: Só é Admin Global se o perfil estiver carregado, tiver cargo E companyId vazio.
   const isGlobalAdmin = React.useMemo(() => {
-    if (!profile) return false;
+    if (loadingProfile || !profile) return false;
     const role = (profile.role || '').toUpperCase();
     const companyId = profile.companyId;
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
-  }, [profile]);
+  }, [profile, loadingProfile]);
 
   const eventsQuery = useMemoFirebase(() => {
-    if (!db || !profile) return null;
+    if (!db || loadingProfile || !profile) return null;
     
     // Se for administrador global da NextCon (sem companyId), vê tudo via Collection Group
     if (isGlobalAdmin) {
@@ -75,7 +62,7 @@ export default function Dashboard() {
     }
     
     return null;
-  }, [db, profile, isGlobalAdmin]);
+  }, [db, profile, loadingProfile, isGlobalAdmin]);
   
   const { data: events } = useCollection(eventsQuery);
 
@@ -131,10 +118,9 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-headline font-black text-primary uppercase">AGENDA DE HOJE</CardTitle>
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vencimentos de Exames, Laudos e Treinamentos.</CardDescription>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vencimentos de Exames e Laudos.</CardDescription>
                   </div>
                 </div>
-                <Button variant="outline" className="h-10 text-[9px] font-black uppercase tracking-widest rounded-xl">Expandir Calendário</Button>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -149,18 +135,11 @@ export default function Dashboard() {
                       <div className="flex-1 px-8">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge variant="outline" className="text-[8px] font-black uppercase text-primary/40 border-primary/10">{event.type}</Badge>
-                          {event.priority === 'high' && <Badge className="bg-red-50 text-red-600 text-[8px] font-black uppercase border-none px-2">Urgente</Badge>}
                         </div>
                         <p className="text-sm font-black text-primary group-hover:translate-x-1 transition-transform uppercase tracking-tight">{event.description}</p>
                         <p className="text-[10px] text-slate-400 font-bold uppercase truncate mt-1">{event.companyName}</p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right hidden md:block">
-                          <p className="text-[10px] font-black text-slate-400 uppercase">Status</p>
-                          <p className="text-[10px] font-black text-emerald-600 uppercase">Confirmado</p>
-                        </div>
-                        <ChevronRight className="size-5 text-slate-200 group-hover:text-primary transition-all" />
-                      </div>
+                      <ChevronRight className="size-5 text-slate-200 group-hover:text-primary transition-all" />
                     </div>
                   ))}
                 </div>
@@ -189,7 +168,6 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <CardTitle className="text-sm font-black text-primary uppercase tracking-tight">Simulador ROI/FAP</CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Arraste para calcular economia.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -199,45 +177,18 @@ export default function Dashboard() {
                   <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Alvo</label>
                   <span className="text-xl font-black text-primary tracking-tighter">{fapValue[0].toFixed(2)}</span>
                 </div>
-                <Slider 
-                  value={fapValue} 
-                  onValueChange={setFapValue} 
-                  max={2} 
-                  min={0.5} 
-                  step={0.01}
-                  className="py-4"
-                />
-                <div className="flex justify-between text-[8px] font-black text-slate-300 uppercase">
-                  <span>Bônus (0.5)</span>
-                  <span>Malus (2.0)</span>
-                </div>
+                <Slider value={fapValue} onValueChange={setFapValue} max={2} min={0.5} step={0.01} className="py-4" />
               </div>
-
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
-                <div className="flex justify-between mb-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase">Economia Anual Est.</p>
-                  <Badge variant="outline" className={cn(
-                    "text-[8px] font-black border-none px-2",
-                    potentialSavings > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                  )}>
-                    {potentialSavings > 0 ? "BÔNUS" : "MALUS"}
-                  </Badge>
-                </div>
-                <h3 className={cn(
-                  "text-2xl font-black font-headline tracking-tighter",
-                  potentialSavings >= 0 ? "text-emerald-600" : "text-red-600"
-                )}>
+                <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Economia Anual Est.</p>
+                <h3 className={cn("text-2xl font-black font-headline tracking-tighter", potentialSavings >= 0 ? "text-emerald-600" : "text-red-600")}>
                   {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </h3>
-                <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Ref: Folha Mensal R$ {payroll.toLocaleString('pt-BR')}</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className={cn(
-            "border-none text-white card-shadow relative overflow-hidden rounded-[2.5rem]",
-            isGlobalAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
-          )}>
+          <Card className={cn("border-none text-white card-shadow relative overflow-hidden rounded-[2.5rem]", isGlobalAdmin ? "bg-[#001F3F]" : "gradient-nextcon")}>
             <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles className="size-40 text-accent" /></div>
             <CardHeader className="pb-6 relative z-10 p-8">
               <CardTitle className="text-xs flex items-center gap-3 font-black uppercase italic tracking-[0.2em] text-accent">
@@ -246,11 +197,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-8 relative z-10 p-8 pt-0">
               <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Análise de Risco 24h</p>
                 <p className="text-sm leading-relaxed text-white/90 font-medium italic">
                   {isGlobalAdmin 
                     ? '"Detectamos aumento de 15% em afastamentos por CID M54 na rede de construção civil. Recomenda-se auditoria ergonômica preventiva."'
-                    : '"Sua unidade atingiu 100% de conformidade S-2240. O próximo PGR vence em 45 dias. Agendamento liberado."'
+                    : '"Sua unidade atingiu 100% de conformidade S-2240. O próximo PGR vence em 45 dias."'
                   }
                 </p>
               </div>
@@ -270,9 +220,7 @@ function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
     <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}>
-            <Icon className="size-5" />
-          </div>
+          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}><Icon className="size-5" /></div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
         <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>

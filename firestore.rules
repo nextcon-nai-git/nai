@@ -2,10 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------------------------------------------------
-    // FUNÇÕES AUXILIARES
-    // ----------------------------------------------------------------------
-    
     function isAuth() {
       return request.auth != null;
     }
@@ -15,8 +11,6 @@ service cloud.firestore {
       return exists(path) ? get(path).data : {};
     }
 
-    // Um Administrador Global é um membro da equipe NextCon (cargo administrativo) 
-    // que NÃO possui vínculo fixo com uma empresa cliente.
     function isSuperAdmin() {
       let userData = getUserData();
       let role = userData.get('role', '').upper();
@@ -31,10 +25,6 @@ service cloud.firestore {
       let userCompanyId = userData.get('companyId', '');
       return isAuth() && (userCompanyId == companyId || isSuperAdmin());
     }
-
-    // ----------------------------------------------------------------------
-    // REGRAS DAS COLEÇÕES
-    // ----------------------------------------------------------------------
 
     match /users/{userId} {
       allow read: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
@@ -51,10 +41,6 @@ service cloud.firestore {
       }
     }
 
-    // ----------------------------------------------------------------------
-    // REGRAS PARA COLLECTION GROUPS (Apenas Administradores Globais da NextCon)
-    // ----------------------------------------------------------------------
-    
     match /{path=**}/sst_events/{id} {
       allow read: if isSuperAdmin();
     }
@@ -76,10 +62,6 @@ service cloud.firestore {
     match /{path=**}/examHistory/{id} {
       allow read: if isSuperAdmin();
     }
-
-    // ----------------------------------------------------------------------
-    // OUTRAS COLEÇÕES
-    // ----------------------------------------------------------------------
 
     match /catalogs/{catalogId} {
       allow read: if isAuth();
