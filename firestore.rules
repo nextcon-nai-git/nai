@@ -15,20 +15,21 @@ service cloud.firestore {
       return exists(path) ? get(path).data : {};
     }
 
-    // Um Super Admin é um membro da equipe NextCon (cargo administrativo) 
-    // que NÃO possui vínculo fixo com uma empresa cliente (companyId vazio).
+    // Um Administrador Global é um membro da equipe NextCon (cargo administrativo) 
+    // que NÃO possui vínculo fixo com uma empresa cliente.
     function isSuperAdmin() {
       let userData = getUserData();
-      let role = userData.role;
-      return isAuth() && (
+      let role = userData.get('role', '');
+      let companyId = userData.get('companyId', '');
+      return isAuth() && 
         (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN') &&
-        (!userData.keys().contains('companyId') || userData.companyId == null || userData.companyId == "")
-      );
+        (companyId == null || companyId == "");
     }
 
     function isUserInCompany(companyId) {
       let userData = getUserData();
-      return isAuth() && (userData.companyId == companyId || isSuperAdmin());
+      let userCompanyId = userData.get('companyId', '');
+      return isAuth() && (userCompanyId == companyId || isSuperAdmin());
     }
 
     // ----------------------------------------------------------------------
@@ -42,7 +43,7 @@ service cloud.firestore {
 
     match /companies/{companyId} {
       allow read: if isUserInCompany(companyId);
-      allow update: if isSuperAdmin() || (isUserInCompany(companyId) && getUserData().role == 'CLIENT_ADMIN');
+      allow update: if isSuperAdmin() || (isUserInCompany(companyId) && getUserData().get('role', '') == 'CLIENT_ADMIN');
       allow create, delete: if isSuperAdmin();
 
       match /{document=**} {
@@ -51,7 +52,7 @@ service cloud.firestore {
     }
 
     // ----------------------------------------------------------------------
-    // REGRAS PARA COLLECTION GROUPS (Apenas Administradores Globais)
+    // REGRAS PARA COLLECTION GROUPS (Apenas Administradores Globais da NextCon)
     // ----------------------------------------------------------------------
     
     match /{path=**}/sst_events/{id} {

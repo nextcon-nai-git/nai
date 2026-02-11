@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -24,19 +23,29 @@ export default function LegalFinancial() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  // Busca perícias reais do Firestore (Multi-tenant)
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+  }, [profile]);
+
+  // Busca perícias reais do Firestore protegendo a hierarquia multi-tenant
   const expertisesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    const isPrivileged = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
-    
-    if (isPrivileged) {
+    // Se for Administrador Global, vê todas via Collection Group
+    if (isGlobalAdmin) {
       return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
-    } else if (profile.companyId) {
+    } 
+    
+    // Se for cliente, vê apenas as suas
+    if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "legalExpertises"), orderBy("date", "desc"))
     }
+    
     return null
-  }, [db, profile])
+  }, [db, profile, isGlobalAdmin])
 
   const { data: expertises, isLoading: loadingExpertises } = useCollection(expertisesQuery)
 
@@ -96,7 +105,7 @@ export default function LegalFinancial() {
                 min={0.5} 
                 step={0.01} 
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground uppercase font-black tracking-widest">
+              <div className="flex justify-between text-[8px] text-muted-foreground uppercase font-black tracking-widest">
                 <span>Bônus (0.50)</span>
                 <span>Malus (2.00)</span>
               </div>

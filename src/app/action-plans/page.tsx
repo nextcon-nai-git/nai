@@ -66,9 +66,10 @@ export default function EnterpriseOpsHub() {
 
   // Define se é um administrador da equipe interna Nextcon (sem companyId fixo)
   const isGlobalAdmin = React.useMemo(() => {
-    if (!profile?.role) return false;
-    const role = profile.role.toUpperCase();
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
   React.useEffect(() => {
@@ -85,7 +86,7 @@ export default function EnterpriseOpsHub() {
   const { data: users } = useCollection(providersQuery)
   
   const providers = users?.filter(u => {
-    const role = u.role?.toUpperCase();
+    const role = (u.role || '').toUpperCase();
     return role === 'PROVIDER' || role === 'ENGINEER';
   }) || []
 
@@ -98,12 +99,12 @@ export default function EnterpriseOpsHub() {
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Se selecionou "Todas" e é Global Admin, pode usar collectionGroup
+    // Se selecionou "Todas" e é Global Admin da NextCon, pode usar collectionGroup
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     } 
     
-    // Caso contrário, deve filtrar por uma empresa específica
+    // Caso contrário, deve filtrar obrigatoriamente pela empresa logada ou selecionada
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
     
     if (companyIdToFilter) {

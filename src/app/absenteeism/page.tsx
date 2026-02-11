@@ -79,10 +79,11 @@ export default function LimboSentinel() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  const isPrivileged = React.useMemo(() => {
-    if (!profile?.role) return false;
-    const role = profile.role.toUpperCase();
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile])
 
   const form = useForm<RecordFormValues>({
@@ -113,17 +114,22 @@ export default function LimboSentinel() {
     }
   }, [profile, form])
 
-  // Consulta real das perícias
+  // Consulta real das perícias com proteção multi-tenant
   const expertisesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    // Apenas Super Admins SEM vínculo de empresa podem fazer Collection Group
-    if (isPrivileged) {
+    
+    // Apenas Administradores Globais da NextCon podem fazer Collection Group
+    if (isGlobalAdmin) {
       return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
-    } else if (profile.companyId) {
+    } 
+    
+    // Usuários de clientes só veem dados da sua própria empresa
+    if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "legalExpertises"), orderBy("date", "desc"))
     }
+    
     return null
-  }, [db, profile, isPrivileged])
+  }, [db, profile, isGlobalAdmin])
 
   const { data: expertises, isLoading } = useCollection(expertisesQuery)
 

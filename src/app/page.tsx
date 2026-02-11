@@ -55,20 +55,25 @@ export default function Dashboard() {
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
   const isGlobalAdmin = React.useMemo(() => {
-    if (!profile?.role) return false;
-    const role = profile.role.toUpperCase();
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
     
-    // Se for administrador global, tenta ver tudo. Caso contrário, restringe à empresa do perfil.
+    // Se for administrador global da NextCon, vê tudo via Collection Group
     if (isGlobalAdmin) {
       return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(4));
-    } else if (profile.companyId) {
+    } 
+    
+    // Caso contrário, restringe estritamente à sua empresa para evitar erros de permissão
+    if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(4));
     }
+    
     return null;
   }, [db, profile, isGlobalAdmin]);
   

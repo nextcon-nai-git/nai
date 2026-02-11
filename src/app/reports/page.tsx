@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -66,23 +65,26 @@ export default function ReportsCenter() {
   const [activeTab, setActiveTab] = React.useState("general")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState("all")
 
-  // Perfil para multi-tenant
+  // Perfil para multi-tenant rigoroso
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  // Trava unidade para clientes
+  // Trava unidade para clientes logados
   React.useEffect(() => {
-    if (profile && !isPrivileged && profile.companyId) {
+    if (profile && !isGlobalAdmin && profile.companyId) {
       setSelectedCompanyId(profile.companyId);
     }
-  }, [profile, isPrivileged]);
+  }, [profile, isGlobalAdmin]);
 
   // Lista de empresas para o filtro
   const companiesQuery = useMemoFirebase(() => {
@@ -99,20 +101,24 @@ export default function ReportsCenter() {
     return { parents, children, orphans }
   }, [companies])
 
-  // Busca documentos reais nas sub-coleções
+  // Busca documentos reais nas sub-coleções com proteção multi-tenant
   const uploadedReportsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Se selecionou uma empresa específica ou se é cliente
+    // Se for Administrador Global e selecionou "Todas"
+    if (selectedCompanyId === "all" && isGlobalAdmin) {
+      return query(collectionGroup(db, "reports"), orderBy("createdAt", "desc"))
+    }
+
+    // Se selecionou uma empresa específica ou se é cliente restrito
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
 
     if (companyIdToFilter) {
       return query(collection(db, "companies", companyIdToFilter, "reports"), orderBy("createdAt", "desc"))
-    } else if (isPrivileged) {
-      return query(collectionGroup(db, "reports"), orderBy("createdAt", "desc"))
     }
+    
     return null
-  }, [db, profile, selectedCompanyId, isPrivileged])
+  }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
   const { data: uploadedReports } = useCollection(uploadedReportsQuery)
 
@@ -130,7 +136,7 @@ export default function ReportsCenter() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2 md:col-span-2">
               <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Unidade / Cliente Selecionado</label>
-              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
+              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isGlobalAdmin}>
                 <SelectTrigger className="bg-muted/30 border-none h-12">
                   <div className="flex items-center gap-2">
                     <FolderOpen className="size-4 opacity-50" />
@@ -138,7 +144,7 @@ export default function ReportsCenter() {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  {isPrivileged && <SelectItem value="all">Todas as Unidades</SelectItem>}
+                  {isGlobalAdmin && <SelectItem value="all">Todas as Unidades (Rede)</SelectItem>}
                   {groupedCompanies.parents.map(parent => (
                     <SelectGroup key={parent.id}>
                       <SelectLabel className="font-black text-primary uppercase text-[9px] bg-primary/5 py-2">{parent.name}</SelectLabel>

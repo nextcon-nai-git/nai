@@ -54,7 +54,7 @@ export default function LoginPage() {
         email: loggedUser.email,
         name: isAdmin ? "FELIPE BIANCA" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
         role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-        companyId: isAdmin ? null : (email.includes('nativa') ? 'CLI_NATIVA' : 'CLI_TIMENOW'),
+        companyId: isAdmin ? "" : (email.includes('nativa') ? 'CLI_NATIVA' : 'CLI_TIMENOW'),
         updatedAt: serverTimestamp()
       }, { merge: true });
 

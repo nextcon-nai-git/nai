@@ -88,7 +88,7 @@ export default function EmployeesPage() {
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  // 1. Perfil do Usuário para RBAC
+  // 1. Perfil do Usuário para RBAC rigoroso
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
@@ -96,9 +96,10 @@ export default function EmployeesPage() {
   const { data: profile } = useDoc(profileRef)
 
   const isGlobalAdmin = React.useMemo(() => {
-    if (!profile?.role) return false;
-    const role = profile.role.toUpperCase();
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
   // 2. Formulário de Cadastro
@@ -114,7 +115,7 @@ export default function EmployeesPage() {
     },
   })
 
-  // Sincroniza empresa no formulário caso o usuário não seja Admin
+  // Sincroniza empresa no formulário caso o usuário não seja Admin Global
   React.useEffect(() => {
     if (profile && !isGlobalAdmin && profile.companyId) {
       setSelectedCompanyId(profile.companyId)
@@ -122,7 +123,7 @@ export default function EmployeesPage() {
     }
   }, [profile, isGlobalAdmin, form])
 
-  // 3. Consultas Firestore
+  // 3. Consultas Firestore protegidas
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
@@ -132,14 +133,17 @@ export default function EmployeesPage() {
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
+    // Apenas Admins Globais podem ver todas as vidas via Collection Group
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
-    } else {
-      const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
-      if (companyIdToFilter) {
-        return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
-      }
+    } 
+    
+    // Usuários de clientes ou admins filtrando restringem a busca
+    const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+    if (companyIdToFilter) {
+      return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
     }
+    
     return null
   }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
@@ -201,7 +205,7 @@ export default function EmployeesPage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Quadro de Vidas (Multi-tenant)</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Quadro de Vidas</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
             <Users className="size-3 text-accent" /> Gestão consolidada de vidas sob vigilância SESMT.
           </p>
