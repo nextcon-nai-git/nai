@@ -129,7 +129,7 @@ export default function Dashboard() {
                     <Calendar className="size-6" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-headline font-black text-primary uppercase">Agenda SESMT (O que cuidar hoje?)</CardTitle>
+                    <CardTitle className="text-xl font-headline font-black text-primary uppercase">AGENDA DE HOJE</CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vencimentos de Exames, Laudos e Treinamentos.</CardDescription>
                   </div>
                 </div>
