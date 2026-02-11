@@ -15,3 +15,4 @@ import '@/ai/flows/medical-certificate-validator-flow.ts';
 import '@/ai/flows/fiscal-intelligence-flow.ts';
 import '@/ai/flows/storage-manager-flow.ts';
 import '@/ai/flows/safety-copilot-flow.ts';
+import '@/ai/flows/nai-quote-flow.ts';
