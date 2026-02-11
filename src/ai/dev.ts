@@ -14,3 +14,4 @@ import '@/ai/flows/document-classifier-flow.ts';
 import '@/ai/flows/medical-certificate-validator-flow.ts';
 import '@/ai/flows/fiscal-intelligence-flow.ts';
 import '@/ai/flows/storage-manager-flow.ts';
+import '@/ai/flows/safety-copilot-flow.ts';

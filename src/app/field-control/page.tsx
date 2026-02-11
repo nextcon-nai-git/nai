@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -25,7 +24,10 @@ import {
   Map as MapIcon,
   RefreshCw,
   Info,
-  UserCheck
+  UserCheck,
+  Sparkles,
+  FolderTree,
+  Send
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,8 +36,9 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useStorage } from "@/firebase"
 import { collection, query, orderBy, doc, collectionGroup, addDoc } from "firebase/firestore"
+import { ref, uploadString } from "firebase/storage"
 import { 
   Dialog, 
   DialogContent, 
@@ -48,6 +51,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { extractStorageData } from "@/ai/flows/storage-manager-flow"
 
 /**
  * @fileOverview Painel Operacional Field Control 2026
@@ -58,11 +62,18 @@ export default function FieldControlOperational() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
+  const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("activities")
   const [isCheckinLoading, setIsCheckinLoading] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [currentLocation, setCurrentLocation] = React.useState<{lat: number, lng: number} | null>(null)
   
+  // Estados para o Organizador AI
+  const [isAiOrganizerOpen, setIsAiOrganizerOpen] = React.useState(false)
+  const [aiQuery, setAiQuery] = React.useState("")
+  const [isAiProcessing, setIsAiProcessing] = React.useState(false)
+  const [aiResult, setAiResult] = React.useState<any>(null)
+
   const [measurementForm, setMeasurementForm] = React.useState({
     agent: "ruido",
     intensity: "",
@@ -79,27 +90,21 @@ export default function FieldControlOperational() {
     return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
   }, [profile])
 
-  // Busca atividades de campo designadas
   const activitiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    // Busca global de tasks do tipo campo
     return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
   }, [db, profile])
   
   const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
 
-  // Filtra tasks baseadas na atribuição (Admin vê tudo, Técnico vê apenas as dele)
   const fieldTasks = React.useMemo(() => {
     if (!allTasks) return []
     const rawTasks = allTasks.filter(t => ['pgr', 'ltcat', 'iot_check', 'vistoria'].includes(t.type))
     
     if (isPrivileged) return rawTasks
-    
-    // Se for PROVIDER, vê apenas o que foi designado a ele
     if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') {
       return rawTasks.filter(t => t.assigneeId === user?.uid)
     }
-    
     return []
   }, [allTasks, isPrivileged, profile, user])
 
@@ -166,6 +171,36 @@ export default function FieldControlOperational() {
     }
   }
 
+  const handleAiOrganize = async () => {
+    if (!aiQuery.trim()) return
+    setIsAiProcessing(true)
+    try {
+      const result = await extractStorageData(aiQuery)
+      setAiResult(result)
+    } catch (error) {
+      toast({ variant: "destructive", title: "Erro na NAI", description: "Não consegui interpretar seu comando." })
+    } finally {
+      setIsAiProcessing(false)
+    }
+  }
+
+  const finalizeAiCreation = async () => {
+    if (!aiResult || !storage) return
+    setIsAiProcessing(true)
+    try {
+      const fileRef = ref(storage, aiResult.caminhoStorage)
+      await uploadString(fileRef, aiResult.placeholderContent, 'raw')
+      toast({ title: "Organização Concluída", description: `Pasta para ${aiResult.nomeEmpresa} criada via IA.` })
+      setIsAiOrganizerOpen(false)
+      setAiResult(null)
+      setAiQuery("")
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro de Permissão", description: "Falha ao criar arquivo no Storage." })
+    } finally {
+      setIsAiProcessing(false)
+    }
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -177,11 +212,64 @@ export default function FieldControlOperational() {
           </p>
         </div>
         <div className="flex gap-2">
-          {isPrivileged && (
-            <Button variant="outline" className="h-11 px-6 border-primary text-primary font-bold uppercase text-[10px] gap-2">
-              <MapIcon className="size-4" /> Mapa de Equipes
-            </Button>
-          )}
+          <Dialog open={isAiOrganizerOpen} onOpenChange={setIsAiOrganizerOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-11 px-6 border-accent text-accent font-bold uppercase text-[10px] gap-2 hover:bg-accent/5">
+                <Sparkles className="size-4" /> Organizador AI
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <div className="p-8 bg-primary text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg"><FolderTree className="size-5 text-accent" /></div>
+                  <DialogTitle className="text-xl font-headline font-black uppercase">Assistente de Organização</DialogTitle>
+                </div>
+                <DialogDescription className="text-white/70 font-medium">Use a NAI para estruturar pastas de evidências no Storage por voz ou texto.</DialogDescription>
+              </div>
+              <div className="p-8 space-y-6">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">O que você quer arquivar?</label>
+                  <div className="relative group">
+                    <Input 
+                      placeholder="Ex: Crie a pasta do projeto NR-18 para a COCEL, CNPJ 75.805.895/0001-30" 
+                      value={aiQuery}
+                      onChange={(e) => setAiQuery(e.target.value)}
+                      className="h-14 bg-slate-50 border-none rounded-2xl p-4 pr-12 text-sm font-medium focus-visible:ring-primary/10 shadow-inner"
+                    />
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      onClick={handleAiOrganize}
+                      disabled={isAiProcessing || !aiQuery}
+                      className="absolute right-2 top-2 h-10 w-10 text-primary hover:bg-primary/5"
+                    >
+                      {isAiProcessing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {aiResult && (
+                  <div className="p-5 bg-accent/5 border border-accent/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-accent mb-1">Estrutura Sugerida:</p>
+                      <code className="text-[10px] font-bold text-primary break-all block bg-white/50 p-2 rounded-lg border">{aiResult.caminhoStorage}</code>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-3 bg-white rounded-xl">
+                        <p className="text-[8px] font-black text-slate-400 uppercase">Empresa</p>
+                        <p className="text-[10px] font-bold truncate">{aiResult.nomeEmpresa}</p>
+                      </div>
+                      <div className="p-3 bg-white rounded-xl">
+                        <p className="text-[8px] font-black text-slate-400 uppercase">Projeto</p>
+                        <p className="text-[10px] font-bold truncate">{aiResult.nomeProjeto}</p>
+                      </div>
+                    </div>
+                    <Button onClick={finalizeAiCreation} className="w-full bg-accent text-primary font-black uppercase text-[10px] h-12 rounded-xl shadow-lg">Confirmar Organização</Button>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button className="gradient-nextcon text-white h-11 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 gap-2">
             <Smartphone className="size-4" /> Modo Offline
           </Button>
