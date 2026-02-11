@@ -15,13 +15,14 @@ service cloud.firestore {
       return exists(path) ? get(path).data : {};
     }
 
+    // Um Super Admin é um membro da equipe NextCon (cargo administrativo) 
+    // que NÃO possui vínculo fixo com uma empresa cliente (companyId vazio).
     function isSuperAdmin() {
-      let role = getUserData().role;
+      let userData = getUserData();
+      let role = userData.role;
       return isAuth() && (
-        role == 'SUPER_ADMIN' || 
-        role == 'ENGINEER' || 
-        role == 'DOCTOR' ||
-        role == 'ADMIN'
+        (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN') &&
+        (!userData.keys().contains('companyId') || userData.companyId == null || userData.companyId == "")
       );
     }
 
@@ -50,7 +51,7 @@ service cloud.firestore {
     }
 
     // ----------------------------------------------------------------------
-    // REGRAS PARA COLLECTION GROUPS (Consultas Globais do Admin)
+    // REGRAS PARA COLLECTION GROUPS (Apenas Administradores Globais)
     // ----------------------------------------------------------------------
     
     match /{path=**}/sst_events/{id} {

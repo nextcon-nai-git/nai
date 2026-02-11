@@ -95,9 +95,11 @@ export default function EmployeesPage() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(profile.role.toUpperCase())
-  }, [profile])
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile?.role) return false;
+    const role = profile.role.toUpperCase();
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+  }, [profile]);
 
   // 2. Formulário de Cadastro
   const form = useForm<EmployeeFormValues>({
@@ -114,11 +116,11 @@ export default function EmployeesPage() {
 
   // Sincroniza empresa no formulário caso o usuário não seja Admin
   React.useEffect(() => {
-    if (profile && !isPrivileged && profile.companyId) {
+    if (profile && !isGlobalAdmin && profile.companyId) {
       setSelectedCompanyId(profile.companyId)
       form.setValue("companyId", profile.companyId)
     }
-  }, [profile, isPrivileged, form])
+  }, [profile, isGlobalAdmin, form])
 
   // 3. Consultas Firestore
   const companiesQuery = useMemoFirebase(() => {
@@ -130,17 +132,16 @@ export default function EmployeesPage() {
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    if (selectedCompanyId === "all") {
-      if (isPrivileged) {
-        return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
-      } else if (profile.companyId) {
-        return query(collection(db, "companies", profile.companyId, "employees"), orderBy("name", "asc"))
-      }
+    if (selectedCompanyId === "all" && isGlobalAdmin) {
+      return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
     } else {
-      return query(collection(db, "companies", selectedCompanyId, "employees"), orderBy("name", "asc"))
+      const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+      if (companyIdToFilter) {
+        return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
+      }
     }
     return null
-  }, [db, profile, selectedCompanyId, isPrivileged])
+  }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
   const { data: employees, isLoading: loadingEmployees } = useCollection(employeesQuery)
 
@@ -258,7 +259,7 @@ export default function EmployeesPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-black uppercase text-slate-400">Unidade</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isPrivileged}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isGlobalAdmin}>
                             <FormControl>
                               <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold">
                                 <SelectValue placeholder="Selecione..." />
@@ -333,7 +334,7 @@ export default function EmployeesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        {isPrivileged && (
+        {isGlobalAdmin && (
           <div className="w-72">
             <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
               <SelectTrigger className="h-12 bg-white border-none shadow-sm rounded-xl font-bold uppercase text-[10px]">

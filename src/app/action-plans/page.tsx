@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react"
@@ -55,7 +54,7 @@ export default function EnterpriseOpsHub() {
     type: "vistoria",
     priority: "medium",
     status: "todo",
-    assigneeId: "", // ID do Prestador
+    assigneeId: "",
     dueDate: new Date().toISOString()
   })
 
@@ -65,25 +64,30 @@ export default function EnterpriseOpsHub() {
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
 
-  const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+  // Define se é um administrador da equipe interna Nextcon (sem companyId fixo)
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile?.role) return false;
+    const role = profile.role.toUpperCase();
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
   }, [profile]);
 
   React.useEffect(() => {
-    if (profile && !isPrivileged && profile.companyId) {
+    if (profile && !isGlobalAdmin && profile.companyId) {
       setSelectedCompanyId(profile.companyId);
       setTaskForm(prev => ({ ...prev, companyId: profile.companyId }));
     }
-  }, [profile, isPrivileged]);
+  }, [profile, isGlobalAdmin]);
 
-  // Lista de Prestadores para designação
   const providersQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "users"), orderBy("name", "asc"))
   }, [db])
   const { data: users } = useCollection(providersQuery)
   
-  const providers = users?.filter(u => ['PROVIDER', 'ENGINEER'].includes(u.role)) || []
+  const providers = users?.filter(u => {
+    const role = u.role?.toUpperCase();
+    return role === 'PROVIDER' || role === 'ENGINEER';
+  }) || []
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
@@ -93,17 +97,21 @@ export default function EnterpriseOpsHub() {
 
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    if (selectedCompanyId === "all") {
-      if (isPrivileged) {
-        return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
-      } else if (profile.companyId) {
-        return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
-      }
-    } else {
-      return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
+    
+    // Se selecionou "Todas" e é Global Admin, pode usar collectionGroup
+    if (selectedCompanyId === "all" && isGlobalAdmin) {
+      return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
+    } 
+    
+    // Caso contrário, deve filtrar por uma empresa específica
+    const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+    
+    if (companyIdToFilter) {
+      return query(collection(db, "companies", companyIdToFilter, "tasks"), orderBy("dueDate", "asc"))
     }
+    
     return null;
-  }, [db, profile, selectedCompanyId, isPrivileged])
+  }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
   const { data: tasks, isLoading: loadingTasks } = useCollection<OpsTask>(tasksQuery)
 
@@ -149,18 +157,18 @@ export default function EnterpriseOpsHub() {
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-64">
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isGlobalAdmin}>
               <SelectTrigger className="bg-white border-muted h-11 text-xs">
                 <Building2 className="size-4 mr-2" />
                 <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Filtrar Unidade"} />
               </SelectTrigger>
               <SelectContent>
-                {isPrivileged && <SelectItem value="all">Todas as Unidades</SelectItem>}
+                {isGlobalAdmin && <SelectItem value="all">Todas as Unidades</SelectItem>}
                 {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          {isPrivileged && (
+          {isGlobalAdmin && (
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button className="gradient-nextcon text-white gap-2 h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-2xl rounded-2xl">

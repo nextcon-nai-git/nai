@@ -39,18 +39,12 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 
-/**
- * @fileOverview Dashboard Principal (Agenda SESMT)
- * Visão centralizada de tudo que o gestor deve se preocupar hoje.
- */
-
 export default function Dashboard() {
   const { user } = useUser();
   const db = useFirestore();
   const [saudacao, setSaudacao] = React.useState('');
   const [dataAtual, setDataAtual] = React.useState('');
   
-  // Estados da Calculadora FAP
   const [fapValue, setFapValue] = React.useState([1.0]);
   const [payroll, setPayroll] = React.useState(150000);
 
@@ -60,22 +54,24 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
-  const isAdmin = React.useMemo(() => {
+  const isGlobalAdmin = React.useMemo(() => {
     if (!profile?.role) return false;
     const role = profile.role.toUpperCase();
-    // Apenas Administradores sem companyId podem ver dados globais
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
   }, [profile]);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
-    if (isAdmin) {
+    
+    // Se for administrador global, tenta ver tudo. Caso contrário, restringe à empresa do perfil.
+    if (isGlobalAdmin) {
       return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(4));
     } else if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(4));
     }
     return null;
-  }, [db, profile, isAdmin]);
+  }, [db, profile, isGlobalAdmin]);
+  
   const { data: events } = useCollection(eventsQuery);
 
   React.useEffect(() => {
@@ -102,9 +98,9 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className={cn("h-8 w-1.5 rounded-full", isAdmin ? "bg-accent" : "bg-primary")} />
+            <div className={cn("h-8 w-1.5 rounded-full", isGlobalAdmin ? "bg-accent" : "bg-primary")} />
             <h1 className="text-4xl font-black text-primary tracking-tight font-headline uppercase leading-none">
-              {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-3">{saudacao}, <span className={isAdmin ? "text-accent" : "text-primary"}>{nomeExibicao}</span></div>}
+              {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-3">{saudacao}, <span className={isGlobalAdmin ? "text-accent" : "text-primary"}>{nomeExibicao}</span></div>}
             </h1>
           </div>
           <p className="text-xs text-gray-400 font-bold uppercase tracking-[0.3em] ml-4">{dataAtual}</p>
@@ -112,16 +108,15 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <Badge className={cn(
             "text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10",
-            isAdmin ? "bg-[#001F3F]" : "bg-primary"
+            isGlobalAdmin ? "bg-[#001F3F]" : "bg-primary"
           )}>
-            {isAdmin ? 'NAI 2.0' : 'SESMT Portal do Cliente'}
+            {isGlobalAdmin ? 'NAI 2.0' : 'SESMT Portal do Cliente'}
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Agenda SESMT */}
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b pb-8 px-8">
               <div className="flex items-center justify-between">
@@ -236,7 +231,7 @@ export default function Dashboard() {
 
           <Card className={cn(
             "border-none text-white card-shadow relative overflow-hidden rounded-[2.5rem]",
-            isAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
+            isGlobalAdmin ? "bg-[#001F3F]" : "gradient-nextcon"
           )}>
             <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles className="size-40 text-accent" /></div>
             <CardHeader className="pb-6 relative z-10 p-8">
@@ -248,7 +243,7 @@ export default function Dashboard() {
               <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Análise de Risco 24h</p>
                 <p className="text-sm leading-relaxed text-white/90 font-medium italic">
-                  {isAdmin 
+                  {isGlobalAdmin 
                     ? '"Detectamos aumento de 15% em afastamentos por CID M54 na rede de construção civil. Recomenda-se auditoria ergonômica preventiva."'
                     : '"Sua unidade atingiu 100% de conformidade S-2240. O próximo PGR vence em 45 dias. Agendamento liberado."'
                   }
