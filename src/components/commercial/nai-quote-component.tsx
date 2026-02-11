@@ -1,18 +1,35 @@
+
 "use client";
 
 import * as React from "react";
-import { Bot, FileText, CheckCircle2, AlertTriangle, Loader2, Sparkles, Zap, Building2, Users, TrendingUp } from "lucide-react";
+import { 
+  Bot, 
+  FileText, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Loader2, 
+  Sparkles, 
+  Zap, 
+  Save, 
+  Download, 
+  History, 
+  ExternalLink,
+  ChevronRight,
+  FileCheck
+} from "lucide-react";
 import { gerarOrcamentoComNai } from "@/actions/nai-quote";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useMemoFirebase, useDoc } from "@/firebase";
-import { collection, doc } from "firebase/firestore";
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, useStorage } from "@/firebase";
+import { collection, doc, query, orderBy, serverTimestamp, addDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { cn } from "@/lib/utils";
+import jsPDF from "jspdf";
 
 type OrcamentoGerado = {
   mensagemIntrodutoria: string;
@@ -31,6 +48,7 @@ export function NaiQuoteComponent() {
   const { toast } = useToast();
   const { user } = useUser();
   const db = useFirestore();
+  const storage = useStorage();
   
   const [formData, setFormData] = React.useState({
     nomeEmpresa: "",
@@ -48,6 +66,13 @@ export function NaiQuoteComponent() {
     return doc(db, "users", user.uid);
   }, [db, user]);
   const { data: profile } = useDoc(profileRef);
+
+  // Carrega histórico de propostas da unidade
+  const proposalsQuery = useMemoFirebase(() => {
+    if (!db || !profile?.companyId) return null;
+    return query(collection(db, "companies", profile.companyId, "proposals"), orderBy("createdAt", "desc"));
+  }, [db, profile]);
+  const { data: history, isLoading: loadingHistory } = useCollection(proposalsQuery);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -71,195 +96,308 @@ export function NaiQuoteComponent() {
     setLoading(false);
   }
 
-  async function handleSaveProposal() {
-    if (!db || !profile || !orcamento) return;
+  async function handleSaveAndExport() {
+    if (!db || !profile || !orcamento || !storage) return;
     setIsSaving(true);
+    
     try {
-      const colRef = collection(db, "companies", profile.companyId || "leads", "proposals");
-      await addDocumentNonBlocking(colRef, {
+      // 1. Salva os dados no Firestore para obter ID
+      const proposalsRef = collection(db, "companies", profile.companyId || "leads", "proposals");
+      const docRef = await addDoc(proposalsRef, {
         userId: user?.uid,
         userName: profile.name,
+        empresa: formData.nomeEmpresa,
+        status: "ENVIADO",
         source: 'ai',
         data: orcamento,
         totalValue: orcamento.valorTotalAvulso,
-        status: "PENDENTE",
         createdAt: new Date().toISOString()
       });
-      toast({ title: "Proposta Salva!", description: "O orçamento da NAI foi registrado no sistema." });
+
+      // 2. Gera o PDF comercial
+      const pdf = new jsPDF();
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(0, 53, 107); // Navy Nextcon
+      pdf.setFontSize(22);
+      pdf.text("Proposta Técnica SST - Nextcon NAI", 20, 30);
+      
+      pdf.setFontSize(12);
+      pdf.setTextColor(100, 116, 139);
+      pdf.text(`Cliente: ${formData.nomeEmpresa.toUpperCase()}`, 20, 45);
+      pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 52);
+      
+      pdf.setFont("helvetica", "italic");
+      pdf.setTextColor(0, 53, 107);
+      let intro = pdf.splitTextToSize(`Análise NAI Intelligence: ${orcamento.mensagemIntrodutoria}`, 170);
+      pdf.text(intro, 20, 65);
+
+      let y = 75 + (intro.length * 5);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("CRONOGRAMA DE IMPLANTAÇÃO RECOMENDADO:", 20, y);
+      y += 10;
+
+      orcamento.servicosRecomendados.forEach(s => {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(11);
+        pdf.text(`• ${s.nomeServico} - R$ ${s.valorEstimado.toFixed(2)}`, 20, y);
+        
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+        let just = pdf.splitTextToSize(s.justificativaLegal, 160);
+        pdf.text(just, 25, y + 5);
+        y += 15 + (just.length * 5);
+      });
+
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`Total Investimento: R$ ${orcamento.valorTotalAvulso.toFixed(2)}`, 20, y + 10);
+      if (orcamento.valorTotalMensal) {
+        pdf.text(`Gestão eSocial Mensal: R$ ${orcamento.valorTotalMensal.toFixed(2)}/mês`, 20, y + 20);
+      }
+
+      // 3. Upload para Storage
+      const pdfBlob = pdf.output("blob");
+      const storagePath = `proposals/${profile.companyId || 'general'}/${docRef.id}.pdf`;
+      const storageRef = ref(storage, storagePath);
+      await uploadBytes(storageRef, pdfBlob);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // 4. Atualiza registro com link do PDF
+      await updateDoc(docRef, { pdfUrl: downloadURL });
+
+      toast({ title: "Proposta Protocolada!", description: "Dossiê gerado e salvo no histórico." });
+      setOrcamento(null);
+      setFormData({ nomeEmpresa: "", quantidadeFuncionarios: "", grauDeRisco: "1", necessidades: "" });
     } catch (e) {
-      toast({ variant: "destructive", title: "Erro ao salvar" });
+      console.error(e);
+      toast({ variant: "destructive", title: "Erro no Protocolo" });
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
-      {/* FORMULÁRIO */}
-      <Card className="lg:col-span-1 border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
-        <div className="p-8 bg-primary text-white">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
-            <h3 className="text-xl font-headline font-black uppercase">Dados para Análise</h3>
-          </div>
-          <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">A NAI cruzará riscos e NRs para seu orçamento.</p>
-        </div>
-        <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa</label>
-              <Input 
-                required
-                className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                placeholder="Ex: Construtora Alfa"
-                value={formData.nomeEmpresa}
-                onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
-              />
+    <div className="space-y-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
+        {/* FORMULÁRIO */}
+        <Card className="lg:col-span-1 border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
+          <div className="p-8 bg-primary text-white">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
+              <h3 className="text-xl font-headline font-black uppercase">Dados para Análise</h3>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">A NAI cruzará riscos e NRs para seu orçamento.</p>
+          </div>
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa</label>
                 <Input 
-                  required type="number" min="1"
+                  required
                   className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                  value={formData.quantidadeFuncionarios}
-                  onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                  placeholder="Ex: Construtora Alfa"
+                  value={formData.nomeEmpresa}
+                  onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Grau de Risco</label>
-                <select 
-                  className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-xs font-bold shadow-inner"
-                  value={formData.grauDeRisco}
-                  onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
-                >
-                  <option value="1">1 - Baixo</option>
-                  <option value="2">2 - Médio</option>
-                  <option value="3">3 - Alto</option>
-                  <option value="4">4 - Muito Alto</option>
-                </select>
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
-              <Textarea 
-                required
-                className="min-h-[120px] bg-slate-50 border-none rounded-2xl p-4 font-medium shadow-inner" 
-                placeholder="Ex: Preciso de laudos e treinamentos para uma obra de 6 meses..."
-                value={formData.necessidades}
-                onChange={e => setFormData({...formData, necessidades: e.target.value})}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              disabled={loading}
-              className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-            >
-              {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
-              {loading ? "Calculando..." : "Gerar Orçamento NAI"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* RESULTADO */}
-      <div className="lg:col-span-2">
-        {!orcamento && !loading && (
-          <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 border-2 border-dashed rounded-[3rem] p-20 bg-white">
-            <Bot className="size-24 text-primary" />
-            <div className="space-y-2">
-              <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
-              <p className="text-sm font-bold">Descreva a empresa para que a NAI monte a proposta perfeita.</p>
-            </div>
-          </div>
-        )}
-
-        {loading && (
-          <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
-            <div className="relative">
-              <Loader2 className="size-20 animate-spin text-primary opacity-20" />
-              <Bot className="size-10 text-primary absolute inset-0 m-auto animate-bounce" />
-            </div>
-            <div className="space-y-3">
-              <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Base Legal 2026...</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Calculando eSocial, Insalubridade e Treinamentos</p>
-            </div>
-          </div>
-        )}
-
-        {orcamento && !loading && (
-          <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
-            <Card className="border-none shadow-xl bg-blue-50/50 rounded-[2.5rem] p-8 border-2 border-blue-100">
-              <div className="flex gap-4">
-                <div className="p-3 bg-white rounded-2xl shadow-sm h-fit"><Sparkles className="size-6 text-accent" /></div>
-                <p className="text-sm italic text-blue-900 font-medium leading-relaxed">"{orcamento.mensagemIntrodutoria}"</p>
-              </div>
-            </Card>
-
-            <div className="grid grid-cols-1 gap-4">
-              {orcamento.servicosRecomendados.map((svc, i) => (
-                <div key={i} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-primary/20 transition-all">
-                  <div className="flex gap-4 flex-1">
-                    <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-colors h-fit">
-                      <CheckCircle2 className="size-5" />
-                    </div>
-                    <div>
-                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 mb-1">{svc.categoria}</Badge>
-                      <h4 className="font-black text-primary uppercase text-sm tracking-tight">{svc.nomeServico}</h4>
-                      <p className="text-[10px] text-muted-foreground font-medium italic mt-1">{svc.justificativaLegal}</p>
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 px-6 py-3 rounded-2xl border font-black text-primary shadow-inner">
-                    {svc.valorEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+                  <Input 
+                    required type="number" min="1"
+                    className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                    value={formData.quantidadeFuncionarios}
+                    onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                  />
                 </div>
-              ))}
-            </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Grau de Risco</label>
+                  <select 
+                    className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-xs font-bold shadow-inner"
+                    value={formData.grauDeRisco}
+                    onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
+                  >
+                    <option value="1">1 - Baixo</option>
+                    <option value="2">2 - Médio</option>
+                    <option value="3">3 - Alto</option>
+                    <option value="4">4 - Muito Alto</option>
+                  </select>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-none shadow-lg bg-white rounded-[2.5rem] p-8 text-center flex flex-col justify-center">
-                <p className="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Total Implementação</p>
-                <h2 className="text-4xl font-black text-primary font-headline tracking-tighter">
-                  {orcamento.valorTotalAvulso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </h2>
-              </Card>
-              {orcamento.valorTotalMensal && (
-                <Card className="border-none shadow-2xl bg-primary text-white rounded-[2.5rem] p-8 text-center relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="size-20 text-accent" /></div>
-                  <div className="relative z-10">
-                    <p className="text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Gestão Mensal NAI</p>
-                    <h2 className="text-4xl font-black text-accent font-headline tracking-tighter">
-                      {orcamento.valorTotalMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </h2>
-                  </div>
-                </Card>
-              )}
-            </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
+                <Textarea 
+                  required
+                  className="min-h-[120px] bg-slate-50 border-none rounded-2xl p-4 font-medium shadow-inner" 
+                  placeholder="Ex: Preciso de laudos e treinamentos para uma obra de 6 meses..."
+                  value={formData.necessidades}
+                  onChange={e => setFormData({...formData, necessidades: e.target.value})}
+                />
+              </div>
 
-            <div className="bg-amber-50 p-6 rounded-[2rem] border border-amber-200 flex gap-4">
-              <div className="p-2 bg-amber-500 text-white rounded-xl h-fit shadow-lg shadow-amber-500/20"><AlertTriangle className="size-5" /></div>
-              <div>
-                <p className="text-[10px] font-black uppercase text-amber-700 mb-1 tracking-widest">Dica Estratégica NAI</p>
-                <p className="text-xs text-amber-800 font-bold leading-relaxed">{orcamento.dicaDaNai}</p>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+              >
+                {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
+                {loading ? "Calculando..." : "Gerar Orçamento NAI"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* RESULTADO */}
+        <div className="lg:col-span-2">
+          {!orcamento && !loading && (
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 border-2 border-dashed rounded-[3rem] p-20 bg-white">
+              <Bot className="size-24 text-primary" />
+              <div className="space-y-2">
+                <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
+                <p className="text-sm font-bold">Descreva a empresa para que a NAI monte a proposta perfeita.</p>
               </div>
             </div>
+          )}
 
-            <div className="flex gap-4 pt-4">
-              <Button variant="outline" className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest border-primary text-primary" onClick={() => setOrcamento(null)}>
-                Refazer Simulação
-              </Button>
-              <Button 
-                onClick={handleSaveProposal}
-                disabled={isSaving}
-                className="flex-1 h-14 rounded-2xl bg-accent text-primary font-black uppercase text-[10px] tracking-widest shadow-xl shadow-accent/20"
-              >
-                {isSaving ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
-                Salvar Proposta NAI
-              </Button>
+          {loading && (
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
+              <div className="relative">
+                <Loader2 className="size-20 animate-spin text-primary opacity-20" />
+                <Bot className="size-10 text-primary absolute inset-0 m-auto animate-bounce" />
+              </div>
+              <div className="space-y-3">
+                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Base Legal 2026...</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Calculando eSocial, Insalubridade e Treinamentos</p>
+              </div>
             </div>
+          )}
+
+          {orcamento && !loading && (
+            <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+              <Card className="border-none shadow-xl bg-blue-50/50 rounded-[2.5rem] p-8 border-2 border-blue-100">
+                <div className="flex gap-4">
+                  <div className="p-3 bg-white rounded-2xl shadow-sm h-fit"><Sparkles className="size-6 text-accent" /></div>
+                  <p className="text-sm italic text-blue-900 font-medium leading-relaxed">"{orcamento.mensagemIntrodutoria}"</p>
+                </div>
+              </Card>
+
+              <div className="grid grid-cols-1 gap-4">
+                {orcamento.servicosRecomendados.map((svc, i) => (
+                  <div key={i} className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-primary/20 transition-all">
+                    <div className="flex gap-4 flex-1">
+                      <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-colors h-fit">
+                        <CheckCircle2 className="size-5" />
+                      </div>
+                      <div>
+                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 mb-1">{svc.categoria}</Badge>
+                        <h4 className="font-black text-primary uppercase text-sm tracking-tight">{svc.nomeServico}</h4>
+                        <p className="text-[10px] text-muted-foreground font-medium italic mt-1">{svc.justificativaLegal}</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 px-6 py-3 rounded-2xl border font-black text-primary shadow-inner">
+                      {svc.valorEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="border-none shadow-lg bg-white rounded-[2.5rem] p-8 text-center flex flex-col justify-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-2 tracking-widest">Total Implementação</p>
+                  <h2 className="text-4xl font-black text-primary font-headline tracking-tighter">
+                    {orcamento.valorTotalAvulso.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </h2>
+                </Card>
+                {orcamento.valorTotalMensal && (
+                  <Card className="border-none shadow-2xl bg-primary text-white rounded-[2.5rem] p-8 text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10"><Zap className="size-20 text-accent" /></div>
+                    <div className="relative z-10">
+                      <p className="text-[10px] font-black uppercase opacity-50 mb-2 tracking-widest">Gestão Mensal NAI</p>
+                      <h2 className="text-4xl font-black text-accent font-headline tracking-tighter">
+                        {orcamento.valorTotalMensal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </h2>
+                    </div>
+                  </Card>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button variant="outline" className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest border-primary text-primary" onClick={() => setOrcamento(null)}>
+                  Refazer Simulação
+                </Button>
+                <Button 
+                  onClick={handleSaveAndExport}
+                  disabled={isSaving}
+                  className="flex-1 h-14 rounded-2xl bg-accent text-primary font-black uppercase text-[10px] tracking-widest shadow-xl shadow-accent/20 gap-2"
+                >
+                  {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  {isSaving ? "Protocolando..." : "Salvar e Gerar PDF"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* HISTÓRICO */}
+      <div className="pt-8 border-t space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/5 rounded-lg text-primary"><History className="size-5" /></div>
+          <h2 className="text-xl font-headline font-black uppercase text-primary">Histórico de Propostas Enviadas</h2>
+        </div>
+
+        {loadingHistory ? (
+          <div className="flex flex-col items-center py-12 gap-2 opacity-30">
+            <Loader2 className="size-8 animate-spin" />
+            <p className="text-[10px] font-black uppercase">Sincronizando Propostas...</p>
+          </div>
+        ) : history && history.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {history.map((orc) => (
+              <Card key={orc.id} className="card-shadow border-none bg-white rounded-3xl overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="min-w-0">
+                      <h3 className="font-black text-primary uppercase text-sm truncate" title={orc.empresa}>{orc.empresa}</h3>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
+                        {new Date(orc.createdAt).toLocaleDateString('pt-BR')} às {new Date(orc.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">{orc.status}</Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Vidas</p>
+                      <p className="text-xs font-bold text-primary">{orc.data?.quantidadeFuncionarios || orc.funcionarios || '---'}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Total</p>
+                      <p className="text-xs font-bold text-primary">R$ {orc.totalValue?.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  {orc.pdfUrl ? (
+                    <Button variant="outline" className="w-full h-11 rounded-xl gap-2 font-black uppercase text-[10px] border-primary/10 hover:bg-primary hover:text-white transition-all" asChild>
+                      <a href={orc.pdfUrl} target="_blank" rel="noopener noreferrer">
+                        <Download className="size-3.5" /> Baixar Dossiê PDF
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button disabled className="w-full h-11 rounded-xl gap-2 font-black uppercase text-[10px] opacity-50">
+                      <Loader2 className="size-3.5 animate-spin" /> Gerando Dossiê...
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center opacity-20 border-2 border-dashed rounded-[3rem]">
+            <FileCheck className="size-16 mx-auto mb-4" />
+            <p className="font-black uppercase text-xs tracking-widest">Nenhuma proposta registrada</p>
           </div>
         )}
       </div>
