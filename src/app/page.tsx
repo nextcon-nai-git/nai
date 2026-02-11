@@ -113,7 +113,7 @@ export default function Dashboard() {
             "text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10",
             isAdmin ? "bg-[#001F3F]" : "bg-primary"
           )}>
-            {isAdmin ? 'SESMT Global Control v2.6' : 'SESMT Portal do Cliente'}
+            {isAdmin ? 'NAI 2.0' : 'SESMT Portal do Cliente'}
           </Badge>
         </div>
       </div>
@@ -306,7 +306,7 @@ function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
           </div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
-        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">{label}</p>
+        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>
         <h3 className="text-2xl font-black text-primary leading-none mb-1">{value}</h3>
         <p className="text-[8px] font-bold text-slate-400 uppercase">{sub}</p>
       </CardContent>
