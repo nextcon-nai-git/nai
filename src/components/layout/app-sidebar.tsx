@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -14,7 +13,6 @@ import {
   Lock,
   Database,
   Sparkles,
-  Map as MapIcon,
   DollarSign,
   ClipboardCheck,
   BarChart3,
@@ -58,7 +56,6 @@ const navGroups = [
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
-      { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
       { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
