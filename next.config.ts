@@ -7,8 +7,10 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  serverActions: {
-    bodySizeLimit: '15mb', // Suporte para documentos PDF pesados em base64
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '15mb', // Suporte para documentos PDF pesados em base64
+    },
   },
   images: {
     remotePatterns: [
@@ -25,6 +27,11 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
         pathname: '/**',
       },
     ],
