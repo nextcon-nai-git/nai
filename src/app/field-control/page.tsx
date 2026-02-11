@@ -68,7 +68,6 @@ export default function FieldControlOperational() {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [currentLocation, setCurrentLocation] = React.useState<{lat: number, lng: number} | null>(null)
   
-  // Estados para o Organizador AI
   const [isAiOrganizerOpen, setIsAiOrganizerOpen] = React.useState(false)
   const [aiQuery, setAiQuery] = React.useState("")
   const [isAiProcessing, setIsAiProcessing] = React.useState(false)
@@ -86,14 +85,34 @@ export default function FieldControlOperational() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+  }, [profile]);
+
   const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role);
   }, [profile])
 
   const activitiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
-  }, [db, profile])
+    
+    // Se for Administrador Global, usa Collection Group
+    if (isGlobalAdmin) {
+      return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
+    }
+    
+    // Se for usuário de cliente ou prestador vinculado, restringe à sua empresa
+    if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
+    }
+
+    return null;
+  }, [db, profile, isGlobalAdmin])
   
   const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
 
@@ -101,12 +120,15 @@ export default function FieldControlOperational() {
     if (!allTasks) return []
     const rawTasks = allTasks.filter(t => ['pgr', 'ltcat', 'iot_check', 'vistoria'].includes(t.type))
     
-    if (isPrivileged) return rawTasks
+    if (isGlobalAdmin) return rawTasks
+    
+    // Filtra tarefas atribuídas ao usuário se não for admin de cliente
     if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') {
       return rawTasks.filter(t => t.assigneeId === user?.uid)
     }
-    return []
-  }, [allTasks, isPrivileged, profile, user])
+    
+    return rawTasks
+  }, [allTasks, isGlobalAdmin, profile, user])
 
   const equipments = [
     { id: "DEC-001", name: "Decibelímetro Digital", brand: "Instrutherm", lastCal: "2025-01-10", nextCal: "2026-01-10", status: "expired" },
@@ -208,7 +230,7 @@ export default function FieldControlOperational() {
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Field Control Center</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest flex items-center gap-2">
             <Signal className="size-3 text-accent animate-pulse" /> 
-            {isPrivileged ? "Gestão Global de Engenharia" : `Painel do Prestador: ${profile?.name || 'Técnico'}`}
+            {isGlobalAdmin ? "Gestão Global de Engenharia" : `Painel do Prestador: ${profile?.name || 'Técnico'}`}
           </p>
         </div>
         <div className="flex gap-2">

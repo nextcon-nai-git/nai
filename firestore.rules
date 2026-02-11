@@ -22,7 +22,7 @@ service cloud.firestore {
       let role = userData.get('role', '');
       let companyId = userData.get('companyId', '');
       return isAuth() && 
-        (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN') &&
+        (role == 'SUPER_ADMIN' || role == 'ENGINEER' || role == 'DOCTOR' || role == 'ADMIN' || role == 'admin') &&
         (companyId == null || companyId == "");
     }
 

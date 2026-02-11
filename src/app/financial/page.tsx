@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -47,7 +46,8 @@ import {
   Users,
   FileBarChart,
   UserCheck,
-  PieChart
+  PieChart,
+  Building2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -90,8 +90,8 @@ import {
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { analyzeFiscalScenario } from "@/ai/flows/fiscal-intelligence-flow"
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
-import { doc, collectionGroup, query, orderBy } from "firebase/firestore"
+import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
+import { doc, collectionGroup, query, orderBy, collection } from "firebase/firestore"
 import { DRE_2025_HISTORY, REAL_CONTRACTS, DRE_2026_DATA } from "@/lib/real-data"
 
 const cashFlowData = [
@@ -106,6 +106,7 @@ const cashFlowData = [
 export default function FinancialModule() {
   const [activeTab, setActiveTab] = React.useState("contracts")
   const { toast } = useToast()
+  const { user } = useUser()
   const db = useFirestore()
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
@@ -119,6 +120,19 @@ export default function FinancialModule() {
     bb: ""
   })
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, "users", user.uid)
+  }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+  }, [profile]);
+
   const dre2025Ref = useMemoFirebase(() => {
     if (!db) return null
     return doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
@@ -126,12 +140,28 @@ export default function FinancialModule() {
   const { data: remoteDre2025 } = useDoc(dre2025Ref)
 
   const contractsQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collectionGroup(db, "contracts"), orderBy("value", "desc"))
-  }, [db])
+    if (!db || !profile) return null
+    
+    // Se for Administrador Global, busca todos os contratos da rede
+    if (isGlobalAdmin) {
+      return query(collectionGroup(db, "contracts"), orderBy("value", "desc"))
+    }
+
+    // Se for usuário de cliente, busca apenas os contratos da sua empresa
+    if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "contracts"), orderBy("value", "desc"))
+    }
+
+    return null;
+  }, [db, profile, isGlobalAdmin])
+
   const { data: uploadedContracts, isLoading: loadingContracts } = useCollection(contractsQuery)
 
-  const contracts = uploadedContracts?.length ? uploadedContracts : REAL_CONTRACTS;
+  const contracts = React.useMemo(() => {
+    if (uploadedContracts && uploadedContracts.length > 0) return uploadedContracts;
+    // Fallback apenas para admins visualizarem dados demo se a base real estiver vazia
+    return isGlobalAdmin ? REAL_CONTRACTS : [];
+  }, [uploadedContracts, isGlobalAdmin]);
 
   const totalContractValue = React.useMemo(() => {
     return contracts.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
@@ -172,7 +202,7 @@ export default function FinancialModule() {
     { title: "Valor Total Contratos", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Conquistado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
     { title: "A Receber (Parcelado)", amount: "R$ 142.500,00", trend: "Desdobrado", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Consolidação Multi-app", amount: "Multi CNPJs", trend: "Sincronizado", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
+    { title: "Consolidação Multi-app", amount: isGlobalAdmin ? "Multi CNPJs" : "Unidade", trend: "Sincronizado", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
   ]
 
   const reportCategories = [
@@ -301,47 +331,59 @@ export default function FinancialModule() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                  <TableRow>
-                    <TableHead className="pl-8">Cliente / Solução</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right pr-8">Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {contracts.map((item, i) => (
-                    <TableRow key={i} className="hover:bg-slate-50 transition-colors">
-                      <TableCell className="pl-8">
-                        <p className="font-black text-xs text-primary">{item.companyName || "Cliente"}</p>
-                        <p className="text-[9px] text-slate-400 uppercase font-bold">{item.title}</p>
-                      </TableCell>
-                      <TableCell className="font-black text-xs text-primary">
-                        {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase border-none">
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem className="text-xs font-bold gap-2"><CheckCircle2 className="size-3 text-emerald-600" /> Ativar e Faturar</DropdownMenuItem>
-                            <DropdownMenuItem className="text-xs font-bold gap-2"><Copy className="size-3" /> Duplicar OS</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-xs font-bold gap-2 text-destructive"><XCircle className="size-3" /> Suspender</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+              {loadingContracts ? (
+                <div className="p-20 text-center flex flex-col items-center gap-4">
+                  <Loader2 className="size-10 animate-spin text-primary opacity-20" />
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronizando Faturamento...</p>
+                </div>
+              ) : contracts.length > 0 ? (
+                <Table>
+                  <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                    <TableRow>
+                      <TableHead className="pl-8">Cliente / Solução</TableHead>
+                      <TableHead>Valor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right pr-8">Ação</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {contracts.map((item, i) => (
+                      <TableRow key={i} className="hover:bg-slate-50 transition-colors">
+                        <TableCell className="pl-8">
+                          <p className="font-black text-xs text-primary">{item.companyName || "Cliente"}</p>
+                          <p className="text-[9px] text-slate-400 uppercase font-bold">{item.title}</p>
+                        </TableCell>
+                        <TableCell className="font-black text-xs text-primary">
+                          {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase border-none">
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem className="text-xs font-bold gap-2"><CheckCircle2 className="size-3 text-emerald-600" /> Ativar e Faturar</DropdownMenuItem>
+                              <DropdownMenuItem className="text-xs font-bold gap-2"><Copy className="size-3" /> Duplicar OS</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-xs font-bold gap-2 text-destructive"><XCircle className="size-3" /> Suspender</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="p-32 text-center space-y-4 opacity-20">
+                  <Building2 size={64} className="mx-auto" />
+                  <p className="font-black uppercase text-xs tracking-widest">Nenhum contrato localizado nesta unidade</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
