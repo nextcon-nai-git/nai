@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react"
@@ -38,6 +39,7 @@ import { cn } from "@/lib/utils"
 import { OpsTask, TaskType, Priority } from "@/types/schema"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { Badge } from "@/components/ui/badge"
+import { OPERATIONAL_COLUMNS } from "@/types/kanban"
 
 export default function EnterpriseOpsHub() {
   const { user } = useUser()
@@ -97,12 +99,10 @@ export default function EnterpriseOpsHub() {
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Proteção: Apenas administradores globais (sem companyId) podem fazer collectionGroup
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     } 
     
-    // Se não for admin global ou selecionou empresa, força o caminho multi-tenant
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
     
     if (companyIdToFilter) {
@@ -113,6 +113,12 @@ export default function EnterpriseOpsHub() {
   }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
   const { data: tasks, isLoading: loadingTasks } = useCollection<OpsTask>(tasksQuery)
+
+  // Filtra apenas tarefas operacionais (não comerciais em andamento)
+  const operationalTasks = React.useMemo(() => {
+    if (!tasks) return []
+    return tasks.filter(t => ['started', 'todo', 'doing', 'review', 'done'].includes(t.status))
+  }, [tasks])
 
   const handleCreateTask = () => {
     if (!db || !taskForm.title || !taskForm.companyId) {
@@ -218,9 +224,9 @@ export default function EnterpriseOpsHub() {
              <div className="size-20 rounded-[2rem] bg-[#090e24] flex items-center justify-center text-white font-black text-4xl shadow-2xl animate-bounce">N</div>
              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/40 animate-pulse">Sincronizando Operações...</p>
            </div>
-         ) : tasks && tasks.length > 0 ? (
+         ) : operationalTasks.length > 0 ? (
            <div className="w-full h-full">
-             <KanbanBoard tasks={tasks} />
+             <KanbanBoard tasks={operationalTasks} columns={OPERATIONAL_COLUMNS} boardType="operational" />
            </div>
          ) : (
            <div className="text-center opacity-30 space-y-4">

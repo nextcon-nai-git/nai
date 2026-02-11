@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -13,18 +14,16 @@ import {
   Briefcase,
   Brain,
   Zap,
-  HelpCircle,
-  Gavel
+  LayoutGrid,
+  TrendingUp
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase"
-import { doc, collection } from "firebase/firestore"
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
+import { doc, collection, query, orderBy, collectionGroup } from "firebase/firestore"
 import { SST_CATALOG } from "@/lib/services-data"
-import { cn } from "@/lib/utils"
 import {
   Accordion,
   AccordionContent,
@@ -34,8 +33,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { NaiQuoteComponent } from "@/components/commercial/nai-quote-component"
+import { KanbanBoard } from "@/components/kanban/kanban-board"
+import { COMMERCIAL_COLUMNS } from "@/types/kanban"
+import { OpsTask } from "@/types/schema"
 
-export default function QuoteSimulator() {
+export default function ComercialPortal() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
@@ -49,6 +51,32 @@ export default function QuoteSimulator() {
     return doc(db, "users", user.uid)
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
+
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+  }, [profile]);
+
+  // Busca cards comerciais
+  const commercialTasksQuery = useMemoFirebase(() => {
+    if (!db || !profile) return null
+    if (isGlobalAdmin) {
+      return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
+    }
+    if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
+    }
+    return null
+  }, [db, profile, isGlobalAdmin])
+
+  const { data: allTasks, isLoading: loadingTasks } = useCollection<OpsTask>(commercialTasksQuery)
+
+  const commercialTasks = React.useMemo(() => {
+    if (!allTasks) return []
+    return allTasks.filter(t => ['sent', 'approved', 'implementation'].includes(t.status))
+  }, [allTasks])
 
   const handleUpdateQty = (serviceId: string, delta: number) => {
     setSelectedServices(prev => {
@@ -79,18 +107,21 @@ export default function QuoteSimulator() {
     setIsSaving(true)
     try {
       const proposalData = {
-        userId: user?.uid,
-        userName: profile.name,
-        companyId: profile.companyId || "LEAD_EXTERNO",
-        source: 'manual',
-        data: selectedServices,
+        title: `Proposta Manual - ${profile.name}`,
+        companyId: profile.companyId || "leads",
+        companyName: profile.name,
+        type: 'comercial',
+        status: 'sent',
+        priority: 'medium',
+        dueDate: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         totalValue: totalValueManual,
-        status: "PENDENTE",
-        createdAt: new Date().toISOString()
+        services: selectedServices
       }
-      const colRef = collection(db, "companies", profile.companyId || "leads", "proposals")
+      const colRef = collection(db, "companies", profile.companyId || "leads", "tasks")
       await addDocumentNonBlocking(colRef, proposalData)
-      toast({ title: "Proposta Salva!", description: "Seu orçamento manual foi registrado no sistema." })
+      toast({ title: "Proposta Salva!", description: "Card comercial criado na etapa 'Orçamentos Enviados'." })
+      setActiveTab("cards")
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao salvar" })
     } finally {
@@ -104,19 +135,22 @@ export default function QuoteSimulator() {
         <div>
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Portal Comercial NAI</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
-            <Sparkles className="size-3 text-accent" /> Inteligência Comercial e Simulação de Investimento SST.
+            <Sparkles className="size-3 text-[#00f2ff]" /> Inteligência Comercial e Funil de Vendas SST.
           </p>
         </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4">TABELA 2026 ATIVA</Badge>
+        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#00f2ff]/30">PROPOSTAS 2026</Badge>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[500px] grid-cols-2 bg-muted/50 p-1.5 rounded-2xl h-16">
+        <TabsList className="grid w-full md:w-[750px] grid-cols-3 bg-muted/50 p-1.5 rounded-2xl h-16">
           <TabsTrigger value="ai" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Brain className="size-4" /> Consultoria NAI (IA)
           </TabsTrigger>
           <TabsTrigger value="manual" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Calculator className="size-4" /> Simulador Manual
+          </TabsTrigger>
+          <TabsTrigger value="cards" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
+            <LayoutGrid className="size-4" /> Cards Comercial
           </TabsTrigger>
         </TabsList>
 
@@ -180,7 +214,7 @@ export default function QuoteSimulator() {
                   </div>
                   <Button onClick={handleSaveManualProposal} disabled={totalValueManual === 0 || isSaving} className="w-full h-16 bg-accent text-primary font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-2xl gap-3">
                     {isSaving ? <Loader2 className="size-5 animate-spin" /> : <FileText className="size-5" />}
-                    Salvar Orçamento
+                    Criar Proposta Comercial
                   </Button>
                 </CardContent>
               </Card>
@@ -190,6 +224,24 @@ export default function QuoteSimulator() {
 
         <TabsContent value="ai" className="mt-8">
           <NaiQuoteComponent />
+        </TabsContent>
+
+        <TabsContent value="cards" className="mt-8">
+          <div className="min-h-[600px] glass-panel rounded-[3rem] p-8 relative">
+            {loadingTasks ? (
+              <div className="flex flex-col items-center justify-center gap-6 py-24">
+                <Loader2 className="size-12 animate-spin text-primary opacity-20" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary/40">Sincronizando Funil Comercial...</p>
+              </div>
+            ) : commercialTasks.length > 0 ? (
+              <KanbanBoard tasks={commercialTasks} columns={COMMERCIAL_COLUMNS} boardType="commercial" />
+            ) : (
+              <div className="text-center py-32 opacity-20 flex flex-col items-center gap-4">
+                <TrendingUp className="size-16" />
+                <p className="font-black uppercase text-xs tracking-widest">Nenhuma proposta no funil</p>
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

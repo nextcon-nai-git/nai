@@ -5,9 +5,9 @@
  */
 
 export type RiskCategory = 'fisico' | 'quimico' | 'biologico' | 'ergonomico' | 'acidente';
-export type TaskStatus = 'todo' | 'doing' | 'review' | 'done';
+export type TaskStatus = 'sent' | 'approved' | 'implementation' | 'started' | 'todo' | 'doing' | 'review' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskType = 'pgr' | 'pcmso' | 'ltcat' | 'treinamento' | 'esocial' | 'iot_check' | 'vistoria';
+export type TaskType = 'pgr' | 'pcmso' | 'ltcat' | 'treinamento' | 'esocial' | 'iot_check' | 'vistoria' | 'comercial';
 
 export interface RiskCatalog {
   id: string;

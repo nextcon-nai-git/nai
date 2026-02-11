@@ -21,12 +21,12 @@ export function NextconLogo({ className }: { className?: string }) {
         NEXTCON
       </text>
       
-      {/* Texto: Inteligência NAI em SST - Estilo Light/Regular Azul Claro */}
+      {/* Texto: Inteligência NAI em SST - Estilo Light/Regular Azul Claro Brilhante */}
       <text 
         x="5" 
         y="108" 
-        fill="#00b4ff" 
-        style={{ font: '500 24px Montserrat, sans-serif', letterSpacing: '2px', textTransform: 'none' }}
+        fill="#00f2ff" 
+        style={{ font: '600 24px Montserrat, sans-serif', letterSpacing: '2px', textTransform: 'none', filter: 'drop-shadow(0 0 2px rgba(0,242,255,0.5))' }}
       >
         Inteligência NAI em SST
       </text>
