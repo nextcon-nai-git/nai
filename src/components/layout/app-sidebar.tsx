@@ -56,7 +56,6 @@ const navGroups = [
     items: [
       { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
       { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
-      { title: "Field Control", icon: HardHat, href: "/field-control" },
       { title: "Mapa de Unidades", icon: MapIcon, href: "/agency/client-map" },
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
@@ -64,9 +63,10 @@ const navGroups = [
   },
   {
     label: "Operação Técnica",
-    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'admin'],
+    roles: ['SUPER_ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER', 'admin'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Field Control", icon: HardHat, href: "/field-control" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
       { title: "Saúde Ocupacional", icon: Stethoscope, href: "/health-control" },

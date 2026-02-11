@@ -24,7 +24,8 @@ import {
   Signal,
   Map as MapIcon,
   RefreshCw,
-  Info
+  Info,
+  UserCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,7 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, doc, collectionGroup } from "firebase/firestore"
+import { collection, query, orderBy, doc, collectionGroup, addDoc } from "firebase/firestore"
 import { 
   Dialog, 
   DialogContent, 
@@ -46,10 +47,11 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 /**
  * @fileOverview Painel Operacional Field Control 2026
- * Gestão de ordens de serviço, geofencing e calibração de instrumentos.
+ * Gestão de ordens de serviço designadas a técnicos e engenheiros externos.
  */
 
 export default function FieldControlOperational() {
@@ -58,18 +60,49 @@ export default function FieldControlOperational() {
   const db = useFirestore()
   const [activeTab, setActiveTab] = React.useState("activities")
   const [isCheckinLoading, setIsCheckinLoading] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [currentLocation, setCurrentLocation] = React.useState<{lat: number, lng: number} | null>(null)
+  
+  const [measurementForm, setMeasurementForm] = React.useState({
+    agent: "ruido",
+    intensity: "",
+    equipmentId: ""
+  })
 
-  // Busca atividades de campo reais do Firestore
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null
+    return doc(db, "users", user.uid)
+  }, [db, user])
+  const { data: profile } = useDoc(profileRef)
+
+  const isPrivileged = React.useMemo(() => {
+    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+  }, [profile])
+
+  // Busca atividades de campo designadas
   const activitiesQuery = useMemoFirebase(() => {
-    if (!db) return null
+    if (!db || !profile) return null
+    // Busca global de tasks do tipo campo
     return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
-  }, [db])
-  const { data: tasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
+  }, [db, profile])
+  
+  const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
 
-  const fieldTasks = tasks?.filter(t => ['pgr', 'ltcat', 'iot_check'].includes(t.type)) || []
+  // Filtra tasks baseadas na atribuição (Admin vê tudo, Técnico vê apenas as dele)
+  const fieldTasks = React.useMemo(() => {
+    if (!allTasks) return []
+    const rawTasks = allTasks.filter(t => ['pgr', 'ltcat', 'iot_check', 'vistoria'].includes(t.type))
+    
+    if (isPrivileged) return rawTasks
+    
+    // Se for PROVIDER, vê apenas o que foi designado a ele
+    if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') {
+      return rawTasks.filter(t => t.assigneeId === user?.uid)
+    }
+    
+    return []
+  }, [allTasks, isPrivileged, profile, user])
 
-  // Equipamentos simulados (Em produção seriam uma coleção 'assets')
   const equipments = [
     { id: "DEC-001", name: "Decibelímetro Digital", brand: "Instrutherm", lastCal: "2025-01-10", nextCal: "2026-01-10", status: "expired" },
     { id: "DOS-042", name: "Dosímetro de Ruído", brand: "Bruel & Kjaer", lastCal: "2025-06-15", nextCal: "2026-06-15", status: "ok" },
@@ -85,18 +118,51 @@ export default function FieldControlOperational() {
           setIsCheckinLoading(false)
           toast({
             title: "Check-in Realizado!",
-            description: `Coordenadas validadas: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`,
+            description: `Posição validada para atendimento no cliente.`,
           })
         },
-        (error) => {
+        () => {
           setIsCheckinLoading(false)
           toast({
             variant: "destructive",
             title: "Erro de Localização",
-            description: "Não foi possível validar sua posição. Verifique as permissões do navegador.",
+            description: "Ative o GPS para validar o início do serviço.",
           })
         }
       )
+    }
+  }
+
+  const handleSaveMeasurement = async (task: any) => {
+    if (!measurementForm.intensity || !measurementForm.equipmentId) {
+      toast({ variant: "destructive", title: "Dados Incompletos", description: "Informe a intensidade e o equipamento." })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const reportsRef = collection(db, "companies", task.companyId, "reports")
+      await addDocumentNonBlocking(reportsRef, {
+        reportType: "measurement",
+        name: `Medição de Campo - ${measurementForm.agent.toUpperCase()}`,
+        companyId: task.companyId,
+        companyName: task.companyName,
+        technicalInfo: {
+          ...measurementForm,
+          technicianId: user?.uid,
+          technicianName: profile?.name,
+          location: currentLocation,
+          timestamp: new Date().toISOString()
+        },
+        createdAt: new Date().toISOString()
+      })
+
+      toast({ title: "Medição Protocolada", description: "Os dados foram salvos no dossiê do cliente." })
+      setMeasurementForm({ agent: "ruido", intensity: "", equipmentId: "" })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro ao Salvar" })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -106,36 +172,39 @@ export default function FieldControlOperational() {
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Field Control Center</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest flex items-center gap-2">
-            <Signal className="size-3 text-accent animate-pulse" /> Gestão de Engenharia e Medições Externas 2026.
+            <Signal className="size-3 text-accent animate-pulse" /> 
+            {isPrivileged ? "Gestão Global de Engenharia" : `Painel do Prestador: ${profile?.name || 'Técnico'}`}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-11 px-6 border-primary text-primary font-bold uppercase text-[10px] gap-2">
-            <MapIcon className="size-4" /> Mapa de Técnicos
-          </Button>
+          {isPrivileged && (
+            <Button variant="outline" className="h-11 px-6 border-primary text-primary font-bold uppercase text-[10px] gap-2">
+              <MapIcon className="size-4" /> Mapa de Equipes
+            </Button>
+          )}
           <Button className="gradient-nextcon text-white h-11 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 gap-2">
-            <Plus className="size-4" /> Nova Ordem de Serviço
+            <Smartphone className="size-4" /> Modo Offline
           </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <KpiCard label="Atividades Hoje" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
-        <KpiCard label="Técnicos Online" value="04" icon={Users} color="text-emerald-600" bg="bg-emerald-50" />
-        <KpiCard label="Calibrações Pendentes" value="01" icon={Gauge} color="text-red-600" bg="bg-red-50" />
-        <KpiCard label="SLA de Atendimento" value="98.2%" icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
+        <KpiCard label="Minhas Atividades" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
+        <KpiCard label="Status do GPS" value={currentLocation ? "Ativo" : "Pendente"} icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
+        <KpiCard label="Alertas de Calibração" value="01" icon={Gauge} color="text-red-600" bg="bg-red-50" />
+        <KpiCard label="Atendimento 2026" value="SLA OK" icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-2xl h-16">
           <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <Clock className="size-4" /> Agenda de Campo
+            <Clock className="size-4" /> Minha Agenda
           </TabsTrigger>
           <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <Gauge className="size-4" /> Equipamentos
+            <Gauge className="size-4" /> Instrumentos
           </TabsTrigger>
           <TabsTrigger value="team" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <Users className="size-4" /> Equipe Técnica
+            <UserCheck className="size-4" /> Atribuições
           </TabsTrigger>
         </TabsList>
 
@@ -143,14 +212,12 @@ export default function FieldControlOperational() {
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black text-primary uppercase">Intervenções Técnicas</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Vistorias e Medições Ambientais.</CardDescription>
+                <CardTitle className="text-lg font-black text-primary uppercase">Ordens de Serviço Designadas</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Acesso restrito aos clientes atribuídos pela Nextcon.</CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
-                  <Input placeholder="Buscar OS..." className="pl-9 h-10 w-64 bg-white border-none shadow-inner text-xs" />
-                </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
+                <Input placeholder="Buscar por cliente..." className="pl-9 h-10 w-64 bg-white border-none shadow-inner text-xs" />
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -159,15 +226,15 @@ export default function FieldControlOperational() {
                   <TableRow>
                     <TableHead className="pl-8">Status / OS</TableHead>
                     <TableHead>Unidade Cliente</TableHead>
-                    <TableHead>Técnico Responsável</TableHead>
+                    <TableHead>Responsável</TableHead>
                     <TableHead>Localização</TableHead>
-                    <TableHead className="text-right pr-8">Ações</TableHead>
+                    <TableHead className="text-right pr-8">Ação Técnica</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingActivities ? (
                     <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="size-8 animate-spin mx-auto opacity-20" /></TableCell></TableRow>
-                  ) : fieldTasks.map((task) => (
+                  ) : fieldTasks.length > 0 ? fieldTasks.map((task) => (
                     <TableRow key={task.id} className="hover:bg-slate-50/50 transition-colors">
                       <TableCell className="pl-8">
                         <div className="flex items-center gap-3">
@@ -177,7 +244,7 @@ export default function FieldControlOperational() {
                           )} />
                           <div>
                             <p className="font-black text-xs text-primary uppercase">{task.title}</p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase">OS: {task.id.substring(0, 8)}</p>
+                            <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{task.type}</Badge>
                           </div>
                         </div>
                       </TableCell>
@@ -186,69 +253,135 @@ export default function FieldControlOperational() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">T</div>
-                          <span className="text-[11px] font-bold">Eng. Responsável</span>
+                          <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
+                            {(task.assigneeName || 'NC').substring(0, 2).toUpperCase()}
+                          </div>
+                          <span className="text-[11px] font-bold">{task.assigneeName || "Aguardando"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-[9px] font-black gap-1 border-primary/10">
-                          <MapPin className="size-2.5 text-accent" /> {currentLocation ? "Validado" : "Aguardando"}
+                          <MapPin className="size-2.5 text-accent" /> {currentLocation ? "Validado" : "Pendente"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-8">
                         <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-8 text-[9px] font-black uppercase border-accent text-accent"
-                            onClick={handleCheckin}
-                            disabled={isCheckinLoading}
-                          >
-                            {isCheckinLoading ? <Loader2 className="size-3 animate-spin" /> : "Validar GPS"}
-                          </Button>
+                          {!currentLocation && (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-8 text-[9px] font-black uppercase border-accent text-accent"
+                              onClick={handleCheckin}
+                              disabled={isCheckinLoading}
+                            >
+                              {isCheckinLoading ? <Loader2 className="size-3 animate-spin" /> : "Validar GPS"}
+                            </Button>
+                          )}
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary">Lançar Dados</Button>
+                              <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary" disabled={!currentLocation}>Alimentar Dados</Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-xl rounded-[2rem] border-none shadow-2xl">
                               <DialogHeader>
-                                <DialogTitle className="text-xl font-headline font-black text-primary uppercase">Medição Técnica de Campo</DialogTitle>
-                                <DialogDescription className="text-xs font-bold uppercase tracking-widest text-accent">Protocolo de Medição NR-09/NR-15</DialogDescription>
+                                <DialogTitle className="text-xl font-headline font-black text-primary uppercase">Coleta de Dados: {task.companyName}</DialogTitle>
+                                <DialogDescription className="text-xs font-bold uppercase tracking-widest text-accent">Entrada de dados para laudos eSocial</DialogDescription>
                               </DialogHeader>
                               <div className="grid grid-cols-2 gap-4 py-6">
                                 <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Agente de Risco</label>
-                                  <Select defaultValue="ruido">
+                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Risco / Agente</label>
+                                  <Select value={measurementForm.agent} onValueChange={(v) => setMeasurementForm({...measurementForm, agent: v})}>
                                     <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl"><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="ruido">Ruído Contínuo/Intermitente</SelectItem>
+                                      <SelectItem value="ruido">Ruído Contínuo</SelectItem>
                                       <SelectItem value="calor">Calor (IBUTG)</SelectItem>
-                                      <SelectItem value="quimico">Vapores Orgânicos</SelectItem>
+                                      <SelectItem value="quimico">Particulados / Químicos</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
                                 <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Intensidade Medida</label>
-                                  <Input placeholder="Ex: 85 dB(A)" className="h-12 bg-slate-50 border-none rounded-xl font-bold" />
+                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Intensidade / Concentração</label>
+                                  <Input 
+                                    placeholder="Ex: 85.4" 
+                                    value={measurementForm.intensity}
+                                    onChange={(e) => setMeasurementForm({...measurementForm, intensity: e.target.value})}
+                                    className="h-12 bg-slate-50 border-none rounded-xl font-bold" 
+                                  />
                                 </div>
                                 <div className="space-y-2 col-span-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Equipamento Utilizado</label>
-                                  <Select>
-                                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl"><SelectValue placeholder="Selecione o instrumento..." /></SelectTrigger>
+                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Instrumento de Medição</label>
+                                  <Select value={measurementForm.equipmentId} onValueChange={(v) => setMeasurementForm({...measurementForm, equipmentId: v})}>
+                                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl"><SelectValue placeholder="Selecione o equipamento calibrado..." /></SelectTrigger>
                                     <SelectContent>
-                                      {equipments.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({e.id})</SelectItem>)}
+                                      {equipments.map(e => (
+                                        <SelectItem key={e.id} value={e.id} disabled={e.status === 'expired'}>
+                                          {e.name} ({e.id}) {e.status === 'expired' ? '- VENCIDO' : ''}
+                                        </SelectItem>
+                                      ))}
                                     </SelectContent>
                                   </Select>
                                 </div>
                               </div>
                               <DialogFooter>
-                                <Button className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2">
-                                  <CheckCircle2 className="size-5 text-accent" /> Protocolar Medição
+                                <Button 
+                                  onClick={() => handleSaveMeasurement(task)}
+                                  disabled={isSubmitting}
+                                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
+                                >
+                                  {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5 text-accent" />}
+                                  Sincronizar com Cliente
                                 </Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
                         </div>
+                      </TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={5} className="text-center py-24 opacity-30">
+                      <HardHat className="size-16 mx-auto mb-4" />
+                      <p className="font-black uppercase text-sm tracking-widest">Nenhuma OS designada ao seu perfil</p>
+                    </TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="equipments" className="mt-8">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-primary/5 border-b py-6 px-8">
+              <CardTitle className="text-lg font-black text-primary uppercase">Inventário de Instrumentos</CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Os técnicos só podem lançar dados com equipamentos calibrados.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                  <TableRow>
+                    <TableHead className="pl-8">Equipamento</TableHead>
+                    <TableHead>Vencimento Calibração</TableHead>
+                    <TableHead>Status RBC</TableHead>
+                    <TableHead className="text-right pr-8">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {equipments.map((eq) => (
+                    <TableRow key={eq.id}>
+                      <TableCell className="pl-8">
+                        <p className="font-bold text-xs text-primary">{eq.name}</p>
+                        <p className="text-[9px] text-slate-400 font-black uppercase">ID: {eq.id}</p>
+                      </TableCell>
+                      <TableCell className="text-xs font-black">{new Date(eq.nextCal).toLocaleDateString('pt-BR')}</TableCell>
+                      <TableCell>
+                        <Badge className={cn(
+                          "text-[8px] font-black uppercase border-none px-3",
+                          eq.status === 'ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                        )}>
+                          {eq.status === 'ok' ? 'Calibrado' : 'Bloqueado'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><RefreshCw className="size-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -258,79 +391,14 @@ export default function FieldControlOperational() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="equipments" className="mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-primary/5 border-b py-6 px-8">
-                <CardTitle className="text-lg font-black text-primary uppercase">Inventário de Instrumentos</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Calibração RBC/Inmetro.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                    <TableRow>
-                      <TableHead className="pl-8">Equipamento</TableHead>
-                      <TableHead>Última Cal.</TableHead>
-                      <TableHead>Vencimento</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right pr-8"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {equipments.map((eq) => (
-                      <TableRow key={eq.id}>
-                        <TableCell className="pl-8">
-                          <p className="font-bold text-xs text-primary">{eq.name}</p>
-                          <p className="text-[9px] text-slate-400 font-black uppercase">ID: {eq.id} | {eq.brand}</p>
-                        </TableCell>
-                        <TableCell className="text-xs font-medium">{new Date(eq.lastCal).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell className="text-xs font-black">{new Date(eq.nextCal).toLocaleDateString('pt-BR')}</TableCell>
-                        <TableCell>
-                          <Badge className={cn(
-                            "text-[8px] font-black uppercase border-none px-3",
-                            eq.status === 'ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                          )}>
-                            {eq.status === 'ok' ? 'Calibrado' : 'Vencido'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-8">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><RefreshCw className="size-4" /></Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card className="bg-[#090e24] text-white border-none p-10 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 p-8 opacity-5"><Gauge className="size-48 text-accent" /></div>
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-white/10 rounded-2xl border border-white/10">
-                      <AlertTriangle className="size-6 text-accent" />
-                    </div>
-                    <h3 className="text-xl font-black uppercase tracking-tight font-headline">Compliance Gate</h3>
-                  </div>
-                  <p className="text-sm text-white/60 leading-relaxed font-medium">
-                    "O sistema bloqueia automaticamente o lançamento de medições se o instrumento selecionado estiver com o certificado de calibração vencido."
-                  </p>
-                  <Button variant="outline" className="w-full h-14 border-white/10 text-white hover:bg-white/5 font-black uppercase text-[10px] tracking-widest rounded-2xl">
-                    Ver Certificados em Nuvem
-                  </Button>
-                </div>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
         <TabsContent value="team" className="mt-8">
-          <Card className="card-shadow border-none h-96 flex items-center justify-center bg-white text-muted-foreground italic rounded-[2.5rem]">
-            <div className="text-center space-y-4 opacity-30">
-              <Users className="size-16 mx-auto" />
-              <p className="font-black uppercase text-sm tracking-widest">Monitor de Campo em Tempo Real</p>
-              <p className="text-xs">Integração com Google Maps para visualização de rotas em tempo real.</p>
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-10 text-center">
+            <div className="max-w-md mx-auto space-y-6 opacity-40">
+              <UserCheck className="size-16 mx-auto text-primary" />
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-primary uppercase">Minha Credencial Técnica</h3>
+                <p className="text-sm">Você está autenticado como <strong>Prestador Credenciado</strong> da Nextcon. Suas atividades são monitoradas por geolocalização e as medições passam por revisão técnica antes da emissão final dos laudos.</p>
+              </div>
             </div>
           </Card>
         </TabsContent>

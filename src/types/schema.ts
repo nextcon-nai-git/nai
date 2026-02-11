@@ -7,7 +7,7 @@
 export type RiskCategory = 'fisico' | 'quimico' | 'biologico' | 'ergonomico' | 'acidente';
 export type TaskStatus = 'todo' | 'doing' | 'review' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskType = 'pgr' | 'pcmso' | 'ltcat' | 'treinamento' | 'esocial' | 'iot_check';
+export type TaskType = 'pgr' | 'pcmso' | 'ltcat' | 'treinamento' | 'esocial' | 'iot_check' | 'vistoria';
 
 export interface RiskCatalog {
   id: string;
@@ -78,10 +78,11 @@ export interface OpsTask {
   companyName: string;
   checklist: ComplianceItem[];
   autoAction?: 'generate_pdf' | 'send_esocial_xml' | 'alert_manager';
-  ai_risk_score?: number; // 0-100 calculado pelo Gemini
+  ai_risk_score?: number;
   dueDate: string;
   createdAt: string;
   assigneeId?: string;
+  assigneeName?: string;
 }
 
 export interface AssetPoint {

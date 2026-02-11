@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react"
@@ -15,7 +16,8 @@ import {
   Building2,
   Loader2,
   Database,
-  Zap
+  Zap,
+  UserCheck
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -43,7 +45,6 @@ export default function EnterpriseOpsHub() {
   const db = useFirestore()
   const { toast } = useToast()
   
-  const [activeView, setActiveView] = React.useState<"board" | "list" | "calendar">("board")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
   const [isImporting, setIsImporting] = React.useState(false)
@@ -51,9 +52,10 @@ export default function EnterpriseOpsHub() {
   const [taskForm, setTaskForm] = React.useState<Partial<OpsTask>>({
     title: "",
     companyId: "",
-    type: "pgr",
+    type: "vistoria",
     priority: "medium",
     status: "todo",
+    assigneeId: "", // ID do Prestador
     dueDate: new Date().toISOString()
   })
 
@@ -73,6 +75,15 @@ export default function EnterpriseOpsHub() {
       setTaskForm(prev => ({ ...prev, companyId: profile.companyId }));
     }
   }, [profile, isPrivileged]);
+
+  // Lista de Prestadores para designação
+  const providersQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, "users"), orderBy("name", "asc"))
+  }, [db])
+  const { data: users } = useCollection(providersQuery)
+  
+  const providers = users?.filter(u => ['PROVIDER', 'ENGINEER'].includes(u.role)) || []
 
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
@@ -102,53 +113,23 @@ export default function EnterpriseOpsHub() {
       return
     }
     const company = companies?.find(c => c.id === taskForm.companyId)
+    const assignee = providers.find(p => p.id === taskForm.assigneeId)
     const colRef = collection(db, "companies", taskForm.companyId, "tasks")
+    
     const newTask: Partial<OpsTask> = {
       ...taskForm,
       companyName: company?.name || "Unidade Técnica",
+      assigneeName: assignee?.name || "Nextcon Central",
       checklist: [
-        { id: '1', text: 'Validar Documentação Base', checked: false, mandatory: true },
-        { id: '2', text: 'Transmitir ao eSocial', checked: false, mandatory: false }
+        { id: '1', text: 'Realizar Check-in GPS', checked: false, mandatory: true },
+        { id: '2', text: 'Coletar Evidências de Risco', checked: false, mandatory: true }
       ],
-      ai_risk_score: Math.floor(Math.random() * 40) + 10,
+      ai_risk_score: 45,
       createdAt: new Date().toISOString()
     }
     addDocumentNonBlocking(colRef, newTask)
     setIsCreateOpen(false)
-    toast({ title: "Operação Registrada", description: "O fluxo de conformidade NAI foi iniciado." })
-  }
-
-  const handleImportRealCases = async () => {
-    if (!db || !user) return
-    setIsImporting(true)
-    try {
-      const batch = writeBatch(db)
-      const now = new Date().toISOString()
-      const cases = [
-        { id: "T_NAT_01", title: "Treinamento NR Integrada (18, 35, 11, 12)", companyId: "CLI_NATIVA", companyName: "NATIVA EMPREENDIMENTOS", type: "treinamento", priority: "high", status: "doing" },
-        { id: "T_TIME_01", title: "Auditagem Agrupador 859 (Download XML)", companyId: "CLI_TIMENOW", companyName: "TIMENOW GESTÃO DE OBRAS", type: "esocial", priority: "critical", status: "todo" },
-        { id: "T_BRIT_01", title: "Renovação PGR 2026 - Unidade Fabril", companyId: "CLI_BRITANIA", companyName: "BRITÂNIA ELETRODOMÉSTICOS", type: "pgr", priority: "medium", status: "todo" }
-      ]
-      cases.forEach(t => {
-        const taskRef = doc(db, "companies", t.companyId, "tasks", t.id)
-        batch.set(taskRef, {
-          ...t,
-          dueDate: now,
-          createdAt: now,
-          ai_risk_score: 85,
-          checklist: [
-            { id: '1', text: 'Coletar evidências de campo', checked: true, mandatory: true },
-            { id: '2', text: 'Validar com Engenheiro Responsável', checked: false, mandatory: true }
-          ]
-        }, { merge: true })
-      })
-      await batch.commit()
-      toast({ title: "Casos Reais Importados" })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro na Importação" })
-    } finally {
-      setIsImporting(false)
-    }
+    toast({ title: "Atividade Designada", description: `OS enviada para ${assignee?.name || 'equipe'}.` })
   }
 
   return (
@@ -162,17 +143,11 @@ export default function EnterpriseOpsHub() {
             <h1 className="text-3xl font-black text-primary uppercase tracking-tight font-headline">Cards Operação</h1>
           </div>
           <p className="text-muted-foreground font-medium flex items-center gap-2">
-            <Brain className="size-4 text-accent" /> Gestão tática de segurança e conformidade multi-unidade.
+            <Brain className="size-4 text-accent" /> Gestão tática e designação de ordens de serviço externas.
           </p>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          {isPrivileged && (
-            <Button variant="outline" onClick={handleImportRealCases} disabled={isImporting} className="h-14 px-6 border-dashed border-primary/30 text-primary/60 hover:text-primary gap-2 rounded-2xl font-black uppercase text-[10px]">
-              {isImporting ? <Loader2 className="size-4 animate-spin" /> : <Database className="size-4" />}
-              Importar Casos Reais
-            </Button>
-          )}
           <div className="w-64">
             <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
               <SelectTrigger className="bg-white border-muted h-11 text-xs">
@@ -185,37 +160,48 @@ export default function EnterpriseOpsHub() {
               </SelectContent>
             </Select>
           </div>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="gradient-nextcon text-white gap-2 h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-2xl rounded-2xl">
-                <Plus className="size-5" /> Nova Intervenção
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] glass-panel border-none rounded-[2.5rem] p-8">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black text-primary uppercase font-headline">Nova Ação de Segurança</DialogTitle>
-                <DialogDescription className="font-bold text-[10px] uppercase tracking-[0.2em] text-accent">Inteligência Ocupacional Nextcon</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-6 py-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Descrição da Operação</label>
-                  <Input value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="bg-slate-50 border-none h-14 text-sm font-bold rounded-2xl shadow-inner" placeholder="Ex: Atualização PGR Unidade Fabril" />
+          {isPrivileged && (
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button className="gradient-nextcon text-white gap-2 h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-2xl rounded-2xl">
+                  <Plus className="size-5" /> Designar OS
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px] glass-panel border-none rounded-[2.5rem] p-8">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-black text-primary uppercase font-headline">Nova Ordem de Serviço</DialogTitle>
+                  <DialogDescription className="font-bold text-[10px] uppercase tracking-[0.2em] text-accent">Inteligência Operacional Nextcon</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-6 py-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Descrição da Vistoria</label>
+                    <Input value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="bg-slate-50 border-none h-14 text-sm font-bold rounded-2xl shadow-inner" placeholder="Ex: Auditoria NR-18 Unidade Curitiba" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Cliente</label>
+                    <Select value={taskForm.companyId} onValueChange={v => setTaskForm({...taskForm, companyId: v})}>
+                      <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Selecione o cliente..." /></SelectTrigger>
+                      <SelectContent>
+                        {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Designar Prestador (Técnico/Engenheiro)</label>
+                    <Select value={taskForm.assigneeId} onValueChange={v => setTaskForm({...taskForm, assigneeId: v})}>
+                      <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Escolha o responsável..." /></SelectTrigger>
+                      <SelectContent>
+                        {providers.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.role})</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Responsável</label>
-                  <Select value={taskForm.companyId} onValueChange={v => setTaskForm({...taskForm, companyId: v})}>
-                    <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                    <SelectContent>
-                      {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Button onClick={handleCreateTask} className="w-full h-16 gradient-nextcon font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl">
-                <Sparkles className="size-5 text-accent mr-2" /> Ativar Fluxo de Auditoria
-              </Button>
-            </DialogContent>
-          </Dialog>
+                <Button onClick={handleCreateTask} className="w-full h-16 gradient-nextcon font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl">
+                  <Zap className="size-5 text-accent mr-2" /> Ativar Operação de Campo
+                </Button>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </header>
 
@@ -232,7 +218,7 @@ export default function EnterpriseOpsHub() {
          ) : (
            <div className="text-center opacity-30 space-y-4">
              <LayoutGrid className="size-16 mx-auto" />
-             <p className="font-black uppercase text-xs tracking-widest">Nenhuma intervenção ativa encontrada</p>
+             <p className="font-black uppercase text-xs tracking-widest">Nenhuma intervenção designada</p>
            </div>
          )}
       </div>
