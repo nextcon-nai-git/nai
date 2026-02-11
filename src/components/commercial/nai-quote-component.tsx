@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -129,7 +128,7 @@ export function NaiQuoteComponent() {
       pdf.setFontSize(18);
       pdf.text("Proposta Técnica SST", 190, 25, { align: 'right' });
       
-      pdf.setDrawColor(0, 180, 255);
+      pdf.setDrawColor(0, 242, 255);
       pdf.setLineWidth(0.5);
       pdf.line(20, 35, 190, 35);
 

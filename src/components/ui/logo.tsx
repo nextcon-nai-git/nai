@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -26,7 +25,7 @@ export function NextconLogo({ className }: { className?: string }) {
         x="5" 
         y="108" 
         fill="#00f2ff" 
-        style={{ font: '600 24px Montserrat, sans-serif', letterSpacing: '2px', textTransform: 'none', filter: 'drop-shadow(0 0 2px rgba(0,242,255,0.5))' }}
+        style={{ font: '600 24px Montserrat, sans-serif', letterSpacing: '2px', textTransform: 'none', filter: 'drop-shadow(0 0 4px rgba(0,242,255,0.8))' }}
       >
         Inteligência NAI em SST
       </text>

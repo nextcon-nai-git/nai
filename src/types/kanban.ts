@@ -1,4 +1,3 @@
-
 export type Status = 'sent' | 'approved' | 'implementation' | 'started' | 'todo' | 'doing' | 'review' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
 export type TaskType = 'pgr' | 'pcmso' | 'treinamento' | 'vistoria' | 'esocial' | 'comercial';

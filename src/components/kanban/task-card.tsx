@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
@@ -14,12 +13,18 @@ import {
   CheckSquare,
   Zap,
   Building2,
-  Sparkles
+  Sparkles,
+  ArrowRightCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isValid } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { useFirestore } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useToast } from '@/hooks/use-toast';
 
 const TypeIcon = ({ type }: { type: TaskType }) => {
   switch (type) {
@@ -48,6 +53,8 @@ function safeFormat(date: any, formatStr: string) {
 }
 
 export function TaskCard({ task }: { task: OpsTask }) {
+  const db = useFirestore();
+  const { toast } = useToast();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     data: task,
@@ -63,8 +70,18 @@ export function TaskCard({ task }: { task: OpsTask }) {
   const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
-  // Identifica se é um dos seus casos reais (Nativa, Britânia, etc) para dar destaque
   const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA"].includes(task.companyId);
+
+  const handlePromoteToOps = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!db || !task.companyId) return;
+    const taskRef = doc(db, "companies", task.companyId, "tasks", task.id);
+    updateDocumentNonBlocking(taskRef, { status: 'started' });
+    toast({
+      title: "Promovido para Operação",
+      description: "O projeto agora está na fase 'Projeto Iniciado' da engenharia.",
+    });
+  };
 
   return (
     <div
@@ -137,6 +154,15 @@ export function TaskCard({ task }: { task: OpsTask }) {
           />
         </div>
       </div>
+
+      {task.status === 'implementation' && (
+        <Button 
+          onClick={handlePromoteToOps}
+          className="w-full mt-4 h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase text-[9px] tracking-widest rounded-xl gap-2 shadow-lg"
+        >
+          <ArrowRightCircle className="size-3.5" /> Ativar Operação
+        </Button>
+      )}
 
       <div className="flex items-center justify-between mt-5 pt-4 border-t border-dashed border-slate-100">
         <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold bg-slate-50 px-3 py-1.5 rounded-xl">
