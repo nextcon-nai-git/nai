@@ -13,7 +13,11 @@ import {
   Download, 
   History, 
   FileCheck,
-  ChevronRight
+  ChevronRight,
+  User,
+  MapPin,
+  Mail,
+  Phone
 } from "lucide-react";
 import { gerarOrcamentoComNai } from "@/actions/nai-quote";
 import { Button } from "@/components/ui/button";
@@ -51,6 +55,11 @@ export function NaiQuoteComponent() {
   
   const [formData, setFormData] = React.useState({
     nomeEmpresa: "",
+    nomeSolicitante: "",
+    cidade: "",
+    estado: "",
+    email: "",
+    telefone: "",
     quantidadeFuncionarios: "",
     grauDeRisco: "1",
     necessidades: ""
@@ -81,10 +90,9 @@ export function NaiQuoteComponent() {
 
     try {
       const res = await gerarOrcamentoComNai({
-        nomeEmpresa: formData.nomeEmpresa,
+        ...formData,
         quantidadeFuncionarios: Number(formData.quantidadeFuncionarios),
         grauDeRisco: Number(formData.grauDeRisco) as 1 | 2 | 3 | 4,
-        necessidades: formData.necessidades
       });
 
       if (res.sucesso && res.orcamento) {
@@ -106,9 +114,7 @@ export function NaiQuoteComponent() {
 
     try {
       const docRef = await addDoc(collection(db, "orcamentos"), {
-        empresa: formData.nomeEmpresa,
-        funcionarios: formData.quantidadeFuncionarios,
-        risco: formData.grauDeRisco,
+        ...formData,
         resumoNai: orcamento,
         status: "Enviado",
         data: serverTimestamp()
@@ -132,18 +138,26 @@ export function NaiQuoteComponent() {
       pdf.setLineWidth(0.5);
       pdf.line(20, 35, 190, 35);
 
-      pdf.setFontSize(11);
+      pdf.setFontSize(10);
       pdf.setTextColor(100, 116, 139);
-      pdf.text(`Cliente: ${formData.nomeEmpresa.toUpperCase()}`, 20, 45);
-      pdf.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 20, 51);
-      pdf.text(`ID da Proposta: #${docRef.id.substring(0, 8)}`, 20, 57);
+      pdf.text("DADOS DO CLIENTE:", 20, 45);
+      pdf.setTextColor(0, 53, 107);
+      pdf.setFontSize(11);
+      pdf.text(`Empresa: ${formData.nomeEmpresa.toUpperCase()}`, 20, 51);
+      pdf.text(`Solicitante: ${formData.nomeSolicitante}`, 20, 57);
+      pdf.text(`Local: ${formData.cidade} - ${formData.estado}`, 20, 63);
+      pdf.text(`Contato: ${formData.email} | ${formData.telefone}`, 20, 69);
+      
+      pdf.setFontSize(9);
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | ID: #${docRef.id.substring(0, 8)}`, 190, 69, { align: 'right' });
       
       pdf.setFont("helvetica", "italic");
       pdf.setTextColor(0, 53, 107);
       let intro = pdf.splitTextToSize(`Análise NAI Intelligence: ${orcamento.mensagemIntrodutoria}`, 170);
-      pdf.text(intro, 20, 70);
+      pdf.text(intro, 20, 80);
 
-      let y = 80 + (intro.length * 5);
+      let y = 90 + (intro.length * 5);
       pdf.setFont("helvetica", "bold");
       pdf.text("DETALHAMENTO TÉCNICO RECOMENDADO:", 20, y);
       y += 10;
@@ -193,9 +207,19 @@ export function NaiQuoteComponent() {
 
       await updateDoc(docRef, { pdfUrl: downloadURL });
 
-      toast({ title: "Proposta Protocolada!", description: "Dossiê com logo gerado e salvo no histórico." });
+      toast({ title: "Proposta Protocolada!", description: "Dossiê com dados do solicitante gerado com sucesso." });
       setOrcamento(null);
-      setFormData({ nomeEmpresa: "", quantidadeFuncionarios: "", grauDeRisco: "1", necessidades: "" });
+      setFormData({
+        nomeEmpresa: "",
+        nomeSolicitante: "",
+        cidade: "",
+        estado: "",
+        email: "",
+        telefone: "",
+        quantidadeFuncionarios: "",
+        grauDeRisco: "1",
+        needs: ""
+      });
     } catch (e) {
       console.error(e);
       toast({ variant: "destructive", title: "Erro no Protocolo", description: "Falha ao salvar no banco." });
@@ -211,66 +235,132 @@ export function NaiQuoteComponent() {
           <div className="p-8 bg-primary text-white">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
-              <h3 className="text-xl font-headline font-black uppercase">Dados para Análise</h3>
+              <h3 className="text-xl font-headline font-black uppercase">Gerar Proposta</h3>
             </div>
-            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">A NAI cruzará riscos e NRs para seu orçamento.</p>
+            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">Preencha os dados do cliente e solicitante.</p>
           </div>
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa</label>
-                <Input 
-                  required
-                  className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                  placeholder="Ex: Construtora Alfa"
-                  value={formData.nomeEmpresa}
-                  onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa Cliente</label>
                   <Input 
-                    required type="number" min="1"
-                    className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    value={formData.quantidadeFuncionarios}
-                    onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                    required
+                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                    placeholder="Razão Social ou Nome Fantasia"
+                    value={formData.nomeEmpresa}
+                    onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Grau de Risco</label>
-                  <select 
-                    className="w-full h-12 bg-slate-50 border-none rounded-xl px-4 text-xs font-bold shadow-inner"
-                    value={formData.grauDeRisco}
-                    onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
-                  >
-                    <option value="1">1 - Baixo</option>
-                    <option value="2">2 - Médio</option>
-                    <option value="3">3 - Alto</option>
-                    <option value="4">4 - Muito Alto</option>
-                  </select>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
-                <Textarea 
-                  required
-                  className="min-h-[120px] bg-slate-50 border-none rounded-2xl p-4 font-medium shadow-inner" 
-                  placeholder="Ex: Preciso de laudos e treinamentos para uma obra de 6 meses..."
-                  value={formData.necessidades}
-                  onChange={e => setFormData({...formData, necessidades: e.target.value})}
-                />
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                    <User className="size-3" /> Nome do Solicitante
+                  </label>
+                  <Input 
+                    required
+                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                    placeholder="Quem está solicitando?"
+                    value={formData.nomeSolicitante}
+                    onChange={e => setFormData({...formData, nomeSolicitante: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                      <MapPin className="size-3" /> Cidade
+                    </label>
+                    <Input 
+                      required
+                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                      placeholder="Ex: Curitiba"
+                      value={formData.cidade}
+                      onChange={e => setFormData({...formData, cidade: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Estado (UF)</label>
+                    <Input 
+                      required maxLength={2}
+                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner uppercase" 
+                      placeholder="PR"
+                      value={formData.estado}
+                      onChange={e => setFormData({...formData, estado: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                    <Mail className="size-3" /> E-mail
+                  </label>
+                  <Input 
+                    required type="email"
+                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                    placeholder="exemplo@empresa.com.br"
+                    value={formData.email}
+                    onChange={e => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                    <Phone className="size-3" /> Telefone / WhatsApp
+                  </label>
+                  <Input 
+                    required
+                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                    placeholder="(00) 00000-0000"
+                    value={formData.telefone}
+                    onChange={e => setFormData({...formData, telefone: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+                    <Input 
+                      required type="number" min="1"
+                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                      value={formData.quantidadeFuncionarios}
+                      onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Risco</label>
+                    <select 
+                      className="w-full h-11 bg-slate-50 border-none rounded-xl px-4 text-[11px] font-bold shadow-inner"
+                      value={formData.grauDeRisco}
+                      onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
+                    >
+                      <option value="1">Grau 1</option>
+                      <option value="2">Grau 2</option>
+                      <option value="3">Grau 3</option>
+                      <option value="4">Grau 4</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
+                  <Textarea 
+                    required
+                    className="min-h-[80px] bg-slate-50 border-none rounded-xl p-3 text-xs font-medium shadow-inner" 
+                    placeholder="O que o cliente relatou?"
+                    value={formData.necessidades}
+                    onChange={e => setFormData({...formData, necessidades: e.target.value})}
+                  />
+                </div>
               </div>
 
               <Button 
                 type="submit" 
                 disabled={loading}
-                className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
               >
                 {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
-                {loading ? "A NAI está calculando..." : "Gerar Orçamento NAI"}
+                {loading ? "Processando..." : "Analisar via IA"}
               </Button>
             </form>
           </CardContent>
@@ -282,7 +372,7 @@ export function NaiQuoteComponent() {
               <Bot className="size-24 text-primary" />
               <div className="space-y-2">
                 <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
-                <p className="text-sm font-bold">Preencha os dados ao lado para a NAI montar a proposta perfeita.</p>
+                <p className="text-sm font-bold">A NAI montará a proposta completa após o preenchimento.</p>
               </div>
             </div>
           )}
@@ -291,7 +381,7 @@ export function NaiQuoteComponent() {
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
               <Loader2 className="size-20 animate-spin text-primary opacity-20" />
               <div className="space-y-3">
-                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">Cruzando NRs e eSocial...</p>
+                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Dados Legais...</p>
               </div>
             </div>
           )}
@@ -349,7 +439,7 @@ export function NaiQuoteComponent() {
                 className="w-full h-16 bg-accent text-primary font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-accent/20 gap-3"
               >
                 {salvando ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
-                {salvando ? "Salvando e Protocolando Dossiê..." : "Salvar e Gerar Proposta PDF"}
+                {salvando ? "Protocolando Dossiê..." : "Salvar e Gerar PDF Profissional"}
               </Button>
             </div>
           )}
@@ -359,13 +449,13 @@ export function NaiQuoteComponent() {
       <div className="pt-12 border-t space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/5 rounded-lg text-primary"><History className="size-5" /></div>
-          <h2 className="text-xl font-headline font-black uppercase text-primary">Histórico de Propostas (Real-time)</h2>
+          <h2 className="text-xl font-headline font-black uppercase text-primary">Histórico de Propostas Enviadas</h2>
         </div>
 
         {orcamentosEnviados.length === 0 ? (
           <div className="py-20 text-center opacity-20 border-2 border-dashed rounded-[3rem]">
             <FileCheck className="size-16 mx-auto mb-4" />
-            <p className="font-black uppercase text-xs tracking-widest">Nenhum orçamento registrado ainda</p>
+            <p className="font-black uppercase text-xs tracking-widest">Nenhuma proposta registrada</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -374,29 +464,29 @@ export function NaiQuoteComponent() {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0">
-                      <h3 className="font-black text-primary uppercase text-sm truncate" title={orc.empresa}>{orc.empresa}</h3>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">
-                        {orc.data?.toDate ? orc.data.toDate().toLocaleDateString('pt-BR') : 'Hoje'}
+                      <h3 className="font-black text-primary uppercase text-sm truncate" title={orc.nomeEmpresa}>{orc.nomeEmpresa}</h3>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5 flex items-center gap-1">
+                        <User className="size-2.5" /> {orc.nomeSolicitante}
                       </p>
                     </div>
                     <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">ENVIADO</Badge>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-2 gap-2 mb-6">
                     <div className="p-3 bg-slate-50 rounded-xl">
-                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Vidas</p>
-                      <p className="text-xs font-bold text-primary">{orc.funcionarios}</p>
+                      <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Local</p>
+                      <p className="text-[10px] font-bold text-primary truncate">{orc.cidade}/{orc.estado}</p>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-xl">
                       <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Total</p>
-                      <p className="text-xs font-bold text-primary">R$ {orc.resumoNai?.valorTotalAvulso?.toFixed(2)}</p>
+                      <p className="text-[10px] font-bold text-primary">R$ {orc.resumoNai?.valorTotalAvulso?.toFixed(2)}</p>
                     </div>
                   </div>
 
                   {orc.pdfUrl ? (
                     <Button variant="outline" className="w-full h-11 rounded-xl gap-2 font-black uppercase text-[10px] border-primary/10 hover:bg-primary hover:text-white transition-all" asChild>
                       <a href={orc.pdfUrl} target="_blank" rel="noopener noreferrer">
-                        <Download className="size-3.5" /> Baixar Dossiê PDF
+                        <Download className="size-3.5" /> Baixar Proposta PDF
                       </a>
                     </Button>
                   ) : (

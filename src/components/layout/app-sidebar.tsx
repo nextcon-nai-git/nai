@@ -68,7 +68,7 @@ const navGroups = [
     label: "Crescimento & Vendas",
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
-      { title: "Simulador Comercial", icon: ShoppingCart, href: "/comercial" },
+      { title: "Proposta Comercial", icon: ShoppingCart, href: "/comercial" },
     ]
   },
   {

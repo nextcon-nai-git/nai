@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -133,7 +132,7 @@ export default function ComercialPortal() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Portal Comercial NAI</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Proposta Comercial NAI</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
             <Sparkles className="size-3 text-[#00f2ff]" /> Inteligência Comercial e Funil de Vendas SST.
           </p>
@@ -150,7 +149,7 @@ export default function ComercialPortal() {
             <Calculator className="size-4" /> Simulador Manual
           </TabsTrigger>
           <TabsTrigger value="cards" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
-            <LayoutGrid className="size-4" /> Cards Comercial
+            <LayoutGrid className="size-4" /> Funil de Vendas
           </TabsTrigger>
         </TabsList>
 

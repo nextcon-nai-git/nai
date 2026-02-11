@@ -12,6 +12,11 @@ import { z } from 'genkit';
 
 const DadosEmpresaInputSchema = z.object({
   nomeEmpresa: z.string(),
+  nomeSolicitante: z.string().describe("Nome da pessoa que está pedindo o orçamento"),
+  cidade: z.string(),
+  estado: z.string(),
+  email: z.string().email(),
+  telefone: z.string(),
   quantidadeFuncionarios: z.number().describe("Número total de funcionários"),
   grauDeRisco: z.number().min(1).max(4).describe("Grau de Risco da empresa (1 a 4)"),
   necessidades: z.string().describe("O que o cliente pediu (ex: 'Preciso de laudos e exames para uma padaria')")
@@ -41,8 +46,10 @@ const quotePrompt = ai.definePrompt({
   prompt: `Você é a NAI (Nextcon AI), a inteligência artificial especialista em Saúde e Segurança do Trabalho (SST) da plataforma Nextcon.
 Seu objetivo é analisar os dados de uma empresa e montar um orçamento consultivo e vendedor.
 
-DADOS DA EMPRESA:
-- Nome: {{{nomeEmpresa}}}
+DADOS DA EMPRESA E SOLICITANTE:
+- Empresa: {{{nomeEmpresa}}}
+- Solicitante: {{{nomeSolicitante}}}
+- Localização: {{{cidade}}} - {{{estado}}}
 - Funcionários: {{{quantidadeFuncionarios}}}
 - Grau de Risco: {{{grauDeRisco}}}
 - Necessidades Informadas: "{{{necessidades}}}"
@@ -63,7 +70,7 @@ INSTRUÇÕES:
 1. Monte um orçamento estruturado indicando apenas os serviços ESSENCIAIS e OBRIGATÓRIOS para o perfil dessa empresa, além dos que ela pediu.
 2. Cite as justificativas legais (NRs).
 3. Calcule os totais separando o que é avulso (projetos) do que é mensal (gestão).
-4. Use um tom profissional e autoritário.`,
+4. Use um tom profissional e autoritário. Comece cumprimentando o {{{nomeSolicitante}}}.`,
 });
 
 export async function generateNaiQuote(input: DadosEmpresaInput): Promise<OrcamentoOutput> {
