@@ -121,9 +121,11 @@ export function AppSidebar() {
     )}>
       <SidebarHeader className="p-8">
         <div className="flex flex-col gap-1">
-          <span className="text-3xl font-black tracking-tighter leading-none">NEXTCON</span>
+          <span className="text-3xl font-black tracking-tighter leading-none">
+            {isAdmin ? 'NAI' : 'NEXTCON'}
+          </span>
           <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">
-            {isAdmin ? 'Backoffice Intelligence' : 'Saúde Empresarial'}
+            {isAdmin ? 'NEXTCON AI' : 'Saúde Empresarial'}
           </span>
         </div>
       </SidebarHeader>
