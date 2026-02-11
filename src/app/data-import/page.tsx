@@ -1,14 +1,13 @@
-
 "use client"
 
 import * as React from "react"
-import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap, TrendingUp, History } from "lucide-react"
+import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap, TrendingUp, History, Users } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
 import { doc, writeBatch, collection, serverTimestamp } from "firebase/firestore"
-import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY, REAL_CONTRACTS } from "@/lib/real-data"
+import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY, REAL_CONTRACTS, REAL_PROVIDERS } from "@/lib/real-data"
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
@@ -16,6 +15,7 @@ export default function UnifiedImportCenter() {
   const db = useFirestore()
   const [uploading, setUploading] = React.useState(false)
   const [uploadingDre, setUploadingDre] = React.useState(false)
+  const [uploadingProviders, setUploadingProviders] = React.useState(false)
 
   const handleRealBaseImport = async () => {
     if (!user || !db) return
@@ -85,6 +85,37 @@ export default function UnifiedImportCenter() {
     }
   }
 
+  const handleProvisionProviders = async () => {
+    if (!user || !db) return
+    setUploadingProviders(true)
+    
+    try {
+      const batch = writeBatch(db)
+      const now = new Date().toISOString()
+
+      REAL_PROVIDERS.forEach(provider => {
+        // Registra o perfil na coleção 'users' para permitir designação em vistorias
+        const docRef = doc(db, "users", provider.id)
+        batch.set(docRef, { 
+          ...provider, 
+          updatedAt: now,
+          active: true,
+          status: "PROVISIONED"
+        }, { merge: true })
+      })
+
+      await batch.commit()
+      toast({ 
+        title: "Prestadores Provisionados!", 
+        description: `${REAL_PROVIDERS.length} profissionais registrados. Login padrão liberado.` 
+      })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Falha no Provisionamento" })
+    } finally {
+      setUploadingProviders(false)
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -92,7 +123,16 @@ export default function UnifiedImportCenter() {
           <h1 className="text-4xl font-headline font-black text-primary uppercase tracking-tight">Carga de Elite 2026</h1>
           <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Importação massiva para Multiapp, Contas e Operações.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <Button 
+            variant="outline"
+            className="h-16 px-8 border-accent/20 text-accent hover:bg-accent/5 rounded-2xl gap-3 font-black uppercase text-xs tracking-widest"
+            onClick={handleProvisionProviders}
+            disabled={uploadingProviders}
+          >
+            {uploadingProviders ? <Loader2 className="size-5 animate-spin" /> : <Users className="size-5" />}
+            Provisionar Prestadores
+          </Button>
           <Button 
             variant="outline"
             className="h-16 px-8 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl gap-3 font-black uppercase text-xs tracking-widest"

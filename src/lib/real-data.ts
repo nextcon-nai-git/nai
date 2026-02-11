@@ -1,6 +1,6 @@
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
- * Fonte única de verdade para faturamento, contratos e clientes estratégicos.
+ * Fonte única de verdade para faturamento, contratos, clientes e prestadores.
  */
 
 export const REAL_COMPANIES = [
@@ -31,6 +31,38 @@ export const REAL_COMPANIES = [
   { id: "05801908000118", name: "CENTRAL TURBOS PARANA - COMERCIO", city: "Curitiba", state: "PR", cnpj: "05.801.908/0001-18", active: true, segment: "INDUSTRY", risk_degree: 3 },
   { id: "45822496000117", name: "CLINICA BIAVATTI SAO JOSE DOS PINHAIS LTDA", city: "São José dos Pinhais", state: "PR", cnpj: "45.822.496/0001-17", active: true, segment: "HEALTH", risk_degree: 2 },
   { id: "10948651005040", name: "SPRINGER CARRIER LTDA", city: "Curitiba", state: "PR", cnpj: "10.948.651/0050-40", active: true, segment: "INDUSTRY", risk_degree: 3 }
+];
+
+export const REAL_PROVIDERS = [
+  { id: "PRV_01", name: "MARLON GOMES DA SILVA", email: "marlon.silva@prestador.nai.com.br", role: "PROVIDER", document: "47398877" },
+  { id: "PRV_02", name: "PABLO RICARDO RIBEIRO DE MACEDO NOGUEIRA", email: "pablo.nogueira@prestador.nai.com.br", role: "PROVIDER", document: "63025243" },
+  { id: "PRV_03", name: "ADELMO MARANGONI ANTONIAZZ", email: "adelmo.antoniazz@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_04", name: "AMAURI JOSE DE SOUSA JUNIOR", email: "amauri.junior@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_05", name: "DIGITAL LTDA", email: "digital.ltda@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_06", name: "BOA SAUDE FISIOTERAPIA LTDA", email: "boasaude.fisioterapia@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_07", name: "CLIMB CLEAN", email: "climb.clean@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_08", name: "Clinica Correia e Morais Palmeira", email: "correia.morais@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_09", name: "CLINICA SQV", email: "clinica.sqv@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_10", name: "Clinicalmed", email: "clinicalmed@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_11", name: "CLIOMED", email: "cliomed@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_12", name: "Daiana Francisca da Costa Amaral", email: "daiana.amaral@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_13", name: "Diego Aparecido Saraiva da Cruz", email: "diego.cruz@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_14", name: "DOUGLAS EVANS NEVES", email: "douglas.neves@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_15", name: "DW Montec", email: "dw.montec@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_16", name: "Ecomed", email: "ecomed@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_17", name: "EcoSesmt", email: "ecosesmt@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_18", name: "FERREIRA & MARQUES LTDA", email: "ferreira.marques@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_19", name: "GDA CONSULTORIA LTDA", email: "gda.consultoria@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_20", name: "GENUS PALOTINA", email: "genus.palotina@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_21", name: "GRS Marketing Digital Ltda", email: "grs.marketing@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_22", name: "HB12 TREINAMENTOS", email: "hb12.treinamentos@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_23", name: "J A SEG ASSESSORIA EM SEGURANCA", email: "jaseg.assessoria@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_24", name: "JCJ FALAVINHA LTDA", email: "jcj.falavinha@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_25", name: "KFS TREINAMENTOS", email: "kfs.treinamentos@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_26", name: "MED - CLINICA MEDICA EMPRESARIAL", email: "med.clinica@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_27", name: "Saude Vital", email: "saude.vital@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_28", name: "VIZIMED", email: "vizimed@prestador.nai.com.br", role: "PROVIDER" },
+  { id: "PRV_29", name: "WORKING", email: "working@prestador.nai.com.br", role: "PROVIDER" }
 ];
 
 export const REAL_CONTRACTS = [
