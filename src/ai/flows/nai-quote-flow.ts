@@ -3,8 +3,8 @@
  * @fileOverview NAI Commercial Intelligence - Gerador de Orçamentos via IA.
  * 
  * - generateNaiQuote - Função que analisa as necessidades da empresa e recomenda serviços.
- * - DadosEmpresaInput - Nome, funcionários, grau de risco e necessidades.
- * - OrcamentoOutput - Mensagem, lista de serviços recomendados, totais e dicas.
+ * - DadosEmpresaInput - O esquema de entrada para os dados da empresa.
+ * - OrcamentoOutput - O esquema de saída para o orçamento gerado.
  */
 
 import { ai } from '@/ai/genkit';
@@ -34,7 +34,7 @@ const OrcamentoOutputSchema = z.object({
 });
 export type OrcamentoOutput = z.infer<typeof OrcamentoOutputSchema>;
 
-const prompt = ai.definePrompt({
+const quotePrompt = ai.definePrompt({
   name: 'naiQuotePrompt',
   input: { schema: DadosEmpresaInputSchema },
   output: { schema: OrcamentoOutputSchema },
@@ -67,7 +67,7 @@ INSTRUÇÕES:
 });
 
 export async function generateNaiQuote(input: DadosEmpresaInput): Promise<OrcamentoOutput> {
-  const { output } = await prompt(input);
+  const { output } = await quotePrompt(input);
   if (!output) throw new Error('A NAI não conseguiu gerar o orçamento agora.');
   return output;
 }
