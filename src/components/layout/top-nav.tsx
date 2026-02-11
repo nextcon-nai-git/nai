@@ -58,7 +58,7 @@ export function TopNav() {
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
           <span className="font-black uppercase tracking-widest text-[9px] text-primary/40">
-            {isAdmin ? 'Sistema Interno' : 'Portal do Cliente'}
+            NAI
           </span>
           <span className="opacity-30">/</span>
           <span className="text-slate-900 font-bold capitalize">
