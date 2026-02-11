@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -20,7 +21,7 @@ export function NextconLogo({ className }: { className?: string }) {
         NEXTCON
       </text>
       
-      {/* Texto: Inteligência NAI em SST - Estilo Light/Regular Ciano */}
+      {/* Texto: Inteligência NAI em SST - Estilo Light/Regular Azul Claro */}
       <text 
         x="5" 
         y="108" 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -27,6 +28,8 @@ import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, update
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
+
+const NEXTCON_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
 type OrcamentoGerado = {
   mensagemIntrodutoria: string;
@@ -59,7 +62,6 @@ export function NaiQuoteComponent() {
   const [orcamento, setOrcamento] = React.useState<OrcamentoGerado | null>(null);
   const [orcamentosEnviados, setOrcamentosEnviados] = React.useState<any[]>([]);
 
-  // Escuta os orçamentos em tempo real
   React.useEffect(() => {
     if (!db) return;
     const q = query(collection(db, "orcamentos"), orderBy("data", "desc"));
@@ -104,7 +106,6 @@ export function NaiQuoteComponent() {
     setSalvando(true);
 
     try {
-      // 1. Salva os dados no Firestore para obter ID
       const docRef = await addDoc(collection(db, "orcamentos"), {
         empresa: formData.nomeEmpresa,
         funcionarios: formData.quantidadeFuncionarios,
@@ -114,58 +115,86 @@ export function NaiQuoteComponent() {
         data: serverTimestamp()
       });
 
-      // 2. Gera o PDF comercial
       const pdf = new jsPDF();
+      
+      // Adiciona Logo da Nextcon
+      try {
+        pdf.addImage(NEXTCON_LOGO_URL, 'PNG', 20, 15, 60, 15);
+      } catch (e) {
+        console.warn("Logo não carregada no PDF");
+      }
+
       pdf.setFont("helvetica", "bold");
       pdf.setTextColor(0, 53, 107);
-      pdf.setFontSize(20);
-      pdf.text("Proposta Técnica SST - Nextcon NAI", 20, 30);
+      pdf.setFontSize(18);
+      pdf.text("Proposta Técnica SST", 190, 25, { align: 'right' });
       
-      pdf.setFontSize(12);
+      pdf.setDrawColor(0, 180, 255);
+      pdf.setLineWidth(0.5);
+      pdf.line(20, 35, 190, 35);
+
+      pdf.setFontSize(11);
       pdf.setTextColor(100, 116, 139);
       pdf.text(`Cliente: ${formData.nomeEmpresa.toUpperCase()}`, 20, 45);
-      pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 52);
+      pdf.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 20, 51);
+      pdf.text(`ID da Proposta: #${docRef.id.substring(0, 8)}`, 20, 57);
       
       pdf.setFont("helvetica", "italic");
       pdf.setTextColor(0, 53, 107);
       let intro = pdf.splitTextToSize(`Análise NAI Intelligence: ${orcamento.mensagemIntrodutoria}`, 170);
-      pdf.text(intro, 20, 65);
+      pdf.text(intro, 20, 70);
 
-      let y = 75 + (intro.length * 5);
+      let y = 80 + (intro.length * 5);
       pdf.setFont("helvetica", "bold");
-      pdf.text("CRONOGRAMA DE IMPLANTAÇÃO RECOMENDADO:", 20, y);
+      pdf.text("DETALHAMENTO TÉCNICO RECOMENDADO:", 20, y);
       y += 10;
 
       orcamento.servicosRecomendados.forEach(s => {
+        if (y > 260) {
+          pdf.addPage();
+          y = 20;
+        }
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(11);
-        pdf.text(`• ${s.nomeServico} - R$ ${s.valorEstimado.toFixed(2)}`, 20, y);
+        pdf.setTextColor(0, 53, 107);
+        pdf.text(`• ${s.nomeServico}`, 20, y);
+        pdf.text(`R$ ${s.valorEstimado.toFixed(2)}`, 190, y, { align: 'right' });
         
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(10);
+        pdf.setTextColor(100, 116, 139);
         let just = pdf.splitTextToSize(s.justificativaLegal, 160);
         pdf.text(just, 25, y + 5);
         y += 15 + (just.length * 5);
       });
 
+      y += 5;
+      pdf.setDrawColor(241, 245, 249);
+      pdf.line(20, y, 190, y);
+      y += 15;
+
       pdf.setFontSize(14);
       pdf.setFont("helvetica", "bold");
-      pdf.text(`Total Investimento: R$ ${orcamento.valorTotalAvulso.toFixed(2)}`, 20, y + 10);
+      pdf.setTextColor(0, 53, 107);
+      pdf.text(`Total Implementação (Avulso):`, 20, y);
+      pdf.text(`R$ ${orcamento.valorTotalAvulso.toFixed(2)}`, 190, y, { align: 'right' });
+      
       if (orcamento.valorTotalMensal) {
-        pdf.text(`Gestão eSocial Mensal: R$ ${orcamento.valorTotalMensal.toFixed(2)}/mês`, 20, y + 20);
+        y += 10;
+        pdf.setTextColor(16, 185, 129);
+        pdf.text(`Mensalidade Gestão eSocial:`, 20, y);
+        pdf.text(`R$ ${orcamento.valorTotalMensal.toFixed(2)}/mês`, 190, y, { align: 'right' });
       }
 
-      // 3. Upload para Storage
       const pdfBlob = pdf.output("blob");
       const storagePath = `orcamentos/${docRef.id}.pdf`;
       const storageRef = ref(storage, storagePath);
       await uploadBytes(storageRef, pdfBlob);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // 4. Atualiza registro com link do PDF
       await updateDoc(docRef, { pdfUrl: downloadURL });
 
-      toast({ title: "Proposta Protocolada!", description: "Dossiê gerado e salvo no histórico." });
+      toast({ title: "Proposta Protocolada!", description: "Dossiê com logo gerado e salvo no histórico." });
       setOrcamento(null);
       setFormData({ nomeEmpresa: "", quantidadeFuncionarios: "", grauDeRisco: "1", necessidades: "" });
     } catch (e) {
@@ -179,7 +208,6 @@ export function NaiQuoteComponent() {
   return (
     <div className="space-y-12 pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
-        {/* FORMULÁRIO */}
         <Card className="lg:col-span-1 border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
           <div className="p-8 bg-primary text-white">
             <div className="flex items-center gap-3 mb-2">
@@ -249,7 +277,6 @@ export function NaiQuoteComponent() {
           </CardContent>
         </Card>
 
-        {/* RESULTADO */}
         <div className="lg:col-span-2">
           {!orcamento && !loading && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 border-2 border-dashed rounded-[3rem] p-20 bg-white">
@@ -330,7 +357,6 @@ export function NaiQuoteComponent() {
         </div>
       </div>
 
-      {/* HISTÓRICO */}
       <div className="pt-12 border-t space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/5 rounded-lg text-primary"><History className="size-5" /></div>
