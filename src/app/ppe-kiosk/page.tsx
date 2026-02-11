@@ -102,7 +102,7 @@ export default function PpeKiosk() {
     doc.rect(0, 0, 210, 40, 'F')
     doc.setTextColor(255, 255, 255)
     doc.setFontSize(22)
-    doc.text("NEXTCON PLATFORM", 105, 25, { align: "center" })
+    doc.text("Controle EPIs NAI", 105, 25, { align: "center" })
     
     doc.setTextColor(0, 0, 0)
     doc.setFontSize(16)
