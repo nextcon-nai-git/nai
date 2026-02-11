@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -132,8 +131,8 @@ export function AppSidebar() {
           <span className="text-3xl font-black tracking-tighter leading-none">
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
-          <span className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">
-            {isAdmin ? 'NEXTCON AI' : 'Saúde Empresarial'}
+          <span className="text-[10px] font-bold text-accent uppercase tracking-[0.1em]">
+            {isAdmin ? 'NEXTCON AI' : 'Inteligência NAI em SST'}
           </span>
         </div>
       </SidebarHeader>

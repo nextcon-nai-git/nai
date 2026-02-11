@@ -193,7 +193,7 @@ export default function LoginPage() {
 
           <div className="text-center pt-6">
             <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em]">
-              © 2026 NextCon Saúde Empresarial • NAI Forensic Engine
+              © 2026 NextCon Inteligência NAI em SST • NAI Forensic Engine
             </p>
           </div>
         </div>

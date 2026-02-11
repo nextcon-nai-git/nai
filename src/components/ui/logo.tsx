@@ -20,14 +20,14 @@ export function NextconLogo({ className }: { className?: string }) {
         NEXTCON
       </text>
       
-      {/* Texto: saúde empresarial - Estilo Light/Regular Ciano */}
+      {/* Texto: Inteligência NAI em SST - Estilo Light/Regular Ciano */}
       <text 
         x="5" 
         y="108" 
         fill="#00b4ff" 
-        style={{ font: '500 28px Montserrat, sans-serif', letterSpacing: '5.5px', textTransform: 'lowercase' }}
+        style={{ font: '500 24px Montserrat, sans-serif', letterSpacing: '2px', textTransform: 'none' }}
       >
-        saúde empresarial
+        Inteligência NAI em SST
       </text>
     </svg>
   )
