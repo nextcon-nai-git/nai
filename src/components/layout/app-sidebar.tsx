@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -27,7 +28,8 @@ import {
   Scale,
   Brain,
   Cloud,
-  Terminal
+  Terminal,
+  Upload
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -59,6 +61,7 @@ const navGroups = [
       { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
       { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra" },
       { title: "Carga de Dados", icon: Database, href: "/data-import" },
+      { title: "Importar Clientes", icon: Upload, href: "/importar" },
     ]
   },
   {
