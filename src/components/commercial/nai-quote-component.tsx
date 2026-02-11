@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -17,7 +18,8 @@ import {
   User,
   MapPin,
   Mail,
-  Phone
+  Phone,
+  LayoutGrid
 } from "lucide-react";
 import { gerarOrcamentoComNai } from "@/actions/nai-quote";
 import { Button } from "@/components/ui/button";
@@ -26,11 +28,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useUser, useFirestore, useStorage } from "@/firebase";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { useUser, useFirestore, useStorage, useDoc, useMemoFirebase } from "@/firebase";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, updateDoc, doc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 const NEXTCON_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
@@ -70,6 +73,12 @@ export function NaiQuoteComponent() {
   const [orcamento, setOrcamento] = React.useState<OrcamentoGerado | null>(null);
   const [orcamentosEnviados, setOrcamentosEnviados] = React.useState<any[]>([]);
 
+  const profileRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return doc(db, "users", user.uid);
+  }, [db, user]);
+  const { data: profile } = useDoc(profileRef);
+
   React.useEffect(() => {
     if (!db) return;
     const q = query(collection(db, "orcamentos"), orderBy("data", "desc"));
@@ -97,7 +106,34 @@ export function NaiQuoteComponent() {
 
       if (res.sucesso && res.orcamento) {
         setOrcamento(res.orcamento as OrcamentoGerado);
-        toast({ title: "Análise Concluída", description: "A NAI montou sua recomendação técnica." });
+        
+        // AUTOMÁTICO: Cria o card comercial na coluna "Propostas a Revisar"
+        if (db && profile) {
+          const taskData = {
+            title: `Proposta IA: ${formData.nomeEmpresa}`,
+            companyId: profile.companyId || "leads",
+            companyName: formData.nomeEmpresa,
+            type: 'comercial',
+            status: 'to_review',
+            priority: 'medium',
+            ai_risk_score: 10 * Number(formData.grauDeRisco), // Score fake baseado no risco
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 dias pra frente
+            createdAt: new Date().toISOString(),
+            checklist: [
+              { id: '1', text: 'Validar dados do solicitante', checked: false, mandatory: true },
+              { id: '2', text: 'Ajustar precificação IA', checked: false, mandatory: true },
+              { id: '3', text: 'Enviar PDF formal', checked: false, mandatory: true }
+            ]
+          };
+          
+          const tasksRef = collection(db, "companies", profile.companyId || "leads", "tasks");
+          await addDocumentNonBlocking(tasksRef, taskData);
+          
+          toast({ 
+            title: "Proposta Criada!", 
+            description: "A NAI gerou o orçamento e já criou um Card no seu Funil de Vendas." 
+          });
+        }
       } else {
         toast({ variant: "destructive", title: "Falha na NAI", description: res.mensagem });
       }
@@ -122,7 +158,6 @@ export function NaiQuoteComponent() {
 
       const pdf = new jsPDF();
       
-      // Adiciona Logo da Nextcon
       try {
         pdf.addImage(NEXTCON_LOGO_URL, 'PNG', 20, 15, 60, 15);
       } catch (e) {
@@ -207,19 +242,8 @@ export function NaiQuoteComponent() {
 
       await updateDoc(docRef, { pdfUrl: downloadURL });
 
-      toast({ title: "Proposta Protocolada!", description: "Dossiê com dados do solicitante gerado com sucesso." });
+      toast({ title: "Proposta Protocolada!", description: "Dossiê salvo no histórico comercial." });
       setOrcamento(null);
-      setFormData({
-        nomeEmpresa: "",
-        nomeSolicitante: "",
-        cidade: "",
-        estado: "",
-        email: "",
-        telefone: "",
-        quantidadeFuncionarios: "",
-        grauDeRisco: "1",
-        needs: ""
-      });
     } catch (e) {
       console.error(e);
       toast({ variant: "destructive", title: "Erro no Protocolo", description: "Falha ao salvar no banco." });
@@ -235,9 +259,9 @@ export function NaiQuoteComponent() {
           <div className="p-8 bg-primary text-white">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
-              <h3 className="text-xl font-headline font-black uppercase">Gerar Proposta</h3>
+              <h3 className="text-xl font-headline font-black uppercase">Nova Proposta</h3>
             </div>
-            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">Preencha os dados do cliente e solicitante.</p>
+            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">Gere orçamentos e cards comerciais via IA.</p>
           </div>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -247,7 +271,7 @@ export function NaiQuoteComponent() {
                   <Input 
                     required
                     className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="Razão Social ou Nome Fantasia"
+                    placeholder="Razão Social"
                     value={formData.nomeEmpresa}
                     onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
                   />
@@ -255,12 +279,12 @@ export function NaiQuoteComponent() {
 
                 <div className="space-y-1">
                   <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                    <User className="size-3" /> Nome do Solicitante
+                    <User className="size-3" /> Solicitante
                   </label>
                   <Input 
                     required
                     className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="Quem está solicitando?"
+                    placeholder="Nome completo"
                     value={formData.nomeSolicitante}
                     onChange={e => setFormData({...formData, nomeSolicitante: e.target.value})}
                   />
@@ -280,7 +304,7 @@ export function NaiQuoteComponent() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Estado (UF)</label>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Estado</label>
                     <Input 
                       required maxLength={2}
                       className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner uppercase" 
@@ -298,7 +322,7 @@ export function NaiQuoteComponent() {
                   <Input 
                     required type="email"
                     className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="exemplo@empresa.com.br"
+                    placeholder="contato@empresa.com.br"
                     value={formData.email}
                     onChange={e => setFormData({...formData, email: e.target.value})}
                   />
@@ -306,7 +330,7 @@ export function NaiQuoteComponent() {
 
                 <div className="space-y-1">
                   <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                    <Phone className="size-3" /> Telefone / WhatsApp
+                    <Phone className="size-3" /> Telefone
                   </label>
                   <Input 
                     required
@@ -347,7 +371,7 @@ export function NaiQuoteComponent() {
                   <Textarea 
                     required
                     className="min-h-[80px] bg-slate-50 border-none rounded-xl p-3 text-xs font-medium shadow-inner" 
-                    placeholder="O que o cliente relatou?"
+                    placeholder="Descreva o cenário..."
                     value={formData.necessidades}
                     onChange={e => setFormData({...formData, necessidades: e.target.value})}
                   />
@@ -360,7 +384,7 @@ export function NaiQuoteComponent() {
                 className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
               >
                 {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
-                {loading ? "Processando..." : "Analisar via IA"}
+                {loading ? "Calculando..." : "Analisar via IA"}
               </Button>
             </form>
           </CardContent>
@@ -372,7 +396,7 @@ export function NaiQuoteComponent() {
               <Bot className="size-24 text-primary" />
               <div className="space-y-2">
                 <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
-                <p className="text-sm font-bold">A NAI montará a proposta completa após o preenchimento.</p>
+                <p className="text-sm font-bold text-slate-400">Ao finalizar, a NAI criará um card no Funil de Vendas.</p>
               </div>
             </div>
           )}
@@ -380,9 +404,7 @@ export function NaiQuoteComponent() {
           {loading && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
               <Loader2 className="size-20 animate-spin text-primary opacity-20" />
-              <div className="space-y-3">
-                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Dados Legais...</p>
-              </div>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Dados Legais...</p>
             </div>
           )}
 
@@ -433,13 +455,18 @@ export function NaiQuoteComponent() {
                 )}
               </div>
 
+              <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100 flex items-center gap-4">
+                <LayoutGrid className="size-6 text-emerald-600" />
+                <p className="text-xs font-bold text-emerald-800">Card automático criado na etapa "Propostas a Revisar".</p>
+              </div>
+
               <Button 
                 onClick={handleSalvarEGerarPDF}
                 disabled={salvando}
                 className="w-full h-16 bg-accent text-primary font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-accent/20 gap-3"
               >
                 {salvando ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />}
-                {salvando ? "Protocolando Dossiê..." : "Salvar e Gerar PDF Profissional"}
+                {salvando ? "Protocolando..." : "Salvar e Gerar PDF Profissional"}
               </Button>
             </div>
           )}

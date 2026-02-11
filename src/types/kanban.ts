@@ -1,4 +1,5 @@
-export type Status = 'sent' | 'approved' | 'implementation' | 'started' | 'todo' | 'doing' | 'review' | 'done';
+
+export type Status = 'to_review' | 'sent' | 'approved' | 'implementation' | 'started' | 'todo' | 'doing' | 'review' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
 export type TaskType = 'pgr' | 'pcmso' | 'treinamento' | 'vistoria' | 'esocial' | 'comercial';
 
@@ -14,8 +15,9 @@ export interface SSTTask {
 }
 
 export const COMMERCIAL_COLUMNS: { id: Status; title: string; color: string }[] = [
-  { id: 'sent', title: 'Orçamentos Enviados', color: 'bg-blue-50' },
-  { id: 'approved', title: 'Orçamentos Aprovados', color: 'bg-emerald-50' },
+  { id: 'to_review', title: 'Propostas a Revisar', color: 'bg-orange-50' },
+  { id: 'sent', title: 'Propostas Enviadas', color: 'bg-blue-50' },
+  { id: 'approved', title: 'Propostas Aprovadas', color: 'bg-emerald-50' },
   { id: 'implementation', title: 'Implantação Projeto', color: 'bg-purple-50' },
 ];
 

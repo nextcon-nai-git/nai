@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -74,7 +75,7 @@ export default function ComercialPortal() {
 
   const commercialTasks = React.useMemo(() => {
     if (!allTasks) return []
-    return allTasks.filter(t => ['sent', 'approved', 'implementation'].includes(t.status))
+    return allTasks.filter(t => ['to_review', 'sent', 'approved', 'implementation'].includes(t.status))
   }, [allTasks])
 
   const handleUpdateQty = (serviceId: string, delta: number) => {
@@ -110,16 +111,20 @@ export default function ComercialPortal() {
         companyId: profile.companyId || "leads",
         companyName: profile.name,
         type: 'comercial',
-        status: 'sent',
+        status: 'to_review', // Inicia no funil para revisão
         priority: 'medium',
         dueDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         totalValue: totalValueManual,
-        services: selectedServices
+        services: selectedServices,
+        checklist: [
+          { id: '1', text: 'Validar quantidades', checked: false, mandatory: true },
+          { id: '2', text: 'Gerar PDF formal', checked: false, mandatory: true }
+        ]
       }
       const colRef = collection(db, "companies", profile.companyId || "leads", "tasks")
       await addDocumentNonBlocking(colRef, proposalData)
-      toast({ title: "Proposta Salva!", description: "Card comercial criado na etapa 'Orçamentos Enviados'." })
+      toast({ title: "Proposta Salva!", description: "Card comercial criado na etapa 'Propostas a Revisar'." })
       setActiveTab("cards")
     } catch (e) {
       toast({ variant: "destructive", title: "Erro ao salvar" })
@@ -132,7 +137,7 @@ export default function ComercialPortal() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Proposta Comercial NAI</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Proposta Comercial</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
             <Sparkles className="size-3 text-[#00f2ff]" /> Inteligência Comercial e Funil de Vendas SST.
           </p>
