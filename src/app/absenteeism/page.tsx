@@ -80,7 +80,9 @@ export default function LimboSentinel() {
   const { data: profile } = useDoc(profileRef)
 
   const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role)
+    if (!profile?.role) return false;
+    const role = profile.role.toUpperCase();
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
   }, [profile])
 
   const form = useForm<RecordFormValues>({
@@ -106,14 +108,15 @@ export default function LimboSentinel() {
 
   // Sincroniza empresa no formulário caso o usuário não seja Admin
   React.useEffect(() => {
-    if (profile && !isPrivileged && profile.companyId) {
+    if (profile && profile.companyId) {
       form.setValue("companyId", profile.companyId)
     }
-  }, [profile, isPrivileged, form])
+  }, [profile, form])
 
   // Consulta real das perícias
   const expertisesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
+    // Apenas Super Admins SEM vínculo de empresa podem fazer Collection Group
     if (isPrivileged) {
       return query(collectionGroup(db, "legalExpertises"), orderBy("date", "desc"))
     } else if (profile.companyId) {
@@ -246,7 +249,7 @@ export default function LimboSentinel() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase text-slate-400">Unidade Cliente</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isPrivileged}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!profile?.companyId}>
                               <FormControl><SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
                               <SelectContent>
                                 {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}

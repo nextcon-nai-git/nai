@@ -11,20 +11,23 @@ service cloud.firestore {
     }
 
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      let path = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(path) ? get(path).data : {};
     }
 
     function isSuperAdmin() {
+      let role = getUserData().role;
       return isAuth() && (
-        getUserData().role == 'SUPER_ADMIN' || 
-        getUserData().role == 'ENGINEER' || 
-        getUserData().role == 'DOCTOR' ||
-        getUserData().role == 'ADMIN'
+        role == 'SUPER_ADMIN' || 
+        role == 'ENGINEER' || 
+        role == 'DOCTOR' ||
+        role == 'ADMIN'
       );
     }
 
     function isUserInCompany(companyId) {
-      return isAuth() && getUserData().companyId == companyId;
+      let userData = getUserData();
+      return isAuth() && (userData.companyId == companyId || isSuperAdmin());
     }
 
     // ----------------------------------------------------------------------
@@ -33,16 +36,16 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuth() && (request.auth.uid == userId || isSuperAdmin());
-      allow write: if isSuperAdmin();
+      allow write: if isSuperAdmin() || (isAuth() && request.auth.uid == userId);
     }
 
     match /companies/{companyId} {
-      allow read: if isUserInCompany(companyId) || isSuperAdmin();
+      allow read: if isUserInCompany(companyId);
       allow update: if isSuperAdmin() || (isUserInCompany(companyId) && getUserData().role == 'CLIENT_ADMIN');
       allow create, delete: if isSuperAdmin();
 
       match /{document=**} {
-        allow read, write: if isUserInCompany(companyId) || isSuperAdmin();
+        allow read, write: if isUserInCompany(companyId);
       }
     }
 

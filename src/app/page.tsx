@@ -42,7 +42,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 /**
  * @fileOverview Dashboard Principal (Agenda SESMT)
  * Visão centralizada de tudo que o gestor deve se preocupar hoje.
- * Agora inclui a Calculadora Automática de FAP.
  */
 
 export default function Dashboard() {
@@ -61,8 +60,12 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
-  const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase();
-  const isAdmin = ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role);
+  const isAdmin = React.useMemo(() => {
+    if (!profile?.role) return false;
+    const role = profile.role.toUpperCase();
+    // Apenas Administradores sem companyId podem ver dados globais
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && !profile.companyId;
+  }, [profile]);
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null;
@@ -88,7 +91,6 @@ export default function Dashboard() {
   }, []);
 
   const potentialSavings = React.useMemo(() => {
-    // Cálculo: Folha * 2% (RAT Médio) * (1 - FAP) * 12 meses
     return (payroll * 0.02 * (1 - fapValue[0]) * 12);
   }, [payroll, fapValue]);
 
@@ -179,7 +181,6 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-8">
-          {/* Calculadora Automática de FAP */}
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
             <CardHeader className="bg-primary/5 pb-6 p-8 border-b">
               <div className="flex items-center gap-3">
@@ -230,10 +231,6 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase">Ref: Folha Mensal R$ {payroll.toLocaleString('pt-BR')}</p>
               </div>
-              
-              <Button variant="ghost" className="w-full h-10 rounded-xl text-[9px] font-black uppercase text-primary/40 hover:text-primary transition-colors">
-                Personalizar Folha <ChevronRight className="size-3 ml-1" />
-              </Button>
             </CardContent>
           </Card>
 
@@ -260,33 +257,6 @@ export default function Dashboard() {
               <Button asChild variant="outline" className="w-full h-16 bg-white/5 border-white/10 text-white hover:bg-white hover:text-primary transition-all font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-2xl">
                 <Link href="/knowledge-base">Consultar Cérebro NAI</Link>
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
-            <CardHeader className="pb-2 p-8">
-              <CardTitle className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
-                <TrendingUp className="size-3 text-accent" /> Score de Conformidade Global
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="flex items-end justify-between mb-6">
-                <h2 className="text-5xl font-black text-primary tracking-tighter">94.8%</h2>
-                <Badge className="bg-accent text-primary text-[9px] font-black border-none uppercase px-4 h-6">Excelência</Badge>
-              </div>
-              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden mb-6 shadow-inner">
-                <div className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000" style={{ width: '94.8%' }} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Técnica</p>
-                  <p className="text-xs font-bold text-primary">98%</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[8px] font-black text-slate-400 uppercase">Jurídica</p>
-                  <p className="text-xs font-bold text-primary">91%</p>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>
