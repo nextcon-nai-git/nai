@@ -1,4 +1,3 @@
-
 /**
  * NEXTCON PLATFORM - CATÁLOGO COMERCIAL SST 2026
  * Estrutura de precificação dinâmica para orçamentos automáticos.
@@ -44,9 +43,22 @@ export const SST_CATALOG: ServiceCategory[] = [
     ]
   },
   {
-    id: "saude",
-    title: "3. Saúde e Medicina",
+    id: "auditoria_medica",
+    title: "3. Auditoria Médica e Regulação",
     icon: "Stethoscope",
+    services: [
+      { id: "cons_med_aut", name: "Consultoria Médica de Autorização", description: "Análise e parecer médico solicitações autorização", basePrice: 150, unit: 'unidade' },
+      { id: "seg_op_med", name: "Segunda Opinião Médica", description: "Parecer especializado para apoio ao auditor", basePrice: 200, unit: 'unidade' },
+      { id: "junta_med", name: "Junta Médica ou Odontológica (RN 424)", description: "Processo para dirimir divergências técnico-assistencial", basePrice: 500, unit: 'unidade' },
+      { id: "cons_tec_retro", name: "Consultoria Técnica Retrospectiva", description: "Análise de contas médicas e intercâmbio", basePrice: 300, unit: 'unidade' },
+      { id: "par_jud", name: "Parecer para Demandas Judiciais", description: "Análise baseada em quesitos jurídicos", basePrice: 400, unit: 'unidade' },
+      { id: "cons_opme", name: "Consultoria OPME", description: "Parecer de enfermagem acerca de OPMEs", basePrice: 180, unit: 'unidade' },
+    ]
+  },
+  {
+    id: "saude",
+    title: "4. Saúde e Medicina Ocupacional",
+    icon: "HeartPulse",
     services: [
       { id: "aso", name: "Emissão de ASO", description: "Admissional/Periódico/Demissional", basePrice: 45, unit: 'vida' },
       { id: "audio", name: "Audiometria", description: "Exame complementar", basePrice: 35, unit: 'vida' },
@@ -55,7 +67,7 @@ export const SST_CATALOG: ServiceCategory[] = [
   },
   {
     id: "higiene",
-    title: "4. Higiene Ocupacional",
+    title: "5. Higiene Ocupacional",
     icon: "Gauge",
     services: [
       { id: "ruido", name: "Dosimetria de Ruído", description: "Medição quantitativa 8h", basePrice: 180, unit: 'ponto' },
@@ -65,7 +77,7 @@ export const SST_CATALOG: ServiceCategory[] = [
   },
   {
     id: "esocial",
-    title: "5. eSocial & Burocracia",
+    title: "6. eSocial & Burocracia",
     icon: "Zap",
     services: [
       { id: "s2220", name: "Envio S-2220", description: "Monitoramento de Saúde", basePrice: 15, unit: 'vida' },
@@ -75,21 +87,23 @@ export const SST_CATALOG: ServiceCategory[] = [
   },
   {
     id: "treinamentos",
-    title: "6. Treinamentos (NRs)",
+    title: "7. Treinamentos (NRs)",
     icon: "GraduationCap",
     services: [
       { id: "nr35", name: "NR-35 (Altura)", description: "Treinamento 8h", basePrice: 250, unit: 'vida' },
       { id: "nr10", name: "NR-10 (Elétrica)", description: "Treinamento 40h", basePrice: 450, unit: 'vida' },
       { id: "cipa", name: "CIPA (Designado)", description: "Formação obrigatória", basePrice: 350, unit: 'unidade' },
     ]
-  },
-  {
-    id: "consultoria",
-    title: "7. Consultoria Jurídica",
-    icon: "Gavel",
-    services: [
-      { id: "pericia", name: "Assistência em Perícia", description: "Acompanhamento Técnico", basePrice: 250, unit: 'hora' },
-      { id: "sesmt", name: "Terceirização SESMT", description: "Alocação de Profissional", basePrice: 4500, unit: 'unidade' },
-    ]
   }
+];
+
+export const NEXTCON_DIFFERENTIALS = [
+  "Qualidade técnica na emissão de pareceres, respeitando as melhoras práticas vigentes;",
+  "Prazos dos serviços em conformidade com os prazos da Operadora definidos pela ANS;",
+  "Garantia de impessoalidade no processo;",
+  "Parecer técnico de especialistas renomados e atuantes em suas especialidades;",
+  "Indicadores de gestão e resultados de desperdício evitado;",
+  "Aumento da produtividade e ganho de tempo operacional;",
+  "Melhoria na gestão dos recursos através do combate ao desperdício;",
+  "Melhora na aplicação de glosas."
 ];

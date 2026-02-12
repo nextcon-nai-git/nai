@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -34,6 +33,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+import { NEXTCON_DIFFERENTIALS } from "@/lib/services-data";
 
 const NEXTCON_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
@@ -107,7 +107,6 @@ export function NaiQuoteComponent() {
       if (res.sucesso && res.orcamento) {
         setOrcamento(res.orcamento as OrcamentoGerado);
         
-        // AUTOMÁTICO: Cria o card comercial na coluna "Propostas a Revisar"
         if (db && profile) {
           const taskData = {
             title: `Proposta IA: ${formData.nomeEmpresa}`,
@@ -116,8 +115,8 @@ export function NaiQuoteComponent() {
             type: 'comercial',
             status: 'to_review',
             priority: 'medium',
-            ai_risk_score: 10 * Number(formData.grauDeRisco), // Score fake baseado no risco
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 dias pra frente
+            ai_risk_score: 10 * Number(formData.grauDeRisco),
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
             createdAt: new Date().toISOString(),
             checklist: [
               { id: '1', text: 'Validar dados do solicitante', checked: false, mandatory: true },
@@ -158,6 +157,7 @@ export function NaiQuoteComponent() {
 
       const pdf = new jsPDF();
       
+      // HEADER
       try {
         pdf.addImage(NEXTCON_LOGO_URL, 'PNG', 20, 15, 60, 15);
       } catch (e) {
@@ -173,6 +173,7 @@ export function NaiQuoteComponent() {
       pdf.setLineWidth(0.5);
       pdf.line(20, 35, 190, 35);
 
+      // CLIENT DATA
       pdf.setFontSize(10);
       pdf.setTextColor(100, 116, 139);
       pdf.text("DADOS DO CLIENTE:", 20, 45);
@@ -187,11 +188,13 @@ export function NaiQuoteComponent() {
       pdf.setTextColor(148, 163, 184);
       pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')} | ID: #${docRef.id.substring(0, 8)}`, 190, 69, { align: 'right' });
       
+      // INTRO
       pdf.setFont("helvetica", "italic");
       pdf.setTextColor(0, 53, 107);
       let intro = pdf.splitTextToSize(`Análise NAI Intelligence: ${orcamento.mensagemIntrodutoria}`, 170);
       pdf.text(intro, 20, 80);
 
+      // SERVICES
       let y = 90 + (intro.length * 5);
       pdf.setFont("helvetica", "bold");
       pdf.text("DETALHAMENTO TÉCNICO RECOMENDADO:", 20, y);
@@ -216,6 +219,7 @@ export function NaiQuoteComponent() {
         y += 15 + (just.length * 5);
       });
 
+      // TOTALS
       y += 5;
       pdf.setDrawColor(241, 245, 249);
       pdf.line(20, y, 190, y);
@@ -233,6 +237,28 @@ export function NaiQuoteComponent() {
         pdf.text(`Mensalidade Gestão eSocial:`, 20, y);
         pdf.text(`R$ ${orcamento.valorTotalMensal.toFixed(2)}/mês`, 190, y, { align: 'right' });
       }
+
+      // NEW PAGE: DIFFERENTIALS
+      pdf.addPage();
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(16);
+      pdf.setTextColor(0, 53, 107);
+      pdf.text("POR QUE ESCOLHER A NEXTCON?", 20, 25);
+      
+      pdf.setDrawColor(0, 242, 255);
+      pdf.line(20, 30, 80, 30);
+
+      y = 45;
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "normal");
+      NEXTCON_DIFFERENTIALS.forEach(diff => {
+        pdf.setTextColor(16, 185, 129);
+        pdf.text("✓", 20, y);
+        pdf.setTextColor(100, 116, 139);
+        let diffText = pdf.splitTextToSize(diff, 160);
+        pdf.text(diffText, 30, y);
+        y += 8 + (diffText.length * 5);
+      });
 
       const pdfBlob = pdf.output("blob");
       const storagePath = `orcamentos/${docRef.id}.pdf`;
