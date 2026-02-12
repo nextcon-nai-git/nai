@@ -79,6 +79,16 @@
             "alerta_sistema": { "type": "string" }
           }
         },
+        "expertiseChecklist": {
+          "type": "object",
+          "properties": {
+            "anamnese": { "type": "string" },
+            "exameFisico": { "type": "string" },
+            "nexoCausal": { "type": "string", "enum": ["confirmado", "excluido", "concausa"] },
+            "observacoes": { "type": "string" },
+            "filledAt": { "type": "string", "format": "date-time" }
+          }
+        },
         "createdAt": { "type": "string", "format": "date-time" },
         "companyId": { "type": "string" }
       }
