@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -26,6 +27,39 @@
         "cnae": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
+    },
+    "ProfessionalNorm": {
+      "title": "ProfessionalNorm",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "categoria": { "type": "string" },
+        "orgao": { "type": "string" },
+        "norma_principal": { "type": "string" },
+        "foco_defesa": { "type": "string" },
+        "gatilhos": { "type": "array", "items": { "type": "string" } },
+        "texto_legal_padrao": { "type": "string" }
+      }
+    },
+    "Jurisprudence": {
+      "title": "Jurisprudence",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "titulo": { "type": "string" },
+        "aplicacao": { "type": "string" },
+        "argumento_automatico": { "type": "string" },
+        "anexar_em": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ReverseDenialRule": {
+      "title": "ReverseDenialRule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "descricao": { "type": "string" },
+        "logica": { "type": "string" }
+      }
     },
     "EmailRoutine": {
       "title": "EmailRoutine",
@@ -110,6 +144,18 @@
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
     },
+    "/config_normas_profissionais/{normId}": {
+      "schema": "#/entities/ProfessionalNorm",
+      "description": "Base de inteligência dos conselhos profissionais."
+    },
+    "/config_jurisprudencia/{jurId}": {
+      "schema": "#/entities/Jurisprudence",
+      "description": "Repositório de teses jurídicas e decisões STJ/ANS."
+    },
+    "/config_glosa_reversa/{ruleId}": {
+      "schema": "#/entities/ReverseDenialRule",
+      "description": "Regras automáticas para validação de contas hospitalares."
+    },
     "/companies/{companyId}/settings/emailRoutine": {
       "schema": "#/entities/EmailRoutine",
       "description": "Configurações de envio automático de relatórios NAI."
@@ -125,14 +171,6 @@
     "/companies/{companyId}/trainings/{trainingId}": {
       "schema": "#/entities/Training",
       "description": "Treinamentos de NRs vinculados à empresa."
-    },
-    "/companies/{companyId}/reports/{reportId}": {
-      "schema": { "type": "object" },
-      "description": "Metadados de auditorias e laudos técnicos."
-    },
-    "/catalogs/{catalogId}": {
-      "schema": { "type": "object" },
-      "description": "Dados compartilhados (Riscos eSocial, Tabela de Exames)."
     },
     "/feedback/{feedbackId}": {
       "schema": "#/entities/PlatformFeedback",
