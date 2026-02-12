@@ -61,75 +61,27 @@
         "logica": { "type": "string" }
       }
     },
-    "EmailRoutine": {
-      "title": "EmailRoutine",
+    "MedicalAuditRequest": {
+      "title": "MedicalAuditRequest",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "frequency": { "type": "string", "enum": ["daily", "weekly", "monthly"] },
-        "customEmail": { "type": "string" },
-        "active": { "type": "boolean" },
-        "companyId": { "type": "string" }
-      }
-    },
-    "Employee": {
-      "title": "Employee",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "cpf": { "type": "string" },
-        "job_role": {
+        "patientName": { "type": "string" },
+        "professionalCategory": { "type": "string" },
+        "diagnosis": { "type": "string" },
+        "complexity": { "type": "string", "enum": ["baixa", "media", "alta"] },
+        "status": { "type": "string" },
+        "defenseStrategy": {
           "type": "object",
           "properties": {
-            "id": { "type": "string" },
-            "title": { "type": "string" },
-            "cbo": { "type": "string" }
+            "norma_base": { "type": "string" },
+            "texto_argumentacao": { "type": "string" },
+            "alerta_sistema": { "type": "string" }
           }
         },
-        "status": { "type": "string", "enum": ["active", "leave", "fired"] }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "companyId": { "type": "string" }
       }
-    },
-    "Training": {
-      "title": "Training",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "companyId": { "type": "string" },
-        "nrs": { "type": "array", "items": { "type": "string" } },
-        "startDate": { "type": "string", "format": "date" },
-        "endDate": { "type": "string", "format": "date" },
-        "totalHours": { "type": "number" },
-        "modality": { "type": "string" },
-        "status": { "type": "string", "enum": ["planned", "in_progress", "completed"] },
-        "students": { "type": "array", "items": { "type": "string" } }
-      }
-    },
-    "Task": {
-      "title": "OpsTask",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "status": { "type": "string" },
-        "type": { "type": "string" },
-        "priority": { "type": "string" },
-        "ai_risk_score": { "type": "number" }
-      }
-    },
-    "PlatformFeedback": {
-      "title": "PlatformFeedback",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "companyId": { "type": "string" },
-        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
-        "suggestion": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "rating"]
     }
   },
   "auth": {
@@ -156,25 +108,9 @@
       "schema": "#/entities/ReverseDenialRule",
       "description": "Regras automáticas para validação de contas hospitalares."
     },
-    "/companies/{companyId}/settings/emailRoutine": {
-      "schema": "#/entities/EmailRoutine",
-      "description": "Configurações de envio automático de relatórios NAI."
-    },
-    "/companies/{companyId}/employees/{employeeId}": {
-      "schema": "#/entities/Employee",
-      "description": "Funcionários isolados por empresa."
-    },
-    "/companies/{companyId}/tasks/{taskId}": {
-      "schema": "#/entities/Task",
-      "description": "Cards de operação (Kanban) da empresa."
-    },
-    "/companies/{companyId}/trainings/{trainingId}": {
-      "schema": "#/entities/Training",
-      "description": "Treinamentos de NRs vinculados à empresa."
-    },
-    "/feedback/{feedbackId}": {
-      "schema": "#/entities/PlatformFeedback",
-      "description": "Avaliações e sugestões enviadas pelos usuários."
+    "/medical_audit_requests/{requestId}": {
+      "schema": "#/entities/MedicalAuditRequest",
+      "description": "Solicitações de auditoria médica e defesa inteligente."
     }
   }
 }

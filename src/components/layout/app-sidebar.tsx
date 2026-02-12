@@ -31,7 +31,8 @@ import {
   Terminal,
   Upload,
   ShoppingCart,
-  ShieldCheck
+  ShieldCheck,
+  Gavel
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -76,9 +77,10 @@ const navGroups = [
   },
   {
     label: "Operação Técnica",
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER', 'DOCTOR'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
       { title: "Field Control", icon: HardHat, href: "/field-control" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
