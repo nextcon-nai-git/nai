@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Database, Loader2, CheckCircle2, ShieldCheck, Scale, Gavel, Zap, ArrowLeft, Sparkles, ShieldAlert, HardHat } from "lucide-react"
+import { Database, Loader2, CheckCircle2, ShieldCheck, Scale, Gavel, Zap, ArrowLeft, Sparkles, ShieldAlert, HardHat, Bot } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -35,10 +35,40 @@ const REGRAS_SST = [
   { id: "bloqueio_alocacao_risco", evento: "Alocação", logica_bloqueio: "SE (treinamentos_pendentes > 0) ENTÃO BLOQUEAR_ALOCACAO", mensagem_erro: "Colaborador inapto para a função. Treinamentos pendentes." }
 ];
 
-const ATIVOS_EXEMPLO = [
-  { id_equipamento: "EQP-CINTO-001", qr_code_hash: "8f4a2b9c", categoria: "EPI_Altura", tipo: "Cinto Paraquedista", ca_numero: "45678", ca_validade: "2028-12-31", status_uso: "ativo" },
-  { id_equipamento: "EQP-TRAVA-002", qr_code_hash: "3d9e1f5a", categoria: "EPI_Altura", tipo: "Trava-quedas", ca_numero: "12345", ca_validade: "2027-06-15", status_uso: "ativo" }
-];
+const PITCH_NAI = {
+  id: "pitch_vendas_padrao",
+  ativo: true,
+  contexto_exibicao: "formulario_orcamento",
+  avatar: {
+    nome: "NAI",
+    titulo: "Inteligência Nextcon",
+    saudacao_inicial: "Olá. Sou a NAI. Não contrate um software, contrate um escudo. Veja por quê 👇"
+  },
+  pilares_venda: [
+    {
+      ordem: 1,
+      icone: "shield_health",
+      titulo: "Saúde: A Super-Junta Jurídica",
+      resumo: "Proteção contra liminares de alto custo (TEA/NIPs).",
+      texto_completo: "Sabe aquelas liminares caríssimas de terapias e procedimentos? A NAI cruza normas dos conselhos e jurisprudência do STJ em tempo real para gerar contestações jurídicas robustas e automáticas."
+    },
+    {
+      ordem: 2,
+      icone: "attach_money_block",
+      titulo: "Financeiro: Glosa Reversa Automática",
+      resumo: "Bloqueio de cobranças indevidas em contas hospitalares.",
+      texto_completo: "Você sabia que até 70% das contas hospitalares podem conter erros? Nossa IA audita o faturamento contra o laudo técnico antes da autorização. O dinheiro indevido nem chega a sair do seu caixa."
+    },
+    {
+      ordem: 3,
+      icone: "security_hard_hat",
+      titulo: "SST 2026: Firewall Físico e Digital",
+      resumo: "Integração com catracas e bloqueio de multas do eSocial.",
+      texto_completo: "O eSocial em 2026 está cruzando dados na velocidade da luz. Nossa inteligência integra com suas catracas físicas e bloqueia funcionários inaptos ou sem treinamento direto na porta de entrada, evitando a multa antes do fato ocorrer."
+    }
+  ],
+  cta_final: "Termine seu orçamento e blinde sua operação."
+};
 
 export default function AuditSetupPage() {
   const { toast } = useToast()
@@ -75,9 +105,10 @@ export default function AuditSetupPage() {
       })
 
       // 5. Ativos SST (EPIs/Instrumentos)
-      ATIVOS_EXEMPLO.forEach(ativo => {
-        batch.set(doc(db, "ativos_sst_equipamentos", ativo.id_equipamento), ativo)
-      })
+      batch.set(doc(db, "ativos_sst_equipamentos", "EQP-CINTO-001"), { id_equipamento: "EQP-CINTO-001", qr_code_hash: "8f4a2b9c", categoria: "EPI_Altura", tipo: "Cinto Paraquedista", ca_numero: "45678", ca_validade: "2028-12-31", status_uso: "ativo" })
+
+      // 6. Roteiro NAI Pitch
+      batch.set(doc(db, "config_nai_avatar", PITCH_NAI.id), PITCH_NAI)
 
       await batch.commit()
       setProgress(100)
@@ -119,11 +150,12 @@ export default function AuditSetupPage() {
         </CardHeader>
 
         <CardContent className="p-10 space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <SetupIndicator icon={Scale} label="Saúde" />
             <SetupIndicator icon={ShieldAlert} label="NRs" />
             <SetupIndicator icon={Zap} label="eSocial" />
             <SetupIndicator icon={HardHat} label="Ativos" />
+            <SetupIndicator icon={Bot} label="Pitch NAI" />
           </div>
 
           <div className="space-y-2">
@@ -159,7 +191,7 @@ export default function AuditSetupPage() {
             )}
           </Button>
           <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-tighter">
-            Esta operação provisiona as bases normativas brasileiras para o motor Gemini 2.0 da NextCon.
+            Esta operação provisiona as bases normativas e o roteiro de vendas NAI para o motor Gemini 2.0.
           </p>
         </CardFooter>
       </Card>

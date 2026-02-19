@@ -79,6 +79,17 @@
         "expertiseChecklist": { "type": "object" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "NaiSalesPitch": {
+      "title": "NaiSalesPitch",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ativo": { "type": "boolean" },
+        "avatar": { "type": "object" },
+        "pilares_venda": { "type": "array" },
+        "cta_final": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -108,6 +119,10 @@
     "/medical_audit_requests/{id}": {
       "schema": "#/entities/MedicalAuditRequest",
       "description": "Solicitações de auditoria médica e super-junta."
+    },
+    "/config_nai_avatar/{id}": {
+      "schema": "#/entities/NaiSalesPitch",
+      "description": "Configurações de roteiro e avatar da assistente virtual."
     }
   }
 }
