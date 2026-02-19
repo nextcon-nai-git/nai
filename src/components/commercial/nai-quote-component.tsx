@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -34,6 +35,7 @@ import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 import { NEXTCON_DIFFERENTIALS } from "@/lib/services-data";
+import { NaiSalesPitch } from "./nai-sales-pitch";
 
 const NEXTCON_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Fnextcon-logo-horizontal.png?alt=media";
 
@@ -280,157 +282,168 @@ export function NaiQuoteComponent() {
 
   return (
     <div className="space-y-12 pb-20">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
-        <Card className="lg:col-span-1 border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
-          <div className="p-8 bg-primary text-white">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
-              <h3 className="text-xl font-headline font-black uppercase">Nova Proposta</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-in fade-in duration-500">
+        <div className="lg:col-span-1 space-y-8">
+          <NaiSalesPitch />
+          <Card className="border-none shadow-xl bg-white rounded-[2.5rem] overflow-hidden h-fit">
+            <div className="p-8 bg-primary text-white">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-white/10 rounded-lg"><Sparkles className="size-5 text-accent" /></div>
+                <h3 className="text-xl font-headline font-black uppercase">Dados da Unidade</h3>
+              </div>
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">Preencha para análise de risco.</p>
             </div>
-            <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest leading-tight">Gere orçamentos e cards comerciais via IA.</p>
-          </div>
-          <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa Cliente</label>
-                  <Input 
-                    required
-                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="Razão Social"
-                    value={formData.nomeEmpresa}
-                    onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
-                  />
-                </div>
+            <CardContent className="p-8">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa Cliente</label>
+                    <Input 
+                      required
+                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                      placeholder="Razão Social"
+                      value={formData.nomeEmpresa}
+                      onChange={e => setFormData({...formData, nomeEmpresa: e.target.value})}
+                    />
+                  </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                    <User className="size-3" /> Solicitante
-                  </label>
-                  <Input 
-                    required
-                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="Nome completo"
-                    value={formData.nomeSolicitante}
-                    onChange={e => setFormData({...formData, nomeSolicitante: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                      <MapPin className="size-3" /> Cidade
+                      <User className="size-3" /> Solicitante
                     </label>
                     <Input 
                       required
                       className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                      placeholder="Ex: Curitiba"
-                      value={formData.cidade}
-                      onChange={e => setFormData({...formData, cidade: e.target.value})}
+                      placeholder="Nome completo"
+                      value={formData.nomeSolicitante}
+                      onChange={e => setFormData({...formData, nomeSolicitante: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Estado</label>
-                    <Input 
-                      required maxLength={2}
-                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner uppercase" 
-                      placeholder="PR"
-                      value={formData.estado}
-                      onChange={e => setFormData({...formData, estado: e.target.value})}
-                    />
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                        <MapPin className="size-3" /> Cidade
+                      </label>
+                      <Input 
+                        required
+                        className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                        placeholder="Ex: Curitiba"
+                        value={formData.cidade}
+                        onChange={e => setFormData({...formData, cidade: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Estado</label>
+                      <Input 
+                        required maxLength={2}
+                        className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner uppercase" 
+                        placeholder="PR"
+                        value={formData.estado}
+                        onChange={e => setFormData({...formData, estado: e.target.value})}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                    <Mail className="size-3" /> E-mail
-                  </label>
-                  <Input 
-                    required type="email"
-                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="contato@empresa.com.br"
-                    value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
-                    <Phone className="size-3" /> Telefone
-                  </label>
-                  <Input 
-                    required
-                    className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                    placeholder="(00) 00000-0000"
-                    value={formData.telefone}
-                    onChange={e => setFormData({...formData, telefone: e.target.value})}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                      <Mail className="size-3" /> E-mail
+                    </label>
                     <Input 
-                      required type="number" min="1"
+                      required type="email"
                       className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
-                      value={formData.quantidadeFuncionarios}
-                      onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                      placeholder="contato@empresa.com.br"
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
                     />
                   </div>
+
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Risco</label>
-                    <select 
-                      className="w-full h-11 bg-slate-50 border-none rounded-xl px-4 text-[11px] font-bold shadow-inner"
-                      value={formData.grauDeRisco}
-                      onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
-                    >
-                      <option value="1">Grau 1</option>
-                      <option value="2">Grau 2</option>
-                      <option value="3">Grau 3</option>
-                      <option value="4">Grau 4</option>
-                    </select>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-1">
+                      <Phone className="size-3" /> Telefone
+                    </label>
+                    <Input 
+                      required
+                      className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                      placeholder="(00) 00000-0000"
+                      value={formData.telefone}
+                      onChange={e => setFormData({...formData, telefone: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Vidas</label>
+                      <Input 
+                        required type="number" min="1"
+                        className="h-11 bg-slate-50 border-none rounded-xl font-bold shadow-inner" 
+                        value={formData.quantidadeFuncionarios}
+                        onChange={e => setFormData({...formData, quantidadeFuncionarios: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Risco</label>
+                      <select 
+                        className="w-full h-11 bg-slate-50 border-none rounded-xl px-4 text-[11px] font-bold shadow-inner"
+                        value={formData.grauDeRisco}
+                        onChange={e => setFormData({...formData, grauDeRisco: e.target.value})}
+                      >
+                        <option value="1">Grau 1</option>
+                        <option value="2">Grau 2</option>
+                        <option value="3">Grau 3</option>
+                        <option value="4">Grau 4</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
+                    <Textarea 
+                      required
+                      className="min-h-[80px] bg-slate-50 border-none rounded-xl p-3 text-xs font-medium shadow-inner" 
+                      placeholder="Descreva o cenário..."
+                      value={formData.necessidades}
+                      onChange={e => setFormData({...formData, necessidades: e.target.value})}
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Necessidades</label>
-                  <Textarea 
-                    required
-                    className="min-h-[80px] bg-slate-50 border-none rounded-xl p-3 text-xs font-medium shadow-inner" 
-                    placeholder="Descreva o cenário..."
-                    value={formData.necessidades}
-                    onChange={e => setFormData({...formData, necessidades: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-              >
-                {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
-                {loading ? "Calculando..." : "Analisar via IA"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  {loading ? <Loader2 className="size-5 animate-spin" /> : <Zap className="size-5 text-accent" />}
+                  {loading ? "Calculando..." : "Analisar via IA"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="lg:col-span-2">
           {!orcamento && !loading && (
-            <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 border-2 border-dashed rounded-[3rem] p-20 bg-white">
-              <Bot className="size-24 text-primary" />
-              <div className="space-y-2">
-                <p className="text-xl font-black uppercase text-primary tracking-widest">Aguardando Dados</p>
-                <p className="text-sm font-bold text-slate-400">Ao finalizar, a NAI criará um card no Funil de Vendas.</p>
+            <div className="h-full min-h-[600px] flex flex-col items-center justify-center text-center space-y-6 opacity-20 border-2 border-dashed rounded-[3rem] p-20 bg-white shadow-inner">
+              <Bot className="size-32 text-primary mb-4" />
+              <div className="space-y-2 max-w-sm">
+                <p className="text-2xl font-black uppercase text-primary tracking-widest leading-tight">Pronto para blindar seu negócio?</p>
+                <p className="text-sm font-bold text-slate-400">Insira os dados da unidade para que a NAI recomende a melhor estratégia de defesa técnica e financeira.</p>
               </div>
             </div>
           )}
 
           {loading && (
-            <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner">
-              <Loader2 className="size-20 animate-spin text-primary opacity-20" />
-              <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Dados Legais...</p>
+            <div className="h-full min-h-[600px] flex flex-col items-center justify-center text-center space-y-8 bg-white rounded-[3rem] shadow-inner border">
+              <div className="relative">
+                <Loader2 className="size-24 animate-spin text-primary opacity-20" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-black text-2xl text-primary">N</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-black uppercase tracking-[0.3em] text-primary animate-pulse">NAI Cruzando Dados Legais...</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Auditoria em Saúde • Glosa Reversa • Firewall eSocial</p>
+              </div>
             </div>
           )}
 
