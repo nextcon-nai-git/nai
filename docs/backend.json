@@ -61,6 +61,40 @@
         "logica": { "type": "string" }
       }
     },
+    "NRNorm": {
+      "title": "NRNorm",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "norma": { "type": "string" },
+        "titulo": { "type": "string" },
+        "foco_fiscalizacao": { "type": "string" },
+        "acao_preventiva": { "type": "string" }
+      }
+    },
+    "SSTRule": {
+      "title": "SSTRule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "evento": { "type": "string" },
+        "logica_bloqueio": { "type": "string" },
+        "mensagem_erro": { "type": "string" }
+      }
+    },
+    "SSTAsset": {
+      "title": "SSTAsset",
+      "type": "object",
+      "properties": {
+        "id_equipamento": { "type": "string" },
+        "qr_code_hash": { "type": "string" },
+        "categoria": { "type": "string" },
+        "tipo": { "type": "string" },
+        "ca_numero": { "type": "string" },
+        "ca_validade": { "type": "string" },
+        "status_uso": { "type": "string" }
+      }
+    },
     "MedicalAuditRequest": {
       "title": "MedicalAuditRequest",
       "type": "object",
@@ -117,6 +151,18 @@
     "/config_glosa_reversa/{ruleId}": {
       "schema": "#/entities/ReverseDenialRule",
       "description": "Regras automáticas para validação de contas hospitalares."
+    },
+    "/config_nrs/{nrId}": {
+      "schema": "#/entities/NRNorm",
+      "description": "Base de Normas Regulamentadoras SST."
+    },
+    "/config_regras_sst/{ruleId}": {
+      "schema": "#/entities/SSTRule",
+      "description": "Regras de conformidade e travas eSocial."
+    },
+    "/ativos_sst_equipamentos/{assetId}": {
+      "schema": "#/entities/SSTAsset",
+      "description": "Inventário de equipamentos e EPIs com QR Code."
     },
     "/medical_audit_requests/{requestId}": {
       "schema": "#/entities/MedicalAuditRequest",
