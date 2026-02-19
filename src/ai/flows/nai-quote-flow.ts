@@ -30,7 +30,7 @@ const OrcamentoOutputSchema = z.object({
       categoria: z.string().describe("Ex: Auditoria Médica, Programas de Gestão, Laudos Técnicos"),
       nomeServico: z.string().describe("Ex: Consultoria Médica de Autorização"),
       justificativaLegal: z.string().describe("Por que a empresa precisa disso? (Citar a NR ou RN da ANS)"),
-      valorEstimado: n.number().describe("Valor sugerido em Reais (R$)")
+      valorEstimado: z.number().describe("Valor sugerido em Reais (R$)")
     })
   ),
   valorTotalMensal: z.number().optional().describe("Se houver taxa mensal (eSocial/Gestão)"),
