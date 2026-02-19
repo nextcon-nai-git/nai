@@ -8,6 +8,7 @@ import * as React from 'react';
 import { TopNav } from '@/components/layout/top-nav';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { NaiFloatingWidget } from '@/components/commercial/nai-floating-widget';
 
 export function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
@@ -64,7 +65,7 @@ export function AppContent({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-background overflow-hidden">
+      <div className="flex h-screen w-full bg-background overflow-hidden relative">
         <AppSidebar />
         <SidebarInset className="flex flex-col h-full overflow-hidden">
           <TopNav />
@@ -74,6 +75,9 @@ export function AppContent({ children }: { children: React.ReactNode }) {
             </div>
           </main>
         </SidebarInset>
+        
+        {/* Widget Flutuante da NAI */}
+        <NaiFloatingWidget />
       </div>
     </SidebarProvider>
   );
