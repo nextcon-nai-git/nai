@@ -28,6 +28,31 @@
       },
       "required": ["id", "name", "cnpj"]
     },
+    "WorkAllocation": {
+      "title": "WorkAllocation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "riskLevel": { "type": "string" },
+        "status": { "type": "string", "enum": ["approved", "blocked"] },
+        "blockingReasons": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "EsocialEvent": {
+      "title": "EsocialEvent",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "eventType": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "status": { "type": "string" },
+        "firewallMessage": { "type": "string" },
+        "payload": { "type": "object" }
+      }
+    },
     "ProfessionalNorm": {
       "title": "ProfessionalNorm",
       "type": "object",
@@ -39,92 +64,6 @@
         "foco_defesa": { "type": "string" },
         "gatilhos": { "type": "array", "items": { "type": "string" } },
         "texto_legal_padrao": { "type": "string" }
-      }
-    },
-    "Jurisprudence": {
-      "title": "Jurisprudence",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "titulo": { "type": "string" },
-        "aplicacao": { "type": "string" },
-        "argumento_automatico": { "type": "string" },
-        "anexar_em": { "type": "array", "items": { "type": "string" } }
-      }
-    },
-    "ReverseDenialRule": {
-      "title": "ReverseDenialRule",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "descricao": { "type": "string" },
-        "logica": { "type": "string" }
-      }
-    },
-    "NRNorm": {
-      "title": "NRNorm",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "norma": { "type": "string" },
-        "titulo": { "type": "string" },
-        "foco_fiscalizacao": { "type": "string" },
-        "acao_preventiva": { "type": "string" }
-      }
-    },
-    "SSTRule": {
-      "title": "SSTRule",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "evento": { "type": "string" },
-        "logica_bloqueio": { "type": "string" },
-        "mensagem_erro": { "type": "string" }
-      }
-    },
-    "SSTAsset": {
-      "title": "SSTAsset",
-      "type": "object",
-      "properties": {
-        "id_equipamento": { "type": "string" },
-        "qr_code_hash": { "type": "string" },
-        "categoria": { "type": "string" },
-        "tipo": { "type": "string" },
-        "ca_numero": { "type": "string" },
-        "ca_validade": { "type": "string" },
-        "status_uso": { "type": "string" }
-      }
-    },
-    "MedicalAuditRequest": {
-      "title": "MedicalAuditRequest",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "patientName": { "type": "string" },
-        "professionalCategory": { "type": "string" },
-        "diagnosis": { "type": "string" },
-        "complexity": { "type": "string", "enum": ["baixa", "media", "alta"] },
-        "status": { "type": "string" },
-        "defenseStrategy": {
-          "type": "object",
-          "properties": {
-            "norma_base": { "type": "string" },
-            "texto_argumentacao": { "type": "string" },
-            "alerta_sistema": { "type": "string" }
-          }
-        },
-        "expertiseChecklist": {
-          "type": "object",
-          "properties": {
-            "anamnese": { "type": "string" },
-            "exameFisico": { "type": "string" },
-            "nexoCausal": { "type": "string", "enum": ["confirmado", "excluido", "concausa"] },
-            "observacoes": { "type": "string" },
-            "filledAt": { "type": "string", "format": "date-time" }
-          }
-        },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "companyId": { "type": "string" }
       }
     }
   },
@@ -140,33 +79,13 @@
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
     },
-    "/config_normas_profissionais/{normId}": {
-      "schema": "#/entities/ProfessionalNorm",
-      "description": "Base de inteligência dos conselhos profissionais."
+    "/companies/{companyId}/work_allocations/{id}": {
+      "schema": "#/entities/WorkAllocation",
+      "description": "Registros de alocação monitorados pelo Vigia de Compliance."
     },
-    "/config_jurisprudencia/{jurId}": {
-      "schema": "#/entities/Jurisprudence",
-      "description": "Repositório de teses jurídicas e decisões STJ/ANS."
-    },
-    "/config_glosa_reversa/{ruleId}": {
-      "schema": "#/entities/ReverseDenialRule",
-      "description": "Regras automáticas para validação de contas hospitalares."
-    },
-    "/config_nrs/{nrId}": {
-      "schema": "#/entities/NRNorm",
-      "description": "Base de Normas Regulamentadoras SST."
-    },
-    "/config_regras_sst/{ruleId}": {
-      "schema": "#/entities/SSTRule",
-      "description": "Regras de conformidade e travas eSocial."
-    },
-    "/ativos_sst_equipamentos/{assetId}": {
-      "schema": "#/entities/SSTAsset",
-      "description": "Inventário de equipamentos e EPIs com QR Code."
-    },
-    "/medical_audit_requests/{requestId}": {
-      "schema": "#/entities/MedicalAuditRequest",
-      "description": "Solicitações de auditoria médica e defesa inteligente."
+    "/companies/{companyId}/esocial_events_queue/{id}": {
+      "schema": "#/entities/EsocialEvent",
+      "description": "Fila de eventos monitorada pelo Firewall eSocial."
     }
   }
 }

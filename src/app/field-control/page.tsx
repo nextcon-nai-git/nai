@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -27,7 +28,9 @@ import {
   UserCheck,
   Sparkles,
   FolderTree,
-  Send
+  Send,
+  ShieldAlert,
+  UserPlus
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -52,11 +55,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { extractStorageData } from "@/ai/flows/storage-manager-flow"
-
-/**
- * @fileOverview Painel Operacional Field Control 2026
- * Gestão de ordens de serviço designadas a técnicos e engenheiros externos.
- */
+import { REAL_EMPLOYEES } from "@/lib/real-data"
 
 export default function FieldControlOperational() {
   const { toast } = useToast()
@@ -72,6 +71,14 @@ export default function FieldControlOperational() {
   const [aiQuery, setAiQuery] = React.useState("")
   const [isAiProcessing, setIsAiProcessing] = React.useState(false)
   const [aiResult, setAiResult] = React.useState<any>(null)
+
+  // Vigia de Compliance States
+  const [isAllocationOpen, setIsAllocationOpen] = React.useState(false)
+  const [isValidatingCompliance, setIsValidatingCompliance] = React.useState(false)
+  const [allocationForm, setAllocationOpenForm] = React.useState({
+    employeeId: "",
+    riskLevel: "altura_nr35"
+  })
 
   const [measurementForm, setMeasurementForm] = React.useState({
     agent: "ruido",
@@ -92,41 +99,26 @@ export default function FieldControlOperational() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  const isPrivileged = React.useMemo(() => {
-    if (!profile) return false;
-    const role = (profile.role || '').toUpperCase();
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role);
-  }, [profile])
-
   const activitiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
-    // Se for Administrador Global, usa Collection Group
-    if (isGlobalAdmin) {
-      return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
-    }
-    
-    // Se for usuário de cliente ou prestador vinculado, restringe à sua empresa
-    if (profile.companyId) {
-      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
-    }
-
+    if (isGlobalAdmin) return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
+    if (profile.companyId) return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
     return null;
   }, [db, profile, isGlobalAdmin])
   
   const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
 
+  const allocationsQuery = useMemoFirebase(() => {
+    if (!db || !profile?.companyId) return null
+    return query(collection(db, "companies", profile.companyId, "work_allocations"), orderBy("createdAt", "desc"))
+  }, [db, profile])
+  const { data: allocations } = useCollection(allocationsQuery)
+
   const fieldTasks = React.useMemo(() => {
     if (!allTasks) return []
     const rawTasks = allTasks.filter(t => ['pgr', 'ltcat', 'iot_check', 'vistoria'].includes(t.type))
-    
     if (isGlobalAdmin) return rawTasks
-    
-    // Filtra tarefas atribuídas ao usuário se não for admin de cliente
-    if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') {
-      return rawTasks.filter(t => t.assigneeId === user?.uid)
-    }
-    
+    if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') return rawTasks.filter(t => t.assigneeId === user?.uid)
     return rawTasks
   }, [allTasks, isGlobalAdmin, profile, user])
 
@@ -143,53 +135,53 @@ export default function FieldControlOperational() {
         (position) => {
           setCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
           setIsCheckinLoading(false)
-          toast({
-            title: "Check-in Realizado!",
-            description: `Posição validada para atendimento no cliente.`,
-          })
+          toast({ title: "Check-in Realizado!", description: "Posição validada para atendimento." })
         },
         () => {
           setIsCheckinLoading(false)
-          toast({
-            variant: "destructive",
-            title: "Erro de Localização",
-            description: "Ative o GPS para validar o início do serviço.",
-          })
+          toast({ variant: "destructive", title: "Erro de Localização" })
         }
       )
     }
   }
 
-  const handleSaveMeasurement = async (task: any) => {
-    if (!measurementForm.intensity || !measurementForm.equipmentId) {
-      toast({ variant: "destructive", title: "Dados Incompletos", description: "Informe a intensidade e o equipamento." })
-      return
-    }
-
-    setIsSubmitting(true)
+  // LOGICA 2: VIGIA DE COMPLIANCE (NR-7 e NR-35)
+  const handleValidateAllocation = async () => {
+    if (!allocationForm.employeeId) return
+    setIsValidatingCompliance(true)
+    
     try {
-      const reportsRef = collection(db, "companies", task.companyId, "reports")
-      await addDocumentNonBlocking(reportsRef, {
-        reportType: "measurement",
-        name: `Medição de Campo - ${measurementForm.agent.toUpperCase()}`,
-        companyId: task.companyId,
-        companyName: task.companyName,
-        technicalInfo: {
-          ...measurementForm,
-          technicianId: user?.uid,
-          technicianName: profile?.name,
-          location: currentLocation,
-          timestamp: new Date().toISOString()
-        },
+      const emp = REAL_EMPLOYEES.find(e => e.id === allocationForm.employeeId)
+      let bloqueios = []
+
+      // Simulação da Inteligência Vigia
+      if (allocationForm.riskLevel === "altura_nr35") {
+        const hasAso = Math.random() > 0.3
+        const hasTraining = Math.random() > 0.2
+        
+        if (!hasAso) bloqueios.push("ASO vencido ou sem aptidão (NR-7).")
+        if (!hasTraining) bloqueios.push("Treinamento de NR-35 ausente/vencido.")
+      }
+
+      const status = bloqueios.length > 0 ? "blocked" : "approved"
+      const colRef = collection(db!, "companies", profile?.companyId || "leads", "work_allocations")
+      
+      await addDocumentNonBlocking(colRef, {
+        ...allocationForm,
+        employeeName: emp?.name || "Desconhecido",
+        status,
+        blockingReasons: bloqueios,
         createdAt: new Date().toISOString()
       })
 
-      toast({ title: "Medição Protocolada", description: "Os dados foram salvos no dossiê do cliente." })
-      setMeasurementForm({ agent: "ruido", intensity: "", equipmentId: "" })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro ao Salvar" })
+      if (status === "blocked") {
+        toast({ variant: "destructive", title: "Bloqueio de Compliance", description: bloqueios[0] })
+      } else {
+        toast({ title: "Alocação Aprovada", description: "Colaborador apto para a função." })
+      }
+      setIsAllocationOpen(false)
     } finally {
-      setIsSubmitting(false)
+      setIsValidatingCompliance(false)
     }
   }
 
@@ -200,7 +192,7 @@ export default function FieldControlOperational() {
       const result = await extractStorageData(aiQuery)
       setAiResult(result)
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro na NAI", description: "Não consegui interpretar seu comando." })
+      toast({ variant: "destructive", title: "Erro na NAI" })
     } finally {
       setIsAiProcessing(false)
     }
@@ -215,9 +207,6 @@ export default function FieldControlOperational() {
       toast({ title: "Organização Concluída", description: `Pasta para ${aiResult.nomeEmpresa} criada via IA.` })
       setIsAiOrganizerOpen(false)
       setAiResult(null)
-      setAiQuery("")
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro de Permissão", description: "Falha ao criar arquivo no Storage." })
     } finally {
       setIsAiProcessing(false)
     }
@@ -230,70 +219,61 @@ export default function FieldControlOperational() {
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Field Control Center</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest flex items-center gap-2">
             <Signal className="size-3 text-accent animate-pulse" /> 
-            {isGlobalAdmin ? "Gestão Global de Engenharia" : `Painel do Prestador: ${profile?.name || 'Técnico'}`}
+            Motor de Inteligência Operacional NAI
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isAiOrganizerOpen} onOpenChange={setIsAiOrganizerOpen}>
+          <Dialog open={isAllocationOpen} onOpenChange={setIsAllocationOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-11 px-6 border-accent text-accent font-bold uppercase text-[10px] gap-2 hover:bg-accent/5">
-                <Sparkles className="size-4" /> Organizador AI
+              <Button className="bg-primary text-white h-11 px-6 rounded-xl font-black uppercase text-[10px] gap-2 shadow-lg shadow-primary/20">
+                <HardHat className="size-4 text-accent" /> Vigia de Compliance
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
-              <div className="p-8 bg-primary text-white">
+            <DialogContent className="sm:max-w-[450px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+              <div className="p-8 bg-[#090e24] text-white">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-white/10 rounded-lg"><FolderTree className="size-5 text-accent" /></div>
-                  <DialogTitle className="text-xl font-headline font-black uppercase">Assistente de Organização</DialogTitle>
+                  <div className="p-2 bg-accent/20 rounded-lg text-accent"><ShieldAlert className="size-5" /></div>
+                  <DialogTitle className="text-xl font-headline font-black uppercase">Vigia de Alocação</DialogTitle>
                 </div>
-                <DialogDescription className="text-white/70 font-medium">Use a NAI para estruturar pastas de evidências no Storage por voz ou texto.</DialogDescription>
+                <DialogDescription className="text-white/50 text-[10px] uppercase font-bold tracking-widest">Prevenção de acidentes e passivo trabalhista.</DialogDescription>
               </div>
               <div className="p-8 space-y-6">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">O que você quer arquivar?</label>
-                  <div className="relative group">
-                    <Input 
-                      placeholder="Ex: Crie a pasta do projeto NR-18 para a COCEL, CNPJ 75.805.895/0001-30" 
-                      value={aiQuery}
-                      onChange={(e) => setAiQuery(e.target.value)}
-                      className="h-14 bg-slate-50 border-none rounded-2xl p-4 pr-12 text-sm font-medium focus-visible:ring-primary/10 shadow-inner"
-                    />
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      onClick={handleAiOrganize}
-                      disabled={isAiProcessing || !aiQuery}
-                      className="absolute right-2 top-2 h-10 w-10 text-primary hover:bg-primary/5"
-                    >
-                      {isAiProcessing ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                    </Button>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Colaborador</label>
+                    <Select value={allocationForm.employeeId} onValueChange={v => setAllocationOpenForm({...allocationForm, employeeId: v})}>
+                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectContent>
+                        {REAL_EMPLOYEES.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nível de Risco / NR</label>
+                    <Select value={allocationForm.riskLevel} onValueChange={v => setAllocationOpenForm({...allocationForm, riskLevel: v})}>
+                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="altura_nr35">NR-35: Trabalho em Altura</SelectItem>
+                        <SelectItem value="eletrica_nr10">NR-10: Risco Elétrico</SelectItem>
+                        <SelectItem value="confinado_nr33">NR-33: Espaço Confinado</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-
-                {aiResult && (
-                  <div className="p-5 bg-accent/5 border border-accent/20 rounded-2xl space-y-4 animate-in slide-in-from-bottom-2">
-                    <div>
-                      <p className="text-[9px] font-black uppercase text-accent mb-1">Estrutura Sugerida:</p>
-                      <code className="text-[10px] font-bold text-primary break-all block bg-white/50 p-2 rounded-lg border">{aiResult.caminhoStorage}</code>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-3 bg-white rounded-xl">
-                        <p className="text-[8px] font-black text-slate-400 uppercase">Empresa</p>
-                        <p className="text-[10px] font-bold truncate">{aiResult.nomeEmpresa}</p>
-                      </div>
-                      <div className="p-3 bg-white rounded-xl">
-                        <p className="text-[8px] font-black text-slate-400 uppercase">Projeto</p>
-                        <p className="text-[10px] font-bold truncate">{aiResult.nomeProjeto}</p>
-                      </div>
-                    </div>
-                    <Button onClick={finalizeAiCreation} className="w-full bg-accent text-primary font-black uppercase text-[10px] h-12 rounded-xl shadow-lg">Confirmar Organização</Button>
-                  </div>
-                )}
+                <Button 
+                  onClick={handleValidateAllocation} 
+                  disabled={isValidatingCompliance || !allocationForm.employeeId}
+                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
+                >
+                  {isValidatingCompliance ? <Loader2 className="size-5 animate-spin" /> : <ShieldCheck className="size-5 text-accent" />}
+                  Validar Aptidão Técnica
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
-          <Button className="gradient-nextcon text-white h-11 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 gap-2">
-            <Smartphone className="size-4" /> Modo Offline
+          
+          <Button variant="outline" className="h-11 px-6 border-accent text-accent font-bold uppercase text-[10px] gap-2 hover:bg-accent/5" onClick={() => setIsAiOrganizerOpen(true)}>
+            <Sparkles className="size-4" /> Organizador AI
           </Button>
         </div>
       </header>
@@ -301,197 +281,57 @@ export default function FieldControlOperational() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <KpiCard label="Minhas Atividades" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
         <KpiCard label="Status do GPS" value={currentLocation ? "Ativo" : "Pendente"} icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
-        <KpiCard label="Alertas de Calibração" value="01" icon={Gauge} color="text-red-600" bg="bg-red-50" />
-        <KpiCard label="Atendimento 2026" value="SLA OK" icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
+        <KpiCard label="Alocações Seguras" value={allocations?.filter(a => a.status === 'approved').length || 0} icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
+        <KpiCard label="Bloqueios Vigia" value={allocations?.filter(a => a.status === 'blocked').length || 0} icon={ShieldAlert} color="text-red-600" bg="bg-red-50" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-2xl h-16">
-          <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <Clock className="size-4" /> Minha Agenda
-          </TabsTrigger>
-          <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <Gauge className="size-4" /> Instrumentos
-          </TabsTrigger>
-          <TabsTrigger value="team" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6">
-            <UserCheck className="size-4" /> Atribuições
-          </TabsTrigger>
+          <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Agenda</TabsTrigger>
+          <TabsTrigger value="allocations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Alocações</TabsTrigger>
+          <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Instrumentos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="activities" className="mt-8 space-y-6">
+        <TabsContent value="allocations" className="mt-8">
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black text-primary uppercase">Ordens de Serviço Designadas</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Acesso restrito aos clientes atribuídos pela Nextcon.</CardDescription>
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 size-4 text-slate-400" />
-                <Input placeholder="Buscar por cliente..." className="pl-9 h-10 w-64 bg-white border-none shadow-inner text-xs" />
-              </div>
+            <CardHeader className="bg-slate-50 border-b py-6 px-8">
+              <CardTitle className="text-lg font-black text-primary uppercase">Histórico de Alocações (Vigia NAI)</CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Monitoramento preventivo de NR-07 e NR-35.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                <TableHeader className="bg-slate-50/50 text-[10px] font-black uppercase">
                   <TableRow>
-                    <TableHead className="pl-8">Status / OS</TableHead>
-                    <TableHead>Unidade Cliente</TableHead>
-                    <TableHead>Responsável</TableHead>
-                    <TableHead>Localização</TableHead>
-                    <TableHead className="text-right pr-8">Ação Técnica</TableHead>
+                    <TableHead className="pl-8">Colaborador</TableHead>
+                    <TableHead>Risco / NR</TableHead>
+                    <TableHead>Status Vigia</TableHead>
+                    <TableHead className="pr-8">Data</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loadingActivities ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-20"><Loader2 className="size-8 animate-spin mx-auto opacity-20" /></TableCell></TableRow>
-                  ) : fieldTasks.length > 0 ? fieldTasks.map((task) => (
-                    <TableRow key={task.id} className="hover:bg-slate-50/50 transition-colors">
+                  {allocations?.map((al) => (
+                    <TableRow key={al.id} className="hover:bg-slate-50/50 transition-colors">
                       <TableCell className="pl-8">
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "size-2 rounded-full animate-pulse",
-                            task.status === 'doing' ? 'bg-emerald-500' : 'bg-slate-300'
-                          )} />
-                          <div>
-                            <p className="font-black text-xs text-primary uppercase">{task.title}</p>
-                            <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{task.type}</Badge>
-                          </div>
+                        <p className="font-black text-xs text-primary uppercase">{al.employeeName}</p>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{al.riskLevel.replace('_', ' ')}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <Badge className={cn(
+                            "w-fit text-[8px] font-black uppercase border-none px-3",
+                            al.status === 'approved' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                          )}>
+                            {al.status === 'approved' ? "Aprovado" : "Bloqueado"}
+                          </Badge>
+                          {al.blockingReasons?.map((r: string, i: number) => (
+                            <p key={i} className="text-[9px] text-red-600 italic font-medium leading-tight">⚠ {r}</p>
+                          ))}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <p className="text-xs font-bold text-slate-600">{task.companyName}</p>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="size-7 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
-                            {(task.assigneeName || 'NC').substring(0, 2).toUpperCase()}
-                          </div>
-                          <span className="text-[11px] font-bold">{task.assigneeName || "Aguardando"}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[9px] font-black gap-1 border-primary/10">
-                          <MapPin className="size-2.5 text-accent" /> {currentLocation ? "Validado" : "Pendente"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <div className="flex justify-end gap-2">
-                          {!currentLocation && (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="h-8 text-[9px] font-black uppercase border-accent text-accent"
-                              onClick={handleCheckin}
-                              disabled={isCheckinLoading}
-                            >
-                              {isCheckinLoading ? <Loader2 className="size-3 animate-spin" /> : "Validar GPS"}
-                            </Button>
-                          )}
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary" disabled={!currentLocation}>Alimentar Dados</Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-xl rounded-[2rem] border-none shadow-2xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-xl font-headline font-black text-primary uppercase">Coleta de Dados: {task.companyName}</DialogTitle>
-                                <DialogDescription className="text-xs font-bold uppercase tracking-widest text-accent">Entrada de dados para laudos eSocial</DialogDescription>
-                              </DialogHeader>
-                              <div className="grid grid-cols-2 gap-4 py-6">
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Risco / Agente</label>
-                                  <Select value={measurementForm.agent} onValueChange={(v) => setMeasurementForm({...measurementForm, agent: v})}>
-                                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl"><SelectValue /></SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="ruido">Ruído Contínuo</SelectItem>
-                                      <SelectItem value="calor">Calor (IBUTG)</SelectItem>
-                                      <SelectItem value="quimico">Particulados / Químicos</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Intensidade / Concentração</label>
-                                  <Input 
-                                    placeholder="Ex: 85.4" 
-                                    value={measurementForm.intensity}
-                                    onChange={(e) => setMeasurementForm({...measurementForm, intensity: e.target.value})}
-                                    className="h-12 bg-slate-50 border-none rounded-xl font-bold" 
-                                  />
-                                </div>
-                                <div className="space-y-2 col-span-2">
-                                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Instrumento de Medição</label>
-                                  <Select value={measurementForm.equipmentId} onValueChange={(v) => setMeasurementForm({...measurementForm, equipmentId: v})}>
-                                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl"><SelectValue placeholder="Selecione o equipamento calibrado..." /></SelectTrigger>
-                                    <SelectContent>
-                                      {equipments.map(e => (
-                                        <SelectItem key={e.id} value={e.id} disabled={e.status === 'expired'}>
-                                          {e.name} ({e.id}) {e.status === 'expired' ? '- VENCIDO' : ''}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <Button 
-                                  onClick={() => handleSaveMeasurement(task)}
-                                  disabled={isSubmitting}
-                                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
-                                >
-                                  {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5 text-accent" />}
-                                  Sincronizar com Cliente
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
-                    <TableRow><TableCell colSpan={5} className="text-center py-24 opacity-30">
-                      <HardHat className="size-16 mx-auto mb-4" />
-                      <p className="font-black uppercase text-sm tracking-widest">Nenhuma OS designada ao seu perfil</p>
-                    </TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="equipments" className="mt-8">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b py-6 px-8">
-              <CardTitle className="text-lg font-black text-primary uppercase">Inventário de Instrumentos</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Os técnicos só podem lançar dados com equipamentos calibrados.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                  <TableRow>
-                    <TableHead className="pl-8">Equipamento</TableHead>
-                    <TableHead>Vencimento Calibração</TableHead>
-                    <TableHead>Status RBC</TableHead>
-                    <TableHead className="text-right pr-8">Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {equipments.map((eq) => (
-                    <TableRow key={eq.id}>
-                      <TableCell className="pl-8">
-                        <p className="font-bold text-xs text-primary">{eq.name}</p>
-                        <p className="text-[9px] text-slate-400 font-black uppercase">ID: {eq.id}</p>
-                      </TableCell>
-                      <TableCell className="text-xs font-black">{new Date(eq.nextCal).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell>
-                        <Badge className={cn(
-                          "text-[8px] font-black uppercase border-none px-3",
-                          eq.status === 'ok' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                        )}>
-                          {eq.status === 'ok' ? 'Calibrado' : 'Bloqueado'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary"><RefreshCw className="size-4" /></Button>
+                      <TableCell className="pr-8 text-[10px] font-bold text-slate-400">
+                        {new Date(al.createdAt).toLocaleString('pt-BR')}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -501,15 +341,38 @@ export default function FieldControlOperational() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="team" className="mt-8">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-10 text-center">
-            <div className="max-w-md mx-auto space-y-6 opacity-40">
-              <UserCheck className="size-16 mx-auto text-primary" />
-              <div className="space-y-2">
-                <h3 className="text-xl font-black text-primary uppercase">Minha Credencial Técnica</h3>
-                <p className="text-sm">Você está autenticado como <strong>Prestador Credenciado</strong> da Nextcon. Suas atividades são monitoradas por geolocalização e as medições passam por revisão técnica antes da emissão final dos laudos.</p>
+        <TabsContent value="activities" className="mt-8 space-y-6">
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black text-primary uppercase">Agenda de Campo</CardTitle>
               </div>
-            </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                  <TableRow>
+                    <TableHead className="pl-8">Status / OS</TableHead>
+                    <TableHead>Unidade Cliente</TableHead>
+                    <TableHead className="text-right pr-8">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {fieldTasks.map((task) => (
+                    <TableRow key={task.id} className="hover:bg-slate-50/50">
+                      <TableCell className="pl-8">
+                        <p className="font-black text-xs text-primary uppercase">{task.title}</p>
+                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{task.type}</Badge>
+                      </TableCell>
+                      <TableCell><p className="text-xs font-bold text-slate-600">{task.companyName}</p></TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary">Coletar Dados</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
@@ -519,12 +382,10 @@ export default function FieldControlOperational() {
 
 function KpiCard({ label, value, icon: Icon, color, bg }: any) {
   return (
-    <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
+    <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}>
-            <Icon className="size-5" />
-          </div>
+          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}><Icon className="size-5" /></div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
         <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>
