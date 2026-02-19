@@ -148,7 +148,7 @@ export default function FieldControlOperational() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Field Control Center</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Centro de Controle de Campo</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest flex items-center gap-2">
             <Signal className="size-3 text-accent animate-pulse" /> 
             Motor de Inteligência Operacional NAI

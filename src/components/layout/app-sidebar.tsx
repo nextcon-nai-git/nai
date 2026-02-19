@@ -81,10 +81,12 @@ const navGroups = [
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
-      { title: "Field Control", icon: HardHat, href: "/field-control" },
+      { title: "Controle de Campo", icon: HardHat, href: "/field-control" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
       { title: "Saúde Ocupacional", icon: Stethoscope, href: "/health-control" },
+      { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
+      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
     ]
   },
@@ -93,9 +95,7 @@ const navGroups = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
-      { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
       { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
-      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
       { title: "Quiosque EPI", icon: Lock, href: "/ppe-kiosk" },
       { title: "Validador Atestados", icon: FileSearch, href: "/medical-certificates" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
