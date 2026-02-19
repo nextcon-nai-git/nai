@@ -5,32 +5,23 @@ import * as React from "react"
 import { 
   MapPin, 
   ClipboardCheck, 
-  Smartphone, 
   ShieldCheck, 
   Zap, 
-  Users, 
-  FileText, 
-  Camera, 
-  Clock, 
   HardHat,
-  Gauge,
   Plus,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
   Loader2,
-  ArrowRight,
-  MoreVertical,
   Signal,
-  Map as MapIcon,
-  RefreshCw,
-  Info,
-  UserCheck,
   Sparkles,
-  FolderTree,
-  Send,
   ShieldAlert,
-  UserPlus
+  Lock,
+  History,
+  AlertTriangle,
+  DoorOpen,
+  UserCheck,
+  Building2,
+  Search,
+  MoreVertical,
+  Cpu
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -40,7 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useStorage } from "@/firebase"
-import { collection, query, orderBy, doc, collectionGroup, addDoc } from "firebase/firestore"
+import { collection, query, orderBy, doc, collectionGroup, addDoc, serverTimestamp } from "firebase/firestore"
 import { ref, uploadString } from "firebase/storage"
 import { 
   Dialog, 
@@ -63,8 +54,6 @@ export default function FieldControlOperational() {
   const db = useFirestore()
   const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("activities")
-  const [isCheckinLoading, setIsCheckinLoading] = React.useState(false)
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [currentLocation, setCurrentLocation] = React.useState<{lat: number, lng: number} | null>(null)
   
   const [isAiOrganizerOpen, setIsAiOrganizerOpen] = React.useState(false)
@@ -72,18 +61,19 @@ export default function FieldControlOperational() {
   const [isAiProcessing, setIsAiProcessing] = React.useState(false)
   const [aiResult, setAiResult] = React.useState<any>(null)
 
+  // Turnstile (Gatekeeper) States
+  const [isGatekeeperLoading, setIsGatekeeperLoading] = React.useState(false)
+  const [gatekeeperForm, setGatekeeperForm] = React.useState({
+    employeeId: "",
+    area: "caldeira_nr33"
+  })
+
   // Vigia de Compliance States
   const [isAllocationOpen, setIsAllocationOpen] = React.useState(false)
   const [isValidatingCompliance, setIsValidatingCompliance] = React.useState(false)
   const [allocationForm, setAllocationOpenForm] = React.useState({
     employeeId: "",
     riskLevel: "altura_nr35"
-  })
-
-  const [measurementForm, setMeasurementForm] = React.useState({
-    agent: "ruido",
-    intensity: "",
-    equipmentId: ""
   })
 
   const profileRef = useMemoFirebase(() => {
@@ -108,11 +98,11 @@ export default function FieldControlOperational() {
   
   const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
 
-  const allocationsQuery = useMemoFirebase(() => {
+  const accessLogsQuery = useMemoFirebase(() => {
     if (!db || !profile?.companyId) return null
-    return query(collection(db, "companies", profile.companyId, "work_allocations"), orderBy("createdAt", "desc"))
+    return query(collection(db, "companies", profile.companyId, "access_logs"), orderBy("timestamp", "desc"))
   }, [db, profile])
-  const { data: allocations } = useCollection(allocationsQuery)
+  const { data: accessLogs } = useCollection(accessLogsQuery)
 
   const fieldTasks = React.useMemo(() => {
     if (!allTasks) return []
@@ -122,66 +112,48 @@ export default function FieldControlOperational() {
     return rawTasks
   }, [allTasks, isGlobalAdmin, profile, user])
 
-  const equipments = [
-    { id: "DEC-001", name: "Decibelímetro Digital", brand: "Instrutherm", lastCal: "2025-01-10", nextCal: "2026-01-10", status: "expired" },
-    { id: "DOS-042", name: "Dosímetro de Ruído", brand: "Bruel & Kjaer", lastCal: "2025-06-15", nextCal: "2026-06-15", status: "ok" },
-    { id: "TERM-012", name: "Termômetro de Globo", brand: "Quest", lastCal: "2025-08-20", nextCal: "2026-08-20", status: "ok" },
-  ]
-
-  const handleCheckin = () => {
-    setIsCheckinLoading(true)
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({ lat: position.coords.latitude, lng: position.coords.longitude })
-          setIsCheckinLoading(false)
-          toast({ title: "Check-in Realizado!", description: "Posição validada para atendimento." })
-        },
-        () => {
-          setIsCheckinLoading(false)
-          toast({ variant: "destructive", title: "Erro de Localização" })
-        }
-      )
-    }
-  }
-
-  // LOGICA 2: VIGIA DE COMPLIANCE (NR-7 e NR-35)
-  const handleValidateAllocation = async () => {
-    if (!allocationForm.employeeId) return
-    setIsValidatingCompliance(true)
+  // LOGICA 4: GATEKEEPER NAI (Controle de Acesso IoT)
+  const handleValidateTurnstile = async () => {
+    if (!gatekeeperForm.employeeId || !db || !profile?.companyId) return
+    setIsGatekeeperLoading(true)
     
     try {
-      const emp = REAL_EMPLOYEES.find(e => e.id === allocationForm.employeeId)
+      const emp = REAL_EMPLOYEES.find(e => e.id === gatekeeperForm.employeeId)
       let bloqueios = []
+      const hoje = new Date()
 
-      // Simulação da Inteligência Vigia
-      if (allocationForm.riskLevel === "altura_nr35") {
+      // Simulação da Lógica do Webhook da Catraca
+      if (gatekeeperForm.area === "caldeira_nr33") {
         const hasAso = Math.random() > 0.3
         const hasTraining = Math.random() > 0.2
-        
-        if (!hasAso) bloqueios.push("ASO vencido ou sem aptidão (NR-7).")
-        if (!hasTraining) bloqueios.push("Treinamento de NR-35 ausente/vencido.")
+        if (!hasAso) bloqueios.push("ASO Vencido ou Inapto para NR-33.")
+        if (!hasTraining) bloqueios.push("Treinamento NR-33 Ausente/Vencido.")
+      } else if (gatekeeperForm.area === "obra_externa_nr35") {
+        const hasAso = Math.random() > 0.3
+        const hasTraining = Math.random() > 0.2
+        if (!hasAso) bloqueios.push("ASO Vencido ou Inapto para NR-35.")
+        if (!hasTraining) bloqueios.push("Treinamento NR-35 Ausente/Vencido.")
       }
 
-      const status = bloqueios.length > 0 ? "blocked" : "approved"
-      const colRef = collection(db!, "companies", profile?.companyId || "leads", "work_allocations")
+      const isAuthorized = bloqueios.length === 0
+      const logRef = collection(db, "companies", profile.companyId, "access_logs")
       
-      await addDocumentNonBlocking(colRef, {
-        ...allocationForm,
+      await addDoc(logRef, {
+        employeeId: gatekeeperForm.employeeId,
         employeeName: emp?.name || "Desconhecido",
-        status,
-        blockingReasons: bloqueios,
-        createdAt: new Date().toISOString()
+        area: gatekeeperForm.area,
+        status: isAuthorized ? "authorized" : "denied",
+        reason: isAuthorized ? "Acesso Liberado" : bloqueios[0],
+        timestamp: serverTimestamp()
       })
 
-      if (status === "blocked") {
-        toast({ variant: "destructive", title: "Bloqueio de Compliance", description: bloqueios[0] })
+      if (isAuthorized) {
+        toast({ title: "Acesso Autorizado", description: `Bem-vindo, ${emp?.name}. Catraca liberada.` })
       } else {
-        toast({ title: "Alocação Aprovada", description: "Colaborador apto para a função." })
+        toast({ variant: "destructive", title: "Acesso Negado!", description: bloqueios[0] })
       }
-      setIsAllocationOpen(false)
     } finally {
-      setIsValidatingCompliance(false)
+      setIsGatekeeperLoading(false)
     }
   }
 
@@ -223,55 +195,6 @@ export default function FieldControlOperational() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isAllocationOpen} onOpenChange={setIsAllocationOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary text-white h-11 px-6 rounded-xl font-black uppercase text-[10px] gap-2 shadow-lg shadow-primary/20">
-                <HardHat className="size-4 text-accent" /> Vigia de Compliance
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
-              <div className="p-8 bg-[#090e24] text-white">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-accent/20 rounded-lg text-accent"><ShieldAlert className="size-5" /></div>
-                  <DialogTitle className="text-xl font-headline font-black uppercase">Vigia de Alocação</DialogTitle>
-                </div>
-                <DialogDescription className="text-white/50 text-[10px] uppercase font-bold tracking-widest">Prevenção de acidentes e passivo trabalhista.</DialogDescription>
-              </div>
-              <div className="p-8 space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Colaborador</label>
-                    <Select value={allocationForm.employeeId} onValueChange={v => setAllocationOpenForm({...allocationForm, employeeId: v})}>
-                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                      <SelectContent>
-                        {REAL_EMPLOYEES.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Nível de Risco / NR</label>
-                    <Select value={allocationForm.riskLevel} onValueChange={v => setAllocationOpenForm({...allocationForm, riskLevel: v})}>
-                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="altura_nr35">NR-35: Trabalho em Altura</SelectItem>
-                        <SelectItem value="eletrica_nr10">NR-10: Risco Elétrico</SelectItem>
-                        <SelectItem value="confinado_nr33">NR-33: Espaço Confinado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleValidateAllocation} 
-                  disabled={isValidatingCompliance || !allocationForm.employeeId}
-                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
-                >
-                  {isValidatingCompliance ? <Loader2 className="size-5 animate-spin" /> : <ShieldCheck className="size-5 text-accent" />}
-                  Validar Aptidão Técnica
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          
           <Button variant="outline" className="h-11 px-6 border-accent text-accent font-bold uppercase text-[10px] gap-2 hover:bg-accent/5" onClick={() => setIsAiOrganizerOpen(true)}>
             <Sparkles className="size-4" /> Organizador AI
           </Button>
@@ -281,64 +204,117 @@ export default function FieldControlOperational() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <KpiCard label="Minhas Atividades" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
         <KpiCard label="Status do GPS" value={currentLocation ? "Ativo" : "Pendente"} icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
-        <KpiCard label="Alocações Seguras" value={allocations?.filter(a => a.status === 'approved').length || 0} icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
-        <KpiCard label="Bloqueios Vigia" value={allocations?.filter(a => a.status === 'blocked').length || 0} icon={ShieldAlert} color="text-red-600" bg="bg-red-50" />
+        <KpiCard label="Tentativas Negadas" value={accessLogs?.filter(l => l.status === 'denied').length || 0} icon={ShieldAlert} color="text-red-600" bg="bg-red-50" />
+        <KpiCard label="Acessos Seguros" value={accessLogs?.filter(l => l.status === 'authorized').length || 0} icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[600px] grid-cols-3 bg-muted/50 p-1 rounded-2xl h-16">
+        <TabsList className="grid w-full md:w-[750px] grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
           <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Agenda</TabsTrigger>
+          <TabsTrigger value="gatekeeper" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Catracas (IoT)</TabsTrigger>
           <TabsTrigger value="allocations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Alocações</TabsTrigger>
           <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Instrumentos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="allocations" className="mt-8">
-          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b py-6 px-8">
-              <CardTitle className="text-lg font-black text-primary uppercase">Histórico de Alocações (Vigia NAI)</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Monitoramento preventivo de NR-07 e NR-35.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] font-black uppercase">
-                  <TableRow>
-                    <TableHead className="pl-8">Colaborador</TableHead>
-                    <TableHead>Risco / NR</TableHead>
-                    <TableHead>Status Vigia</TableHead>
-                    <TableHead className="pr-8">Data</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allocations?.map((al) => (
-                    <TableRow key={al.id} className="hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="pl-8">
-                        <p className="font-black text-xs text-primary uppercase">{al.employeeName}</p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{al.riskLevel.replace('_', ' ')}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge className={cn(
-                            "w-fit text-[8px] font-black uppercase border-none px-3",
-                            al.status === 'approved' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                          )}>
-                            {al.status === 'approved' ? "Aprovado" : "Bloqueado"}
-                          </Badge>
-                          {al.blockingReasons?.map((r: string, i: number) => (
-                            <p key={i} className="text-[9px] text-red-600 italic font-medium leading-tight">⚠ {r}</p>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell className="pr-8 text-[10px] font-bold text-slate-400">
-                        {new Date(al.createdAt).toLocaleString('pt-BR')}
-                      </TableCell>
+        <TabsContent value="gatekeeper" className="mt-8 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <Card className="lg:col-span-1 card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <div className="p-8 bg-primary text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg text-accent"><Cpu className="size-5" /></div>
+                  <h3 className="text-xl font-headline font-black uppercase">Simular Catraca</h3>
+                </div>
+                <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest leading-tight">Validação biométrica e documental do perímetro.</p>
+              </div>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Colaborador (RFID)</label>
+                    <Select value={gatekeeperForm.employeeId} onValueChange={v => setGatekeeperForm({...gatekeeperForm, employeeId: v})}>
+                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Bipar Crachá..." /></SelectTrigger>
+                      <SelectContent>
+                        {REAL_EMPLOYEES.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Zona de Risco</label>
+                    <Select value={gatekeeperForm.area} onValueChange={v => setGatekeeperForm({...gatekeeperForm, area: v})}>
+                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="caldeira_nr33">Caldeira (Espaço Confinado)</SelectItem>
+                        <SelectItem value="obra_externa_nr35">Obra Externa (Altura)</SelectItem>
+                        <SelectItem value="refeitorio">Refeitório (Área Comum)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleValidateTurnstile} 
+                  disabled={isGatekeeperLoading || !gatekeeperForm.employeeId}
+                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
+                >
+                  {isGatekeeperLoading ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5 text-accent" />}
+                  Simular Bipagem RFID
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-black text-primary uppercase">Histórico do Perímetro (Gatekeeper)</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Logs de acesso sincronizados com sensores IoT.</CardDescription>
+                </div>
+                <Badge variant="outline" className="h-8 gap-2 border-primary/20 text-primary font-black uppercase text-[10px]">
+                  <Signal className="size-3 text-accent animate-pulse" /> Live
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                    <TableRow>
+                      <TableHead className="pl-8">Colaborador</TableHead>
+                      <TableHead>Área / Zona</TableHead>
+                      <TableHead>Status NAI</TableHead>
+                      <TableHead className="pr-8 text-right">Data/Hora</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {accessLogs?.map((log) => (
+                      <TableRow key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                        <TableCell className="pl-8">
+                          <p className="font-black text-xs text-primary uppercase">{log.employeeName}</p>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{log.area.replace('_', ' ')}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={cn(
+                              "w-fit text-[8px] font-black uppercase border-none px-3",
+                              log.status === 'authorized' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                            )}>
+                              {log.status === 'authorized' ? "Autorizado" : "Negado"}
+                            </Badge>
+                            {log.status === 'denied' && (
+                              <p className="text-[9px] text-red-600 italic font-medium leading-tight">⚠ {log.reason}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-8 text-right text-[10px] font-bold text-slate-400">
+                          {log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleString('pt-BR') : 'Agora'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {(!accessLogs || accessLogs.length === 0) && (
+                      <TableRow><TableCell colSpan={4} className="py-24 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhuma atividade no perímetro</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="activities" className="mt-8 space-y-6">

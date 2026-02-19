@@ -41,6 +41,19 @@
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
+    "AccessLog": {
+      "title": "AccessLog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "area": { "type": "string" },
+        "status": { "type": "string", "enum": ["authorized", "denied"] },
+        "reason": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
     "EsocialEvent": {
       "title": "EsocialEvent",
       "type": "object",
@@ -53,17 +66,18 @@
         "payload": { "type": "object" }
       }
     },
-    "ProfessionalNorm": {
-      "title": "ProfessionalNorm",
+    "MedicalAuditRequest": {
+      "title": "MedicalAuditRequest",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "categoria": { "type": "string" },
-        "orgao": { "type": "string" },
-        "norma_principal": { "type": "string" },
-        "foco_defesa": { "type": "string" },
-        "gatilhos": { "type": "array", "items": { "type": "string" } },
-        "texto_legal_padrao": { "type": "string" }
+        "patientName": { "type": "string" },
+        "professionalCategory": { "type": "string" },
+        "diagnosis": { "type": "string" },
+        "status": { "type": "string" },
+        "defenseStrategy": { "type": "object" },
+        "expertiseChecklist": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -83,9 +97,17 @@
       "schema": "#/entities/WorkAllocation",
       "description": "Registros de alocação monitorados pelo Vigia de Compliance."
     },
+    "/companies/{companyId}/access_logs/{id}": {
+      "schema": "#/entities/AccessLog",
+      "description": "Logs de acesso físico por crachá RFID em áreas de risco."
+    },
     "/companies/{companyId}/esocial_events_queue/{id}": {
       "schema": "#/entities/EsocialEvent",
       "description": "Fila de eventos monitorada pelo Firewall eSocial."
+    },
+    "/medical_audit_requests/{id}": {
+      "schema": "#/entities/MedicalAuditRequest",
+      "description": "Solicitações de auditoria médica e super-junta."
     }
   }
 }
