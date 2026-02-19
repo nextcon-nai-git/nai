@@ -70,7 +70,7 @@ const navGroups = [
   },
   {
     label: "Crescimento & Vendas",
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Proposta Comercial", icon: ShoppingCart, href: "/comercial" },
     ]
