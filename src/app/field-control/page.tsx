@@ -8,7 +8,6 @@ import {
   ShieldCheck, 
   Zap, 
   HardHat,
-  Plus,
   Loader2,
   Signal,
   Sparkles,
@@ -16,12 +15,13 @@ import {
   Lock,
   History,
   AlertTriangle,
-  DoorOpen,
   UserCheck,
   Building2,
   Search,
-  MoreVertical,
-  Cpu
+  Cpu,
+  CheckCircle2,
+  XCircle,
+  ScanLine
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,17 +34,13 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useStora
 import { collection, query, orderBy, doc, collectionGroup, addDoc, serverTimestamp } from "firebase/firestore"
 import { ref, uploadString } from "firebase/storage"
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger,
-  DialogFooter
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { extractStorageData } from "@/ai/flows/storage-manager-flow"
 import { REAL_EMPLOYEES } from "@/lib/real-data"
 
@@ -53,28 +49,15 @@ export default function FieldControlOperational() {
   const { user } = useUser()
   const db = useFirestore()
   const storage = useStorage()
-  const [activeTab, setActiveTab] = React.useState("activities")
-  const [currentLocation, setCurrentLocation] = React.useState<{lat: number, lng: number} | null>(null)
+  const [activeTab, setActiveTab] = React.useState("gatekeeper")
   
-  const [isAiOrganizerOpen, setIsAiOrganizerOpen] = React.useState(false)
-  const [aiQuery, setAiQuery] = React.useState("")
-  const [isAiProcessing, setIsAiProcessing] = React.useState(false)
-  const [aiResult, setAiResult] = React.useState<any>(null)
-
-  // Turnstile (Gatekeeper) States
+  // States para o "Teatro de Vendas" da Catraca
   const [isGatekeeperLoading, setIsGatekeeperLoading] = React.useState(false)
   const [gatekeeperForm, setGatekeeperForm] = React.useState({
     employeeId: "",
     area: "caldeira_nr33"
   })
-
-  // Vigia de Compliance States
-  const [isAllocationOpen, setIsAllocationOpen] = React.useState(false)
-  const [isValidatingCompliance, setIsValidatingCompliance] = React.useState(false)
-  const [allocationForm, setAllocationOpenForm] = React.useState({
-    employeeId: "",
-    riskLevel: "altura_nr35"
-  })
+  const [lastResult, setLastResult] = React.useState<{authorized: boolean, message: string} | null>(null)
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -89,20 +72,19 @@ export default function FieldControlOperational() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
+  const accessLogsQuery = useMemoFirebase(() => {
+    if (!db || !profile?.companyId) return null
+    return query(collection(db, "companies", profile.companyId, "access_logs"), orderBy("timestamp", "desc"))
+  }, [db, profile])
+  const { data: accessLogs } = useCollection(accessLogsQuery)
+
   const activitiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     if (isGlobalAdmin) return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
     if (profile.companyId) return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
     return null;
   }, [db, profile, isGlobalAdmin])
-  
-  const { data: allTasks, isLoading: loadingActivities } = useCollection(activitiesQuery)
-
-  const accessLogsQuery = useMemoFirebase(() => {
-    if (!db || !profile?.companyId) return null
-    return query(collection(db, "companies", profile.companyId, "access_logs"), orderBy("timestamp", "desc"))
-  }, [db, profile])
-  const { data: accessLogs } = useCollection(accessLogsQuery)
+  const { data: allTasks } = useCollection(activitiesQuery)
 
   const fieldTasks = React.useMemo(() => {
     if (!allTasks) return []
@@ -112,17 +94,17 @@ export default function FieldControlOperational() {
     return rawTasks
   }, [allTasks, isGlobalAdmin, profile, user])
 
-  // LOGICA 4: GATEKEEPER NAI (Controle de Acesso IoT)
-  const handleValidateTurnstile = async () => {
+  // Lógica da Catraca (Simulador NAI IoT)
+  const handleSimulateTurnstile = async () => {
     if (!gatekeeperForm.employeeId || !db || !profile?.companyId) return
     setIsGatekeeperLoading(true)
+    setLastResult(null)
     
     try {
       const emp = REAL_EMPLOYEES.find(e => e.id === gatekeeperForm.employeeId)
       let bloqueios = []
-      const hoje = new Date()
 
-      // Simulação da Lógica do Webhook da Catraca
+      // Simulação da Lógica do Webhook (Script simulador-catraca.js)
       if (gatekeeperForm.area === "caldeira_nr33") {
         const hasAso = Math.random() > 0.3
         const hasTraining = Math.random() > 0.2
@@ -147,40 +129,18 @@ export default function FieldControlOperational() {
         timestamp: serverTimestamp()
       })
 
+      setLastResult({
+        authorized: isAuthorized,
+        message: isAuthorized ? `✅ BEM-VINDO, ${emp?.name}` : `❌ ACESSO NEGADO: ${bloqueios[0]}`
+      })
+
       if (isAuthorized) {
-        toast({ title: "Acesso Autorizado", description: `Bem-vindo, ${emp?.name}. Catraca liberada.` })
+        toast({ title: "Catraca Destravada", description: "Luz verde ativada." })
       } else {
-        toast({ variant: "destructive", title: "Acesso Negado!", description: bloqueios[0] })
+        toast({ variant: "destructive", title: "Entrada Bloqueada", description: "Inconsistência de segurança detectada." })
       }
     } finally {
       setIsGatekeeperLoading(false)
-    }
-  }
-
-  const handleAiOrganize = async () => {
-    if (!aiQuery.trim()) return
-    setIsAiProcessing(true)
-    try {
-      const result = await extractStorageData(aiQuery)
-      setAiResult(result)
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro na NAI" })
-    } finally {
-      setIsAiProcessing(false)
-    }
-  }
-
-  const finalizeAiCreation = async () => {
-    if (!aiResult || !storage) return
-    setIsAiProcessing(true)
-    try {
-      const fileRef = ref(storage, aiResult.caminhoStorage)
-      await uploadString(fileRef, aiResult.placeholderContent, 'raw')
-      toast({ title: "Organização Concluída", description: `Pasta para ${aiResult.nomeEmpresa} criada via IA.` })
-      setIsAiOrganizerOpen(false)
-      setAiResult(null)
-    } finally {
-      setIsAiProcessing(false)
     }
   }
 
@@ -195,23 +155,23 @@ export default function FieldControlOperational() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-11 px-6 border-accent text-accent font-bold uppercase text-[10px] gap-2 hover:bg-accent/5" onClick={() => setIsAiOrganizerOpen(true)}>
-            <Sparkles className="size-4" /> Organizador AI
-          </Button>
+          <Badge variant="outline" className="h-10 border-[#00f2ff]/30 text-[#00f2ff] font-black uppercase text-[10px] gap-2 bg-primary/5 px-4 flex items-center shadow-[0_0_15px_rgba(0,242,255,0.1)]">
+            <Sparkles className="size-4" /> NAI IoT ENGINE 2026
+          </Badge>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <KpiCard label="Minhas Atividades" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
-        <KpiCard label="Status do GPS" value={currentLocation ? "Ativo" : "Pendente"} icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
+        <KpiCard label="Status do Perímetro" value="Ativo" icon={ScanLine} color="text-emerald-600" bg="bg-emerald-50" />
         <KpiCard label="Tentativas Negadas" value={accessLogs?.filter(l => l.status === 'denied').length || 0} icon={ShieldAlert} color="text-red-600" bg="bg-red-50" />
         <KpiCard label="Acessos Seguros" value={accessLogs?.filter(l => l.status === 'authorized').length || 0} icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[750px] grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
-          <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Agenda</TabsTrigger>
           <TabsTrigger value="gatekeeper" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Catracas (IoT)</TabsTrigger>
+          <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Agenda Campo</TabsTrigger>
           <TabsTrigger value="allocations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Alocações</TabsTrigger>
           <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Instrumentos</TabsTrigger>
         </TabsList>
@@ -222,23 +182,49 @@ export default function FieldControlOperational() {
               <div className="p-8 bg-primary text-white">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-white/10 rounded-lg text-accent"><Cpu className="size-5" /></div>
-                  <h3 className="text-xl font-headline font-black uppercase">Simular Catraca</h3>
+                  <h3 className="text-xl font-headline font-black uppercase">Terminal de Acesso</h3>
                 </div>
-                <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest leading-tight">Validação biométrica e documental do perímetro.</p>
+                <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest leading-tight">Simulador de Crachá RFID & Biometria.</p>
               </div>
+              
               <CardContent className="p-8 space-y-6">
+                {/* O "Visor" da Catraca */}
+                <div className={cn(
+                  "h-32 rounded-3xl border-4 flex flex-col items-center justify-center text-center p-4 transition-all duration-500 shadow-inner",
+                  !lastResult ? "bg-slate-900 border-slate-800" : 
+                  lastResult.authorized ? "bg-emerald-950 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)]" : 
+                  "bg-red-950 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
+                )}>
+                  {!lastResult ? (
+                    <div className="space-y-2">
+                      <div className="size-2 bg-blue-500 rounded-full animate-pulse mx-auto" />
+                      <p className="text-[#00f2ff] font-mono text-[10px] font-black uppercase tracking-[0.2em]">Aguardando Crachá...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 animate-in zoom-in-95">
+                      {lastResult.authorized ? <CheckCircle2 className="size-8 text-accent mx-auto" /> : <XCircle className="size-8 text-red-500 mx-auto" />}
+                      <p className={cn(
+                        "font-black text-xs uppercase leading-tight px-2",
+                        lastResult.authorized ? "text-accent" : "text-red-400"
+                      )}>
+                        {lastResult.message}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Colaborador (RFID)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Simular Colaborador</label>
                     <Select value={gatekeeperForm.employeeId} onValueChange={v => setGatekeeperForm({...gatekeeperForm, employeeId: v})}>
-                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Bipar Crachá..." /></SelectTrigger>
+                      <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Escolha o Crachá..." /></SelectTrigger>
                       <SelectContent>
                         {REAL_EMPLOYEES.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Zona de Risco</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Área de Risco</label>
                     <Select value={gatekeeperForm.area} onValueChange={v => setGatekeeperForm({...gatekeeperForm, area: v})}>
                       <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -249,35 +235,36 @@ export default function FieldControlOperational() {
                     </Select>
                   </div>
                 </div>
+
                 <Button 
-                  onClick={handleValidateTurnstile} 
+                  onClick={handleSimulateTurnstile} 
                   disabled={isGatekeeperLoading || !gatekeeperForm.employeeId}
-                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2"
+                  className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3 group"
                 >
-                  {isGatekeeperLoading ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5 text-accent" />}
-                  Simular Bipagem RFID
+                  {isGatekeeperLoading ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5 text-accent group-hover:scale-110 transition-transform" />}
+                  Bipar Crachá RFID
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2rem] overflow-hidden flex flex-col h-full">
               <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg font-black text-primary uppercase">Histórico do Perímetro (Gatekeeper)</CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Logs de acesso sincronizados com sensores IoT.</CardDescription>
+                  <CardTitle className="text-lg font-black text-primary uppercase">Monitor de Acessos (Live)</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Logs de segurança física sincronizados.</CardDescription>
                 </div>
-                <Badge variant="outline" className="h-8 gap-2 border-primary/20 text-primary font-black uppercase text-[10px]">
-                  <Signal className="size-3 text-accent animate-pulse" /> Live
+                <Badge variant="outline" className="h-8 gap-2 border-emerald-100 text-emerald-700 font-black uppercase text-[10px] bg-emerald-50">
+                  <div className="size-2 bg-emerald-500 rounded-full animate-ping" /> Perímetro Seguro
                 </Badge>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 flex-1 overflow-y-auto max-h-[500px]">
                 <Table>
                   <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
                     <TableRow>
                       <TableHead className="pl-8">Colaborador</TableHead>
-                      <TableHead>Área / Zona</TableHead>
+                      <TableHead>Zona de Risco</TableHead>
                       <TableHead>Status NAI</TableHead>
-                      <TableHead className="pr-8 text-right">Data/Hora</TableHead>
+                      <TableHead className="pr-8 text-right">Horário</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -295,15 +282,15 @@ export default function FieldControlOperational() {
                               "w-fit text-[8px] font-black uppercase border-none px-3",
                               log.status === 'authorized' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
                             )}>
-                              {log.status === 'authorized' ? "Autorizado" : "Negado"}
+                              {log.status === 'authorized' ? "Autorizado" : "Bloqueado"}
                             </Badge>
                             {log.status === 'denied' && (
-                              <p className="text-[9px] text-red-600 italic font-medium leading-tight">⚠ {log.reason}</p>
+                              <p className="text-[9px] text-red-600 italic font-medium leading-tight max-w-[150px]">⚠ {log.reason}</p>
                             )}
                           </div>
                         </TableCell>
                         <TableCell className="pr-8 text-right text-[10px] font-bold text-slate-400">
-                          {log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleString('pt-BR') : 'Agora'}
+                          {log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString('pt-BR') : '---'}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -317,12 +304,10 @@ export default function FieldControlOperational() {
           </div>
         </TabsContent>
 
-        <TabsContent value="activities" className="mt-8 space-y-6">
+        <TabsContent value="activities" className="mt-8">
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black text-primary uppercase">Agenda de Campo</CardTitle>
-              </div>
+            <CardHeader className="bg-slate-50 border-b py-6 px-8">
+              <CardTitle className="text-lg font-black text-primary uppercase">Agenda de Campo</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -342,7 +327,7 @@ export default function FieldControlOperational() {
                       </TableCell>
                       <TableCell><p className="text-xs font-bold text-slate-600">{task.companyName}</p></TableCell>
                       <TableCell className="text-right pr-8">
-                        <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary">Coletar Dados</Button>
+                        <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary rounded-lg">Coletar Dados</Button>
                       </TableCell>
                     </TableRow>
                   ))}
