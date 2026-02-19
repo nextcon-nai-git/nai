@@ -91,7 +91,7 @@ const navGroups = [
     ]
   },
   {
-    label: "Segurança de Vidas",
+    label: "Painel SST",
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
