@@ -1,9 +1,34 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Libera a pasta orcamentos e qualquer outro arquivo temporariamente para o fluxo comercial
+    
+    // Funções de Apoio
+    function isSignedIn() { return request.auth != null; }
+    function getUserData() { return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return isSignedIn() && (getUserData().role == 'SUPER_ADMIN' || getUserData().role == 'ADMIN'); }
+    function isOwner(clientId) { return isSignedIn() && getUserData().companyId == clientId; }
+
+    // 1. ÁREA PÚBLICA: Leitura livre, Escrita apenas Admins
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 2. INTERNOS NEXTCON: Acesso exclusivo equipe interna
+    match /internos_nextcon/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // 3. ÁREA DE CLIENTES: Isolamento Lógico (Multi-tenant)
+    match /clientes/{clientId}/{allPaths=**} {
+      // Admins da Nextcon acessam tudo.
+      // O cliente acessa apenas a SUA pasta baseada no companyId do perfil.
+      allow read, write: if isAdmin() || isOwner(clientId);
+    }
+
+    // Fallback de Segurança
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if isAdmin();
     }
   }
 }
