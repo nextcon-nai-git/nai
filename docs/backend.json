@@ -123,6 +123,18 @@
     "/config_nai_avatar/{id}": {
       "schema": "#/entities/NaiSalesPitch",
       "description": "Configurações de roteiro e avatar da assistente virtual."
+    },
+    "/companies/{companyId}/tasks/{taskId}": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "status": { "type": "string" },
+          "type": { "type": "string" },
+          "metadata": { "type": "object" }
+        }
+      },
+      "description": "Cards operacionais e comerciais (Kanban)."
     }
   }
 }
