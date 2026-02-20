@@ -32,7 +32,8 @@ import {
   Upload,
   ShoppingCart,
   ShieldCheck,
-  Gavel
+  Gavel,
+  ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -47,7 +48,15 @@ import {
   SidebarMenuItem,
   SidebarGroup,
   SidebarGroupLabel,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
 import { signOut } from "firebase/auth"
@@ -83,10 +92,16 @@ const navGroups = [
       { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
       { title: "Controle de Campo", icon: HardHat, href: "/field-control" },
       { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
-      { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
-      { title: "Saúde Ocupacional", icon: Stethoscope, href: "/health-control" },
-      { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
-      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
+      { 
+        title: "Saúde Ocupacional", 
+        icon: Stethoscope, 
+        subItems: [
+          { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
+          { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
+          { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
+          { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
+        ]
+      },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
     ]
   },
@@ -173,22 +188,74 @@ export function AppSidebar() {
               </SidebarGroupLabel>
               <SidebarMenu>
                 {group.items.map((item) => {
-                  const isActive = pathname === item.href
+                  const isActive = pathname === item.href || (item.subItems?.some(s => s.href === pathname))
                   const Icon = item.icon
+
+                  if (item.subItems) {
+                    return (
+                      <Collapsible
+                        key={item.title}
+                        asChild
+                        defaultOpen={isActive}
+                        className="group/collapsible"
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton 
+                              tooltip={item.title}
+                              className={cn(
+                                "h-11 px-4 rounded-xl transition-all group",
+                                isActive 
+                                  ? "bg-white/10 text-white font-bold" 
+                                  : "text-white/60 hover:bg-white/5 hover:text-white"
+                              )}
+                            >
+                              <Icon className={cn("size-4", isActive ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
+                              <span className="text-sm">{item.title}</span>
+                              <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub className="border-white/10 ml-6 mt-1 space-y-1">
+                              {item.subItems.map((subItem) => (
+                                <SidebarMenuSubItem key={subItem.title}>
+                                  <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
+                                    <Link 
+                                      href={subItem.href}
+                                      className={cn(
+                                        "flex items-center gap-3 h-9 px-3 rounded-lg transition-all",
+                                        pathname === subItem.href 
+                                          ? "text-accent font-bold bg-white/5" 
+                                          : "text-white/40 hover:text-white hover:bg-white/5"
+                                      )}
+                                    >
+                                      <subItem.icon className="size-3.5" />
+                                      <span className="text-xs">{subItem.title}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    )
+                  }
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={isActive}
+                        isActive={pathname === item.href}
                         className={cn(
                           "h-11 px-4 rounded-xl transition-all group",
-                          isActive 
+                          pathname === item.href 
                             ? "bg-white/10 text-white font-bold border-l-4 border-accent" 
                             : "text-white/60 hover:bg-white/5 hover:text-white"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3">
-                          <Icon className={cn("size-4", isActive ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
+                          <Icon className={cn("size-4", pathname === item.href ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
                           <span className="text-sm">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
