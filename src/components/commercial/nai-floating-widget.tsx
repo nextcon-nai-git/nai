@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 /**
  * @fileOverview Widget Flutuante da NAI (Assistente Comercial).
@@ -54,8 +55,18 @@ export function NaiFloatingWidget() {
               <X className="size-4" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
-                <Bot className="size-6 text-accent" />
+              <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
+                {pitchData?.avatar?.imagem_url ? (
+                  <Image 
+                    src={pitchData.avatar.imagem_url} 
+                    alt="NAI" 
+                    width={40} 
+                    height={40} 
+                    className="object-cover"
+                  />
+                ) : (
+                  <Bot className="size-6 text-accent" />
+                )}
               </div>
               <div>
                 <CardTitle className="text-sm font-black uppercase tracking-tight">NAI Intelligence</CardTitle>
@@ -116,21 +127,31 @@ export function NaiFloatingWidget() {
       )}
 
       {/* Botão Flutuante */}
-      <Button 
+      <button 
         onClick={handleToggle}
         className={cn(
-          "h-16 px-8 rounded-full shadow-2xl transition-all duration-500 gap-3 hover:scale-105 active:scale-95 group",
+          "h-16 px-8 rounded-full shadow-2xl transition-all duration-500 flex items-center gap-3 hover:scale-105 active:scale-95 group overflow-hidden",
           isOpen ? "bg-primary text-white" : "gradient-nextcon text-white ring-4 ring-accent/20"
         )}
       >
-        <div className="relative">
-          <Bot className="size-6 group-hover:animate-bounce" />
-          {!isOpen && <span className="absolute -top-1 -right-1 size-2.5 bg-accent rounded-full border-2 border-primary animate-ping" />}
+        <div className="relative size-10 rounded-full overflow-hidden border-2 border-white/20 bg-[#090e24] flex items-center justify-center shrink-0">
+          {pitchData?.avatar?.imagem_url ? (
+            <Image 
+              src={pitchData.avatar.imagem_url} 
+              alt="NAI" 
+              width={40} 
+              height={40} 
+              className="object-cover"
+            />
+          ) : (
+            <Bot className="size-6 text-accent group-hover:animate-bounce" />
+          )}
+          {!isOpen && <span className="absolute top-0 right-0 size-2.5 bg-accent rounded-full border-2 border-primary animate-ping" />}
         </div>
         <span className="font-black uppercase text-xs tracking-widest">
           {isOpen ? "Fechar Assistente" : "Falar com a NAI"}
         </span>
-      </Button>
+      </button>
     </div>
   );
 }

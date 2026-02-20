@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
 import { doc } from "firebase/firestore";
+import Image from "next/image";
 
 const ICON_MAP: Record<string, any> = {
   "shield_health": ShieldPlus,
@@ -45,8 +46,19 @@ export function NaiSalesPitch() {
       {/* Balão de Fala e Avatar */}
       <div className="flex items-start gap-5 p-6 bg-white rounded-[2.5rem] border shadow-sm relative group">
         <div className="relative shrink-0 mt-2">
-          <div className="size-16 rounded-[1.5rem] bg-[#090e24] flex items-center justify-center text-white font-black text-3xl shadow-xl border-2 border-[#00f2ff]/20">
-            N
+          <div className="size-16 rounded-[1.5rem] bg-[#090e24] flex items-center justify-center overflow-hidden shadow-xl border-2 border-[#00f2ff]/20">
+            {data.avatar.imagem_url ? (
+              <Image 
+                src={data.avatar.imagem_url} 
+                alt="Avatar NAI" 
+                width={64} 
+                height={64} 
+                className="object-cover"
+                priority
+              />
+            ) : (
+              <span className="text-white font-black text-3xl">N</span>
+            )}
           </div>
           <div className="absolute -bottom-1 -right-1 size-5 bg-accent rounded-full border-2 border-white flex items-center justify-center">
             <Zap className="size-3 text-primary fill-current" />

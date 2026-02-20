@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore } from "@/firebase"
 import { doc, writeBatch } from "firebase/firestore"
+import { firebaseConfig } from "@/firebase/config"
 import Link from "next/link"
 
 const NORMAS_SAUDE = [
@@ -42,6 +43,7 @@ const PITCH_NAI = {
   avatar: {
     nome: "NAI",
     titulo: "Inteligência Nextcon",
+    imagem_url: `https://storage.googleapis.com/${firebaseConfig.storageBucket}/logo/Avatar%20Nextcon%20NAI.png`,
     saudacao_inicial: "Olá. Sou a NAI. Não contrate um software, contrate um escudo. Veja por quê 👇"
   },
   pilares_venda: [
