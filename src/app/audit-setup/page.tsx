@@ -98,22 +98,51 @@ export default function AuditSetupPage() {
       REGRAS_SST.forEach(regra => batch.set(doc(db, "config_regras_sst", regra.id), regra))
       batch.set(doc(db, "config_nai_avatar", PITCH_NAI.id), PITCH_NAI)
       await batch.commit()
-      setProgress(40)
+      setProgress(20)
 
-      // 2. Provisionamento Storage (Hierarquia de Elite)
-      setStatus("Provisionando Hierarquia de Pastas no Storage...")
-      const placeholder = "DIRETÓRIO PROVISIONADO PELA NAI - NEXTCON PLATFORM 2026"
+      // 2. Provisionamento Storage (Hierarquia de Elite baseada no Script)
+      setStatus("Provisionando Árvore de Pastas no Storage...")
       
-      // Pastas Públicas e Internas
-      const basePaths = [
-        "public/assets/_init.txt",
-        "public/modelos_documentos/_init.txt",
-        "internos_nextcon/projetos_internos/_init.txt",
-        "internos_nextcon/fornecedores/_init.txt"
-      ]
+      const idClienteModelo = "CLIENTE_MODELO_001";
+      const marker = ""; // Arquivo vazio conforme script
+
+      const paths = [
+        // 1. Área Pública
+        "public/assets/.keep",
+        "public/modelos_documentos/.keep",
+        
+        // 2. Área Interna Nextcon
+        "internos_nextcon/projetos_internos/.keep",
+        "internos_nextcon/fornecedores/.keep",
+        
+        // 3. Área de Usuários Globais
+        "usuarios/.keep",
+
+        // 4. Área do Cliente (Modelo)
+        `clientes/${idClienteModelo}/docs_legais/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr01_pgr/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr04_sesmt/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr05_cipa/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr06_epis/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr07_pcmso/.keep`,
+        `clientes/${idClienteModelo}/sst_nrs/nr17_ergo/.keep`,
+        `clientes/${idClienteModelo}/saude_gestao/afastados/.keep`,
+        `clientes/${idClienteModelo}/saude_gestao/fap/.keep`,
+        `clientes/${idClienteModelo}/saude_gestao/pericias/.keep`,
+        `clientes/${idClienteModelo}/certificacoes/iso_45001/.keep`,
+        `clientes/${idClienteModelo}/colaboradores/.keep`
+      ];
+
+      // Executa o upload dos marcadores .keep
+      let uploaded = 0;
+      for (const path of paths) {
+        await uploadString(ref(storage, path), marker);
+        uploaded++;
+        setProgress(20 + (uploaded / paths.length) * 40);
+      }
 
       // Provisiona estrutura para as 5 principais empresas da base real para demonstração
-      const targetCompanies = REAL_COMPANIES.slice(0, 5)
+      const targetCompanies = REAL_COMPANIES.slice(0, 5);
       const clientFolders = [
         "docs_legais",
         "sst_nrs/nr01_pgr",
@@ -127,30 +156,23 @@ export default function AuditSetupPage() {
         "saude_gestao/pericias",
         "certificacoes/iso_45001",
         "colaboradores"
-      ]
+      ];
 
-      // Upload dos marcadores base
-      for (const path of basePaths) {
-        await uploadString(ref(storage, path), placeholder)
-      }
-
-      // Upload da estrutura multi-tenant para as empresas demo
-      let compCount = 0
+      let compCount = 0;
       for (const comp of targetCompanies) {
-        compCount++
-        setStatus(`Provisionando Storage: ${comp.name}...`)
+        compCount++;
+        setStatus(`Provisionando Multi-tenant: ${comp.name}...`);
         for (const folder of clientFolders) {
-          const fullPath = `clientes/${comp.id}/${folder}/_init.txt`
-          await uploadString(ref(storage, fullPath), placeholder)
+          await uploadString(ref(storage, `clientes/${comp.id}/${folder}/.keep`), marker);
         }
-        setProgress(40 + (compCount / targetCompanies.length) * 60)
+        setProgress(60 + (compCount / targetCompanies.length) * 40);
       }
 
       setProgress(100)
-      setStatus("Cérebro NAI e Estrutura Storage configurados com sucesso!")
+      setStatus("✅ Ecossistema e Árvore de Pastas ativados com sucesso!")
       
       toast({
-        title: "Ecossistema Ativado",
+        title: "Estrutura Criada",
         description: "Firestore e Storage sincronizados à hierarquia de elite."
       })
     } catch (error) {
@@ -226,7 +248,7 @@ export default function AuditSetupPage() {
             )}
           </Button>
           <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-tighter">
-            Esta operação provisiona as bases normativas, o roteiro de vendas e a hierarquia física de diretórios no Cloud Storage.
+            Esta operação provisiona as bases normativas, o roteiro de vendas e a árvore de diretórios oficial no Cloud Storage usando arquivos .keep.
           </p>
         </CardFooter>
       </Card>
