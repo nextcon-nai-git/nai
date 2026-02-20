@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
 
     // 2. Prepara o objeto do Card (seguindo o schema OpsTask do sistema)
     const novoLead = {
-      title: `Lead Site: ${empresa.toUpperCase()}`,
+      title: `Orçamento Site: ${empresa.toUpperCase()}`,
       companyId: "leads", // Agrupador padrão para novos contatos do site
       companyName: empresa,
       type: "comercial",
@@ -63,7 +62,7 @@ export async function POST(request: Request) {
       { 
         sucesso: true, 
         mensagem: "Lead capturado com sucesso! O card foi criado no Funil de Vendas.",
-        id: docRef.id
+        lead_id: docRef.id
       },
       {
         status: 200,

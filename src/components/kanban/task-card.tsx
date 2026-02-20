@@ -14,7 +14,12 @@ import {
   Zap,
   Building2,
   Sparkles,
-  ArrowRightCircle
+  ArrowRightCircle,
+  Briefcase,
+  TrendingUp,
+  MapPin,
+  User,
+  Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isValid } from 'date-fns';
@@ -34,6 +39,8 @@ const TypeIcon = ({ type }: { type: TaskType }) => {
     case 'pcmso': return <ShieldCheck className="w-4 h-4 text-emerald-600" />;
     case 'ltcat': return <FileText className="w-4 h-4 text-indigo-600" />;
     case 'iot_check': return <Clock className="w-4 h-4 text-amber-600" />;
+    case 'vistoria': return <MapPin className="w-4 h-4 text-blue-500" />;
+    case 'comercial': return <TrendingUp className="w-4 h-4 text-emerald-500" />;
     default: return <AlertCircle className="w-4 h-4 text-gray-500" />;
   }
 };
@@ -70,7 +77,7 @@ export function TaskCard({ task }: { task: OpsTask }) {
   const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
-  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA"].includes(task.companyId);
+  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA", "leads"].includes(task.companyId);
 
   const handlePromoteToOps = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -127,7 +134,7 @@ export function TaskCard({ task }: { task: OpsTask }) {
         )}
       </div>
 
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex items-center gap-2 mb-4">
         <div className="size-6 rounded-lg bg-primary/5 flex items-center justify-center">
           <Building2 className="size-3.5 text-primary/40" />
         </div>
@@ -135,6 +142,30 @@ export function TaskCard({ task }: { task: OpsTask }) {
           {task.companyName || "Unidade Técnica"}
         </span>
       </div>
+
+      {/* Seção de Lead Externo (Metadados do Site) */}
+      {(task as any).metadata?.contato_nome && (
+        <div className="mb-5 p-3 bg-white/50 rounded-2xl border border-dashed border-emerald-200 space-y-2">
+          <p className="text-[8px] font-black uppercase text-emerald-600 flex items-center gap-1">
+            <Sparkles className="size-2.5" /> Lead do Site
+          </p>
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-bold text-primary flex items-center gap-1.5 uppercase">
+              <User className="size-3 text-slate-400" /> {(task as any).metadata.contato_nome}
+            </p>
+            {(task as any).metadata.telefone && (
+              <p className="text-[10px] font-bold text-primary flex items-center gap-1.5">
+                <Phone className="size-3 text-slate-400" /> {(task as any).metadata.telefone}
+              </p>
+            )}
+          </div>
+          {(task as any).metadata.interesse && (
+            <Badge variant="outline" className="w-full justify-center text-[7px] font-black uppercase border-emerald-100 bg-emerald-50 text-emerald-700 h-5">
+              Interesse: {(task as any).metadata.interesse}
+            </Badge>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2.5">
         <div className="flex justify-between items-center text-[9px] font-black uppercase text-slate-400 tracking-widest">
