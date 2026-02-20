@@ -2,14 +2,16 @@
 "use client"
 
 import * as React from "react"
-import { Database, Loader2, CheckCircle2, ShieldCheck, Scale, Gavel, Zap, ArrowLeft, Sparkles, ShieldAlert, HardHat, Bot } from "lucide-react"
+import { Database, Loader2, CheckCircle2, ShieldCheck, Scale, Gavel, Zap, ArrowLeft, Sparkles, ShieldAlert, HardHat, Bot, FolderTree } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
-import { useFirestore } from "@/firebase"
+import { useFirestore, useStorage } from "@/firebase"
 import { doc, writeBatch } from "firebase/firestore"
+import { ref, uploadString } from "firebase/storage"
 import { firebaseConfig } from "@/firebase/config"
+import { REAL_COMPANIES } from "@/lib/real-data"
 import Link from "next/link"
 
 const NORMAS_SAUDE = [
@@ -75,57 +77,88 @@ const PITCH_NAI = {
 export default function AuditSetupPage() {
   const { toast } = useToast()
   const db = useFirestore()
+  const storage = useStorage()
   const [loading, setLoading] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
   const [status, setStatus] = React.useState("")
 
   async function handleSetup() {
+    if (!db || !storage) return
     setLoading(true)
-    setStatus("Iniciando injeção do Ecossistema Integrado (Saúde + SST)...")
+    setStatus("Iniciando provisionamento do Ecossistema Nextcon...")
     
     try {
       const batch = writeBatch(db)
       
-      // 1. Normas de Saúde
-      NORMAS_SAUDE.forEach(norma => {
-        batch.set(doc(db, "config_normas_profissionais", norma.id), norma)
-      })
-      
-      // 2. Jurisprudência
-      JURISPRUDENCIA.forEach(jur => {
-        batch.set(doc(db, "config_jurisprudencia", jur.id), jur)
-      })
-
-      // 3. Normas SST (NRs)
-      NORMAS_SST.forEach(nr => {
-        batch.set(doc(db, "config_nrs", nr.id), nr)
-      })
-
-      // 4. Regras SST (Firewall eSocial)
-      REGRAS_SST.forEach(regra => {
-        batch.set(doc(db, "config_regras_sst", regra.id), regra)
-      })
-
-      // 5. Ativos SST (EPIs/Instrumentos)
-      batch.set(doc(db, "ativos_sst_equipamentos", "EQP-CINTO-001"), { id_equipamento: "EQP-CINTO-001", qr_code_hash: "8f4a2b9c", categoria: "EPI_Altura", tipo: "Cinto Paraquedista", ca_numero: "45678", ca_validade: "2028-12-31", status_uso: "ativo" })
-
-      // 6. Roteiro NAI Pitch
+      // 1. Injeção Firestore (Dados Técnicos)
+      setStatus("Injetando Base Legal e Comercial no Firestore...")
+      NORMAS_SAUDE.forEach(norma => batch.set(doc(db, "config_normas_profissionais", norma.id), norma))
+      JURISPRUDENCIA.forEach(jur => batch.set(doc(db, "config_jurisprudencia", jur.id), jur))
+      NORMAS_SST.forEach(nr => batch.set(doc(db, "config_nrs", nr.id), nr))
+      REGRAS_SST.forEach(regra => batch.set(doc(db, "config_regras_sst", regra.id), regra))
       batch.set(doc(db, "config_nai_avatar", PITCH_NAI.id), PITCH_NAI)
-
       await batch.commit()
+      setProgress(40)
+
+      // 2. Provisionamento Storage (Hierarquia de Elite)
+      setStatus("Provisionando Hierarquia de Pastas no Storage...")
+      const placeholder = "DIRETÓRIO PROVISIONADO PELA NAI - NEXTCON PLATFORM 2026"
+      
+      // Pastas Públicas e Internas
+      const basePaths = [
+        "public/assets/_init.txt",
+        "public/modelos_documentos/_init.txt",
+        "internos_nextcon/projetos_internos/_init.txt",
+        "internos_nextcon/fornecedores/_init.txt"
+      ]
+
+      // Provisiona estrutura para as 5 principais empresas da base real para demonstração
+      const targetCompanies = REAL_COMPANIES.slice(0, 5)
+      const clientFolders = [
+        "docs_legais",
+        "sst_nrs/nr01_pgr",
+        "sst_nrs/nr04_sesmt",
+        "sst_nrs/nr05_cipa",
+        "sst_nrs/nr06_epis",
+        "sst_nrs/nr07_pcmso",
+        "sst_nrs/nr17_ergo",
+        "saude_gestao/afastados",
+        "saude_gestao/fap",
+        "saude_gestao/pericias",
+        "certificacoes/iso_45001",
+        "colaboradores"
+      ]
+
+      // Upload dos marcadores base
+      for (const path of basePaths) {
+        await uploadString(ref(storage, path), placeholder)
+      }
+
+      // Upload da estrutura multi-tenant para as empresas demo
+      let compCount = 0
+      for (const comp of targetCompanies) {
+        compCount++
+        setStatus(`Provisionando Storage: ${comp.name}...`)
+        for (const folder of clientFolders) {
+          const fullPath = `clientes/${comp.id}/${folder}/_init.txt`
+          await uploadString(ref(storage, fullPath), placeholder)
+        }
+        setProgress(40 + (compCount / targetCompanies.length) * 60)
+      }
+
       setProgress(100)
-      setStatus("Cérebro NAI 2026 configurado com sucesso!")
+      setStatus("Cérebro NAI e Estrutura Storage configurados com sucesso!")
       
       toast({
-        title: "Ecossistema Integrado Ativado",
-        description: "Saúde, SST, eSocial e Ativos sincronizados ao motor NAI."
+        title: "Ecossistema Ativado",
+        description: "Firestore e Storage sincronizados à hierarquia de elite."
       })
     } catch (error) {
       console.error(error)
       toast({
         variant: "destructive",
         title: "Erro na Configuração",
-        description: "Falha ao provisionar as bases técnicas."
+        description: "Falha ao provisionar as bases técnicas e storage."
       })
     } finally {
       setLoading(false)
@@ -136,7 +169,7 @@ export default function AuditSetupPage() {
     <div className="min-h-[80vh] flex items-center justify-center p-6 animate-in fade-in duration-700 pb-20">
       <Card className="max-w-2xl w-full border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
         <CardHeader className="bg-primary text-white p-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles className="size-48 text-accent" /></div>
+          <div className="absolute top-0 right-0 p-8 opacity-10"><FolderTree className="size-48 text-accent" /></div>
           <div className="relative z-10 space-y-2">
             <Link href="/agency/cloud-infra">
               <Button variant="ghost" size="sm" className="text-white/60 hover:text-white -ml-2 mb-4 gap-2">
@@ -147,7 +180,7 @@ export default function AuditSetupPage() {
               <ShieldCheck className="size-8 text-accent" />
             </div>
             <CardTitle className="text-3xl font-headline font-black uppercase tracking-tight">Setup Ecossistema 2026</CardTitle>
-            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Injeção massiva de Inteligência em Saúde & Segurança</CardDescription>
+            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Injeção massiva de Inteligência e Hierarquia Storage</CardDescription>
           </div>
         </CardHeader>
 
@@ -157,13 +190,13 @@ export default function AuditSetupPage() {
             <SetupIndicator icon={ShieldAlert} label="NRs" />
             <SetupIndicator icon={Zap} label="eSocial" />
             <SetupIndicator icon={HardHat} label="Ativos" />
-            <SetupIndicator icon={Bot} label="Pitch NAI" />
+            <SetupIndicator icon={FolderTree} label="Storage" />
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">
-              <span>Sincronização de Inteligência</span>
-              <span className="text-primary">{progress}%</span>
+              <span>Sincronização de Inteligência & Pastas</span>
+              <span className="text-primary">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-3 bg-slate-100" />
           </div>
@@ -188,12 +221,12 @@ export default function AuditSetupPage() {
               </div>
             ) : (
               <>
-                <Database className="size-5 text-accent" /> Ativar Cérebro NAI Integrado
+                <Database className="size-5 text-accent" /> Ativar Cérebro & Storage NAI
               </>
             )}
           </Button>
           <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-tighter">
-            Esta operação provisiona as bases normativas e o roteiro de vendas NAI para o motor Gemini 2.0.
+            Esta operação provisiona as bases normativas, o roteiro de vendas e a hierarquia física de diretórios no Cloud Storage.
           </p>
         </CardFooter>
       </Card>
