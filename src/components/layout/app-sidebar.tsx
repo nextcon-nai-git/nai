@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -33,7 +32,8 @@ import {
   ShoppingCart,
   ShieldCheck,
   Gavel,
-  ChevronRight
+  ChevronRight,
+  Video
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -96,6 +96,7 @@ const navGroups = [
         title: "Saúde Ocupacional", 
         icon: Stethoscope, 
         subItems: [
+          { title: "Telemedicina", icon: Video, href: "/telemedicine" },
           { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
           { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
           { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },

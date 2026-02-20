@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -27,6 +26,21 @@
         "cnae": { "type": "string" }
       },
       "required": ["id", "name", "cnpj"]
+    },
+    "TelemedicineAppointment": {
+      "title": "TelemedicineAppointment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "paciente_email": { "type": "string" },
+        "medico_email": { "type": "string" },
+        "inicio": { "type": "string", "format": "date-time" },
+        "fim": { "type": "string", "format": "date-time" },
+        "link_meet": { "type": "string" },
+        "status": { "type": "string", "enum": ["agendada", "concluida", "cancelada"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["paciente_email", "medico_email", "inicio", "fim", "link_meet", "status"]
     },
     "WorkAllocation": {
       "title": "WorkAllocation",
@@ -111,6 +125,10 @@
     "/companies/{companyId}": {
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
+    },
+    "/agendamentos_telemedicina/{id}": {
+      "schema": "#/entities/TelemedicineAppointment",
+      "description": "Videoconsultas agendadas no Google Meet."
     },
     "/companies/{companyId}/work_allocations/{id}": {
       "schema": "#/entities/WorkAllocation",
