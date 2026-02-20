@@ -40,7 +40,6 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
-  // Trava de segurança: Só é Admin Global se o perfil estiver carregado, tiver cargo E companyId vazio.
   const isGlobalAdmin = React.useMemo(() => {
     if (loadingProfile || !profile) return false;
     const role = (profile.role || '').toUpperCase();
@@ -51,14 +50,13 @@ export default function Dashboard() {
   const eventsQuery = useMemoFirebase(() => {
     if (!db || loadingProfile || !profile) return null;
     
-    // Se for administrador global da NextCon (sem companyId), vê tudo via Collection Group
+    // OTIMIZAÇÃO: Limitamos a 5 eventos para performance e economia
     if (isGlobalAdmin) {
-      return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(4));
+      return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(5));
     } 
     
-    // Usuários de clientes só veem dados da sua própria empresa
     if (profile.companyId) {
-      return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(4));
+      return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(5));
     }
     
     return null;

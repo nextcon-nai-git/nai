@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -47,7 +46,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, doc, getDoc, addDoc, updateDoc } from "firebase/firestore"
+import { collection, query, orderBy, doc, getDoc, addDoc, updateDoc, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 export default function MedicalAuditingPage() {
@@ -81,9 +80,10 @@ export default function MedicalAuditingPage() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
+  // OTIMIZAÇÃO: Limitamos a 30 solicitações recentes no módulo Saúde
   const requestsQuery = useMemoFirebase(() => {
     if (!db) return null
-    return query(collection(db, "medical_audit_requests"), orderBy("createdAt", "desc"))
+    return query(collection(db, "medical_audit_requests"), orderBy("createdAt", "desc"), limit(30))
   }, [db])
   const { data: requests, isLoading } = useCollection(requestsQuery)
 
@@ -106,7 +106,6 @@ export default function MedicalAuditingPage() {
     }
   }, [selectedRequest])
 
-  // LOGICA 1: SUPER-JUNTA (Traduzido da Cloud Function)
   async function handleCreateAndAnalyze() {
     if (!db || !formData.patientName || !formData.professionalCategory) {
       toast({ variant: "destructive", title: "Campos obrigatórios" })
@@ -129,7 +128,6 @@ export default function MedicalAuditingPage() {
         const norma = normaSnap.data()
         let textoExtra = ""
 
-        // Lógica de Jurisprudência para TEA ou Alta Complexidade
         if (formData.diagnosis.toUpperCase().includes("TEA") || formData.complexity === "alta") {
           const jurRef = doc(db, "config_jurisprudencia", "tema_1069_stj")
           const jurSnap = await getDoc(jurRef)
@@ -183,15 +181,15 @@ export default function MedicalAuditingPage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Auditoria Médica & Super-Junta</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Módulo Operação Saúde</h1>
           <p className="text-muted-foreground font-medium flex items-center gap-2">
-            <Brain className="size-4 text-accent" /> Cruzamento inteligente de Normas e Jurisprudência 2026.
+            <Brain className="size-4 text-accent" /> Super-Junta Jurídica e Glosa Reversa 2026.
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button className="gradient-nextcon text-white h-12 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg gap-2">
-              <Plus className="size-4" /> Solicitar Análise
+              <Plus className="size-4" /> Nova Auditoria
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
@@ -200,7 +198,7 @@ export default function MedicalAuditingPage() {
                 <div className="p-2 bg-white/10 rounded-lg"><Gavel className="size-5 text-accent" /></div>
                 <DialogTitle className="text-xl font-headline font-black uppercase">Solicitar Super-Junta</DialogTitle>
               </div>
-              <DialogDescription className="text-white/70 font-medium">A IA cruzará Normas dos Conselhos e Jurisprudência STJ/ANS.</DialogDescription>
+              <DialogDescription className="text-white/70 font-medium">Cruzamento normativo STJ/ANS.</DialogDescription>
             </div>
             <div className="p-8 space-y-5">
               <div className="space-y-1.5">
@@ -209,7 +207,7 @@ export default function MedicalAuditingPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Categoria Profissional</label>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Categoria</label>
                   <Select value={formData.professionalCategory} onValueChange={v => setFormData({...formData, professionalCategory: v})}>
                     <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
@@ -229,13 +227,9 @@ export default function MedicalAuditingPage() {
                   </Select>
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Diagnóstico / CID</label>
-                <Input placeholder="Ex: TEA, Ortopedia..." value={formData.diagnosis} onChange={e => setFormData({...formData, diagnosis: e.target.value})} className="h-12 bg-slate-50 border-none rounded-xl font-bold shadow-inner" />
-              </div>
               <Button onClick={handleCreateAndAnalyze} disabled={isAnalyzing} className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-2 mt-4">
                 {isAnalyzing ? <Loader2 className="size-5 animate-spin" /> : <Sparkles className="size-5 text-accent" />}
-                Ativar Inteligência Super-Junta
+                Ativar Inteligência
               </Button>
             </div>
           </DialogContent>
@@ -245,7 +239,7 @@ export default function MedicalAuditingPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-1 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[700px]">
           <CardHeader className="bg-primary/5 border-b py-6 px-8 shrink-0">
-            <CardTitle className="text-lg font-black text-primary uppercase">Fila de Auditoria</CardTitle>
+            <CardTitle className="text-lg font-black text-primary uppercase">Fila de Auditoria (Silo)</CardTitle>
           </CardHeader>
           <CardContent className="p-0 flex-1 overflow-y-auto custom-scrollbar">
             {isLoading ? (
@@ -270,8 +264,8 @@ export default function MedicalAuditingPage() {
             <div className="animate-in slide-in-from-right-4 duration-500 space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1.5 rounded-2xl h-16">
-                  <TabsTrigger value="defesa" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Defesa NAI</TabsTrigger>
-                  <TabsTrigger value="checklist" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Checklist Campo</TabsTrigger>
+                  <TabsTrigger value="defesa" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Parecer NAI</TabsTrigger>
+                  <TabsTrigger value="checklist" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Dossiê Campo</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="defesa" className="mt-6">
@@ -280,10 +274,6 @@ export default function MedicalAuditingPage() {
                       <div className="space-y-6">
                         <Badge className="bg-primary text-accent border border-accent/20 font-bold uppercase text-[10px] h-8 px-3">{selectedRequest.defenseStrategy.norma_base}</Badge>
                         <div className="bg-white/5 p-6 rounded-2xl border border-white/10 italic text-sm leading-relaxed text-white/80">"{selectedRequest.defenseStrategy.texto_argumentacao}"</div>
-                        <div className="flex gap-3 p-4 bg-accent/10 rounded-2xl border border-accent/20">
-                          <AlertTriangle className="size-5 text-accent shrink-0" />
-                          <p className="text-[11px] font-bold text-accent uppercase leading-tight">{selectedRequest.defenseStrategy.alerta_sistema}</p>
-                        </div>
                       </div>
                     </Card>
                   )}
@@ -292,10 +282,9 @@ export default function MedicalAuditingPage() {
                 <TabsContent value="checklist" className="mt-6">
                   <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8 space-y-6">
                     <Textarea value={checklistData.anamnese} onChange={e => setChecklistData({...checklistData, anamnese: e.target.value})} placeholder="Anamnese Ocupacional..." className="min-h-[100px] bg-slate-50 border-none rounded-2xl p-4 shadow-inner" />
-                    <Textarea value={checklistData.exameFisico} onChange={e => setChecklistData({...checklistData, exameFisico: e.target.value})} placeholder="Exame Físico Dirigido..." className="min-h-[100px] bg-slate-50 border-none rounded-2xl p-4 shadow-inner" />
                     <Button onClick={handleSaveChecklist} disabled={isSavingChecklist} className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
                       {isSavingChecklist ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 text-accent" />}
-                      Sincronizar Achados de Campo
+                      Sincronizar Operação
                     </Button>
                   </Card>
                 </TabsContent>
@@ -304,7 +293,7 @@ export default function MedicalAuditingPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center p-20 border-2 border-dashed rounded-[3rem] opacity-30 bg-slate-50/50 min-h-[500px]">
               <History className="size-16 text-primary mb-4" />
-              <p className="text-xs font-black uppercase tracking-widest">Selecione uma solicitação para auditar</p>
+              <p className="text-xs font-black uppercase tracking-widest">Auditoria em Saúde Segregada</p>
             </div>
           )}
         </div>

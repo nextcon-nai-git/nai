@@ -2,11 +2,59 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Regra Global Mestra: Permite que qualquer usuário LOGADO leia, grave e faça 
-    // buscas globais (collection-group) em qualquer lugar do banco de dados.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    // Funções de Apoio
+    function isSignedIn() { return request.auth != null; }
+    function getUserRole() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function isAdmin() { return isSignedIn() && (getUserRole() == 'SUPER_ADMIN' || getUserRole() == 'ADMIN'); }
+    function isDoctor() { return isSignedIn() && (getUserRole() == 'DOCTOR' || getUserRole() == 'SUPER_ADMIN'); }
+    function isEngineer() { return isSignedIn() && (getUserRole() == 'ENGINEER' || getUserRole() == 'SUPER_ADMIN'); }
+    
+    // 1. Módulo Vendas & CRM (Acesso Admins)
+    match /orcamentos/{docId} {
+      allow read, write: if isAdmin();
     }
     
+    // 2. Módulo Saúde (Super-Junta / Auditoria)
+    match /medical_audit_requests/{docId} {
+      allow read, write: if isDoctor();
+    }
+    match /config_normas_profissionais/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // 3. Módulo SST & Operação (Engenheiros e Técnicos)
+    match /companies/{companyId}/access_logs/{docId} {
+      allow read, write: if isEngineer() || isAdmin();
+    }
+    match /companies/{companyId}/esocial_events_queue/{docId} {
+      allow read, write: if isEngineer() || isAdmin();
+    }
+    
+    // 4. Módulo Financeiro & Contratos
+    match /financialStats/{docId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Regras de Perfil e Empresas (Hierarquia Multi-tenant)
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || request.auth.uid == userId;
+    }
+    
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+      
+      // Sub-coleções seguem a lógica de hierarquia
+      match /{allChildren=**} {
+        allow read, write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId);
+      }
+    }
+
+    // Fallback de Segurança
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
   }
 }

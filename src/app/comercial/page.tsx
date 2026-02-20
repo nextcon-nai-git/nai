@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -22,7 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
-import { doc, collection, query, orderBy, collectionGroup } from "firebase/firestore"
+import { doc, collection, query, orderBy, collectionGroup, limit } from "firebase/firestore"
 import { SST_CATALOG } from "@/lib/services-data"
 import {
   Accordion,
@@ -59,14 +58,14 @@ export default function ComercialPortal() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  // Busca cards comerciais
+  // Busca cards comerciais - OTIMIZAÇÃO: Limitamos a 50 cards para performance
   const commercialTasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     if (isGlobalAdmin) {
-      return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
+      return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"), limit(50))
     }
     if (profile.companyId) {
-      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
+      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"), limit(50))
     }
     return null
   }, [db, profile, isGlobalAdmin])
@@ -111,7 +110,7 @@ export default function ComercialPortal() {
         companyId: profile.companyId || "leads",
         companyName: profile.name,
         type: 'comercial',
-        status: 'to_review', // Inicia no funil para revisão
+        status: 'to_review',
         priority: 'medium',
         dueDate: new Date().toISOString(),
         createdAt: new Date().toISOString(),
@@ -142,7 +141,7 @@ export default function ComercialPortal() {
             <Sparkles className="size-3 text-[#00f2ff]" /> Inteligência Comercial e Funil de Vendas SST.
           </p>
         </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#00f2ff]/30">PROPOSTAS 2026</Badge>
+        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#00f2ff]/30">MÓDULO VENDAS</Badge>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
