@@ -4,11 +4,27 @@ service cloud.firestore {
     
     // Funções de Apoio
     function isSignedIn() { return request.auth != null; }
-    function getUserRole() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function getUserData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function getUserRole() { return getUserData().role; }
+    function isGlobalUser() { 
+      let userData = getUserData();
+      return userData.companyId == null || userData.companyId == ""; 
+    }
+    
     function isAdmin() { return isSignedIn() && (getUserRole() == 'SUPER_ADMIN' || getUserRole() == 'ADMIN'); }
     function isDoctor() { return isSignedIn() && (getUserRole() == 'DOCTOR' || getUserRole() == 'SUPER_ADMIN'); }
     function isEngineer() { return isSignedIn() && (getUserRole() == 'ENGINEER' || getUserRole() == 'SUPER_ADMIN'); }
     
+    // Suporte para Collection Groups (Consultas Globais para usuários NextCon Matriz)
+    match /{path=**}/employees/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
+    match /{path=**}/tasks/{docId} { allow list: if (isAdmin() || isEngineer()) && isGlobalUser(); }
+    match /{path=**}/legalExpertises/{docId} { allow list: if (isAdmin() || isDoctor() || isEngineer()) && isGlobalUser(); }
+    match /{path=**}/contracts/{docId} { allow list: if isAdmin() && isGlobalUser(); }
+    match /{path=**}/reports/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
+    match /{path=**}/sst_events/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
+    match /{path=**}/esocial_events_queue/{docId} { allow list: if (isAdmin() || isEngineer()) && isGlobalUser(); }
+    match /{path=**}/examHistory/{docId} { allow list: if (isAdmin() || isDoctor()) && isGlobalUser(); }
+
     // 1. Módulo Vendas & CRM (Acesso Admins)
     match /orcamentos/{docId} {
       allow read, write: if isAdmin();
@@ -25,10 +41,7 @@ service cloud.firestore {
     
     // 3. Módulo SST & Operação (Engenheiros e Técnicos)
     match /companies/{companyId}/access_logs/{docId} {
-      allow read, write: if isEngineer() || isAdmin();
-    }
-    match /companies/{companyId}/esocial_events_queue/{docId} {
-      allow read, write: if isEngineer() || isAdmin();
+      allow read, write: if isEngineer() || isAdmin() || (isSignedIn() && getUserData().companyId == companyId);
     }
     
     // 4. Módulo Financeiro & Contratos
@@ -48,7 +61,7 @@ service cloud.firestore {
       
       // Sub-coleções seguem a lógica de hierarquia
       match /{allChildren=**} {
-        allow read, write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId);
+        allow read, write: if isAdmin() || (isSignedIn() && getUserData().companyId == companyId);
       }
     }
 
