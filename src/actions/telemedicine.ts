@@ -19,22 +19,25 @@ export async function agendarConsultaMeet(data: {
   const { pacienteEmail, medicoEmail, dataHoraInicio, dataHoraFim, tituloConsulta } = data;
 
   try {
-    // 1. Autenticação do Sistema com o Google Cloud (Service Account)
-    // Nota: Em produção, as credenciais devem estar em variáveis de ambiente.
-    // Ex: credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!)
+    // 1. Verificação de Credenciais
+    // A integração com Google Meet exige uma Service Account configurada.
+    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      throw new Error("Integração Google Meet não configurada. Por favor, adicione as credenciais da Service Account ao arquivo .env.");
+    }
+
+    // 2. Autenticação do Sistema com o Google Cloud
     const auth = new google.auth.GoogleAuth({
-      // No ambiente de prototipagem, assumimos que o arquivo existe ou as envs estão setadas
       scopes: ["https://www.googleapis.com/auth/calendar.events"],
     });
 
     const calendar = google.calendar({ version: "v3", auth });
 
-    // 2. Monta o evento da consulta para gerar link do Meet
+    // 3. Monta o evento da consulta para gerar link do Meet
     const event = {
       summary: tituloConsulta || "Videoconsulta Nextcon",
       description: "Consulta agendada via plataforma Nextcon Saúde.",
       start: {
-        dateTime: dataHoraInicio, // Formato ISO: '2026-03-01T10:00:00-03:00'
+        dateTime: dataHoraInicio,
         timeZone: "America/Sao_Paulo",
       },
       end: {
@@ -53,21 +56,21 @@ export async function agendarConsultaMeet(data: {
       },
     };
 
-    // 3. Dispara o pedido para o Google Calendar
+    // 4. Dispara o pedido para o Google Calendar
     const responseGoogle = await calendar.events.insert({
       calendarId: "primary",
-      conferenceDataVersion: 1, // Obrigatório para gerar o link do Meet
+      conferenceDataVersion: 1,
       requestBody: event,
     });
 
-    // 4. Extrai o link do Google Meet gerado
+    // 5. Extrai o link do Google Meet gerado
     const linkDoMeet = responseGoogle.data.hangoutLink;
 
     if (!linkDoMeet) {
-      throw new Error("Não foi possível obter o link do Meet do Google.");
+      throw new Error("O Google não retornou um link de Meet. Verifique se a API do Google Agenda está ativa.");
     }
 
-    // 5. Inicializa o Firestore e salva o registro
+    // 6. Inicializa o Firestore e salva o registro
     const { firestore } = initializeFirebase();
     const docRef = await addDoc(collection(firestore, "agendamentos_telemedicina"), {
       paciente_email: pacienteEmail,
@@ -87,9 +90,20 @@ export async function agendarConsultaMeet(data: {
 
   } catch (error: any) {
     console.error("Erro na integração Google Meet:", error);
+    
+    // Erro amigável para o usuário
+    let mensagemAmigavel = "Erro interno ao gerar sala do Meet.";
+    if (error.message?.includes("credentials") || error.message?.includes("token")) {
+      mensagemAmigavel = "Erro de Autenticação: Verifique as credenciais do Google Cloud no arquivo .env.";
+    } else if (error.message?.includes("API")) {
+      mensagemAmigavel = "Erro de API: Certifique-se de que a API do Google Agenda está ativada no console do Google.";
+    } else if (error.message) {
+      mensagemAmigavel = error.message;
+    }
+
     return {
       sucesso: false,
-      mensagem: error.message || "Erro interno ao gerar sala do Meet."
+      mensagem: mensagemAmigavel
     };
   }
 }
