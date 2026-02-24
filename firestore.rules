@@ -2,72 +2,48 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Funções de Apoio
-    function isSignedIn() { return request.auth != null; }
-    function getUserData() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
-    function getUserRole() { return getUserData().role; }
-    function isGlobalUser() { 
-      let userData = getUserData();
-      return userData.companyId == null || userData.companyId == ""; 
+    // Regra Global 1: Exige que o usuário esteja logado no sistema
+    function isAutenticado() {
+      return request.auth != null;
     }
-    
-    function isAdmin() { return isSignedIn() && (getUserRole() == 'SUPER_ADMIN' || getUserRole() == 'ADMIN'); }
-    function isDoctor() { return isSignedIn() && (getUserRole() == 'DOCTOR' || getUserRole() == 'SUPER_ADMIN'); }
-    function isEngineer() { return isSignedIn() && (getUserRole() == 'ENGINEER' || getUserRole() == 'SUPER_ADMIN'); }
-    
-    // Suporte para Collection Groups (Consultas Globais para usuários NextCon Matriz)
-    match /{path=**}/employees/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
-    match /{path=**}/tasks/{docId} { allow list: if (isAdmin() || isEngineer()) && isGlobalUser(); }
-    match /{path=**}/legalExpertises/{docId} { allow list: if (isAdmin() || isDoctor() || isEngineer()) && isGlobalUser(); }
-    match /{path=**}/contracts/{docId} { allow list: if isAdmin() && isGlobalUser(); }
-    match /{path=**}/reports/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
-    match /{path=**}/sst_events/{docId} { allow list: if (isAdmin() || isEngineer() || isDoctor()) && isGlobalUser(); }
-    match /{path=**}/esocial_events_queue/{docId} { allow list: if (isAdmin() || isEngineer()) && isGlobalUser(); }
-    match /{path=**}/examHistory/{docId} { allow list: if (isAdmin() || isDoctor()) && isGlobalUser(); }
 
-    // 1. Módulo Vendas & CRM (Acesso Admins)
-    match /orcamentos/{docId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // 2. Módulo Saúde (Super-Junta / Auditoria)
-    match /medical_audit_requests/{docId} {
-      allow read, write: if isDoctor();
-    }
-    match /config_normas_profissionais/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
-    }
-    
-    // 3. Módulo SST & Operação (Engenheiros e Técnicos)
-    match /companies/{companyId}/access_logs/{docId} {
-      allow read, write: if isEngineer() || isAdmin() || (isSignedIn() && getUserData().companyId == companyId);
-    }
-    
-    // 4. Módulo Financeiro & Contratos
-    match /financialStats/{docId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Regras de Perfil e Empresas (Hierarquia Multi-tenant)
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || request.auth.uid == userId;
-    }
-    
+    // Suporte para Collection Groups (Consultas Globais)
+    // Permite que componentes como o Quadro de Vidas e o Kanban listem dados de todas as unidades
+    match /{path=**}/employees/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/tasks/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/legalExpertises/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/reports/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/sst_events/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/examHistory/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/access_logs/{docId} { allow read: if isAutenticado(); }
+    match /{path=**}/esocial_events_queue/{docId} { allow read: if isAutenticado(); }
+
+    // Regras para as coleções raiz da plataforma
     match /companies/{companyId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read, write: if isAutenticado();
       
-      // Sub-coleções seguem a lógica de hierarquia
+      // Permite acesso a todas as sub-coleções das empresas (Contratos, Funcionários, etc)
       match /{allChildren=**} {
-        allow read, write: if isAdmin() || (isSignedIn() && getUserData().companyId == companyId);
+        allow read, write: if isAutenticado();
       }
     }
+    
+    match /users/{userId} {
+      allow read, write: if isAutenticado();
+    }
+    
+    match /medical_audit_requests/{docId} {
+      allow read, write: if isAutenticado();
+    }
 
-    // Fallback de Segurança
+    match /orcamentos/{docId} {
+      allow read, write: if isAutenticado();
+    }
+
+    // Regra de segurança "Pega-tudo" para testes internos
+    // AVISO: Libera leitura/escrita para qualquer pessoa logada. Ideal para desenvolvimento.
     match /{document=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if isAutenticado();
     }
   }
 }
