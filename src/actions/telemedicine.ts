@@ -21,18 +21,39 @@ export async function agendarConsultaMeet(data: {
 
   try {
     // 1. Verificação de Credenciais
-    // Para funcionar em produção, o arquivo definido em GOOGLE_APPLICATION_CREDENTIALS deve existir
-    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    const hasEnvJson = !!process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    const hasEnvFile = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+    if (!hasEnvJson && !hasEnvFile) {
       return {
         sucesso: false,
-        mensagem: "Configuração incompleta: O arquivo 'google-service-account.json' não foi localizado na raiz do servidor."
+        mensagem: "Configuração incompleta: O arquivo 'google-service-account.json' não foi localizado e a variável 'GOOGLE_SERVICE_ACCOUNT_JSON' está vazia."
       };
     }
 
     // 2. Autenticação do Sistema com o Google Cloud (Service Account)
-    const auth = new google.auth.GoogleAuth({
-      scopes: ["https://www.googleapis.com/auth/calendar.events"],
-    });
+    let auth;
+    try {
+      if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+        // Tenta carregar as credenciais diretamente da string JSON (Ideal para Cloud/Vercel)
+        const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+        auth = new google.auth.GoogleAuth({
+          credentials,
+          scopes: ["https://www.googleapis.com/auth/calendar.events"],
+        });
+      } else {
+        // Tenta carregar do arquivo físico apontado no .env
+        auth = new google.auth.GoogleAuth({
+          scopes: ["https://www.googleapis.com/auth/calendar.events"],
+        });
+      }
+    } catch (authError: any) {
+      console.error("Erro ao inicializar Google Auth:", authError);
+      return {
+        sucesso: false,
+        mensagem: "Erro nas credenciais: O conteúdo do JSON da Service Account é inválido ou o arquivo não existe."
+      };
+    }
 
     const calendar = google.calendar({ version: "v3", auth });
 
@@ -61,7 +82,6 @@ export async function agendarConsultaMeet(data: {
     };
 
     // 4. Dispara o pedido para o Google Calendar
-    // O calendarId "primary" refere-se ao calendário da conta de serviço ou e-mail delegado
     const responseGoogle = await calendar.events.insert({
       calendarId: "primary",
       conferenceDataVersion: 1,
@@ -97,8 +117,8 @@ export async function agendarConsultaMeet(data: {
     console.error("Erro na integração Google Meet:", error);
     
     let mensagemAmigavel = "Erro interno ao gerar sala do Meet.";
-    if (error.message?.includes("credentials") || error.message?.includes("token")) {
-      mensagemAmigavel = "Erro de Autenticação: Verifique se o arquivo JSON da Service Account está correto.";
+    if (error.message?.includes("credentials") || error.message?.includes("token") || error.message?.includes("ENOENT")) {
+      mensagemAmigavel = "Erro de Autenticação: Verifique se o arquivo JSON da Service Account está correto ou se a variável GOOGLE_SERVICE_ACCOUNT_JSON foi preenchida.";
     } else if (error.message?.includes("API")) {
       mensagemAmigavel = "Erro de API: Verifique se a 'Google Calendar API' está ativa no Google Cloud Console.";
     } else if (error.message) {
