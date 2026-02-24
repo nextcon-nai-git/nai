@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -20,12 +21,15 @@ export async function agendarConsultaMeet(data: {
 
   try {
     // 1. Verificação de Credenciais
-    // A integração com Google Meet exige uma Service Account configurada.
+    // Para funcionar em produção, o arquivo definido em GOOGLE_APPLICATION_CREDENTIALS deve existir
     if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && !process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      throw new Error("Integração Google Meet não configurada. Por favor, adicione as credenciais da Service Account ao arquivo .env.");
+      return {
+        sucesso: false,
+        mensagem: "Configuração incompleta: O arquivo 'google-service-account.json' não foi localizado na raiz do servidor."
+      };
     }
 
-    // 2. Autenticação do Sistema com o Google Cloud
+    // 2. Autenticação do Sistema com o Google Cloud (Service Account)
     const auth = new google.auth.GoogleAuth({
       scopes: ["https://www.googleapis.com/auth/calendar.events"],
     });
@@ -57,6 +61,7 @@ export async function agendarConsultaMeet(data: {
     };
 
     // 4. Dispara o pedido para o Google Calendar
+    // O calendarId "primary" refere-se ao calendário da conta de serviço ou e-mail delegado
     const responseGoogle = await calendar.events.insert({
       calendarId: "primary",
       conferenceDataVersion: 1,
@@ -67,7 +72,7 @@ export async function agendarConsultaMeet(data: {
     const linkDoMeet = responseGoogle.data.hangoutLink;
 
     if (!linkDoMeet) {
-      throw new Error("O Google não retornou um link de Meet. Verifique se a API do Google Agenda está ativa.");
+      throw new Error("O Google não retornou um link de Meet. Certifique-se de que a conta de serviço tem permissão para criar conferências.");
     }
 
     // 6. Inicializa o Firestore e salva o registro
@@ -91,12 +96,11 @@ export async function agendarConsultaMeet(data: {
   } catch (error: any) {
     console.error("Erro na integração Google Meet:", error);
     
-    // Erro amigável para o usuário
     let mensagemAmigavel = "Erro interno ao gerar sala do Meet.";
     if (error.message?.includes("credentials") || error.message?.includes("token")) {
-      mensagemAmigavel = "Erro de Autenticação: Verifique as credenciais do Google Cloud no arquivo .env.";
+      mensagemAmigavel = "Erro de Autenticação: Verifique se o arquivo JSON da Service Account está correto.";
     } else if (error.message?.includes("API")) {
-      mensagemAmigavel = "Erro de API: Certifique-se de que a API do Google Agenda está ativada no console do Google.";
+      mensagemAmigavel = "Erro de API: Verifique se a 'Google Calendar API' está ativa no Google Cloud Console.";
     } else if (error.message) {
       mensagemAmigavel = error.message;
     }
