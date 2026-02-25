@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -47,7 +48,8 @@ import {
   FileBarChart,
   UserCheck,
   PieChart,
-  Building2
+  Building2,
+  TrendingDown
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -112,14 +114,6 @@ export default function FinancialModule() {
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
   const [dreYear, setDreYear] = React.useState("2026")
   
-  const [remittanceType, setRemittanceType] = React.useState("240")
-  const [convenioCodes, setConvenioCodes] = React.useState({
-    santander: "",
-    itau: "",
-    bradesco: "",
-    bb: ""
-  })
-
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
@@ -133,46 +127,18 @@ export default function FinancialModule() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  const dre2025Ref = useMemoFirebase(() => {
-    if (!db) return null
-    return doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
-  }, [db])
-  const { data: remoteDre2025 } = useDoc(dre2025Ref)
-
   const contractsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
-    // Se for Administrador Global, busca todos os contratos da rede
-    if (isGlobalAdmin) {
-      return query(collectionGroup(db, "contracts"), orderBy("value", "desc"))
-    }
-
-    // Se for usuário de cliente, busca apenas os contratos da sua empresa
-    if (profile.companyId) {
-      return query(collection(db, "companies", profile.companyId, "contracts"), orderBy("value", "desc"))
-    }
-
+    if (isGlobalAdmin) return query(collectionGroup(db, "contracts"), orderBy("value", "desc"))
+    if (profile.companyId) return query(collection(db, "companies", profile.companyId, "contracts"), orderBy("value", "desc"))
     return null;
   }, [db, profile, isGlobalAdmin])
 
-  const { data: uploadedContracts, isLoading: loadingContracts } = useCollection(contractsQuery)
-
-  const contracts = React.useMemo(() => {
-    if (uploadedContracts && uploadedContracts.length > 0) return uploadedContracts;
-    // Fallback apenas para admins visualizarem dados demo se a base real estiver vazia
-    return isGlobalAdmin ? REAL_CONTRACTS : [];
-  }, [uploadedContracts, isGlobalAdmin]);
+  const { data: contracts, isLoading: loadingContracts } = useCollection(contractsQuery)
 
   const totalContractValue = React.useMemo(() => {
-    return contracts.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
+    return (contracts || []).reduce((acc, curr) => acc + (Number(curr.value) || 0), 0)
   }, [contracts])
-
-  const activeDreData = React.useMemo(() => {
-    if (dreYear === "2025") {
-      return remoteDre2025?.data || DRE_2025_HISTORY;
-    }
-    return DRE_2026_DATA;
-  }, [dreYear, remoteDre2025])
 
   const handleAiFiscalAnalysis = async () => {
     setIsAnalyzingFiscal(true)
@@ -191,63 +157,11 @@ export default function FinancialModule() {
     }
   }
 
-  const handleSaveConvenio = (bank: string) => {
-    toast({
-      title: "Configuração Salva",
-      description: `Código de convênio para ${bank.toUpperCase()} atualizado.`
-    })
-  }
-
   const summary = [
-    { title: "Valor Total Contratos", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Conquistado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Saldo em Caixa", amount: "R$ 284.950,00", trend: "+12%", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { title: "A Receber (Parcelado)", amount: "R$ 142.500,00", trend: "Desdobrado", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Consolidação Multi-app", amount: isGlobalAdmin ? "Multi CNPJs" : "Unidade", trend: "Sincronizado", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
-  ]
-
-  const reportCategories = [
-    { 
-      title: "Contas a Pagar & Receber", 
-      icon: Receipt, 
-      items: [
-        "Contas a Pagar em Aberto", 
-        "Pagamentos Realizados", 
-        "Contas a Receber em Aberto", 
-        "Recebimentos Realizados",
-        "Atrasadas (Geral)"
-      ] 
-    },
-    { 
-      title: "Fluxo de Caixa & Performance", 
-      icon: TrendingUp, 
-      items: [
-        "Fluxo por Categoria", 
-        "Fluxo por Cliente/Fornecedor", 
-        "Resumo de Caixa", 
-        "DRE (Competência)",
-        "Resumo Executivo de Finanças"
-      ] 
-    },
-    { 
-      title: "Cadastros & Atividades", 
-      icon: Users, 
-      items: [
-        "Clientes e Fornecedores", 
-        "Atividades dos Usuários (Logs)", 
-        "Comissão de Vendas", 
-        "Movimentação (Últimos 12 Meses)"
-      ] 
-    },
-    { 
-      title: "Filtros Avançados", 
-      icon: Filter, 
-      items: [
-        "Por Período Customizado", 
-        "Por Departamento", 
-        "Por Vendedor", 
-        "Por Projeto"
-      ] 
-    }
+    { title: "Gestão Ativa", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Acumulado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
+    { title: "ROI Segurança", amount: "+R$ 142k", trend: "Previsto 2026", icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "A Receber", amount: "R$ 142.500", trend: "Parcelado", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
+    { title: "Sincronização", amount: isGlobalAdmin ? "Rede Global" : "Unidade", trend: "Multiapp", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
   ]
 
   return (
@@ -255,16 +169,14 @@ export default function FinancialModule() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">ERP Financeiro Nextcon</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">Motor de Inteligência Fiscal, Bancária e Governança 2026.</p>
+          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">Inteligência Fiscal e Governança Bancária 2026.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" asChild>
-            <a href="#" className="flex items-center gap-2">
-              <Play className="size-3.5 fill-current" /> Vídeos Tutoriais
-            </a>
+            <a href="#"><PlayCircle className="size-4" /> Tutoriais Financeiros</a>
           </Button>
           <Button className="bg-accent text-primary hover:bg-accent/90 gap-2 h-11 px-6 shadow-lg font-black uppercase text-[10px] tracking-widest rounded-xl">
-            <Plus className="size-4" /> Novo Lançamento
+            <Plus className="size-4" /> Lançar Avulso
           </Button>
         </div>
       </div>
@@ -296,39 +208,28 @@ export default function FinancialModule() {
               <Briefcase className="size-4" /> Contratos
             </TabsTrigger>
             <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <TrendingUp className="size-4" /> Fluxo/Caixa
+              <TrendingUp className="size-4" /> Fluxo
             </TabsTrigger>
             <TabsTrigger value="dre" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <BarChart3 className="size-4" /> DRE
             </TabsTrigger>
-            <TabsTrigger value="receivables" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <Receipt className="size-4" /> Receber
-            </TabsTrigger>
-            <TabsTrigger value="payables" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <ArrowDownLeft className="size-4" /> Pagar
-            </TabsTrigger>
             <TabsTrigger value="reports" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <FileBarChart className="size-4" /> Relatórios
             </TabsTrigger>
-            <TabsTrigger value="integrations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <Landmark className="size-4" /> Bancário
-            </TabsTrigger>
             <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <Scale className="size-4" /> Fiscal
+              <Scale className="size-4" /> Fiscal IA
             </TabsTrigger>
           </TabsList>
         </div>
 
-        <TabsContent value="contracts" className="mt-8 space-y-6">
-          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+        <TabsContent value="contracts" className="mt-8">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg font-black text-primary uppercase">Contratos & OS</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Gestão de ciclo de vida e faturamento.</CardDescription>
+                <CardTitle className="text-lg font-black text-primary uppercase">Faturamento Global</CardTitle>
+                <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status dos contratos vigentes.</CardDescription>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase">Faturar Selecionados</Button>
-              </div>
+              <Button variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase border-primary/10">Faturar Lote</Button>
             </CardHeader>
             <CardContent className="p-0">
               {loadingContracts ? (
@@ -336,12 +237,12 @@ export default function FinancialModule() {
                   <Loader2 className="size-10 animate-spin text-primary opacity-20" />
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronizando Faturamento...</p>
                 </div>
-              ) : contracts.length > 0 ? (
+              ) : contracts && contracts.length > 0 ? (
                 <Table>
                   <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
                     <TableRow>
-                      <TableHead className="pl-8">Cliente / Solução</TableHead>
-                      <TableHead>Valor</TableHead>
+                      <TableHead className="pl-8">Cliente / Unidade</TableHead>
+                      <TableHead>Valor Mensal</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right pr-8">Ação</TableHead>
                     </TableRow>
@@ -350,152 +251,37 @@ export default function FinancialModule() {
                     {contracts.map((item, i) => (
                       <TableRow key={i} className="hover:bg-slate-50 transition-colors">
                         <TableCell className="pl-8">
-                          <p className="font-black text-xs text-primary">{item.companyName || "Cliente"}</p>
+                          <p className="font-black text-xs text-primary uppercase">{item.companyName || "Cliente"}</p>
                           <p className="text-[9px] text-slate-400 uppercase font-bold">{item.title}</p>
                         </TableCell>
                         <TableCell className="font-black text-xs text-primary">
                           {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase border-none">
-                            {item.status}
-                          </Badge>
+                          <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase border-none px-3">Ativo</Badge>
                         </TableCell>
                         <TableCell className="text-right pr-8">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="text-xs font-bold gap-2"><CheckCircle2 className="size-3 text-emerald-600" /> Ativar e Faturar</DropdownMenuItem>
-                              <DropdownMenuItem className="text-xs font-bold gap-2"><Copy className="size-3" /> Duplicar OS</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-xs font-bold gap-2 text-destructive"><XCircle className="size-3" /> Suspender</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <div className="p-32 text-center space-y-4 opacity-20">
-                  <Building2 size={64} className="mx-auto" />
-                  <p className="font-black uppercase text-xs tracking-widest">Nenhum contrato localizado nesta unidade</p>
+                <div className="p-32 text-center opacity-20 flex flex-col items-center gap-4">
+                  <Building2 size={64} className="text-primary" />
+                  <p className="font-black uppercase text-xs tracking-widest">Nenhum contrato ativo localizado</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="payables" className="mt-8 space-y-6">
-          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-red-50/30 border-b py-6 px-8">
-              <CardTitle className="text-lg font-black text-red-900 uppercase">Contas a Pagar</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-red-700/60">Controle de saídas e fornecedores.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                  <TableRow>
-                    <TableHead className="pl-8">Fornecedor / Categoria</TableHead>
-                    <TableHead>Vencimento</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right pr-8">Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[
-                    { prov: "Clinica SQV", cat: "Rede Credenciada", date: "15/02/2026", val: "R$ 1.200", status: "Aguardando Aprovação" },
-                    { prov: "Santander", cat: "Tarifas", date: "10/02/2026", val: "R$ 45,00", status: "Pago" },
-                  ].map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="pl-8">
-                        <p className="font-black text-xs text-primary">{item.prov}</p>
-                        <p className="text-[9px] text-slate-400 uppercase font-bold">{item.cat}</p>
-                      </TableCell>
-                      <TableCell className="text-xs font-medium">{item.date}</TableCell>
-                      <TableCell className="font-black text-xs text-red-600">-{item.val}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[8px] font-black uppercase">{item.status}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Button size="sm" className="h-8 px-4 text-[9px] font-black uppercase">Aprovar</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="reports" className="mt-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {reportCategories.map((cat) => (
-              <Card key={cat.title} className="card-shadow border-none bg-white rounded-3xl overflow-hidden">
-                <CardHeader className="bg-primary/5 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary text-white rounded-xl">
-                      <cat.icon className="size-4" />
-                    </div>
-                    <CardTitle className="text-xs font-black uppercase tracking-tight text-primary leading-tight">
-                      {cat.title}
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 space-y-1">
-                  {cat.items.map((item) => (
-                    <button 
-                      key={item}
-                      className="w-full text-left p-3 hover:bg-slate-50 rounded-xl transition-all group flex items-center justify-between"
-                    >
-                      <span className="text-[10px] font-bold text-slate-600 group-hover:text-primary uppercase">{item}</span>
-                      <Download className="size-3 text-slate-300 group-hover:text-primary opacity-0 group-hover:opacity-100 transition-all" />
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-10 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10"><PieChart className="size-48 text-accent" /></div>
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
-              <div className="space-y-4">
-                <p className="text-[10px] font-black uppercase text-accent tracking-widest">Resumo Executivo NAI</p>
-                <h3 className="text-2xl font-black font-headline">Visão Macro de Performance</h3>
-                <p className="text-sm text-white/60 leading-relaxed italic">"Baseado na movimentação dos últimos 12 meses, sua margem líquida cresceu 8.4% com a otimização tributária 2026."</p>
-              </div>
-              <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <ReportKpi label="EBITDA" value="+14.2%" trend="up" />
-                <ReportKpi label="Inadimplência" value="2.1%" trend="down" />
-                <ReportKpi label="ROI Segurança" value="94.8%" trend="up" />
-                <ReportKpi label="Vendas SST" value="R$ 1.4M" trend="up" />
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="cashflow" className="mt-8 space-y-6">
+        <TabsContent value="cashflow" className="mt-8">
           <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-primary/5 pb-8 border-b">
-              <div className="flex justify-between items-end">
-                <div>
-                  <CardTitle className="text-xl font-headline font-black text-primary uppercase">Fluxo de Caixa Preditivo</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase tracking-widest">Saldo Previsto por Conta e Período.</CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <Select defaultValue="santander">
-                    <SelectTrigger className="w-40 h-10 text-[10px] font-black uppercase"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="santander">Santander</SelectItem>
-                      <SelectItem value="itau">Itaú</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <CardTitle className="text-xl font-headline font-black text-primary uppercase">Fluxo de Caixa Preditivo</CardTitle>
+              <CardDescription className="text-xs font-bold uppercase tracking-widest">Entradas e Saídas confirmadas para 30 dias.</CardDescription>
             </CardHeader>
             <CardContent className="p-8 h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -512,143 +298,45 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="dre" className="mt-8 space-y-6">
-          <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-emerald-50/50 pb-8 border-b">
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                <div>
-                  <CardTitle className="text-xl font-headline font-black text-emerald-900 uppercase">Demonstrativo de Resultados (DRE)</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase text-emerald-700/60">Análise de competência consolidada.</CardDescription>
+        <TabsContent value="fiscal" className="mt-8">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-primary/5 border-b py-8 px-10">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-1">
+                  <CardTitle className="text-2xl font-headline font-black text-primary uppercase">Monitor Fiscal 2026</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase text-slate-400">Análise de impacto da Reforma Tributária no seu SST.</CardDescription>
                 </div>
-                <Select value={dreYear} onValueChange={setDreYear}>
-                  <SelectTrigger className="w-40 h-11 bg-white border-none shadow-sm text-xs font-bold">
-                    <History className="size-4 mr-2" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2026">Exercício 2026</SelectItem>
-                    <SelectItem value="2025">Histórico 2025</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="h-[350px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={activeDreData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" axisLine={false} tick={{fontSize: 10, fontWeight: 700}} />
-                    <YAxis axisLine={false} tick={{fontSize: 10}} />
-                    <Tooltip />
-                    <Legend verticalAlign="top" align="right" wrapperStyle={{paddingBottom: '20px'}} />
-                    <Bar dataKey="receita" fill="#003366" radius={[4, 4, 0, 0]} name="Receita" />
-                    <Bar dataKey="lucro" fill="#10B981" radius={[4, 4, 0, 0]} name="Lucro Líquido" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="integrations" className="mt-8 space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-[#EC1C24] text-white p-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <Landmark className="size-10" />
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Banco Santander</h3>
-                </div>
-              </CardHeader>
-              <CardContent className="p-10 space-y-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Código de Convênio</label>
-                  <Input 
-                    placeholder="Ex: 1234567" 
-                    value={convenioCodes.santander}
-                    onChange={(e) => setConvenioCodes({...convenioCodes, santander: e.target.value})}
-                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
-                  />
-                </div>
-                <Button 
-                  onClick={() => handleSaveConvenio('Santander')}
-                  className="w-full h-16 bg-[#EC1C24] hover:bg-[#EC1C24]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-                >
-                  <Zap className="size-5" /> Salvar Santander
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-              <CardHeader className="bg-[#FF7000] text-white p-10">
-                <div className="flex items-center gap-4 mb-4">
-                  <Landmark className="size-10" />
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Banco Itaú</h3>
-                </div>
-              </CardHeader>
-              <CardContent className="p-10 space-y-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Código de Convênio (API)</label>
-                  <Input 
-                    placeholder="Ex: 987654" 
-                    value={convenioCodes.itau}
-                    onChange={(e) => setConvenioCodes({...convenioCodes, itau: e.target.value})}
-                    className="h-14 bg-slate-50 border-none rounded-2xl font-bold"
-                  />
-                </div>
-                <Button 
-                  onClick={() => handleSaveConvenio('Itaú')}
-                  className="w-full h-16 bg-[#FF7000] hover:bg-[#FF7000]/90 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-                >
-                  <Zap className="size-5" /> Salvar Itaú
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="fiscal" className="mt-8 space-y-8">
-          <Card className="card-shadow border-none bg-white overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b pb-6">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="text-xl font-headline font-black text-primary uppercase">Cenário Fiscal (Homologação)</CardTitle>
                 <Button 
                   onClick={handleAiFiscalAnalysis} 
                   disabled={isAnalyzingFiscal}
-                  className="bg-accent text-primary font-black uppercase text-[10px] h-10 px-6 rounded-xl"
+                  className="bg-accent text-primary font-black uppercase text-[10px] h-12 px-8 rounded-xl shadow-xl gap-2"
                 >
-                  {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin mr-2" /> : <Sparkles className="size-4 mr-2" />}
-                  Analisar Reforma 2026
+                  {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                  Consultar NAI Fiscal
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">IBS (Estadual/Muni.)</p>
-                  <p className="text-3xl font-black text-primary">0,1%</p>
-                  <Badge variant="outline" className="text-[8px] uppercase">Homologação</Badge>
-                </div>
-                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CBS (Federal)</p>
-                  <p className="text-3xl font-black text-primary">0,9%</p>
-                  <Badge variant="outline" className="text-[8px] uppercase">Produção Restrita</Badge>
-                </div>
-                <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center gap-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ISS Municipal</p>
-                  <p className="text-3xl font-black text-slate-300">5,0%</p>
-                  <Badge variant="outline" className="text-[8px] uppercase">Alíquota Residual</Badge>
-                </div>
+            <CardContent className="p-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FiscalKpi label="IBS (Estadual/Muni.)" value="0,1%" status="Homologação" />
+                <FiscalKpi label="CBS (Federal)" value="0,9%" status="Produção Restrita" />
+                <FiscalKpi label="ISS Residual" value="5,0%" status="Alíquota Base" />
               </div>
 
               {fiscalAiResult && (
-                <div className="mt-8 p-6 bg-accent/5 rounded-3xl border border-accent/20 animate-in slide-in-from-bottom-4">
+                <div className="mt-10 p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100 animate-in slide-in-from-bottom-4">
                   <div className="flex items-center gap-3 mb-4">
-                    <Sparkles className="size-5 text-accent" />
-                    <h4 className="font-black text-primary uppercase text-sm">Análise NAI Intelligence</h4>
+                    <div className="p-2 bg-primary text-white rounded-lg"><Brain className="size-4" /></div>
+                    <h4 className="font-black text-primary uppercase text-sm">Parecer NAI Intelligence</h4>
                   </div>
-                  <p className="text-sm text-primary/80 leading-relaxed italic mb-4">
-                    "{fiscalAiResult.analysis}"
-                  </p>
+                  <p className="text-sm text-primary/80 leading-relaxed italic font-medium">"{fiscalAiResult.analysis}"</p>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {fiscalAiResult.taxEfficiencyTips.map((tip: string, i: number) => (
+                      <Badge key={i} variant="outline" className="bg-white border-blue-200 text-primary text-[9px] font-bold py-1 px-3 rounded-lg">
+                        {tip}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -659,14 +347,12 @@ export default function FinancialModule() {
   )
 }
 
-function ReportKpi({ label, value, trend }: any) {
+function FiscalKpi({ label, value, status }: any) {
   return (
-    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 text-center">
-      <p className="text-[9px] font-black text-white/40 uppercase mb-1">{label}</p>
-      <div className="flex items-center justify-center gap-2">
-        <span className="text-xl font-black">{value}</span>
-        {trend === 'up' ? <TrendingUp className="size-3 text-accent" /> : <ArrowDownLeft className="size-3 text-red-400" />}
-      </div>
+    <div className="p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3 hover:border-primary/20 transition-all group">
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+      <p className="text-4xl font-black text-primary group-hover:scale-110 transition-transform">{value}</p>
+      <Badge variant="outline" className="text-[8px] uppercase font-black text-slate-300 border-slate-200">{status}</Badge>
     </div>
   )
 }

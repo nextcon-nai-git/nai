@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -13,7 +14,11 @@ import {
   HeartPulse,
   GraduationCap,
   Calculator,
-  DollarSign
+  DollarSign,
+  TrendingUp,
+  Brain,
+  ShieldAlert,
+  ArrowUpRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,16 +54,12 @@ export default function Dashboard() {
 
   const eventsQuery = useMemoFirebase(() => {
     if (!db || loadingProfile || !profile) return null;
-    
-    // OTIMIZAÇÃO: Limitamos a 5 eventos para performance e economia
     if (isGlobalAdmin) {
       return query(collectionGroup(db, "sst_events"), orderBy("date", "asc"), limit(5));
     } 
-    
     if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "sst_events"), orderBy("date", "asc"), limit(5));
     }
-    
     return null;
   }, [db, profile, loadingProfile, isGlobalAdmin]);
   
@@ -100,60 +101,63 @@ export default function Dashboard() {
             "text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10",
             isGlobalAdmin ? "bg-[#001F3F]" : "bg-primary"
           )}>
-            {isGlobalAdmin ? 'NAI 2.0' : 'SESMT Portal do Cliente'}
+            {isGlobalAdmin ? 'NAI 2.0 CONTROL' : 'SESMT CLIENT PORTAL'}
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b pb-8 px-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary text-white rounded-2xl shadow-lg">
-                    <Calendar className="size-6" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl font-headline font-black text-primary uppercase">AGENDA DE HOJE</CardTitle>
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Vencimentos de Exames e Laudos.</CardDescription>
-                  </div>
+          {/* Executive Summary AI */}
+          <Card className="card-shadow border-none bg-gradient-to-br from-white to-blue-50/50 rounded-[2.5rem] overflow-hidden border border-blue-100">
+            <CardHeader className="pb-4 px-8 pt-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary text-accent rounded-xl shadow-inner">
+                  <Brain className="size-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg font-black text-primary uppercase">CEO Strategic Briefing</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Análise de Performance e Risco Financeiro NAI.</CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              {events && events.length > 0 ? (
-                <div className="divide-y divide-slate-50">
-                  {events.map((event) => (
-                    <div key={event.id} className="flex items-center p-8 hover:bg-slate-50 transition-all cursor-pointer group">
-                      <div className="w-24 shrink-0 text-center border-r border-dashed pr-6">
-                        <p className="text-lg font-black text-primary group-hover:text-accent transition-colors">{event.time}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(event.date).toLocaleDateString('pt-BR', {day: 'numeric', month: 'short'})}</p>
-                      </div>
-                      <div className="flex-1 px-8">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[8px] font-black uppercase text-primary/40 border-primary/10">{event.type}</Badge>
-                        </div>
-                        <p className="text-sm font-black text-primary group-hover:translate-x-1 transition-transform uppercase tracking-tight">{event.description}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase truncate mt-1">{event.companyName}</p>
-                      </div>
-                      <ChevronRight className="size-5 text-slate-200 group-hover:text-primary transition-all" />
-                    </div>
-                  ))}
+            <CardContent className="px-8 pb-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-accent/20 transition-all">
+                  <div className="flex items-center gap-3 mb-3">
+                    <TrendingUp className="size-4 text-emerald-500" />
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Saving RAT/FAP Est.</span>
+                  </div>
+                  <h3 className="text-2xl font-black text-emerald-600">R$ 142.500,00</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA anual.</p>
                 </div>
-              ) : (
-                <div className="p-32 text-center space-y-6 opacity-20">
-                  <Clock size={64} className="mx-auto text-primary" />
-                  <p className="text-xs font-black text-primary uppercase tracking-[0.3em]">Nenhuma atividade crítica para hoje</p>
+                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-red-500/20 transition-all">
+                  <div className="flex items-center gap-3 mb-3">
+                    <ShieldAlert className="size-4 text-red-500" />
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Exposição ao NTEP</span>
+                  </div>
+                  <h3 className="text-2xl font-black text-red-600">04 Casos Ativos</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Risco de passivo trabalhista solidário.</p>
                 </div>
-              )}
+              </div>
+              <div className="bg-primary p-6 rounded-[2rem] text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-1000"><Sparkles className="size-24 text-accent" /></div>
+                <div className="relative z-10">
+                  <p className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <Zap className="size-3 fill-current" /> Recomendação Executiva NAI
+                  </p>
+                  <p className="text-sm italic font-medium leading-relaxed">
+                    "Sua unidade alcançou 100% de conformidade no eSocial este mês. Recomendamos foco na renovação do PGR (vence em 45 dias) para evitar multas automáticas no S-2240."
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância SESMT" icon={Users} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Treinamentos" value="04" sub="Turmas ativas" icon={GraduationCap} color="text-orange-600" bg="bg-orange-50" />
-            <StatCard label="Eventos eSocial" value="128" sub="Transmitidos hoje" icon={Zap} color="text-purple-600" bg="bg-purple-50" />
+            <StatCard label="Treinamentos" value="04" sub="Turmas Digitais" icon={GraduationCap} color="text-orange-600" bg="bg-orange-50" />
           </div>
         </div>
 
@@ -179,32 +183,48 @@ export default function Dashboard() {
               </div>
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Economia Anual Est.</p>
-                <h3 className={cn("text-2xl font-black font-headline tracking-tighter", potentialSavings >= 0 ? "text-emerald-600" : "text-red-600")}>
-                  {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 className={cn("text-2xl font-black font-headline tracking-tighter", potentialSavings >= 0 ? "text-emerald-600" : "text-red-600")}>
+                    {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </h3>
+                  {potentialSavings > 0 && <ArrowUpRight className="size-5 text-emerald-500" />}
+                </div>
               </div>
+              <Button asChild variant="outline" className="w-full h-12 border-primary/10 text-primary font-black uppercase text-[9px] tracking-widest rounded-xl">
+                <Link href="/financial">Ver DRE Consolidado</Link>
+              </Button>
             </CardContent>
           </Card>
 
-          <Card className={cn("border-none text-white card-shadow relative overflow-hidden rounded-[2.5rem]", isGlobalAdmin ? "bg-[#001F3F]" : "gradient-nextcon")}>
-            <div className="absolute top-0 right-0 p-8 opacity-10"><Sparkles className="size-40 text-accent" /></div>
-            <CardHeader className="pb-6 relative z-10 p-8">
-              <CardTitle className="text-xs flex items-center gap-3 font-black uppercase italic tracking-[0.2em] text-accent">
-                <Zap className="size-5 fill-current" /> Insight NAI SESMT
-              </CardTitle>
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b p-6">
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Próximos Vencimentos</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8 relative z-10 p-8 pt-0">
-              <div className="p-6 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                <p className="text-sm leading-relaxed text-white/90 font-medium italic">
-                  {isGlobalAdmin 
-                    ? '"Detectamos aumento de 15% em afastamentos por CID M54 na rede de construção civil. Recomenda-se auditoria ergonômica preventiva."'
-                    : '"Sua unidade atingiu 100% de conformidade S-2240. O próximo PGR vence em 45 dias."'
-                  }
-                </p>
-              </div>
-              <Button asChild variant="outline" className="w-full h-16 bg-white/5 border-white/10 text-white hover:bg-white hover:text-primary transition-all font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-2xl">
-                <Link href="/knowledge-base">Consultar Cérebro NAI</Link>
-              </Button>
+            <CardContent className="p-0">
+              {events && events.length > 0 ? (
+                <div className="divide-y">
+                  {events.map((event) => (
+                    <div key={event.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                        <div className="text-center w-10">
+                          <p className="text-sm font-black text-primary group-hover:text-accent transition-colors">{new Date(event.date).getDate()}</p>
+                          <p className="text-[8px] font-bold text-slate-400 uppercase">{new Date(event.date).toLocaleDateString('pt-BR', {month: 'short'})}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-primary uppercase leading-tight">{event.description}</p>
+                          <Badge variant="outline" className="text-[7px] font-bold mt-1 uppercase border-primary/10 text-primary/40">{event.type}</Badge>
+                        </div>
+                      </div>
+                      <ChevronRight className="size-4 text-slate-200 group-hover:text-primary transition-all" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-16 text-center opacity-20">
+                  <Clock size={40} className="mx-auto text-primary mb-2" />
+                  <p className="text-[9px] font-black text-primary uppercase">Sem alertas críticos</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -226,5 +246,27 @@ function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
         <p className="text-[8px] font-bold text-slate-400 uppercase">{sub}</p>
       </CardContent>
     </Card>
+  )
+}
+
+function Users(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
   )
 }
