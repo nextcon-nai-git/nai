@@ -145,7 +145,7 @@ export function AppSidebar() {
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
           <span className="text-[11px] font-black text-[#00f2ff] uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
-            {isAdmin ? 'Inteligência Central' : 'SST Intelligence'}
+            {isAdmin ? 'Nextcon Inteligência' : 'SST Intelligence'}
           </span>
         </div>
       </SidebarHeader>

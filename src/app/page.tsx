@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -91,7 +92,7 @@ export default function Dashboard() {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className={cn("h-8 w-1.5 rounded-full", isGlobalAdmin ? "bg-accent" : "bg-primary")} />
-            <h1 className="text-4xl font-black text-primary tracking-tight font-headline uppercase leading-none">
+            <h1 className="text-2xl font-black text-primary tracking-tight font-headline uppercase leading-none">
               {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div className="flex items-center gap-3">{saudacao}, <span className={isGlobalAdmin ? "text-accent" : "text-primary"}>{nomeExibicao}</span></div>}
             </h1>
           </div>
