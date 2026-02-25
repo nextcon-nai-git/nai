@@ -9,13 +9,10 @@ export type TaskStatus = 'to_review' | 'sent' | 'approved' | 'implementation' | 
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
 export type TaskType = 'pgr' | 'pcmso' | 'ltcat' | 'treinamento' | 'esocial' | 'iot_check' | 'vistoria' | 'comercial';
 
-export interface RiskCatalog {
-  id: string;
-  code_esocial: string;
-  description: string;
-  category: RiskCategory;
-  std_consequences: string[];
-  std_controls: string[];
+export interface FiscalConfig {
+  ibpt_token?: string;
+  last_ibpt_update?: string;
+  tax_table_version?: string;
 }
 
 export interface Company {
@@ -29,6 +26,7 @@ export interface Company {
   address?: string;
   city?: string;
   state?: string;
+  fiscal_config?: FiscalConfig;
 }
 
 export interface Employee {
@@ -41,24 +39,6 @@ export interface Employee {
   admissionDate: string;
   status: 'active' | 'leave' | 'fired';
   jobRole: string;
-}
-
-export interface Training {
-  id: string;
-  title: string;
-  companyId: string;
-  companyName: string;
-  nrs: string[];
-  startDate: string;
-  endDate: string;
-  totalHours: number;
-  modality: 'Presencial' | 'EAD' | 'Híbrido';
-  status: 'planned' | 'in_progress' | 'completed';
-  students: {
-    id: string;
-    name: string;
-    status: 'pending' | 'present' | 'certified';
-  }[];
 }
 
 export interface ComplianceItem {
@@ -83,14 +63,4 @@ export interface OpsTask {
   createdAt: string;
   assigneeId?: string;
   assigneeName?: string;
-}
-
-export interface AssetPoint {
-  id: string;
-  companyId: string;
-  type: 'machine' | 'extinguisher' | 'room';
-  qrCodeUrl: string;
-  lastInspection: string;
-  status: 'ok' | 'warning' | 'danger';
-  description: string;
 }

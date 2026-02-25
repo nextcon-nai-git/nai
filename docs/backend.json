@@ -27,7 +27,15 @@
         "risk_degree": { "type": "number" },
         "cnae": { "type": "string" },
         "lat": { "type": "number" },
-        "lng": { "type": "number" }
+        "lng": { "type": "number" },
+        "fiscal_config": {
+          "type": "object",
+          "properties": {
+            "ibpt_token": { "type": "string" },
+            "last_ibpt_update": { "type": "string", "format": "date-time" },
+            "tax_table_version": { "type": "string" }
+          }
+        }
       },
       "required": ["id", "name", "cnpj"]
     },

@@ -1,55 +1,29 @@
+
 "use client"
 
 import * as React from "react"
 import { 
   DollarSign, 
-  Receipt, 
   ArrowUpRight, 
-  ArrowDownLeft, 
   Database, 
-  Percent, 
-  Plug, 
   Download,
   Plus,
-  Search,
-  AlertCircle,
-  CreditCard,
-  History,
   CheckCircle2,
-  RefreshCw,
   TrendingUp,
-  Landmark,
-  ShoppingCart,
-  Package,
-  Zap,
   BarChart3,
-  Wallet,
-  FileText,
   Scale,
   Sparkles,
   Loader2,
-  Settings2,
-  ShieldCheck,
-  PauseCircle,
-  XCircle,
-  Copy,
-  PlayCircle,
-  Filter,
-  ArrowRight,
-  MoreVertical,
-  Calendar,
-  Layers,
-  ShieldAlert,
-  HelpCircle,
-  Play,
   Briefcase,
-  Users,
-  FileBarChart,
-  UserCheck,
-  PieChart,
-  Building2,
+  Layers,
   TrendingDown,
-  Brain
+  Brain,
+  Key,
+  FileUp,
+  RefreshCw,
+  MoreVertical,
+  Building2,
+  Settings2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -64,37 +38,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Progress } from "@/components/ui/progress"
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  LineChart,
-  Line,
-  Legend
-} from 'recharts'
-import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { analyzeFiscalScenario } from "@/ai/flows/fiscal-intelligence-flow"
 import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
 import { doc, collectionGroup, query, orderBy, collection } from "firebase/firestore"
-import { DRE_2025_HISTORY, REAL_CONTRACTS, DRE_2026_DATA } from "@/lib/real-data"
+import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { cn } from "@/lib/utils"
 
 const cashFlowData = [
   { day: '01/02', entradas: 45000, saidas: 32000, saldo: 13000 },
@@ -113,6 +63,10 @@ export default function FinancialModule() {
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
   
+  // Estados IBPT
+  const [ibptToken, setIbptToken] = React.useState("")
+  const [isSavingToken, setIsSavingToken] = React.useState(false)
+
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
@@ -156,6 +110,20 @@ export default function FinancialModule() {
     }
   }
 
+  const handleSaveIbptToken = () => {
+    if (!db || !profile?.companyId || !ibptToken) return
+    setIsSavingToken(true)
+    const compRef = doc(db, "companies", profile.companyId)
+    updateDocumentNonBlocking(compRef, {
+      "fiscal_config.ibpt_token": ibptToken,
+      "fiscal_config.last_ibpt_update": new Date().toISOString()
+    })
+    setTimeout(() => {
+      setIsSavingToken(false)
+      toast({ title: "Token IBPT Ativado", description: "Sincronização automática de impostos habilitada." })
+    }, 800)
+  }
+
   const summary = [
     { title: "Gestão Ativa", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Acumulado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "ROI Segurança", amount: "+R$ 142k", trend: "Previsto 2026", icon: TrendingDown, color: "text-accent", bg: "bg-accent/5" },
@@ -171,8 +139,8 @@ export default function FinancialModule() {
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest">Inteligência Fiscal e Governança Bancária 2026.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" asChild>
-            <a href="#"><PlayCircle className="size-4" /> Tutoriais Financeiros</a>
+          <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" onClick={() => setActiveTab("config")}>
+            <Settings2 className="size-4" /> Configurar Fiscal
           </Button>
           <Button className="bg-accent text-primary hover:bg-accent/90 gap-2 h-11 px-6 shadow-lg font-black uppercase text-[10px] tracking-widest rounded-xl">
             <Plus className="size-4" /> Lançar Avulso
@@ -209,14 +177,11 @@ export default function FinancialModule() {
             <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <TrendingUp className="size-4" /> Fluxo
             </TabsTrigger>
-            <TabsTrigger value="dre" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <BarChart3 className="size-4" /> DRE
-            </TabsTrigger>
-            <TabsTrigger value="reports" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <FileBarChart className="size-4" /> Relatórios
-            </TabsTrigger>
             <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0 text-accent">
               <Scale className="size-4" /> Governança 2026
+            </TabsTrigger>
+            <TabsTrigger value="config" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
+              <Key className="size-4" /> Configurações
             </TabsTrigger>
           </TabsList>
         </div>
@@ -276,25 +241,74 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="cashflow" className="mt-8">
-          <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-primary/5 pb-8 border-b">
-              <CardTitle className="text-xl font-headline font-black text-primary uppercase">Fluxo de Caixa Preditivo</CardTitle>
-              <CardDescription className="text-xs font-bold uppercase tracking-widest">Entradas e Saídas confirmadas para 30 dias.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={cashFlowData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="day" axisLine={false} tick={{fontSize: 10, fontWeight: 700}} />
-                  <YAxis axisLine={false} tick={{fontSize: 10}} />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="entradas" stroke="#00f2ff" fill="#00f2ff" fillOpacity={0.1} strokeWidth={3} />
-                  <Area type="monotone" dataKey="saidas" stroke="#EF4444" fill="#EF4444" fillOpacity={0.05} strokeWidth={3} strokeDasharray="5 5" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        <TabsContent value="config" className="mt-8 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b p-8">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary text-white rounded-2xl">
+                    <Key className="size-6 text-accent" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black text-primary uppercase">Integração IBPT</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Lei 12.741/2012 - Transparência de Impostos</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Token da Empresa</label>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Insira o Token IBPT..." 
+                      value={ibptToken}
+                      onChange={(e) => setIbptToken(e.target.value)}
+                      className="h-12 bg-slate-50 border-none rounded-xl font-mono text-xs shadow-inner" 
+                    />
+                    <Button 
+                      onClick={handleSaveIbptToken} 
+                      disabled={isSavingToken || !ibptToken}
+                      className="h-12 px-6 bg-primary text-white font-black uppercase text-[10px] rounded-xl shadow-lg gap-2"
+                    >
+                      {isSavingToken ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4 text-accent" />}
+                      Ativar
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-start gap-3">
+                  <CheckCircle2 className="size-4 text-emerald-600 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-bold text-emerald-800 uppercase">Status do Token: {profile?.fiscal_config?.ibpt_token ? "Ativo" : "Pendente"}</p>
+                    <p className="text-[10px] text-emerald-700 leading-tight">Última sincronização: {profile?.fiscal_config?.last_ibpt_update ? new Date(profile.fiscal_config.last_ibpt_update).toLocaleDateString('pt-BR') : 'Nunca'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden border-2 border-dashed border-slate-200">
+              <CardHeader className="p-8 pb-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-slate-100 text-primary rounded-2xl">
+                    <FileUp className="size-6" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black text-primary uppercase">Importação Manual</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Upload de CSV com alíquotas aproximadas</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 pt-4 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="size-20 bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-200">
+                  <FileUp className="size-8 text-slate-300" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-primary uppercase">Arraste a tabela IBPT aqui</p>
+                  <p className="text-[10px] text-slate-400">Suporta formato .CSV oficial</p>
+                </div>
+                <Button variant="ghost" className="text-[10px] font-black uppercase text-primary border border-primary/10 h-10 px-6 rounded-xl">Selecionar Arquivo</Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="fiscal" className="mt-8 space-y-8">
