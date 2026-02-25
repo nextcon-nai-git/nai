@@ -57,7 +57,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { useCollection, useUser, useMemoFirebase, useFirestore, useDoc } from "@/firebase"
-import { collection, query, orderBy, collectionGroup, doc, deleteDoc } from "firebase/firestore"
+import { collection, query, orderBy, collectionGroup, doc, deleteDoc, where } from "firebase/firestore"
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { useToast } from "@/hooks/use-toast"
 import { useForm } from "react-hook-form"
@@ -125,9 +125,24 @@ export default function EmployeesPage() {
 
   // 3. Consultas Firestore protegidas
   const companiesQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, "companies"), orderBy("name", "asc"))
-  }, [db])
+    if (!db || !profile) return null
+    
+    // Apenas Admins Globais podem listar a raiz
+    if (isGlobalAdmin) {
+      return query(collection(db, "companies"), orderBy("name", "asc"))
+    }
+    
+    // Usuários de clientes ou prestadores só acessam suas autorizadas
+    if (profile.companyId) {
+      return query(collection(db, "companies"), where("__name__", "==", profile.companyId))
+    }
+
+    if (profile.servedCompanies && profile.servedCompanies.length > 0) {
+      return query(collection(db, "companies"), where("__name__", "in", profile.servedCompanies.slice(0, 10)))
+    }
+    
+    return null
+  }, [db, profile, isGlobalAdmin])
   const { data: companies } = useCollection(companiesQuery)
 
   const employeesQuery = useMemoFirebase(() => {
@@ -217,7 +232,7 @@ export default function EmployeesPage() {
               <UserPlus className="size-4" /> Novo Colaborador
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
             <DialogHeader className="p-8 bg-primary text-white">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-white/10 rounded-lg"><UserPlus className="size-5 text-accent" /></div>

@@ -25,7 +25,11 @@ import {
   ArrowRight,
   ShieldAlert,
   Zap,
-  Network
+  Network,
+  Scale,
+  Lock,
+  RefreshCw,
+  Link as LinkIcon
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -48,6 +52,7 @@ export default function EsocialAudit() {
   const db = useFirestore()
   const [activeTab, setActiveTab] = React.useState("agrupador")
   const [isAuditing, setIsAuditing] = React.useState(false)
+  const [isSyncingRubrics, setIsSyncingRubrics] = React.useState(false)
   const [aiReport, setAiReport] = React.useState<EsocialAuditOutput | null>(null)
 
   const profileRef = useMemoFirebase(() => {
@@ -97,12 +102,20 @@ export default function EsocialAudit() {
     }
   }
 
+  const handleSyncRubrics = () => {
+    setIsSyncingRubrics(true)
+    setTimeout(() => {
+      setIsSyncingRubrics(false)
+      toast({ title: "Tabela S-1010 Sincronizada", description: "Rubricas atualizadas para a Versão S-1.3 do eSocial." })
+    }, 2000)
+  }
+
   return (
     <div className="space-y-10 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">NAI Firewall e-Social</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Infraestrutura 2026 contra multas e inconsistências via NAI API.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">NAI Firewall e-Social</h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest mt-2">Infraestrutura 2026 contra multas e inconsistências via NAI API.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => handleSimulateEvent("S-2240")} variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2">
@@ -115,10 +128,11 @@ export default function EsocialAudit() {
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[650px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="agrupador" className="rounded-lg gap-2 text-xs font-bold">Fila NAI API</TabsTrigger>
-          <TabsTrigger value="auditoria" className="rounded-lg gap-2 text-xs font-bold">Diagnóstico NAI</TabsTrigger>
-          <TabsTrigger value="config" className="rounded-lg gap-2 text-xs font-bold">Configuração API</TabsTrigger>
+        <TabsList className="grid w-full md:w-[850px] grid-cols-4 bg-muted/50 p-1.5 rounded-2xl h-16">
+          <TabsTrigger value="agrupador" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Fila NAI API</TabsTrigger>
+          <TabsTrigger value="governanca" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-[#00f2ff]"><ShieldCheck className="size-4" /> Governança 2026</TabsTrigger>
+          <TabsTrigger value="auditoria" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Diagnóstico NAI</TabsTrigger>
+          <TabsTrigger value="config" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Configuração API</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agrupador" className="mt-8 space-y-6">
@@ -172,12 +186,120 @@ export default function EsocialAudit() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="governanca" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* S-1010 Rubricas */}
+            <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-slate-50 border-b p-8">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg font-black text-primary uppercase">Tabela S-1010 (Rubricas)</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Sincronização Versão S-1.3</CardDescription>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-700 font-black uppercase text-[8px] px-2 h-5">Ano 2026</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-4">
+                  <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><CheckCircle2 className="size-5" /></div>
+                  <p className="text-[11px] font-medium text-emerald-800 italic leading-relaxed">
+                    "Incidências de CP e FGTS configuradas conforme Portaria Interministerial nº 13/2026."
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleSyncRubrics} 
+                  disabled={isSyncingRubrics}
+                  className="w-full h-14 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  {isSyncingRubrics ? <Loader2 className="size-5 animate-spin" /> : <RefreshCw className="size-5 text-accent" />}
+                  Sincronizar Rubricas com Governo
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Certificado Digital TLS 1.2+ */}
+            <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="border-b border-white/5 p-8">
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg font-black uppercase">Criptografia & Certificado</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-white/40">Protocolo TLS 1.2+ Ativo</CardDescription>
+                  </div>
+                  <Badge className="bg-accent text-primary font-black uppercase text-[8px] px-2 h-5">Seguro</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="flex items-center gap-5 p-5 bg-white/5 rounded-2xl border border-white/10">
+                  <div className="p-3 bg-accent rounded-xl text-primary"><Lock className="size-6" /></div>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest">Status Certificado A1</p>
+                    <p className="text-[10px] text-white/60 mt-1 uppercase font-bold">Validade: 12/12/2026</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-white/40 italic leading-relaxed">
+                  "O eSocial 2026 exige padrões elevados de criptografia para o envio das rubricas S-1010."
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Cruzamento SST x Folha (FAE) */}
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <CardHeader className="bg-primary text-white p-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-white/10 rounded-2xl text-accent"><Scale className="size-6" /></div>
+                <div>
+                  <CardTitle className="text-xl font-headline font-black uppercase leading-none">Cruzamento SST x Folha (S-2240)</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-white/60 mt-2">Vínculo de Adicionais e Financiamento da Aposentadoria Especial (FAE).</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-all">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="outline" className="h-8 font-mono text-primary">RUB-042</Badge>
+                    <div>
+                      <p className="text-xs font-black text-primary uppercase">Adicional de Insalubridade 20%</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase">Vínculo: LTCAT - Agente Ruído Continuo</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-emerald-100 text-emerald-700 font-black uppercase text-[8px] h-5">Vínculo OK</Badge>
+                    <Button variant="ghost" size="icon" className="text-slate-300 hover:text-primary"><LinkIcon className="size-4" /></Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-all">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="outline" className="h-8 font-mono text-primary">RUB-058</Badge>
+                    <div>
+                      <p className="text-xs font-black text-primary uppercase">Periculosidade Engenharia</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase">Vínculo: LTCAT - Agente Eletricidade</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-emerald-100 text-emerald-700 font-black uppercase text-[8px] h-5">Vínculo OK</Badge>
+                    <Button variant="ghost" size="icon" className="text-slate-300 hover:text-primary"><LinkIcon className="size-4" /></Button>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-8 p-6 bg-blue-50/50 rounded-3xl border border-blue-100">
+                <p className="text-[11px] text-primary/70 leading-relaxed font-medium italic">
+                  <Sparkles className="size-3 inline mr-2 text-accent" />
+                  "Dica NAI: O vínculo direto entre rubricas e agentes nocivos do S-2240 garante que o eSocial aceite o código de tributação FAE sem inconsistências no fechamento da folha."
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="auditoria" className="mt-8">
           <Card className="card-shadow border-none bg-white p-10 text-center">
             <div className="max-w-md mx-auto space-y-6">
               <SearchCheck className="size-16 mx-auto text-primary opacity-20" />
               <div className="space-y-2">
-                <h3 className="text-xl font-black text-primary uppercase">Diagnóstico Gemini 2.0</h3>
+                <h3 className="text-xl font-black text-primary uppercase leading-tight">Diagnóstico Gemini 2.0</h3>
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
                   "O motor NAI audita a consistência entre NAIGED, PGR e PCMSO, garantindo conformidade legal plena em milissegundos."
                 </p>

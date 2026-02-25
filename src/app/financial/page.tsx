@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -49,7 +48,8 @@ import {
   UserCheck,
   PieChart,
   Building2,
-  TrendingDown
+  TrendingDown,
+  Brain
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -112,7 +112,6 @@ export default function FinancialModule() {
   const db = useFirestore()
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
-  const [dreYear, setDreYear] = React.useState("2026")
   
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -203,7 +202,7 @@ export default function FinancialModule() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="overflow-x-auto pb-2 scrollbar-thin">
-          <TabsList className="flex w-fit bg-muted/50 p-1 rounded-2xl h-16">
+          <TabsList className="flex w-fit bg-muted/50 p-1.5 rounded-2xl h-16">
             <TabsTrigger value="contracts" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <Briefcase className="size-4" /> Contratos
             </TabsTrigger>
@@ -216,8 +215,8 @@ export default function FinancialModule() {
             <TabsTrigger value="reports" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <FileBarChart className="size-4" /> Relatórios
             </TabsTrigger>
-            <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <Scale className="size-4" /> Fiscal IA
+            <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0 text-[#00f2ff]">
+              <Scale className="size-4" /> Governança 2026
             </TabsTrigger>
           </TabsList>
         </div>
@@ -298,13 +297,19 @@ export default function FinancialModule() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="fiscal" className="mt-8">
+        <TabsContent value="fiscal" className="mt-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <FiscalKpi label="Teto INSS 2026" value="R$ 8.157,41" status="Atualizado Jan/26" />
+            <FiscalKpi label="Incidência Saúde Mental" value="CP + FGTS" status="Portaria 13/2026" />
+            <FiscalKpi label="FAE (S-2240)" value="Sincronizado" status="Integridade SST" />
+          </div>
+
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b py-8 px-10">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="space-y-1">
-                  <CardTitle className="text-2xl font-headline font-black text-primary uppercase">Monitor Fiscal 2026</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase text-slate-400">Análise de impacto da Reforma Tributária no seu SST.</CardDescription>
+                  <CardTitle className="text-2xl font-headline font-black text-primary uppercase">Análise de Impacto Governança</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase text-slate-400">Monitoramento de rubricas e cruzamento SST x Folha.</CardDescription>
                 </div>
                 <Button 
                   onClick={handleAiFiscalAnalysis} 
@@ -312,22 +317,16 @@ export default function FinancialModule() {
                   className="bg-accent text-primary font-black uppercase text-[10px] h-12 px-8 rounded-xl shadow-xl gap-2"
                 >
                   {isAnalyzingFiscal ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                  Consultar NAI Fiscal
+                  Consultar NAI Compliance
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="p-10">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <FiscalKpi label="IBS (Estadual/Muni.)" value="0,1%" status="Homologação" />
-                <FiscalKpi label="CBS (Federal)" value="0,9%" status="Produção Restrita" />
-                <FiscalKpi label="ISS Residual" value="5,0%" status="Alíquota Base" />
-              </div>
-
               {fiscalAiResult && (
-                <div className="mt-10 p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100 animate-in slide-in-from-bottom-4">
+                <div className="p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100 animate-in slide-in-from-bottom-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-primary text-white rounded-lg"><Brain className="size-4" /></div>
-                    <h4 className="font-black text-primary uppercase text-sm">Parecer NAI Intelligence</h4>
+                    <h4 className="font-black text-primary uppercase text-sm">Parecer NAI Intelligence 2026</h4>
                   </div>
                   <p className="text-sm text-primary/80 leading-relaxed italic font-medium">"{fiscalAiResult.analysis}"</p>
                   <div className="mt-6 flex flex-wrap gap-2">
@@ -351,7 +350,7 @@ function FiscalKpi({ label, value, status }: any) {
   return (
     <div className="p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3 hover:border-primary/20 transition-all group">
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
-      <p className="text-4xl font-black text-primary group-hover:scale-110 transition-transform">{value}</p>
+      <p className="text-2xl font-black text-primary group-hover:scale-110 transition-transform">{value}</p>
       <Badge variant="outline" className="text-[8px] uppercase font-black text-slate-300 border-slate-200">{status}</Badge>
     </div>
   )
