@@ -158,7 +158,7 @@ export default function FinancialModule() {
 
   const summary = [
     { title: "Gestão Ativa", amount: totalContractValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), trend: "Acumulado", icon: Briefcase, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "ROI Segurança", amount: "+R$ 142k", trend: "Previsto 2026", icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "ROI Segurança", amount: "+R$ 142k", trend: "Previsto 2026", icon: TrendingDown, color: "text-accent", bg: "bg-accent/5" },
     { title: "A Receber", amount: "R$ 142.500", trend: "Parcelado", icon: ArrowUpRight, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Sincronização", amount: isGlobalAdmin ? "Rede Global" : "Unidade", trend: "Multiapp", icon: Layers, color: "text-purple-600", bg: "bg-purple-50" },
   ]
@@ -215,7 +215,7 @@ export default function FinancialModule() {
             <TabsTrigger value="reports" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
               <FileBarChart className="size-4" /> Relatórios
             </TabsTrigger>
-            <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0 text-[#00f2ff]">
+            <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0 text-accent">
               <Scale className="size-4" /> Governança 2026
             </TabsTrigger>
           </TabsList>
@@ -257,7 +257,7 @@ export default function FinancialModule() {
                           {item.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase border-none px-3">Ativo</Badge>
+                          <Badge className="bg-accent/10 text-accent text-[8px] font-black uppercase border-none px-3">Ativo</Badge>
                         </TableCell>
                         <TableCell className="text-right pr-8">
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400"><MoreVertical className="size-4" /></Button>
@@ -289,7 +289,7 @@ export default function FinancialModule() {
                   <XAxis dataKey="day" axisLine={false} tick={{fontSize: 10, fontWeight: 700}} />
                   <YAxis axisLine={false} tick={{fontSize: 10}} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="entradas" stroke="#10B981" fill="#10B981" fillOpacity={0.1} strokeWidth={3} />
+                  <Area type="monotone" dataKey="entradas" stroke="#00f2ff" fill="#00f2ff" fillOpacity={0.1} strokeWidth={3} />
                   <Area type="monotone" dataKey="saidas" stroke="#EF4444" fill="#EF4444" fillOpacity={0.05} strokeWidth={3} strokeDasharray="5 5" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -331,7 +331,7 @@ export default function FinancialModule() {
                   <p className="text-sm text-primary/80 leading-relaxed italic font-medium">"{fiscalAiResult.analysis}"</p>
                   <div className="mt-6 flex flex-wrap gap-2">
                     {fiscalAiResult.taxEfficiencyTips.map((tip: string, i: number) => (
-                      <Badge key={i} variant="outline" className="bg-white border-blue-200 text-primary text-[9px] font-bold py-1 px-3 rounded-lg">
+                      <Badge key={i} variant="outline" className="bg-white border-blue-200 text-accent text-[9px] font-bold py-1 px-3 rounded-lg">
                         {tip}
                       </Badge>
                     ))}

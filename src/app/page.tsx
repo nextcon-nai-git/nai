@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -127,10 +126,10 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-accent/20 transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <TrendingUp className="size-4 text-emerald-500" />
+                    <TrendingUp className="size-4 text-accent" />
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Saving RAT/FAP Est.</span>
                   </div>
-                  <h3 className="text-2xl font-black text-emerald-600">R$ 142.500,00</h3>
+                  <h3 className="text-2xl font-black text-accent">R$ 142.500,00</h3>
                   <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA anual.</p>
                 </div>
                 <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-blue-500/20 transition-all">
@@ -148,7 +147,7 @@ export default function Dashboard() {
                   <p className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-2 flex items-center gap-2">
                     <Zap className="size-3 fill-current" /> Recomendação Executiva NAI
                   </p>
-                  <p className="text-sm italic font-medium leading-relaxed">
+                  <p className="text-sm italic font-medium leading-relaxed text-white/90">
                     "A inteligência NAI detectou 100% de conformidade técnica em sua unidade. A infraestrutura de API está agilizando o envio de exames e laudos ao eSocial."
                   </p>
                 </div>
@@ -159,7 +158,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância NAI" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Conformidade API" value="98%" sub="Uptime Sistema" icon={Network} color="text-emerald-600" bg="bg-emerald-50" />
+            <StatCard label="Conformidade API" value="98%" sub="Uptime Sistema" icon={Network} color="text-accent" bg="bg-accent/5" />
           </div>
         </div>
 
@@ -186,10 +185,10 @@ export default function Dashboard() {
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Economia Anual Est.</p>
                 <div className="flex items-center gap-2">
-                  <h3 className={cn("text-2xl font-black font-headline tracking-tighter", potentialSavings >= 0 ? "text-emerald-600" : "text-red-600")}>
+                  <h3 className={cn("text-2xl font-black font-headline tracking-tighter", potentialSavings >= 0 ? "text-accent" : "text-red-600")}>
                     {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </h3>
-                  {potentialSavings > 0 && <ArrowUpRight className="size-5 text-emerald-500" />}
+                  {potentialSavings > 0 && <ArrowUpRight className="size-5 text-accent" />}
                 </div>
               </div>
               <Button asChild variant="outline" className="w-full h-12 border-primary/10 text-primary font-black uppercase text-[9px] tracking-widest rounded-xl">
@@ -217,7 +216,7 @@ export default function Dashboard() {
                           <Badge variant="outline" className="text-[7px] font-bold mt-1 uppercase border-primary/10 text-primary/40">{event.type}</Badge>
                         </div>
                       </div>
-                      <ChevronRight className="size-4 text-slate-200 group-hover:text-primary transition-all" />
+                      <ChevronRight className="size-4 text-slate-200 group-hover:text-accent transition-all" />
                     </div>
                   ))}
                 </div>

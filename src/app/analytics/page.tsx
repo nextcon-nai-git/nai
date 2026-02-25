@@ -32,7 +32,7 @@ const fapData = [
 const sicknessData = [
   { name: 'Coluna (M54)', value: 45, color: '#003366' },
   { name: 'Ombro (M75)', value: 30, color: '#0055A4' },
-  { name: 'Estresse (F33)', value: 15, color: '#10B981' },
+  { name: 'Estresse (F33)', value: 15, color: '#00f2ff' },
   { name: 'Outros', value: 10, color: '#94a3b8' },
 ]
 
@@ -60,7 +60,7 @@ export default function AnalyticsDashboard() {
           sub="Projeção Anual"
           icon={DollarSign} 
           trend="down" 
-          color="text-emerald-600" 
+          color="text-accent" 
         />
         <StatCard 
           label="Índice de Absenteísmo" 
@@ -98,7 +98,7 @@ export default function AnalyticsDashboard() {
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
                 />
                 <Bar dataKey="atual" fill="#003366" radius={[4, 4, 0, 0]} name="FAP Atual" />
-                <Bar dataKey="projetado" fill="#10B981" radius={[4, 4, 0, 0]} name="FAP Alvo" />
+                <Bar dataKey="projetado" fill="#00f2ff" radius={[4, 4, 0, 0]} name="FAP Alvo" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

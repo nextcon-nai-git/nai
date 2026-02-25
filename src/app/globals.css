@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Nextcon Enterprise Palette 2026 - Enhanced Vibrancy */
+    /* Nextcon Enterprise Palette 2026 - Metallic Refresh */
     --background: 210 40% 98%;    /* #F8FAFC */
     --foreground: 215 32% 17%;    /* #1E293B */
     
@@ -23,26 +23,26 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     
-    --accent: 161 84% 39%;       /* #10B981 - Safety Green */
-    --accent-foreground: 210 40% 98%;
+    --accent: 183 100% 50%;       /* #00f2ff - Light Metallic Blue */
+    --accent-foreground: 210 100% 12%;
     
     --destructive: 0 84% 60%;     /* #EF4444 - Risk Red */
     --destructive-foreground: 210 40% 98%;
     
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 210 100% 20%;
+    --ring: 183 100% 50%;
     --radius: 0.75rem;
 
-    /* Sidebar Variables 2026 - Ultra Vibrant */
-    --sidebar-background: 210 100% 12%; /* Deeper Navy */
+    /* Sidebar Variables 2026 - Ultra Vibrant Blue */
+    --sidebar-background: 210 100% 12%; 
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 190 100% 50%;    /* Cyan Neon */
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary: 183 100% 50%;    
+    --sidebar-primary-foreground: 210 100% 12%;
     --sidebar-accent: 209 100% 32%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 210 100% 18%;
-    --sidebar-ring: 190 100% 50%;
+    --sidebar-ring: 183 100% 50%;
   }
 }
 
@@ -78,7 +78,7 @@
     background-attachment: fixed;
     background-image: radial-gradient(at 0% 0%, hsla(210, 100% , 95%, 1) 0, transparent 50%),
                       radial-gradient(at 50% 0%, hsla(209, 100%, 96%, 1) 0, transparent 50%),
-                      radial-gradient(at 100% 0%, hsla(161, 84%, 97%, 1) 0, transparent 50%);
+                      radial-gradient(at 100% 0%, hsla(183, 100%, 97%, 1) 0, transparent 50%);
   }
 }
 

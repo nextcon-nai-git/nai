@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -206,7 +205,7 @@ export function AppSidebar() {
             <div className="size-10 rounded-xl bg-gradient-to-br from-[#00f2ff] to-[#0073cf] flex items-center justify-center font-black text-primary text-xs shadow-xl shrink-0">
               {userName.substring(0, 2).toUpperCase()}
             </div>
-            <div className="absolute -bottom-1 -right-1 size-3 bg-[#10B981] rounded-full border-2 border-[#001F3F]" />
+            <div className="absolute -bottom-1 -right-1 size-3 bg-[#00f2ff] rounded-full border-2 border-[#001F3F] shadow-[0_0_10px_#00f2ff]" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[12px] font-[900] truncate uppercase tracking-tight text-white">{userName}</p>
