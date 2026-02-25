@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -20,7 +21,11 @@ import {
   ClipboardCheck,
   Save,
   PenTool,
-  History
+  History,
+  Workflow,
+  Thermometer,
+  Zap,
+  Hammer
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -87,17 +92,12 @@ export default function MedicalAuditingPage() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  // Consulta protegida: Clientes vêem apenas suas auditorias
   const requestsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
     let q = collection(db, "medical_audit_requests")
-    
     if (!isGlobalAdmin && profile.companyId) {
-      // @ts-ignore
       return query(q, where("companyId", "==", profile.companyId), orderBy("createdAt", "desc"), limit(30))
     }
-    
     return query(q, orderBy("createdAt", "desc"), limit(30))
   }, [db, profile, isGlobalAdmin])
 
@@ -199,7 +199,7 @@ export default function MedicalAuditingPage() {
         <div>
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Módulo Operação Saúde</h1>
           <p className="text-muted-foreground font-medium flex items-center gap-2">
-            <Brain className="size-4 text-accent" /> Super-Junta Jurídica e Glosa Reversa 2026.
+            <Brain className="size-4 text-accent" /> Super-Junta Jurídica e Gestão NR-17.
           </p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -276,44 +276,174 @@ export default function MedicalAuditingPage() {
         </Card>
 
         <div className="lg:col-span-2 space-y-6">
-          {selectedRequest ? (
-            <div className="animate-in slide-in-from-right-4 duration-500 space-y-6">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1.5 rounded-2xl h-16">
-                  <TabsTrigger value="defesa" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Parecer NAI</TabsTrigger>
-                  <TabsTrigger value="checklist" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Dossiê Campo</TabsTrigger>
-                </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1.5 rounded-2xl h-16">
+              <TabsTrigger value="defesa" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Parecer NAI</TabsTrigger>
+              <TabsTrigger value="checklist" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Dossiê Campo</TabsTrigger>
+              <TabsTrigger value="nr17" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-accent">Análise NR-17</TabsTrigger>
+            </TabsList>
 
-                <TabsContent value="defesa" className="mt-6">
-                  {selectedRequest.defenseStrategy && (
-                    <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-8">
-                      <div className="space-y-6">
-                        <Badge className="bg-primary text-accent border border-accent/20 font-bold uppercase text-[10px] h-8 px-3">{selectedRequest.defenseStrategy.norma_base}</Badge>
-                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 italic text-sm leading-relaxed text-white/80">"{selectedRequest.defenseStrategy.texto_argumentacao}"</div>
+            <TabsContent value="defesa" className="mt-6">
+              {selectedRequest?.defenseStrategy ? (
+                <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-8">
+                  <div className="space-y-6">
+                    <Badge className="bg-primary text-accent border border-accent/20 font-bold uppercase text-[10px] h-8 px-3">{selectedRequest.defenseStrategy.norma_base}</Badge>
+                    <div className="bg-white/5 p-6 rounded-2xl border border-white/10 italic text-sm leading-relaxed text-white/80">"{selectedRequest.defenseStrategy.texto_argumentacao}"</div>
+                  </div>
+                </Card>
+              ) : (
+                <EmptyState icon={Gavel} label="Auditoria Médica em Silo" />
+              )}
+            </TabsContent>
+
+            <TabsContent value="checklist" className="mt-6">
+              {selectedRequest ? (
+                <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Anamnese Ocupacional</label>
+                    <Textarea value={checklistData.anamnese} onChange={e => setChecklistData({...checklistData, anamnese: e.target.value})} placeholder="Inicie o preenchimento técnico..." className="min-h-[100px] bg-slate-50 border-none rounded-2xl p-4 shadow-inner" />
+                  </div>
+                  <Button onClick={handleSaveChecklist} disabled={isSavingChecklist} className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
+                    {isSavingChecklist ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 text-accent" />}
+                    Sincronizar Operação
+                  </Button>
+                </Card>
+              ) : (
+                <EmptyState icon={ClipboardCheck} label="Dossiê de Campo Vazio" />
+              )}
+            </TabsContent>
+
+            <TabsContent value="nr17" className="mt-6 space-y-8 animate-in slide-in-from-right-4 duration-500">
+              {/* Fluxograma NR-17 Visual */}
+              <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+                <CardHeader className="bg-primary/5 border-b py-6 px-8">
+                  <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                    <Workflow className="size-4 text-accent" /> Fluxo de Decisão NR-17 (2026)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-10">
+                  <div className="relative flex flex-col items-center gap-8">
+                    {/* Início */}
+                    <div className="w-48 p-4 bg-slate-100 border-2 border-slate-200 rounded-xl text-center shadow-sm">
+                      <p className="text-[10px] font-black uppercase text-slate-500">Início</p>
+                      <p className="text-xs font-bold text-primary leading-tight">Situação de Trabalho</p>
+                    </div>
+                    
+                    <ChevronDown className="size-5 text-slate-300" />
+
+                    {/* AEP - Destaque Rosa */}
+                    <div className="w-56 p-5 bg-[#f9f0ff] border-2 border-[#f9f] rounded-[2rem] text-center shadow-md relative group">
+                      <div className="absolute -top-3 -right-2 bg-[#f9f] text-white text-[8px] font-black px-2 py-0.5 rounded-full">NR-17.3</div>
+                      <p className="text-[10px] font-black uppercase text-[#d946ef]">Etapa Obrigatória</p>
+                      <p className="text-xs font-bold text-[#701a75]">Avaliação Ergonômica Preliminar (AEP)</p>
+                    </div>
+
+                    <div className="flex gap-20 items-start relative mt-4">
+                      {/* Sim -> Plano de Ação */}
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <p className="text-[10px] font-black text-emerald-500 mb-2">RISCO EVIDENTE</p>
+                          <ChevronDown className="size-5 text-emerald-200" />
+                        </div>
+                        <div className="w-44 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-center">
+                          <p className="text-xs font-bold text-emerald-700">Plano de Ação Imediato</p>
+                        </div>
                       </div>
-                    </Card>
-                  )}
-                </TabsContent>
 
-                <TabsContent value="checklist" className="mt-6">
-                  <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8 space-y-6">
-                    <Textarea value={checklistData.anamnese} onChange={e => setChecklistData({...checklistData, anamnese: e.target.value})} placeholder="Anamnese Ocupacional..." className="min-h-[100px] bg-slate-50 border-none rounded-2xl p-4 shadow-inner" />
-                    <Button onClick={handleSaveChecklist} disabled={isSavingChecklist} className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
-                      {isSavingChecklist ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 text-accent" />}
-                      Sincronizar Operação
-                    </Button>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center p-20 border-2 border-dashed rounded-[3rem] opacity-30 bg-slate-50/50 min-h-[500px]">
-              <History className="size-16 text-primary mb-4" />
-              <p className="text-xs font-black uppercase tracking-widest">Auditoria em Saúde Segregada</p>
-            </div>
-          )}
+                      {/* Não/Dúvida -> AET */}
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <p className="text-[10px] font-black text-blue-500 mb-2">DÚVIDA / COMPLEXO</p>
+                          <ChevronDown className="size-5 text-blue-200" />
+                        </div>
+                        <div className="w-56 p-5 bg-[#f0f7ff] border-2 border-[#ccf] rounded-[2rem] text-center shadow-md relative">
+                          <div className="absolute -top-3 -right-2 bg-[#ccf] text-white text-[8px] font-black px-2 py-0.5 rounded-full">Aprofundamento</div>
+                          <p className="text-[10px] font-black uppercase text-blue-600">Investigação Técnica</p>
+                          <p className="text-xs font-bold text-blue-900">Análise Ergonômica (AET)</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full h-px bg-slate-100 mt-4" />
+                    
+                    <div className="flex flex-wrap justify-center gap-4 mt-2">
+                      <Badge variant="outline" className="h-8 border-slate-200 bg-slate-50 text-slate-400 font-bold uppercase text-[9px] px-4">
+                        Monitoramento e Retorno ao AEP
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Toolbox de Métodos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ToolCard 
+                  title="RULA & REBA" 
+                  desc="Avaliação postural dinâmica. REBA foca no corpo inteiro, RULA prioriza membros superiores e repetitividade."
+                  badge="Biomecânica"
+                  icon={Hammer}
+                />
+                <ToolCard 
+                  title="Equação NIOSH" 
+                  desc="Cálculo de Limite de Peso Recomendado (LPR). Identifica risco de lesões em tarefas de levantamento de cargas."
+                  badge="Carga Física"
+                  icon={Scale}
+                />
+                <ToolCard 
+                  title="Diagrama de Corlett" 
+                  desc="Mapeamento de desconforto corporal percebido pelo colaborador. Essencial para validação de queixas osteomusculares."
+                  badge="Psicofísica"
+                  icon={Thermometer}
+                />
+                <ToolCard 
+                  title="Análise NAI Cognitiva" 
+                  desc="Triagem IA para riscos psicossociais e carga mental, integrada aos novos requisitos da NR-17.4."
+                  badge="NAI Intelligence"
+                  icon={Sparkles}
+                  isAi
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ToolCard({ title, desc, badge, icon: Icon, isAi }: any) {
+  return (
+    <Card className={cn(
+      "border-none shadow-sm rounded-3xl overflow-hidden group hover:ring-2 transition-all duration-500",
+      isAi ? "bg-primary text-white ring-accent/20" : "bg-white ring-primary/5"
+    )}>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className={cn(
+            "p-2.5 rounded-xl transition-colors",
+            isAi ? "bg-white/10 text-accent" : "bg-primary/5 text-primary"
+          )}>
+            <Icon className="size-5" />
+          </div>
+          <Badge className={cn(
+            "text-[8px] font-black uppercase border-none px-3",
+            isAi ? "bg-accent text-primary" : "bg-slate-100 text-slate-500"
+          )}>
+            {badge}
+          </Badge>
+        </div>
+        <h4 className={cn("font-black uppercase text-sm tracking-tight mb-2", isAi ? "text-white" : "text-primary")}>{title}</h4>
+        <p className={cn("text-[11px] leading-relaxed font-medium italic", isAi ? "text-white/60" : "text-slate-400")}>"{desc}"</p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function EmptyState({ icon: Icon, label }: any) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center p-20 border-2 border-dashed rounded-[3rem] opacity-30 bg-slate-50/50 min-h-[500px]">
+      <Icon className="size-16 text-primary mb-4" />
+      <p className="text-xs font-black uppercase tracking-widest text-center">{label}</p>
     </div>
   )
 }
