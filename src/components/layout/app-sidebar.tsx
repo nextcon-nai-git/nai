@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -25,12 +26,10 @@ import {
   ShoppingCart,
   Gavel,
   Video,
-  AlertTriangle,
   HardHat,
-  ChevronRight,
   Zap,
-  Lock,
-  Network
+  Network,
+  Lock
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -55,7 +54,7 @@ const NAV_MODULES = [
   {
     label: "DASHBOARD CONTROLE",
     icon: LayoutDashboard,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'DOCTOR'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
       { title: "Cérebro NAI (Início)", icon: Zap, href: "/" },
       { title: "BI SST & Analytics", icon: BarChart3, href: "/analytics", roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'] },
@@ -70,7 +69,7 @@ const NAV_MODULES = [
   {
     label: "COMERCIAL",
     icon: ShoppingCart,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Proposta NAI", icon: DollarSign, href: "/comercial" },
       { title: "Simulador de Escala", icon: Monitor, href: "/simulator" },
@@ -79,7 +78,7 @@ const NAV_MODULES = [
   {
     label: "FINANCEIRO",
     icon: Scale,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "ERP Financeiro", icon: Database, href: "/financial" },
       { title: "ROI & Perícias", icon: Gavel, href: "/legal-financial" },
@@ -89,7 +88,7 @@ const NAV_MODULES = [
   {
     label: "SAÚDE OCUPACIONAL",
     icon: HeartPulse,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'DOCTOR', 'PROVIDER'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER'],
     items: [
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
@@ -102,7 +101,7 @@ const NAV_MODULES = [
   {
     label: "SEGURANÇA DO TRABALHO",
     icon: HardHat,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'PROVIDER'],
+    roles: ['SUPER_ADMIN', 'ADMIN', 'ENGINEER', 'PROVIDER'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Controle Campo IoT", icon: HardHat, href: "/field-control" },
