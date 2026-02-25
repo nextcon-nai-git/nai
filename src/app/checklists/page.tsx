@@ -59,17 +59,6 @@ import { NR_CHECKLISTS, getGenericChecklist, NRChecklist, ChecklistItem } from "
 import { STORAGE_PATHS } from "@/lib/storage-paths"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
-const CHECKLIST_CATALOG = [
-  { id: "nr01", category: "Gestão", title: "NR-01 - Gerenciamento de Riscos (PGR)", icon: ShieldAlert, color: "text-red-600" },
-  { id: "nr07", category: "Saúde", title: "NR-07 - PCMSO", icon: HeartPulse, color: "text-emerald-600" },
-  { id: "nr09", category: "Ambiental", title: "NR-09 - Agentes Nocivos", icon: Layers, color: "text-blue-600" },
-  { id: "nr10", category: "Elétrica", title: "NR-10 - Instalações Elétricas", icon: Hammer, color: "text-yellow-500" },
-  { id: "nr12", category: "Máquinas", title: "NR-12 - Máquinas e Equipamentos", icon: BookOpen, color: "text-gray-700" },
-  { id: "nr18", category: "Obras", title: "NR-18 - Construção Civil", icon: Building2, color: "text-orange-500" },
-  { id: "nr33", category: "Confinado", title: "NR-33 - Espaço Confinado", icon: Zap, color: "text-purple-600" },
-  { id: "nr35", category: "Altura", title: "NR-35 - Trabalho em Altura", icon: Layers, color: "text-blue-500" },
-]
-
 type ChecklistStatus = 'CONFORME' | 'NÃO CONFORME' | 'NÃO AVALIADO' | null;
 
 export default function ChecklistsPage() {
@@ -97,7 +86,8 @@ export default function ChecklistsPage() {
   const { data: profile } = useDoc(profileRef);
 
   const isPrivileged = React.useMemo(() => {
-    return profile && ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'admin'].includes(profile.role);
+    if (!profile) return false;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(profile.role.toUpperCase());
   }, [profile]);
 
   React.useEffect(() => {
@@ -111,13 +101,6 @@ export default function ChecklistsPage() {
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db])
   const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
-
-  const filteredCatalog = React.useMemo(() => {
-    return CHECKLIST_CATALOG.filter(item => 
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      item.id.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [searchTerm])
 
   const handleOpenChecklist = (nrId: string, title: string) => {
     if (!selectedCompanyId) {
@@ -198,24 +181,24 @@ export default function ChecklistsPage() {
         status: checklistProgress === 100 ? 'COMPLETED' : 'PARTIAL'
       };
 
-      const storagePath = STORAGE_PATHS.FIELD_INSPECTION(selectedCompanyId, activeNR.nr);
+      const storagePath = STORAGE_PATHS.CLIENT_SST_NR(selectedCompanyId, activeNR.nr.toLowerCase().replace('-', '') as any, `protocolo_${Date.now()}.json`);
       const storageRef = ref(storage, storagePath);
       const blob = new Blob([JSON.stringify(auditData, null, 2)], { type: 'application/json' });
       await uploadBytes(storageRef, blob);
 
       await addDoc(collection(db, "companies", selectedCompanyId, "reports"), {
         reportType: activeNR.nr.toLowerCase().replace('-', ''),
-        name: `Inspeção de Campo - ${activeNR.nr}`,
+        name: `Laudo Técnico - ${activeNR.nr}`,
         companyId: selectedCompanyId,
         companyName: company?.name,
         storagePath: storagePath,
         createdAt: new Date().toISOString(),
         analysisData: {
-          aiInsight: `Inspeção ${activeNR.nr} finalizada com ${auditData.progress}% de cobertura técnica.`
+          aiInsight: `Inspeção ${activeNR.nr} finalizada por fornecedor credenciado. 100% de cobertura normativa.`
         }
       });
 
-      toast({ title: "Auditoria Finalizada e Protocolada!" });
+      toast({ title: "Laudo Protocolado com Sucesso!" });
       setIsChecklistOpen(false);
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro ao Salvar Protocolo" });
@@ -228,12 +211,12 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Inspeção de Campo</h1>
-          <p className="text-muted-foreground font-medium">Motor de conformidade ativa e auditoria técnica 2026.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Hub de Laudos (Fornecedores)</h1>
+          <p className="text-muted-foreground font-medium">Preencha os laudos técnicos diretamente na plataforma.</p>
         </div>
         <div className="w-full md:w-72">
-          <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Unidade em Auditoria:</label>
-          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged}>
+          <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Unidade em Inspeção:</label>
+          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged && !!profile?.companyId}>
             <SelectTrigger className="bg-white border-muted h-11 text-xs shadow-sm">
               <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Selecione o Cliente"} />
             </SelectTrigger>
@@ -247,20 +230,12 @@ export default function ChecklistsPage() {
         </div>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar Norma ou Requisito Técnico..." 
-            className="pl-10 h-11 bg-white border-none shadow-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredCatalog.map((item) => {
+        {[
+          { id: "nr01", category: "Geral", title: "PGR - NR-01", icon: ShieldAlert, color: "text-red-600" },
+          { id: "nr07", category: "Saúde", title: "PCMSO - NR-07", icon: HeartPulse, color: "text-emerald-600" },
+          { id: "nr09", category: "Ambiental", title: "LTCAT - NR-09", icon: Layers, color: "text-blue-600" }
+        ].map((item) => {
           const Icon = item.icon
           return (
             <Card 
@@ -289,10 +264,10 @@ export default function ChecklistsPage() {
               <X className="size-5" />
             </button>
             <DialogTitle className="text-2xl font-headline font-black uppercase flex items-center gap-3">
-              <ClipboardCheck className="size-8 text-accent" /> {activeNR?.nr} - Auditoria Inteligente
+              <PenTool className="size-8 text-accent" /> Elaborar {activeNR?.nr}
             </DialogTitle>
             <DialogDescription className="text-white/70 font-bold uppercase text-[10px] mt-2">
-              Unidade: {companies?.find(c => c.id === selectedCompanyId)?.name || "Selecione Unidade"}
+              Fornecedor: {profile?.name || user?.email}
             </DialogDescription>
             <Progress value={checklistProgress} className="h-2 mt-6 bg-white/10" />
           </DialogHeader>
@@ -304,13 +279,9 @@ export default function ChecklistsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 text-primary/60">{item.category}</Badge>
-                      {item.criticality === 'critical' && <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase">Risco Grave</Badge>}
                     </div>
                     <h4 className="text-sm font-bold text-primary leading-tight">{item.id}. {item.question}</h4>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0 rounded-full hover:bg-primary/5" onClick={() => setExpandedHelp(prev => ({...prev, [item.id]: !prev[item.id]}))}>
-                    <Info className={cn("size-4 transition-colors", expandedHelp[item.id] ? "text-primary" : "text-slate-300")} />
-                  </Button>
                 </div>
                 
                 <div className="grid grid-cols-3 gap-2">
@@ -320,8 +291,6 @@ export default function ChecklistsPage() {
                       variant={responses[item.id] === status ? 'default' : 'outline'}
                       className={cn(
                         "h-10 text-[9px] font-black uppercase rounded-xl transition-all",
-                        responses[item.id] === status && status === 'NÃO CONFORME' ? 'bg-red-600 hover:bg-red-700' : 
-                        responses[item.id] === status && status === 'CONFORME' ? 'bg-accent hover:bg-accent/90' : 
                         responses[item.id] === status ? 'bg-primary' : 'hover:bg-primary/5 border-slate-200'
                       )}
                       onClick={() => handleStatusChange(item, status)}
@@ -330,63 +299,25 @@ export default function ChecklistsPage() {
                     </Button>
                   ))}
                 </div>
-
-                {expandedHelp[item.id] && (
-                  <div className="mt-4 p-5 bg-blue-50 rounded-2xl border border-blue-100 text-[11px] animate-in slide-in-from-top-2 duration-300">
-                    <p className="font-black text-blue-800 flex items-center gap-2 mb-2 uppercase tracking-widest">
-                      <Gavel className="size-3" /> Referência: {item.legal_ref}
-                    </p>
-                    {item.legal_text && <p className="text-blue-700/70 italic mb-3 leading-relaxed border-l-2 border-blue-200 pl-3">"{item.legal_text}"</p>}
-                    <div className="flex gap-3 items-start p-3 bg-white/50 rounded-xl">
-                      <Zap className="size-4 text-accent shrink-0 mt-0.5" />
-                      <p className="text-blue-900 font-bold">Dica NAI: {item.help_text}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
 
           <DialogFooter className="p-6 bg-white border-t shrink-0 flex justify-between items-center sm:justify-between">
-            <div className="text-[10px] font-black uppercase text-slate-400">NAI Technical Auditing</div>
+            <div className="text-[10px] font-black uppercase text-slate-400 italic">"Este preenchimento alimenta o laudo PDF automático."</div>
             <div className="flex gap-2">
-              <Button variant="ghost" className="font-bold uppercase text-[10px]" onClick={() => setIsChecklistOpen(false)} disabled={isFinalizing}>Fechar</Button>
+              <Button variant="ghost" className="font-bold uppercase text-[10px]" onClick={() => setIsChecklistOpen(false)} disabled={isFinalizing}>Salvar Rascunho</Button>
               <Button 
                 onClick={handleFinalizeAuditoria} 
                 disabled={checklistProgress < 100 || isFinalizing}
                 className="bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-widest px-8 rounded-xl shadow-lg shadow-primary/20"
               >
-                {isFinalizing ? <Loader2 className="size-4 animate-spin" /> : "Finalizar Auditoria"}
+                {isFinalizing ? <Loader2 className="size-4 animate-spin" /> : "Finalizar e Protocolar"}
               </Button>
             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={criticalAlertOpen} onOpenChange={setCriticalAlertOpen}>
-        <AlertDialogContent className="rounded-[2.5rem] border-none p-10 shadow-2xl">
-          <AlertDialogHeader className="flex flex-col items-center text-center">
-            <div className="size-20 bg-red-50 rounded-full flex items-center justify-center text-red-600 mb-6 animate-pulse">
-              <AlertTriangle size={40} />
-            </div>
-            <AlertDialogTitle className="text-2xl font-headline font-black uppercase text-red-700">Falha Crítica Identificada</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-500 font-medium text-sm mt-4">
-              Você marcou uma **NÃO CONFORME** em um item de criticidade elevada. Deseja que a NAI gere automaticamente uma **Intervenção Urgente** no Kanban para o Engenheiro Responsável?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="mt-10 gap-3 sm:justify-center">
-            <AlertDialogCancel className="rounded-xl h-14 px-8 font-bold uppercase text-[10px]">Ignorar por agora</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleCreateUrgentAction}
-              disabled={isCreatingUrgentTask}
-              className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-14 px-10 font-black uppercase text-[10px] tracking-widest gap-2 shadow-xl shadow-red-600/20"
-            >
-              {isCreatingUrgentTask ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
-              Ativar Plano de Ação
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

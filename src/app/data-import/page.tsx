@@ -100,14 +100,15 @@ export default function UnifiedImportCenter() {
           ...provider, 
           updatedAt: now,
           active: true,
-          status: "PROVISIONED"
+          status: "PROVISIONED",
+          companyId: "" // Prestadores são globais
         }, { merge: true })
       })
 
       await batch.commit()
       toast({ 
         title: "Prestadores Provisionados!", 
-        description: `${REAL_PROVIDERS.length} profissionais registrados. Login padrão liberado.` 
+        description: `${REAL_PROVIDERS.length} profissionais registrados. Eles podem logar com a senha padrão '2025'.` 
       })
     } catch (e) {
       toast({ variant: "destructive", title: "Falha no Provisionamento" })
