@@ -109,7 +109,6 @@ export default function EmployeesPage() {
     if (!profile) return false;
     const role = (profile.role || '').toUpperCase();
     const companyId = profile.companyId;
-    // Administrador é global se não tiver companyId vinculado no perfil
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
@@ -155,7 +154,6 @@ export default function EmployeesPage() {
     
     // Visão Global: Consulta por Collection Group (todos os funcionários de todos os clientes)
     if (isGlobalAdmin && selectedCompanyId === "all") {
-      // Removido orderBy para evitar erro de índice ausente em consultas globais sem configuração prévia
       return query(collectionGroup(db, "employees"))
     } 
     
@@ -451,7 +449,7 @@ export default function EmployeesPage() {
                   <TableRow key={i}><TableCell colSpan={5} className="pl-8 py-6"><Skeleton className="h-8 w-full" /></TableCell></TableRow>
                 ))
               ) : filteredEmployees.length > 0 ? filteredEmployees.map((emp) => (
-                <TableRow key={emp.id} className="hover:bg-slate-50 transition-colors group">
+                <TableRow key={`${emp.companyId}_${emp.id}`} className="hover:bg-slate-50 transition-colors group">
                   <TableCell className="pl-8 py-5">
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">
