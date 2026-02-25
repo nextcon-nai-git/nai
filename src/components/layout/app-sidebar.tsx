@@ -143,7 +143,7 @@ export function AppSidebar() {
           <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105">
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
-          <span className="text-[11px] font-black text-[#00f2ff] uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
             {isAdmin ? 'Nextcon Inteligência' : 'SST Intelligence'}
           </span>
         </div>
@@ -159,10 +159,10 @@ export function AppSidebar() {
           return (
             <SidebarGroup key={module.label} className="py-6 first:pt-2">
               <SidebarGroupLabel className="flex items-center gap-3 px-4 h-auto mb-4 pointer-events-none">
-                <div className="p-2 bg-white/10 rounded-xl shadow-inner border border-white/5 group-hover:bg-[#00f2ff]/20 transition-colors">
-                  <ModuleIcon className="size-4 text-[#00f2ff]" />
+                <div className="p-2 bg-white/10 rounded-xl shadow-inner border border-white/5 group-hover:bg-slate-700/20 transition-colors">
+                  <ModuleIcon className="size-4 text-slate-400" />
                 </div>
-                <span className="text-[#00f2ff] text-xs font-[900] uppercase tracking-[0.15em] sidebar-header-glow leading-none">
+                <span className="text-slate-400 text-xs font-[900] uppercase tracking-[0.15em] sidebar-header-glow leading-none">
                   {module.label}
                 </span>
               </SidebarGroupLabel>
@@ -181,12 +181,12 @@ export function AppSidebar() {
                         className={cn(
                           "h-11 px-4 rounded-xl transition-all duration-300 group",
                           isActive 
-                            ? "bg-white/10 text-white font-bold border-l-4 border-[#00f2ff] shadow-lg shadow-[#00f2ff]/5" 
+                            ? "bg-white/10 text-white font-bold border-l-4 border-slate-400 shadow-lg shadow-black/5" 
                             : "text-white/50 hover:bg-white/5 hover:text-white"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3">
-                          <Icon className={cn("size-4 shrink-0 transition-colors", isActive ? "text-[#00f2ff]" : "text-white/20 group-hover:text-white/60")} />
+                          <Icon className={cn("size-4 shrink-0 transition-colors", isActive ? "text-slate-400" : "text-white/20 group-hover:text-white/60")} />
                           <span className="text-[13px] tracking-tight">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -202,14 +202,14 @@ export function AppSidebar() {
       <SidebarFooter className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-xl">
         <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10 group hover:bg-white/10 transition-all cursor-default">
           <div className="relative">
-            <div className="size-10 rounded-xl bg-gradient-to-br from-[#00f2ff] to-[#0073cf] flex items-center justify-center font-black text-primary text-xs shadow-xl shrink-0">
+            <div className="size-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center font-black text-white text-xs shadow-xl shrink-0">
               {userName.substring(0, 2).toUpperCase()}
             </div>
-            <div className="absolute -bottom-1 -right-1 size-3 bg-[#00f2ff] rounded-full border-2 border-[#001F3F] shadow-[0_0_10px_#00f2ff]" />
+            <div className="absolute -bottom-1 -right-1 size-3 bg-slate-400 rounded-full border-2 border-[#001F3F]" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[12px] font-[900] truncate uppercase tracking-tight text-white">{userName}</p>
-            <p className="text-[9px] text-[#00f2ff] uppercase font-black tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
+            <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">
               {role.replace('_', ' ')}
             </p>
           </div>
