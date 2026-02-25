@@ -12,6 +12,13 @@ export const REAL_COMPANIES = [
   { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Rio Branco do Sul", state: "PR" }
 ];
 
+export const REAL_EMPLOYEES = [
+  { id: "COL1334", name: "Amos Vieira De Souza", cpf: "441.932.712-77", companyId: "CLI001", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
+  { id: "COL1100", name: "Paola Santiago Dalasuana", cpf: "378.454.183-64", companyId: "CLI001", aso_validade: "2026-10-15", aso_espaco_confinado_valido: true, treinamento_nr33_valido: true },
+  { id: "COL1268", name: "Ana Paula Conci Oliveira", cpf: "152.928.837-99", companyId: "32137571000169", aso_validade: "2026-08-20" },
+  { id: "COL1022", name: "ALEX OLIVEIRA DA COSTA", cpf: "264.950.432-69", companyId: "51633820000151", aso_validade: "2025-01-01" } // Vencido para teste
+];
+
 // Mapeamento hierárquico fornecido pelo usuário (Amostra para o script)
 export const REAL_HIERARCHICAL_DATA = [
   {
@@ -34,7 +41,6 @@ export const REAL_HIERARCHICAL_DATA = [
       { id_colaborador: "COL1713", nome: "Animaria De Amorim", cpf: "378.454.183-67", data_nascimento: "2000-05-07", cargo: null }
     ]
   }
-  // ... O script de importação processará a lista completa conforme o padrão acima
 ];
 
 export const REAL_PROVIDERS = [
