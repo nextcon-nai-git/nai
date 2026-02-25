@@ -19,7 +19,9 @@ import {
   AlertTriangle,
   Scale,
   ClipboardCheck,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  FileWarning
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -153,10 +155,14 @@ export default function ScaleSimulator() {
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Evolução de Risco: Dall Construtora</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest mt-2">Simule a escala do canteiro e interaja com os riscos em tempo real.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">DALL CONSTRUCOES LTDA</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">
+            <Building2 className="size-3" /> CNPJ: 11.306.970/0001-36 • Simulador de Escala e Acidentalidade
+          </p>
         </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4">DEMO INTERATIVA</Badge>
+        <Badge className="bg-[#090e24] text-[#f59e0b] font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#f59e0b]/20 shadow-lg">
+          FAP ATUAL: 1,2137
+        </Badge>
       </header>
 
       {/* Slider de Escala */}
@@ -188,11 +194,35 @@ export default function ScaleSimulator() {
         </div>
       </Card>
 
-      {/* KPIs Dinâmicos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard label="CIPA (NR-05)" value={currentData.cipa} icon={Users} color="text-blue-600" bg="bg-blue-50" />
-        <StatCard label="SESMT (NR-04)" value={currentData.sesmt} icon={HardHat} color="text-orange-600" bg="bg-orange-50" />
-        <StatCard label="Status eSocial" value={currentData.status} sub={currentData.subStatus} icon={ShieldAlert} color={currentData.statusCor} bg={currentData.bg} />
+      {/* Dashboard de Acidentalidade Real */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Card className="card-shadow border-none bg-red-50/50 border-l-4 border-red-500 rounded-2xl overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] font-black uppercase text-red-600 tracking-widest flex items-center gap-2">
+              <FileWarning className="size-3" /> Acidentalidade Previdenciária
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-red-100">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">CAT Emitidas</span>
+              <span className="text-xl font-black text-primary">0</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-red-100 shadow-sm">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Auxílio B91 (Acidente)</span>
+              <span className="text-xl font-black text-red-600 animate-pulse">1</span>
+            </div>
+            <div className="p-3 bg-red-600 text-white rounded-xl text-center">
+              <p className="text-[8px] font-black uppercase opacity-70">Impacto no FAP</p>
+              <p className="text-lg font-black tracking-tighter">1,2137 (MALUS)</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard label="CIPA (NR-05)" value={currentData.cipa} icon={Users} color="text-blue-600" bg="bg-blue-50" />
+          <StatCard label="SESMT (NR-04)" value={currentData.sesmt} icon={HardHat} color="text-orange-600" bg="bg-orange-50" />
+          <StatCard label="Status eSocial" value={currentData.status} sub={currentData.subStatus} icon={ShieldAlert} color={currentData.statusCor} bg={currentData.bg} />
+        </div>
       </div>
 
       {/* Accordions de NRs */}
@@ -289,7 +319,7 @@ export default function ScaleSimulator() {
 
       <div className="flex justify-center pt-10">
         <Button asChild size="lg" className="h-16 px-12 bg-primary text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-2xl gap-3">
-          <Link href="/comercial">Solicitar Proposta Formal <ArrowRight className="size-5" /></Link>
+          <Link href="/comercial">Solicitar Proposta de Blindagem <ArrowRight className="size-5" /></Link>
         </Button>
       </div>
     </div>
