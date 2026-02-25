@@ -6,25 +6,17 @@ import {
   Loader2, 
   ShieldAlert, 
   HeartPulse, 
-  Building2, 
-  Hammer, 
   CheckCircle2,
   FileText,
   Sparkles,
-  Layers,
   Search,
-  Info,
-  ChevronDown,
-  ChevronUp,
-  Gavel,
-  ShieldX,
-  Camera,
-  BookOpen,
-  PenTool,
+  ChevronRight,
   AlertTriangle,
   Save,
   Zap,
-  X
+  X,
+  PenTool,
+  Layers
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -34,7 +26,6 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useStorage, useD
 import { collection, query, orderBy, addDoc, doc } from "firebase/firestore"
 import { ref, uploadBytes } from "firebase/storage"
 import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Progress } from "@/components/ui/progress"
 import {
@@ -45,16 +36,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { NR_CHECKLISTS, getGenericChecklist, NRChecklist, ChecklistItem } from "@/lib/nr-data"
 import { STORAGE_PATHS } from "@/lib/storage-paths"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
@@ -67,17 +48,11 @@ export default function ChecklistsPage() {
   const db = useFirestore()
   const storage = useStorage()
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("")
-  const [searchTerm, setSearchTerm] = React.useState("")
 
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false)
   const [isFinalizing, setIsFinalizing] = React.useState(false)
   const [activeNR, setActiveNR] = React.useState<NRChecklist | null>(null)
   const [responses, setResponses] = React.useState<Record<string, ChecklistStatus>>({})
-  const [expandedHelp, setExpandedHelp] = React.useState<Record<string, boolean>>({})
-  
-  const [criticalAlertOpen, setCriticalAlertOpen] = React.useState(false)
-  const [lastCriticalItem, setLastCriticalItem] = React.useState<ChecklistItem | null>(null)
-  const [isCreatingUrgentTask, setIsCreatingUrgentTask] = React.useState(false)
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null;
@@ -87,74 +62,51 @@ export default function ChecklistsPage() {
 
   const isPrivileged = React.useMemo(() => {
     if (!profile) return false;
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(profile.role.toUpperCase());
+    const role = (profile.role || '').toUpperCase();
+    return ['SUPER_ADMIN', 'ADMIN'].includes(role);
   }, [profile]);
 
-  React.useEffect(() => {
-    if (profile && !isPrivileged && profile.companyId) {
-      setSelectedCompanyId(profile.companyId);
-    }
-  }, [profile, isPrivileged]);
-
+  // Carrega empresas respeitando o isolamento do fornecedor
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db])
-  const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
+  const { data: allCompanies, isLoading: loadingCompanies } = useCollection(companiesQuery)
+
+  const availableCompanies = React.useMemo(() => {
+    if (!allCompanies || !profile) return []
+    if (isPrivileged) return allCompanies
+    
+    const role = (profile.role || '').toUpperCase()
+    
+    // Se for prestador, filtra apenas as empresas que ele atende
+    if (['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role) && profile.servedCompanies) {
+      return allCompanies.filter(c => profile.servedCompanies.includes(c.id))
+    }
+    
+    // Se for admin de cliente, vê apenas a sua
+    if (role === 'CLIENT_ADMIN' && profile.companyId) {
+      return allCompanies.filter(c => c.id === profile.companyId)
+    }
+
+    return []
+  }, [allCompanies, profile, isPrivileged])
+
+  React.useEffect(() => {
+    if (availableCompanies.length === 1) {
+      setSelectedCompanyId(availableCompanies[0].id)
+    }
+  }, [availableCompanies])
 
   const handleOpenChecklist = (nrId: string, title: string) => {
     if (!selectedCompanyId) {
-      toast({ variant: "destructive", title: "Unidade Obrigatória", description: "Selecione uma unidade antes de iniciar a inspeção." });
+      toast({ variant: "destructive", title: "Unidade Obrigatória", description: "Selecione uma unidade para iniciar." });
       return;
     }
     const config = NR_CHECKLISTS[nrId] || getGenericChecklist(nrId.toUpperCase(), title);
     setActiveNR(config);
     setResponses({});
-    setExpandedHelp({});
     setIsChecklistOpen(true);
-  }
-
-  const handleStatusChange = (item: ChecklistItem, status: ChecklistStatus) => {
-    setResponses(prev => ({ ...prev, [item.id]: status }));
-    
-    if (status === 'NÃO CONFORME' && item.criticality === 'critical') {
-      setLastCriticalItem(item);
-      setCriticalAlertOpen(true);
-    }
-  }
-
-  const handleCreateUrgentAction = async () => {
-    if (!user || !db || !lastCriticalItem || !selectedCompanyId) return;
-    
-    setIsCreatingUrgentTask(true);
-    try {
-      const company = companies?.find(c => c.id === selectedCompanyId);
-      const tasksRef = collection(db, "companies", selectedCompanyId, "tasks");
-      
-      const urgentTask = {
-        title: `URGENTE: Falha Crítica ${activeNR?.nr} - ${lastCriticalItem.category}`,
-        companyId: selectedCompanyId,
-        companyName: company?.name || "Unidade em Inspeção",
-        type: activeNR?.nr.toLowerCase().replace('-', '') as any,
-        status: "todo",
-        priority: "critical",
-        dueDate: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        ai_risk_score: 95,
-        checklist: [
-          { id: '1', text: `Corrigir: ${lastCriticalItem.question}`, checked: false, mandatory: true },
-          { id: '2', text: 'Validar Medida de Engenharia', checked: false, mandatory: true }
-        ]
-      };
-
-      await addDocumentNonBlocking(tasksRef, urgentTask);
-      toast({ title: "Plano de Ação Criado com Sucesso" });
-      setCriticalAlertOpen(false);
-    } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao criar ação corretiva" });
-    } finally {
-      setIsCreatingUrgentTask(false);
-    }
   }
 
   const checklistProgress = React.useMemo(() => {
@@ -168,17 +120,14 @@ export default function ChecklistsPage() {
 
     setIsFinalizing(true);
     try {
-      const company = companies?.find(c => c.id === selectedCompanyId);
+      const company = availableCompanies.find(c => c.id === selectedCompanyId);
       const auditData = {
         nr: activeNR.nr,
-        nrTitle: activeNR.title,
         companyId: selectedCompanyId,
-        companyName: company?.name || "Unidade Desconhecida",
         auditorId: user.uid,
         timestamp: new Date().toISOString(),
         responses: responses,
-        progress: Math.round(checklistProgress),
-        status: checklistProgress === 100 ? 'COMPLETED' : 'PARTIAL'
+        progress: Math.round(checklistProgress)
       };
 
       const storagePath = STORAGE_PATHS.CLIENT_SST_NR(selectedCompanyId, activeNR.nr.toLowerCase().replace('-', '') as any, `protocolo_${Date.now()}.json`);
@@ -192,10 +141,7 @@ export default function ChecklistsPage() {
         companyId: selectedCompanyId,
         companyName: company?.name,
         storagePath: storagePath,
-        createdAt: new Date().toISOString(),
-        analysisData: {
-          aiInsight: `Inspeção ${activeNR.nr} finalizada por fornecedor credenciado. 100% de cobertura normativa.`
-        }
+        createdAt: new Date().toISOString()
       });
 
       toast({ title: "Laudo Protocolado com Sucesso!" });
@@ -211,18 +157,17 @@ export default function ChecklistsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Hub de Laudos (Fornecedores)</h1>
-          <p className="text-muted-foreground font-medium">Preencha os laudos técnicos diretamente na plataforma.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Central de Laudos (Fornecedores)</h1>
+          <p className="text-muted-foreground font-medium">Gere PGR, PCMSO e LTCAT em nome da Nextcon.</p>
         </div>
         <div className="w-full md:w-72">
           <label className="text-[9px] font-black uppercase text-muted-foreground mb-1 block">Unidade em Inspeção:</label>
-          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isPrivileged && !!profile?.companyId}>
+          <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
             <SelectTrigger className="bg-white border-muted h-11 text-xs shadow-sm">
               <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Selecione o Cliente"} />
             </SelectTrigger>
             <SelectContent>
-              {companies?.map(c => (
-                (!isPrivileged && c.id !== profile?.companyId) ? null :
+              {availableCompanies.map(c => (
                 <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
               ))}
             </SelectContent>
@@ -277,9 +222,7 @@ export default function ChecklistsPage() {
               <div key={item.id} className="p-6 bg-white rounded-3xl border mb-4 shadow-sm group hover:border-primary/20 transition-all">
                 <div className="flex justify-between items-start mb-4 gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 text-primary/60">{item.category}</Badge>
-                    </div>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 text-primary/60 mb-2">{item.category}</Badge>
                     <h4 className="text-sm font-bold text-primary leading-tight">{item.id}. {item.question}</h4>
                   </div>
                 </div>
@@ -293,7 +236,7 @@ export default function ChecklistsPage() {
                         "h-10 text-[9px] font-black uppercase rounded-xl transition-all",
                         responses[item.id] === status ? 'bg-primary' : 'hover:bg-primary/5 border-slate-200'
                       )}
-                      onClick={() => handleStatusChange(item, status)}
+                      onClick={() => setResponses(prev => ({ ...prev, [item.id]: status }))}
                     >
                       {status}
                     </Button>
@@ -310,7 +253,7 @@ export default function ChecklistsPage() {
               <Button 
                 onClick={handleFinalizeAuditoria} 
                 disabled={checklistProgress < 100 || isFinalizing}
-                className="bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-widest px-8 rounded-xl shadow-lg shadow-primary/20"
+                className="bg-primary hover:bg-primary/90 text-white font-black uppercase text-[10px] tracking-widest px-8 rounded-xl shadow-lg"
               >
                 {isFinalizing ? <Loader2 className="size-4 animate-spin" /> : "Finalizar e Protocolar"}
               </Button>

@@ -4,24 +4,15 @@ import * as React from "react"
 import { 
   FileText, 
   HeartPulse, 
-  ShieldAlert, 
-  BarChart3, 
   Download, 
-  Eye, 
-  FileSpreadsheet, 
   Search, 
-  Building2, 
   Filter,
-  ArrowRight,
-  Info,
-  Loader2,
-  ExternalLink,
-  FileDown,
-  ChevronRight,
   FolderOpen,
-  Zap,
   Settings,
-  Hammer
+  Hammer,
+  Building2,
+  ChevronRight,
+  ShieldCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,9 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, where, doc, collectionGroup } from "firebase/firestore"
-import { PDFDownloadLink } from '@react-pdf/renderer'
-import { SSTDocument } from "@/components/documents/sst-documents"
+import { collection, query, orderBy, doc, collectionGroup } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 interface ReportItem {
@@ -59,13 +48,11 @@ const REPORTS_MAPPING: Record<string, ReportItem[]> = {
 }
 
 export default function ReportsCenter() {
-  const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
   const [activeTab, setActiveTab] = React.useState("general")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState("all")
 
-  // Perfil para multi-tenant rigoroso
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
@@ -75,44 +62,48 @@ export default function ReportsCenter() {
   const isGlobalAdmin = React.useMemo(() => {
     if (!profile) return false;
     const role = (profile.role || '').toUpperCase();
-    const companyId = profile.companyId;
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+    return ['SUPER_ADMIN', 'ADMIN'].includes(role);
   }, [profile]);
 
-  // Trava unidade para clientes logados
-  React.useEffect(() => {
-    if (profile && !isGlobalAdmin && profile.companyId) {
-      setSelectedCompanyId(profile.companyId);
-    }
-  }, [profile, isGlobalAdmin]);
-
-  // Lista de empresas para o filtro
   const companiesQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db])
-  const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
+  const { data: allCompanies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
-  const groupedCompanies = React.useMemo(() => {
-    if (!companies) return { parents: [], orphans: [] }
-    const parents = companies.filter(c => c.isParent)
-    const children = companies.filter(c => c.parentId)
-    const orphans = companies.filter(c => !c.parentId && !c.isParent)
-    return { parents, children, orphans }
-  }, [companies])
+  // Filtra empresas baseado no papel do prestador
+  const availableCompanies = React.useMemo(() => {
+    if (!allCompanies || !profile) return []
+    if (isGlobalAdmin) return allCompanies
+    
+    const role = (profile.role || '').toUpperCase()
+    if (['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role) && profile.servedCompanies) {
+      return allCompanies.filter(c => profile.servedCompanies.includes(c.id))
+    }
+    
+    if (role === 'CLIENT_ADMIN' && profile.companyId) {
+      return allCompanies.filter(c => c.id === profile.companyId)
+    }
 
-  // Busca documentos reais nas sub-coleções com proteção multi-tenant
+    return []
+  }, [allCompanies, profile, isGlobalAdmin])
+
+  React.useEffect(() => {
+    if (availableCompanies.length === 1) {
+      setSelectedCompanyId(availableCompanies[0].id)
+    } else if (isGlobalAdmin && selectedCompanyId === "") {
+      setSelectedCompanyId("all")
+    }
+  }, [availableCompanies, isGlobalAdmin])
+
   const uploadedReportsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Se for Administrador Global e selecionou "Todas"
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "reports"), orderBy("createdAt", "desc"))
     }
 
-    // Se selecionou uma empresa específica ou se é cliente restrito
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
-
     if (companyIdToFilter) {
       return query(collection(db, "companies", companyIdToFilter, "reports"), orderBy("createdAt", "desc"))
     }
@@ -126,46 +117,34 @@ export default function ReportsCenter() {
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-bold text-[#002d9c] tracking-tight uppercase">Central de Documentos</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Central de Documentos</h1>
           <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Gestão de Laudos e Programas Técnicos.</p>
         </div>
       </div>
 
       <Card className="card-shadow border-none bg-white">
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2 md:col-span-2">
               <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Unidade / Cliente Selecionado</label>
-              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isGlobalAdmin}>
+              <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                 <SelectTrigger className="bg-muted/30 border-none h-12">
                   <div className="flex items-center gap-2">
                     <FolderOpen className="size-4 opacity-50" />
-                    <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Todas as Unidades"} />
+                    <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Selecione a Unidade"} />
                   </div>
                 </SelectTrigger>
                 <SelectContent>
                   {isGlobalAdmin && <SelectItem value="all">Todas as Unidades (Rede)</SelectItem>}
-                  {groupedCompanies.parents.map(parent => (
-                    <SelectGroup key={parent.id}>
-                      <SelectLabel className="font-black text-primary uppercase text-[9px] bg-primary/5 py-2">{parent.name}</SelectLabel>
-                      {groupedCompanies.children.filter(c => c.parentId === parent.id).map(child => (
-                        <SelectItem key={child.id} value={child.id} className="pl-6 text-[11px] uppercase">{child.name}</SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                  {groupedCompanies.orphans.map(c => (
+                  {availableCompanies.map(c => (
                     <SelectItem key={c.id} value={c.id} className="text-[11px] uppercase">{c.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Filtrar por Período</label>
-              <Input type="date" className="bg-muted/30 border-none h-12" />
-            </div>
             <div className="flex items-end">
-              <Button className="w-full gap-2 bg-[#002d9c] font-bold h-12 uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 text-white">
-                <Filter className="size-4" /> Aplicar Filtro
+              <Button className="w-full gap-2 bg-primary font-bold h-12 uppercase text-[10px] tracking-widest shadow-lg text-white rounded-xl">
+                <Filter className="size-4" /> Filtrar Documentação
               </Button>
             </div>
           </div>
@@ -174,9 +153,9 @@ export default function ReportsCenter() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="general" className="rounded-lg gap-2 text-xs font-bold">Gestão Geral</TabsTrigger>
-          <TabsTrigger value="legal" className="rounded-lg gap-2 text-xs font-bold">Laudos Legais</TabsTrigger>
-          <TabsTrigger value="technical" className="rounded-lg gap-2 text-xs font-bold">Engenharia</TabsTrigger>
+          <TabsTrigger value="general" className="rounded-lg gap-2 text-xs font-bold uppercase">Gestão Geral</TabsTrigger>
+          <TabsTrigger value="legal" className="rounded-lg gap-2 text-xs font-bold uppercase">Laudos Legais</TabsTrigger>
+          <TabsTrigger value="technical" className="rounded-lg gap-2 text-xs font-bold uppercase">Engenharia</TabsTrigger>
         </TabsList>
 
         {Object.entries(REPORTS_MAPPING).map(([category, reports]) => (
@@ -184,20 +163,25 @@ export default function ReportsCenter() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {reports.map((report) => {
                 const realFile = uploadedReports?.find(r => r.reportType === report.id);
-                const company = companies?.find(c => c.id === realFile?.companyId);
+                const company = availableCompanies.find(c => c.id === realFile?.companyId);
                 const ReportIcon = report.icon;
                 
                 return (
-                  <Card key={report.id} className="card-shadow border-none bg-white">
+                  <Card key={report.id} className="card-shadow border-none bg-white group hover:ring-2 ring-primary/10 transition-all">
                     <CardHeader>
-                      <ReportIcon className="size-5 text-[#002d9c]" />
-                      <CardTitle className="text-sm font-bold text-[#002d9c] mt-2">{report.name}</CardTitle>
-                      <CardDescription className="text-[11px] leading-tight">
-                        {realFile ? `Unidade: ${company?.name || 'Local'}` : report.description}
+                      <div className="flex justify-between items-start">
+                        <ReportIcon className="size-6 text-primary" />
+                        {realFile && <Badge className="bg-emerald-100 text-emerald-700 border-none uppercase text-[8px] font-black px-2">Atualizado</Badge>}
+                      </div>
+                      <CardTitle className="text-sm font-black text-primary mt-3 uppercase">{report.name}</CardTitle>
+                      <CardDescription className="text-[10px] leading-tight mt-1">
+                        {realFile ? `Última Versão: ${new Date(realFile.createdAt).toLocaleDateString('pt-BR')}` : report.description}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="pt-2 border-t mt-2">
-                      <Button variant="ghost" size="sm" className="w-full text-[9px] font-black uppercase bg-[#002d9c]/5">Visualizar Dossiê</Button>
+                      <Button variant="ghost" size="sm" className="w-full text-[9px] font-black uppercase bg-primary/5 hover:bg-primary hover:text-white transition-all">
+                        {realFile ? "Visualizar Dossiê" : "Aguardando Elaboração"}
+                      </Button>
                     </CardContent>
                   </Card>
                 );

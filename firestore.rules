@@ -2,48 +2,69 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Regra Global 1: Exige que o usuário esteja logado no sistema
+    // Funções de Apoio para RBAC
     function isAutenticado() {
       return request.auth != null;
     }
 
-    // Suporte para Collection Groups (Consultas Globais)
-    // Permite que componentes como o Quadro de Vidas e o Kanban listem dados de todas as unidades
-    match /{path=**}/employees/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/tasks/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/legalExpertises/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/reports/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/sst_events/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/examHistory/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/access_logs/{docId} { allow read: if isAutenticado(); }
-    match /{path=**}/esocial_events_queue/{docId} { allow read: if isAutenticado(); }
+    function getUserData() {
+      return get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
 
-    // Regras para as coleções raiz da plataforma
+    function isAdmin() {
+      let data = getUserData();
+      return isAutenticado() && (data.role == 'SUPER_ADMIN' || data.role == 'ADMIN');
+    }
+
+    function isClientAdmin(companyId) {
+      let data = getUserData();
+      return isAutenticado() && data.role == 'CLIENT_ADMIN' && data.companyId == companyId;
+    }
+
+    function isServedProvider(companyId) {
+      let data = getUserData();
+      let role = data.role;
+      return isAutenticado() && 
+             (role == 'PROVIDER' || role == 'ENGINEER' || role == 'DOCTOR') && 
+             (data.servedCompanies != null && companyId in data.servedCompanies);
+    }
+
+    // Regras para a Coleção de Empresas (Clientes)
     match /companies/{companyId} {
-      allow read, write: if isAutenticado();
-      
-      // Permite acesso a todas as sub-coleções das empresas (Contratos, Funcionários, etc)
+      allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
+      allow write: if isAdmin();
+
+      // Permite acesso a sub-coleções (Funcionários, Tasks, Reports, etc) baseado no vínculo
       match /{allChildren=**} {
-        allow read, write: if isAutenticado();
+        allow read, write: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
       }
     }
     
+    // Perfis de Usuário
     match /users/{userId} {
-      allow read, write: if isAutenticado();
+      allow read: if isAutenticado();
+      allow write: if isAdmin() || request.auth.uid == userId;
     }
-    
+
+    // Regras para Auditoria e Orçamentos
     match /medical_audit_requests/{docId} {
-      allow read, write: if isAutenticado();
+      allow read, write: if isAdmin() || getUserData().role == 'DOCTOR';
     }
 
     match /orcamentos/{docId} {
-      allow read, write: if isAutenticado();
+      allow read, write: if isAdmin();
     }
 
-    // Regra de segurança "Pega-tudo" para testes internos
-    // AVISO: Libera leitura/escrita para qualquer pessoa logada. Ideal para desenvolvimento.
+    // Suporte para Consultas Globais (Collection Groups)
+    // Protege as listagens garantindo que o prestador só veja registros de empresas permitidas
+    match /{path=**}/employees/{docId} { allow read: if isAdmin() || isServedProvider(resource.data.companyId); }
+    match /{path=**}/tasks/{docId} { allow read: if isAdmin() || isServedProvider(resource.data.companyId); }
+    match /{path=**}/legalExpertises/{docId} { allow read: if isAdmin() || isServedProvider(resource.data.companyId); }
+    match /{path=**}/reports/{docId} { allow read: if isAdmin() || isServedProvider(resource.data.companyId); }
+
+    // Bloqueio Total por Padrão (Whitelist approach)
     match /{document=**} {
-      allow read, write: if isAutenticado();
+      allow read, write: if isAdmin();
     }
   }
 }

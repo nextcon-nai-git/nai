@@ -1,78 +1,17 @@
-
 "use client"
 
 import * as React from "react"
-import { Database, Loader2, CheckCircle2, ShieldCheck, Scale, Gavel, Zap, ArrowLeft, Sparkles, ShieldAlert, HardHat, Bot, FolderTree } from "lucide-react"
+import { Database, Loader2, CheckCircle2, ShieldCheck, FolderTree, ArrowLeft } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { useFirestore, useStorage } from "@/firebase"
-import { doc, writeBatch } from "firebase/firestore"
+import { doc, writeBatch, serverTimestamp } from "firebase/firestore"
 import { ref, uploadString } from "firebase/storage"
 import { firebaseConfig } from "@/firebase/config"
 import { REAL_COMPANIES, REAL_PROVIDERS } from "@/lib/real-data"
 import Link from "next/link"
-
-const NORMAS_SAUDE = [
-  { id: "medicina_cfm", categoria: "Médico", orgao: "CFM", norma_principal: "Resolução CFM 2.318/2022", foco_defesa: "Autonomia do assistente vs. Auditoria", gatilhos: ["cirurgia", "internacao", "opme"], texto_legal_padrao: "É vedado ao médico auditor interferir na autonomia técnica do médico assistente sem justificativa clínica robusta (Art. X da Res. 2.318)." },
-  { id: "enfermagem_cofen", categoria: "Enfermeiro", orgao: "COFEN", norma_principal: "Resolução COFEN 662/2021", foco_defesa: "Auditoria de prontuários e custos hospitalares", gatilhos: ["taxas_hospitalares", "materiais", "diarias"], texto_legal_padrao: "A auditoria de enfermagem é atividade privativa do enfermeiro, sendo vedada a glosa técnica por profissional de outra categoria." },
-  { id: "fisioterapia_coffito", categoria: "Fisioterapeuta", orgao: "COFFITO", norma_principal: "Resolução COFFITO 466/2016", foco_defesa: "Perícia e diagnóstico funcional", gatilhos: ["reabilitacao", "pilates", "fisioterapia_motora"], texto_legal_padrao: "O diagnóstico fisioterapêutico e a prescrição de sessões são prerrogativas do fisioterapeuta (Res. 466)." },
-  { id: "psicologia_cfp", categoria: "Psicólogo", orgao: "CFP", norma_principal: "Resolução CFP 06/2019", foco_defesa: "Regras para elaboração de documentos/laudos", gatilhos: ["psicoterapia", "aba", "neuropsicologia"], texto_legal_padrao: "O documento psicológico deve seguir rigorosamente a estrutura técnica da Resolução 06/2019, sob pena de nulidade da negativa." },
-  { id: "servico_social_cfess", categoria: "Assistente Social", orgao: "CFESS", norma_principal: "Resolução CFESS 493/2006", foco_defesa: "Sigilo e perícia social", gatilhos: ["home_care", "desospitalizacao"], texto_legal_padrao: "A avaliação das condições de habitabilidade para Home Care é competência do Assistente Social, não sendo passível de negativa administrativa simples." }
-];
-
-const JURISPRUDENCIA = [
-  { id: "tema_1069_stj", titulo: "Tema 1069 STJ - Rol Taxativo", aplicacao: "Terapias multidisciplinares", argumento_automatico: "Apesar do Rol Taxativo, existem exceções para terapias multidisciplinares conforme entendimento do STJ (Tema 1069)." },
-  { id: "rn_424_ans", titulo: "RN 424 ANS - Junta Médica", aplicacao: "Divergência técnica de procedimentos e OPME", argumento_automatico: "Em caso de divergência, é obrigatória a instauração de Junta Médica/Odontológica, sendo vedada a negativa unilateral." }
-];
-
-const NORMAS_SST = [
-  { id: "nr_01", norma: "NR-1", titulo: "Gerenciamento de Riscos", foco_fiscalizacao: "PGR e Riscos Psicossociais", acao_preventiva: "Alerta de revisão do PGR por absenteísmo (CID F)." },
-  { id: "nr_07", norma: "NR-7", titulo: "PCMSO", foco_fiscalizacao: "Validade ASO", acao_preventiva: "Bloqueio de alocação com ASO vencido." },
-  { id: "nr_35", norma: "NR-35", titulo: "Trabalho em Altura", foco_fiscalizacao: "EPIs e Treinamento", acao_preventiva: "Exigir bipagem QR Code e validade de treinamento." }
-];
-
-const REGRAS_SST = [
-  { id: "firewall_esocial_s2240", evento: "S-2240", logica_bloqueio: "SE (ltcat == 'vencido') ENTÃO BLOQUEAR_ENVIO", mensagem_erro: "Bloqueio: LTCAT desatualizado ou inexistente." },
-  { id: "bloqueio_alocacao_risco", evento: "Alocação", logica_bloqueio: "SE (treinamentos_pendentes > 0) ENTÃO BLOQUEAR_ALOCACAO", mensagem_erro: "Colaborador inapto para a função. Treinamentos pendentes." }
-];
-
-const PITCH_NAI = {
-  id: "pitch_vendas_padrao",
-  ativo: true,
-  contexto_exibicao: "formulario_orcamento",
-  avatar: {
-    nome: "NAI",
-    titulo: "Inteligência Nextcon",
-    imagem_url: `https://storage.googleapis.com/${firebaseConfig.storageBucket}/logo/Avatar%20Nextcon%20NAI.png`,
-    saudacao_inicial: "Olá. Sou a NAI. Não contrate um software, contrate um escudo. Veja por quê 👇"
-  },
-  pilares_venda: [
-    {
-      ordem: 1,
-      icone: "shield_health",
-      titulo: "Saúde: A Super-Junta Jurídica",
-      resumo: "Proteção contra liminares de alto custo (TEA/NIPs).",
-      texto_completo: "Sabe aquelas liminares caríssimas de terapias e procedimentos? A NAI cruza normas dos conselhos e jurisprudência do STJ em tempo real para gerar contestações jurídicas robustas e automáticas."
-    },
-    {
-      ordem: 2,
-      icone: "attach_money_block",
-      titulo: "Financeiro: Glosa Reversa Automática",
-      resumo: "Bloqueio de cobranças indevidas em contas hospitalares.",
-      texto_completo: "Você sabia que até 70% das contas hospitalares podem conter erros? Nossa IA audita o faturamento contra o laudo técnico antes da autorização. O dinheiro indevido nem chega a sair do seu caixa."
-    },
-    {
-      ordem: 3,
-      icone: "security_hard_hat",
-      titulo: "SST 2026: Firewall Físico e Digital",
-      resumo: "Integração com catracas e bloqueio de multas do eSocial.",
-      texto_completo: "O eSocial em 2026 está cruzando dados na velocidade da luz. Nossa inteligência integra com suas catracas físicas e bloqueia funcionários inaptos ou sem treinamento direto na porta de entrada, evitando a multa antes do fato ocorrer."
-    }
-  ],
-  cta_final: "Termine seu orçamento e blinde sua operação."
-};
 
 export default function AuditSetupPage() {
   const { toast } = useToast()
@@ -89,187 +28,107 @@ export default function AuditSetupPage() {
     
     try {
       const batch = writeBatch(db)
+      const now = new Date().toISOString()
       
-      // 1. Injeção Firestore (Dados Técnicos)
-      setStatus("Injetando Base Legal e Comercial no Firestore...")
-      NORMAS_SAUDE.forEach(norma => batch.set(doc(db, "config_normas_profissionais", norma.id), norma))
-      JURISPRUDENCIA.forEach(jur => batch.set(doc(db, "config_jurisprudencia", jur.id), jur))
-      NORMAS_SST.forEach(nr => batch.set(doc(db, "config_nrs", nr.id), nr))
-      REGRAS_SST.forEach(regra => batch.set(doc(db, "config_regras_sst", regra.id), regra))
-      batch.set(doc(db, "config_nai_avatar", PITCH_NAI.id), PITCH_NAI)
-      await batch.commit()
-      setProgress(20)
+      // 1. Provisionar Empresas
+      setStatus("Sincronizando 27 Unidades Estratégicas...")
+      REAL_COMPANIES.forEach(comp => {
+        batch.set(doc(db, "companies", comp.id), { 
+          ...comp, 
+          updatedAt: now,
+          active: true 
+        }, { merge: true })
+      })
+      setProgress(30)
 
-      // 2. Provisionamento Storage (Hierarquia de Elite baseada no Script)
-      setStatus("Provisionando Árvore de Pastas no Storage...")
-      
-      const idClienteModelo = "CLIENTE_MODELO_001";
-      const marker = ""; // Arquivo vazio conforme script
-
-      const paths = [
-        // 1. Área Pública
-        "public/assets/.keep",
-        "public/modelos_documentos/.keep",
+      // 2. Provisionar Prestadores com Vínculos Multi-tenant (servedCompanies)
+      setStatus("Provisionando Prestadores e Vínculos de Sigilo...")
+      REAL_PROVIDERS.forEach((provider, index) => {
+        // Distribui empresas entre os prestadores para o demo
+        // Os 5 primeiros pegam Britânia e Nativa, os outros pegam BRDE e TimeNow
+        const servedCompanies = index < 5 ? ["76492701001129", "51633820000151"] : ["92816560000137", "48865462000106"];
         
-        // 2. Área Interna Nextcon
-        "internos_nextcon/projetos_internos/.keep",
-        "internos_nextcon/fornecedores/.keep",
-        
-        // 3. Área de Usuários Globais
-        "usuarios/.keep",
+        batch.set(doc(db, "users", provider.id), { 
+          ...provider, 
+          updatedAt: now,
+          active: true,
+          servedCompanies: servedCompanies,
+          status: "PROVISIONED"
+        }, { merge: true })
+      })
+      setProgress(60)
 
-        // 4. Área do Cliente (Modelo)
-        `clientes/${idClienteModelo}/docs_legais/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr01_pgr/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr04_sesmt/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr05_cipa/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr06_epis/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr07_pcmso/.keep`,
-        `clientes/${idClienteModelo}/sst_nrs/nr17_ergo/.keep`,
-        `clientes/${idClienteModelo}/saude_gestao/afastados/.keep`,
-        `clientes/${idClienteModelo}/saude_gestao/fap/.keep`,
-        `clientes/${idClienteModelo}/saude_gestao/pericias/.keep`,
-        `clientes/${idClienteModelo}/certificacoes/iso_45001/.keep`,
-        `clientes/${idClienteModelo}/colaboradores/.keep`
-      ];
-
-      // Executa o upload dos marcadores .keep
-      let uploaded = 0;
-      for (const path of paths) {
-        await uploadString(ref(storage, path), marker);
-        uploaded++;
-        setProgress(20 + (uploaded / paths.length) * 20);
-      }
-
-      // Provisiona estrutura para os Prestadores (Fornecedores)
-      setStatus("Provisionando Repositórios de Prestadores...")
-      let provCount = 0;
-      for (const provider of REAL_PROVIDERS.slice(0, 10)) {
-        provCount++;
-        await uploadString(ref(storage, `internos_nextcon/fornecedores/${provider.id}/.keep`), marker);
-        setProgress(40 + (provCount / 10) * 20);
-      }
-
-      // Provisiona estrutura para as 5 principais empresas da base real para demonstração
+      // 3. Provisionamento de Pastas Storage
+      setStatus("Provisionando Árvore de Pastas Multi-tenant...")
       const targetCompanies = REAL_COMPANIES.slice(0, 5);
-      const clientFolders = [
-        "docs_legais",
-        "sst_nrs/nr01_pgr",
-        "sst_nrs/nr04_sesmt",
-        "sst_nrs/nr05_cipa",
-        "sst_nrs/nr06_epis",
-        "sst_nrs/nr07_pcmso",
-        "sst_nrs/nr17_ergo",
-        "saude_gestao/afastados",
-        "saude_gestao/fap",
-        "saude_gestao/pericias",
-        "certificacoes/iso_45001",
-        "colaboradores"
-      ];
+      const clientFolders = ["docs_legais", "sst_nrs/nr01_pgr", "sst_nrs/nr07_pcmso", "saude_gestao/afastados"];
 
-      let compCount = 0;
       for (const comp of targetCompanies) {
-        compCount++;
-        setStatus(`Provisionando Multi-tenant: ${comp.name}...`);
         for (const folder of clientFolders) {
-          await uploadString(ref(storage, `clientes/${comp.id}/${folder}/.keep`), marker);
+          await uploadString(ref(storage, `clientes/${comp.id}/${folder}/.keep`), "");
         }
-        setProgress(60 + (compCount / targetCompanies.length) * 40);
       }
 
+      await batch.commit()
       setProgress(100)
-      setStatus("✅ Ecossistema e Árvore de Pastas ativados com sucesso!")
+      setStatus("✅ Ecossistema e Sigilo Multi-tenant ativados!")
       
       toast({
-        title: "Estrutura Criada",
-        description: "Firestore e Storage sincronizados à hierarquia de elite."
+        title: "Setup Concluído",
+        description: "Regras de sigilo e vínculos de prestadores ativados."
       })
     } catch (error) {
       console.error(error)
-      toast({
-        variant: "destructive",
-        title: "Erro na Configuração",
-        description: "Falha ao provisionar as bases técnicas e storage."
-      })
+      toast({ variant: "destructive", title: "Erro no Setup" })
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-6 animate-in fade-in duration-700 pb-20">
+    <div className="min-h-[80vh] flex items-center justify-center p-6 animate-in fade-in duration-700">
       <Card className="max-w-2xl w-full border-none shadow-2xl rounded-[2.5rem] overflow-hidden bg-white">
         <CardHeader className="bg-primary text-white p-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10"><FolderTree className="size-48 text-accent" /></div>
+          <div className="absolute top-0 right-0 p-8 opacity-10"><ShieldCheck className="size-48 text-accent" /></div>
           <div className="relative z-10 space-y-2">
-            <Link href="/agency/cloud-infra">
+            <Link href="/data-import">
               <Button variant="ghost" size="sm" className="text-white/60 hover:text-white -ml-2 mb-4 gap-2">
                 <ArrowLeft className="size-4" /> Voltar
               </Button>
             </Link>
-            <div className="p-3 bg-white/10 rounded-2xl w-fit mb-4">
-              <ShieldCheck className="size-8 text-accent" />
-            </div>
-            <CardTitle className="text-3xl font-headline font-black uppercase tracking-tight">Setup Ecossistema 2026</CardTitle>
-            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Injeção massiva de Inteligência e Hierarquia Storage</CardDescription>
+            <CardTitle className="text-3xl font-headline font-black uppercase tracking-tight">Ativar Vínculos de Sigilo</CardTitle>
+            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Configuração Multi-tenant: Prestador vê apenas seus clientes.</CardDescription>
           </div>
         </CardHeader>
 
         <CardContent className="p-10 space-y-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <SetupIndicator icon={Scale} label="Saúde" />
-            <SetupIndicator icon={ShieldAlert} label="NRs" />
-            <SetupIndicator icon={Zap} label="eSocial" />
-            <SetupIndicator icon={HardHat} label="Ativos" />
-            <SetupIndicator icon={FolderTree} label="Storage" />
-          </div>
-
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">
-              <span>Sincronização de Inteligência & Pastas</span>
+              <span>Sincronização de Permissões</span>
               <span className="text-primary">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-3 bg-slate-100" />
           </div>
 
           {status && (
-            <div className="p-5 bg-accent/5 border border-accent/10 rounded-2xl flex items-center gap-4 text-primary animate-in slide-in-from-bottom-2">
+            <div className="p-5 bg-accent/5 border border-accent/10 rounded-2xl flex items-center gap-4 text-primary">
               {loading ? <Loader2 className="size-5 animate-spin text-accent" /> : <CheckCircle2 className="size-5 text-accent" />}
               <span className="text-xs font-bold italic leading-tight">"{status}"</span>
             </div>
           )}
         </CardContent>
 
-        <CardFooter className="p-10 bg-slate-50 flex flex-col gap-4">
+        <CardFooter className="p-10 bg-slate-50">
           <Button 
             onClick={handleSetup} 
             disabled={loading}
-            className="w-full h-16 bg-primary text-white hover:bg-primary/90 text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-primary/20 gap-3"
+            className="w-full h-16 bg-primary text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl gap-3"
           >
-            {loading ? (
-              <div className="flex items-center gap-3">
-                <Loader2 className="size-5 animate-spin" /> Sincronizando...
-              </div>
-            ) : (
-              <>
-                <Database className="size-5 text-accent" /> Ativar Cérebro & Storage NAI
-              </>
-            )}
+            {loading ? <Loader2 className="size-5 animate-spin" /> : <Database className="size-5 text-accent" />}
+            Ativar Blindagem de Fornecedores
           </Button>
-          <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-tighter">
-            Esta operação provisiona as bases normativas, o roteiro de vendas e a árvore de diretórios oficial no Cloud Storage respeitando o isolamento multi-tenant.
-          </p>
         </CardFooter>
       </Card>
-    </div>
-  )
-}
-
-function SetupIndicator({ icon: Icon, label }: any) {
-  return (
-    <div className="flex flex-col items-center gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-primary/10 transition-colors">
-      <Icon className="size-6 text-primary" />
-      <span className="text-[8px] font-black uppercase text-center text-slate-500">{label}</span>
     </div>
   )
 }
