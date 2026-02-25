@@ -58,10 +58,13 @@ export function useCollection<T = any>(
         let path = 'collection-group';
         try {
           const anyQuery = memoizedTargetRefOrQuery as any;
+          // Melhora a detecção de caminho para erros contextuais
           if (anyQuery?._query?.collectionGroup) {
             path = `group:${anyQuery._query.collectionGroup}`;
           } else if (anyQuery?.path) {
             path = anyQuery.path;
+          } else if (anyQuery?._query?.path?.segments) {
+            path = anyQuery._query.path.segments.join('/');
           }
         } catch (e) {
           path = 'complex-query';

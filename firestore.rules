@@ -52,7 +52,10 @@ service cloud.firestore {
 
     // Auditoria Médica e Regulação
     match /medical_audit_requests/{docId} {
-      allow read, write: if isAdmin() || getUserData().role == 'DOCTOR' || getUserData().role == 'PROVIDER';
+      // Permite que admins de clientes vejam seus próprios pedidos de auditoria
+      allow read: if isAdmin() || getUserData().role == 'DOCTOR' || getUserData().role == 'PROVIDER' || (getUserData().role == 'CLIENT_ADMIN' && resource.data.companyId == getUserData().companyId);
+      allow create: if isAutenticado();
+      allow update, delete: if isAdmin() || getUserData().role == 'DOCTOR' || getUserData().role == 'PROVIDER';
     }
 
     // Suporte para Consultas Globais (Collection Groups) protegidas por Geofencing

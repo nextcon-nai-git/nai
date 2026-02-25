@@ -35,7 +35,7 @@ export default function LoginPage() {
   // Facilita o teste inicial
   React.useEffect(() => {
     if (mode === 'ADMIN') setEmail('nextcon@nextconsaude.com.br');
-    else setEmail('gestor@nativa.com.br');
+    else setEmail('engenharia@nativaempreendimentos.com.br');
   }, [mode]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,13 +48,17 @@ export default function LoginPage() {
 
       const isAdmin = mode === 'ADMIN';
       
+      // Sincronização com IDs reais da base REAL_COMPANIES para conformidade Multi-tenant
+      const nativaId = "51633820000151";
+      const timeNowId = "01208413000129";
+
       const userRef = doc(db, "users", loggedUser.uid);
       await setDoc(userRef, {
         id: loggedUser.uid,
         email: loggedUser.email,
-        name: isAdmin ? "FELIPE CONEGLIAN DELLA BIANCA" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
+        name: isAdmin ? "Eng. Felipe Coneglian Della Bianca" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
         role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-        companyId: isAdmin ? "" : (email.includes('nativa') ? 'CLI_NATIVA' : 'CLI_TIMENOW'),
+        companyId: isAdmin ? "" : (email.includes('nativa') ? nativaId : timeNowId),
         updatedAt: serverTimestamp()
       }, { merge: true });
 

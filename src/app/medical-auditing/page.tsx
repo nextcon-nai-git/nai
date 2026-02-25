@@ -46,7 +46,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, doc, getDoc, addDoc, updateDoc, limit } from "firebase/firestore"
+import { collection, query, orderBy, doc, getDoc, addDoc, updateDoc, limit, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 export default function MedicalAuditingPage() {
@@ -80,11 +80,27 @@ export default function MedicalAuditingPage() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  // OTIMIZAÇÃO: Limitamos a 30 solicitações recentes no módulo Saúde
+  const isGlobalAdmin = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    const companyId = profile.companyId;
+    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
+  }, [profile]);
+
+  // Consulta protegida: Clientes vêem apenas suas auditorias
   const requestsQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, "medical_audit_requests"), orderBy("createdAt", "desc"), limit(30))
-  }, [db])
+    if (!db || !profile) return null
+    
+    let q = collection(db, "medical_audit_requests")
+    
+    if (!isGlobalAdmin && profile.companyId) {
+      // @ts-ignore
+      return query(q, where("companyId", "==", profile.companyId), orderBy("createdAt", "desc"), limit(30))
+    }
+    
+    return query(q, orderBy("createdAt", "desc"), limit(30))
+  }, [db, profile, isGlobalAdmin])
+
   const { data: requests, isLoading } = useCollection(requestsQuery)
 
   const normsQuery = useMemoFirebase(() => {
@@ -147,7 +163,7 @@ export default function MedicalAuditingPage() {
           defenseStrategy: defenseStrategy
         })
 
-        toast({ title: "Super-Junta Finalizada", description: "Defesa gerada com base no cruzamento normativo." })
+        toast({ title: "Super-Junta Finalizada", description: "Defesa gerada com base no curso normativo." })
       }
 
       setIsCreateOpen(false)
