@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -8,7 +9,8 @@
         "name": { "type": "string" },
         "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "ENGINEER", "DOCTOR", "PROVIDER"] },
         "email": { "type": "string" },
-        "companyId": { "type": "string", "description": "ID da empresa caso o usuário seja CLIENT_ADMIN" }
+        "companyId": { "type": "string", "description": "ID da empresa caso o usuário seja CLIENT_ADMIN" },
+        "servedCompanies": { "type": "array", "items": { "type": "string" }, "description": "Lista de IDs de empresas atendidas (raio 50km)" }
       },
       "required": ["id", "name", "role", "email"]
     },
@@ -23,95 +25,27 @@
         "logoUrl": { "type": "string" },
         "address": { "type": "string" },
         "risk_degree": { "type": "number" },
-        "cnae": { "type": "string" }
+        "cnae": { "type": "string" },
+        "lat": { "type": "number" },
+        "lng": { "type": "number" }
       },
       "required": ["id", "name", "cnpj"]
     },
-    "TelemedicineAppointment": {
-      "title": "TelemedicineAppointment",
+    "OccupationalExamAppointment": {
+      "title": "OccupationalExamAppointment",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "paciente_email": { "type": "string" },
-        "medico_email": { "type": "string" },
-        "inicio": { "type": "string", "format": "date-time" },
-        "fim": { "type": "string", "format": "date-time" },
-        "link_meet": { "type": "string" },
-        "status": { "type": "string", "enum": ["agendada", "concluida", "cancelada"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "employeeName": { "type": "string" },
+        "employeePhone": { "type": "string" },
+        "clinicId": { "type": "string" },
+        "clinicName": { "type": "string" },
+        "examType": { "type": "string", "enum": ["Admissional", "Periódico", "Demissional", "Mudança de Função", "Retorno ao Trabalho"] },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["disponivel", "agendado", "concluido", "cancelado"] },
+        "companyId": { "type": "string" }
       },
-      "required": ["paciente_email", "medico_email", "inicio", "fim", "link_meet", "status"]
-    },
-    "WorkAllocation": {
-      "title": "WorkAllocation",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "riskLevel": { "type": "string" },
-        "status": { "type": "string", "enum": ["approved", "blocked"] },
-        "blockingReasons": { "type": "array", "items": { "type": "string" } },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "AccessLog": {
-      "title": "AccessLog",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "area": { "type": "string" },
-        "status": { "type": "string", "enum": ["authorized", "denied"] },
-        "reason": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      }
-    },
-    "EsocialEvent": {
-      "title": "EsocialEvent",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "eventType": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "status": { "type": "string" },
-        "firewallMessage": { "type": "string" },
-        "payload": { "type": "object" }
-      }
-    },
-    "MedicalAuditRequest": {
-      "title": "MedicalAuditRequest",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "patientName": { "type": "string" },
-        "professionalCategory": { "type": "string" },
-        "diagnosis": { "type": "string" },
-        "status": { "type": "string" },
-        "defenseStrategy": { "type": "object" },
-        "expertiseChecklist": { "type": "object" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "NaiSalesPitch": {
-      "title": "NaiSalesPitch",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "ativo": { "type": "boolean" },
-        "avatar": { 
-          "type": "object",
-          "properties": {
-            "nome": { "type": "string" },
-            "titulo": { "type": "string" },
-            "imagem_url": { "type": "string" },
-            "saudacao_inicial": { "type": "string" }
-          }
-        },
-        "pilares_venda": { "type": "array" },
-        "cta_final": { "type": "string" }
-      }
+      "required": ["clinicId", "examType", "scheduledAt", "status"]
     }
   },
   "auth": {
@@ -126,41 +60,9 @@
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
     },
-    "/agendamentos_telemedicina/{id}": {
-      "schema": "#/entities/TelemedicineAppointment",
-      "description": "Videoconsultas agendadas no Google Meet."
-    },
-    "/companies/{companyId}/work_allocations/{id}": {
-      "schema": "#/entities/WorkAllocation",
-      "description": "Registros de alocação monitorados pelo Vigia de Compliance."
-    },
-    "/companies/{companyId}/access_logs/{id}": {
-      "schema": "#/entities/AccessLog",
-      "description": "Logs de acesso físico por crachá RFID em áreas de risco."
-    },
-    "/companies/{companyId}/esocial_events_queue/{id}": {
-      "schema": "#/entities/EsocialEvent",
-      "description": "Fila de eventos monitorada pelo Firewall eSocial."
-    },
-    "/medical_audit_requests/{id}": {
-      "schema": "#/entities/MedicalAuditRequest",
-      "description": "Solicitações de auditoria médica e super-junta."
-    },
-    "/config_nai_avatar/{id}": {
-      "schema": "#/entities/NaiSalesPitch",
-      "description": "Configurações de roteiro e avatar da assistente virtual."
-    },
-    "/companies/{companyId}/tasks/{taskId}": {
-      "schema": {
-        "type": "object",
-        "properties": {
-          "title": { "type": "string" },
-          "status": { "type": "string" },
-          "type": { "type": "string" },
-          "metadata": { "type": "object" }
-        }
-      },
-      "description": "Cards operacionais e comerciais (Kanban)."
+    "/exam_appointments/{id}": {
+      "schema": "#/entities/OccupationalExamAppointment",
+      "description": "Agendamentos de exames ocupacionais com clínicas parceiras."
     }
   }
 }
