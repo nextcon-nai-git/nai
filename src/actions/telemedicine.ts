@@ -20,38 +20,29 @@ export async function agendarConsultaMeet(data: {
   const { pacienteEmail, medicoEmail, dataHoraInicio, dataHoraFim, tituloConsulta } = data;
 
   try {
-    // 1. Verificação de Credenciais
-    const hasEnvJson = !!process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    const hasEnvFile = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    // 1. Verificação de Credenciais via String JSON (Seguro para Cloud)
+    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 
-    if (!hasEnvJson && !hasEnvFile) {
+    if (!serviceAccountJson || serviceAccountJson.trim() === "") {
       return {
         sucesso: false,
-        mensagem: "Configuração incompleta: O arquivo 'google-service-account.json' não foi localizado e a variável 'GOOGLE_SERVICE_ACCOUNT_JSON' está vazia."
+        mensagem: "Configuração incompleta: A variável 'GOOGLE_SERVICE_ACCOUNT_JSON' não foi preenchida no arquivo .env."
       };
     }
 
-    // 2. Autenticação do Sistema com o Google Cloud (Service Account)
+    // 2. Autenticação do Sistema com o Google Cloud (Service Account em Memória)
     let auth;
     try {
-      if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-        // Tenta carregar as credenciais diretamente da string JSON (Ideal para Cloud/Vercel)
-        const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-        auth = new google.auth.GoogleAuth({
-          credentials,
-          scopes: ["https://www.googleapis.com/auth/calendar.events"],
-        });
-      } else {
-        // Tenta carregar do arquivo físico apontado no .env
-        auth = new google.auth.GoogleAuth({
-          scopes: ["https://www.googleapis.com/auth/calendar.events"],
-        });
-      }
+      const credentials = JSON.parse(serviceAccountJson);
+      auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: ["https://www.googleapis.com/auth/calendar.events"],
+      });
     } catch (authError: any) {
-      console.error("Erro ao inicializar Google Auth:", authError);
+      console.error("Erro ao inicializar Google Auth via JSON:", authError);
       return {
         sucesso: false,
-        mensagem: "Erro nas credenciais: O conteúdo do JSON da Service Account é inválido ou o arquivo não existe."
+        mensagem: "Erro nas credenciais: O conteúdo de GOOGLE_SERVICE_ACCOUNT_JSON é inválido (não é um JSON válido)."
       };
     }
 
@@ -117,8 +108,8 @@ export async function agendarConsultaMeet(data: {
     console.error("Erro na integração Google Meet:", error);
     
     let mensagemAmigavel = "Erro interno ao gerar sala do Meet.";
-    if (error.message?.includes("credentials") || error.message?.includes("token") || error.message?.includes("ENOENT")) {
-      mensagemAmigavel = "Erro de Autenticação: Verifique se o arquivo JSON da Service Account está correto ou se a variável GOOGLE_SERVICE_ACCOUNT_JSON foi preenchida.";
+    if (error.message?.includes("credentials") || error.message?.includes("token") || error.message?.includes("Unexpected token")) {
+      mensagemAmigavel = "Erro de Autenticação: Verifique se a variável GOOGLE_SERVICE_ACCOUNT_JSON foi preenchida corretamente com o conteúdo do arquivo JSON da conta de serviço.";
     } else if (error.message?.includes("API")) {
       mensagemAmigavel = "Erro de API: Verifique se a 'Google Calendar API' está ativa no Google Cloud Console.";
     } else if (error.message) {
