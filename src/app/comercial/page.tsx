@@ -14,7 +14,12 @@ import {
   Brain,
   Zap,
   LayoutGrid,
-  TrendingUp
+  TrendingUp,
+  Globe,
+  ExternalLink,
+  Search,
+  Building2,
+  Calendar
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,6 +40,7 @@ import { NaiQuoteComponent } from "@/components/commercial/nai-quote-component"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import { COMMERCIAL_COLUMNS } from "@/types/kanban"
 import { OpsTask } from "@/types/schema"
+import { cn } from "@/lib/utils"
 
 export default function ComercialPortal() {
   const { toast } = useToast()
@@ -44,6 +50,11 @@ export default function ComercialPortal() {
   const [activeTab, setActiveTab] = React.useState("ai")
   const [selectedServices, setSelectedServices] = React.useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = React.useState(false)
+
+  // Estados para o Radar PNCP
+  const [licitacoes, setLicitacoes] = React.useState<any[]>([])
+  const [loadingRadar, setLoadingRadar] = React.useState(false)
+  const [erroRadar, setErroRadar] = React.useState('')
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -58,7 +69,6 @@ export default function ComercialPortal() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  // Busca cards comerciais - OTIMIZAÇÃO: Limitamos a 50 cards para performance
   const commercialTasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     if (isGlobalAdmin) {
@@ -101,6 +111,25 @@ export default function ComercialPortal() {
     return total
   }, [selectedServices])
 
+  const buscarLicitacoes = async () => {
+    setLoadingRadar(true)
+    setErroRadar('')
+    try {
+      const res = await fetch('/api/licitacoes')
+      const json = await res.json()
+      if (json.sucesso) {
+        setLicitacoes(json.oportunidades)
+        toast({ title: "Radar Atualizado", description: `${json.oportunidades.length} oportunidades encontradas.` })
+      } else {
+        setErroRadar(json.erro)
+      }
+    } catch (err) {
+      setErroRadar('Falha na conexão com a base de dados do Governo.')
+    } finally {
+      setLoadingRadar(false)
+    }
+  }
+
   async function handleSaveManualProposal() {
     if (!db || !profile) return
     setIsSaving(true)
@@ -136,16 +165,16 @@ export default function ComercialPortal() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Proposta Comercial</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Inteligência Comercial</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
-            <Sparkles className="size-3 text-[#00f2ff]" /> Inteligência Comercial e Funil de Vendas SST.
+            <Sparkles className="size-3 text-accent" /> Gestão de Oportunidades e Vendas SST 2026.
           </p>
         </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#00f2ff]/30">MÓDULO VENDAS</Badge>
+        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-white/10">MÓDULO VENDAS</Badge>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[750px] grid-cols-3 bg-muted/50 p-1.5 rounded-2xl h-16">
+        <TabsList className="grid w-full md:w-[950px] grid-cols-4 bg-muted/50 p-1.5 rounded-2xl h-16">
           <TabsTrigger value="ai" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Brain className="size-4" /> Consultoria NAI (IA)
           </TabsTrigger>
@@ -154,6 +183,9 @@ export default function ComercialPortal() {
           </TabsTrigger>
           <TabsTrigger value="cards" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <LayoutGrid className="size-4" /> Funil de Vendas
+          </TabsTrigger>
+          <TabsTrigger value="radar" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-accent">
+            <Globe className="size-4" /> Radar PNCP
           </TabsTrigger>
         </TabsList>
 
@@ -245,6 +277,92 @@ export default function ComercialPortal() {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="radar" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-slate-50 border-b p-8 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/20">
+                    <Globe className="size-6" />
+                  </div>
+                  <CardTitle className="text-2xl font-headline font-black text-primary uppercase tracking-tight">Radar de Contratos Públicos</CardTitle>
+                </div>
+                <CardDescription className="text-sm font-medium text-slate-400">Monitoramento em tempo real do PNCP (Editais de SST).</CardDescription>
+              </div>
+              <Button 
+                onClick={buscarLicitacoes} 
+                disabled={loadingRadar}
+                className="gradient-nextcon text-white h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl gap-3"
+              >
+                {loadingRadar ? <Loader2 className="size-5 animate-spin" /> : <Search className="size-5" />}
+                {loadingRadar ? "Vasculhando Portais..." : "Capturar Oportunidades"}
+              </Button>
+            </CardHeader>
+            <CardContent className="p-8 md:p-10 min-h-[400px]">
+              {erroRadar && (
+                <div className="p-6 bg-red-50 border border-red-100 rounded-3xl flex items-center gap-4 text-red-700 mb-8">
+                  <Zap className="size-6" />
+                  <p className="text-sm font-bold italic">"{erroRadar}"</p>
+                </div>
+              )}
+
+              {licitacoes.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {licitacoes.map((item, index) => (
+                    <div key={index} className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 hover:border-primary/20 transition-all flex flex-col group shadow-sm bg-white">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className="bg-white border-primary/10 text-primary/60 text-[8px] font-black uppercase h-6">
+                          ID: {item.numeroContratacao || 'PNCP'}
+                        </Badge>
+                        <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase h-6">Edital Ativo</Badge>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mb-3">
+                        <Building2 className="size-3.5 text-slate-400" />
+                        <h3 className="font-black text-primary uppercase text-[11px] leading-tight line-clamp-2">
+                          {item.orgaoEntidade?.razaoSocial || 'Órgão Público'}
+                        </h3>
+                      </div>
+
+                      <p className="text-xs text-slate-500 font-medium italic leading-relaxed line-clamp-3 mb-6">
+                        "{item.objetoCompra}"
+                      </p>
+
+                      <div className="mt-auto space-y-4">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-3 bg-white rounded-xl border border-slate-100">
+                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1"><Calendar className="size-2" /> Publicação</p>
+                            <p className="text-[10px] font-bold text-primary">{new Date(item.dataPublicacaoPncp).toLocaleDateString('pt-BR')}</p>
+                          </div>
+                          <div className="p-3 bg-white rounded-xl border border-slate-100 text-right">
+                            <p className="text-[8px] font-black text-slate-400 uppercase mb-1 flex items-center gap-1 justify-end"><TrendingUp className="size-2 text-accent" /> Estimado</p>
+                            <p className="text-[10px] font-bold text-accent">
+                              {item.valorTotalEstimado ? item.valorTotalEstimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'A consultar'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" className="w-full h-11 bg-primary/5 hover:bg-primary hover:text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-all gap-2" asChild>
+                          <a href={item.linkSistemaOrigem} target="_blank" rel="noopener noreferrer">
+                            Ver Edital Completo <ExternalLink className="size-3" />
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-20 opacity-20 text-center space-y-4">
+                  <Globe className="size-20" />
+                  <div className="max-w-xs">
+                    <p className="text-xl font-black uppercase tracking-widest text-primary">Radar em Standby</p>
+                    <p className="text-sm font-bold">Clique no botão superior para escanear oportunidades nos portais do Governo.</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
