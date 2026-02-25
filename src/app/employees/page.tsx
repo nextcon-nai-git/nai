@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -148,13 +149,17 @@ export default function EmployeesPage() {
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Apenas Admins Globais podem ver todas as vidas via Collection Group
-    if (selectedCompanyId === "all" && isGlobalAdmin) {
+    // Apenas Admins Globais podem ver todas as vidas via Collection Group se selecionarem "all"
+    if (isGlobalAdmin && selectedCompanyId === "all") {
       return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
     } 
     
-    // Usuários de clientes ou admins filtrando restringem a busca
+    // Se não for admin, ou se for admin filtrando por uma empresa específica
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+    
+    // Se ainda for "all" e NÃO for admin global, ignoramos para evitar erro de permissão
+    if (companyIdToFilter === "all" && !isGlobalAdmin) return null;
+
     if (companyIdToFilter) {
       return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
     }
@@ -278,7 +283,7 @@ export default function EmployeesPage() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-black uppercase text-slate-400">Unidade</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isGlobalAdmin}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isGlobalAdmin && !!profile?.companyId}>
                             <FormControl>
                               <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold">
                                 <SelectValue placeholder="Selecione..." />

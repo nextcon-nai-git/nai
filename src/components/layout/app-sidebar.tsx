@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -81,7 +82,6 @@ const NAV_MODULES = [
     items: [
       { title: "ERP Financeiro", icon: Database, href: "/financial" },
       { title: "ROI & Perícias", icon: Gavel, href: "/legal-financial" },
-      { title: "NAI API 2.0", icon: Network, href: "#", roles: ['SUPER_ADMIN', 'ADMIN'] },
     ]
   },
   {
@@ -144,7 +144,7 @@ export function AppSidebar() {
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
           <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
-            {isAdmin ? 'Nextcon Inteligência' : 'SST Intelligence'}
+            Nextcon Inteligência
           </span>
         </div>
       </SidebarHeader>
