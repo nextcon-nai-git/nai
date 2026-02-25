@@ -52,7 +52,7 @@ export default function LoginPage() {
       await setDoc(userRef, {
         id: loggedUser.uid,
         email: loggedUser.email,
-        name: isAdmin ? "FELIPE BIANCA" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
+        name: isAdmin ? "FELIPE CONEGLIAN DELLA BIANCA" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
         role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
         companyId: isAdmin ? "" : (email.includes('nativa') ? 'CLI_NATIVA' : 'CLI_TIMENOW'),
         updatedAt: serverTimestamp()

@@ -122,7 +122,7 @@ export const SSTDocument = ({ data, company, type }: any) => (
       <View style={styles.signatureArea}>
         <View style={styles.signatureBlock}>
           <View style={styles.signatureLine} />
-          <Text style={styles.signerName}>Eng. Felipe Bianca</Text>
+          <Text style={styles.signerName}>Eng. Felipe Coneglian Della Bianca</Text>
           <Text style={styles.signerRole}>Engenheiro de Segurança do Trabalho</Text>
           <Text style={{fontSize: 6, color: '#10B981'}}>Assinado Digitalmente - NAI ID: 843929</Text>
         </View>
