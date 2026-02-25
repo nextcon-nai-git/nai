@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -10,6 +9,7 @@ import {
   Clock,
   Stethoscope,
   ShieldCheck,
+  ShieldAlert,
   Sparkles,
   HeartPulse,
   GraduationCap,
@@ -17,8 +17,8 @@ import {
   DollarSign,
   TrendingUp,
   Brain,
-  ShieldAlert,
-  ArrowUpRight
+  ArrowUpRight,
+  Users as UsersIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -155,7 +155,7 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância SESMT" icon={Users} color="text-blue-600" bg="bg-blue-50" />
+            <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância SESMT" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
             <StatCard label="Treinamentos" value="04" sub="Turmas Digitais" icon={GraduationCap} color="text-orange-600" bg="bg-orange-50" />
           </div>
@@ -246,27 +246,5 @@ function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
         <p className="text-[8px] font-bold text-slate-400 uppercase">{sub}</p>
       </CardContent>
     </Card>
-  )
-}
-
-function Users(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
   )
 }

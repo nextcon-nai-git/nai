@@ -10,6 +10,7 @@ import {
   BarChart3,
   SearchCheck,
   ShieldCheck,
+  ShieldAlert,
   Sparkles,
   DollarSign,
   ClipboardCheck,
@@ -107,7 +108,7 @@ const NAV_MODULES = [
       { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
       { title: "Quiosque Digital EPI", icon: Lock, href: "/ppe-kiosk" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
-      { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
+      { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },
     ]
   }
 ]
