@@ -21,7 +21,10 @@ import {
   ClipboardCheck,
   ChevronRight,
   TrendingUp,
-  FileWarning
+  FileWarning,
+  DollarSign,
+  TrendingDown,
+  ArrowUpRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -145,11 +148,24 @@ const ERGO_DATA: Record<string, { title: string; risk: string; action: string }>
   }
 };
 
+const PAYROLL_OPTIONS = [15000000, 30000000];
+const FAP_OPTIONS = [1.0, 1.1, 1.2];
+
 export default function ScaleSimulator() {
-  const [sliderValue, setSliderValue] = React.useState([0]);
+  const [scaleSlider, setScaleSlider] = React.useState([0]);
+  const [payrollIndex, setPayrollIndex] = React.useState([0]);
+  const [fapIndex, setFapIndex] = React.useState([2]); // Começa em 1.2
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
 
-  const currentData = SIMULATOR_DATA[sliderValue[0]];
+  const currentData = SIMULATOR_DATA[scaleSlider[0]];
+  const currentPayroll = PAYROLL_OPTIONS[payrollIndex[0]];
+  const currentFap = FAP_OPTIONS[fapIndex[0]];
+  
+  // Alíquota RAT para construção civil geralmente é 3%
+  const ratBase = 0.03;
+  const annualRatCost = currentPayroll * ratBase * currentFap;
+  const bestCaseCost = currentPayroll * ratBase * 1.0;
+  const potentialSaving = annualRatCost - bestCaseCost;
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
@@ -165,20 +181,122 @@ export default function ScaleSimulator() {
         </Badge>
       </header>
 
-      {/* Slider de Escala */}
+      {/* NOVO: Simulador de Impacto Financeiro (ROI) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="bg-primary text-white p-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/10 rounded-xl">
+                <DollarSign className="size-6 text-accent" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Simulador de Impacto Tributário (RAT/FAP)</CardTitle>
+                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Análise de custo sobre a folha de pagamento anual.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-10 space-y-12">
+            {/* Slider 1: Folha de Pagamento */}
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Folha de Pagamento Anual</label>
+                <span className="text-2xl font-black text-primary font-headline">R$ {(currentPayroll / 1000000).toFixed(0)} Milhões</span>
+              </div>
+              <div className="px-2">
+                <Slider 
+                  value={payrollIndex} 
+                  onValueChange={setPayrollIndex} 
+                  max={1} 
+                  step={1} 
+                  className="py-4"
+                />
+                <div className="flex justify-between mt-2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <span>15 Milhões</span>
+                  <span>30 Milhões</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Slider 2: Fator FAP */}
+            <div className="space-y-6">
+              <div className="flex justify-between items-end">
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Simulado</label>
+                <span className={cn(
+                  "text-2xl font-black font-headline px-4 py-1 rounded-xl shadow-inner",
+                  currentFap === 1.0 ? "text-emerald-600 bg-emerald-50" : 
+                  currentFap === 1.1 ? "text-amber-600 bg-amber-50" : 
+                  "text-red-600 bg-red-50"
+                )}>
+                  {currentFap.toFixed(1)}
+                </span>
+              </div>
+              <div className="px-2">
+                <Slider 
+                  value={fapIndex} 
+                  onValueChange={setFapIndex} 
+                  max={2} 
+                  step={1} 
+                  className="py-4"
+                />
+                <div className="flex justify-between mt-2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
+                  <span>1.0 (Meta)</span>
+                  <span>1.1</span>
+                  <span>1.2 (Atual/Risco)</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card de Resultado ROI */}
+        <Card className="card-shadow border-none bg-slate-900 text-white rounded-[2.5rem] flex flex-col overflow-hidden relative group">
+          <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
+            <TrendingUp className="size-48" />
+          </div>
+          <CardHeader className="p-8 pb-4">
+            <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.3em]">Custo RAT Anual</CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 pt-0 flex-1 flex flex-col justify-between space-y-8">
+            <div>
+              <h2 className="text-4xl font-black font-headline tracking-tighter">
+                {annualRatCost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </h2>
+              <p className="text-[10px] font-bold text-white/40 uppercase mt-2">Base RAT 3% x FAP {currentFap.toFixed(1)}</p>
+            </div>
+
+            {potentialSaving > 0 && (
+              <div className="bg-white/5 border border-white/10 p-6 rounded-3xl space-y-2 animate-in zoom-in-95">
+                <p className="text-[9px] font-black uppercase text-emerald-400 tracking-widest flex items-center gap-2">
+                  <TrendingDown className="size-3" /> Potencial de Economia
+                </p>
+                <h3 className="text-2xl font-black text-emerald-400">
+                  {potentialSaving.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </h3>
+                <p className="text-[9px] text-white/40 leading-tight">Valor que a gestão Nextcon busca recuperar reduzindo o FAP para 1.0.</p>
+              </div>
+            )}
+
+            <Button asChild className="w-full h-14 bg-accent hover:bg-accent/90 text-primary font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-2xl mt-auto">
+              <Link href="/comercial" className="gap-2">Solicitar Blindagem ROI <ArrowUpRight className="size-4" /></Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Slider de Escala Operacional */}
       <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-10">
         <div className="max-w-3xl mx-auto space-y-10">
           <div className="space-y-4">
             <div className="flex justify-between items-end px-2">
               {["200", "500", "800", "1000+"].map((label, i) => (
-                <span key={label} className={cn("text-[10px] font-black uppercase tracking-widest", sliderValue[0] === i ? "text-primary scale-110" : "text-slate-300")}>
+                <span key={label} className={cn("text-[10px] font-black uppercase tracking-widest", scaleSlider[0] === i ? "text-primary scale-110" : "text-slate-300")}>
                   {label} Vidas
                 </span>
               ))}
             </div>
             <Slider 
-              value={sliderValue} 
-              onValueChange={setSliderValue} 
+              value={scaleSlider} 
+              onValueChange={setScaleSlider} 
               max={3} 
               step={1} 
               className="py-4"
