@@ -82,6 +82,7 @@ const navGroups = [
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Proposta Comercial", icon: ShoppingCart, href: "/comercial" },
+      { title: "Simulador de Escala", icon: Monitor, href: "/simulator" },
     ]
   },
   {
