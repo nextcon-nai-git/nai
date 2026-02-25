@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, doc, collectionGroup } from "firebase/firestore"
+import { collection, query, orderBy, doc, collectionGroup, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
 interface ReportItem {
@@ -65,51 +65,61 @@ export default function ReportsCenter() {
     return ['SUPER_ADMIN', 'ADMIN'].includes(role);
   }, [profile]);
 
+  const isProvider = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    return ['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role);
+  }, [profile]);
+
+  // Carrega empresas baseado no papel e designação
   const companiesQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, "companies"), orderBy("name", "asc"))
-  }, [db])
-  const { data: allCompanies, isLoading: loadingCompanies } = useCollection(companiesQuery)
-
-  // Filtra empresas baseado no papel do prestador
-  const availableCompanies = React.useMemo(() => {
-    if (!allCompanies || !profile) return []
-    if (isGlobalAdmin) return allCompanies
-    
-    const role = (profile.role || '').toUpperCase()
-    if (['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role) && profile.servedCompanies) {
-      return allCompanies.filter(c => profile.servedCompanies.includes(c.id))
+    if (!db || !profile) return null
+    if (isGlobalAdmin) {
+      return query(collection(db, "companies"), orderBy("name", "asc"))
     }
-    
-    if (role === 'CLIENT_ADMIN' && profile.companyId) {
-      return allCompanies.filter(c => c.id === profile.companyId)
+    if (isProvider && profile.servedCompanies && profile.servedCompanies.length > 0) {
+      return query(collection(db, "companies"), where("__name__", "in", profile.servedCompanies.slice(0, 10)))
     }
-
-    return []
-  }, [allCompanies, profile, isGlobalAdmin])
+    if (profile.companyId) {
+      return query(collection(db, "companies"), where("__name__", "==", profile.companyId))
+    }
+    return null
+  }, [db, profile, isGlobalAdmin, isProvider])
+  const { data: availableCompanies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
   React.useEffect(() => {
-    if (availableCompanies.length === 1) {
+    if (availableCompanies && availableCompanies.length === 1) {
       setSelectedCompanyId(availableCompanies[0].id)
-    } else if (isGlobalAdmin && selectedCompanyId === "") {
+    } else if ((isGlobalAdmin || isProvider) && selectedCompanyId === "") {
       setSelectedCompanyId("all")
     }
-  }, [availableCompanies, isGlobalAdmin])
+  }, [availableCompanies, isGlobalAdmin, isProvider])
 
   const uploadedReportsQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
+    // Admin vê tudo
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "reports"), orderBy("createdAt", "desc"))
     }
 
-    const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
-    if (companyIdToFilter) {
-      return query(collection(db, "companies", companyIdToFilter, "reports"), orderBy("createdAt", "desc"))
+    // Se uma empresa específica foi selecionada
+    if (selectedCompanyId !== "all") {
+      return query(collection(db, "companies", selectedCompanyId, "reports"), orderBy("createdAt", "desc"))
+    }
+
+    // Prestador vê relatórios das empresas que ele atende
+    if (isProvider && profile.servedCompanies && profile.servedCompanies.length > 0) {
+      return query(collectionGroup(db, "reports"), where("companyId", "in", profile.servedCompanies.slice(0, 10)), orderBy("createdAt", "desc"))
+    }
+
+    // Cliente vê os seus
+    if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "reports"), orderBy("createdAt", "desc"))
     }
     
     return null
-  }, [db, profile, selectedCompanyId, isGlobalAdmin])
+  }, [db, profile, selectedCompanyId, isGlobalAdmin, isProvider])
 
   const { data: uploadedReports } = useCollection(uploadedReportsQuery)
 
@@ -135,8 +145,8 @@ export default function ReportsCenter() {
                   </div>
                 </SelectTrigger>
                 <SelectContent>
-                  {isGlobalAdmin && <SelectItem value="all">Todas as Unidades (Rede)</SelectItem>}
-                  {availableCompanies.map(c => (
+                  {(isGlobalAdmin || isProvider) && <SelectItem value="all">Todas as Minhas Unidades</SelectItem>}
+                  {availableCompanies?.map(c => (
                     <SelectItem key={c.id} value={c.id} className="text-[11px] uppercase">{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -163,7 +173,6 @@ export default function ReportsCenter() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {reports.map((report) => {
                 const realFile = uploadedReports?.find(r => r.reportType === report.id);
-                const company = availableCompanies.find(c => c.id === realFile?.companyId);
                 const ReportIcon = report.icon;
                 
                 return (

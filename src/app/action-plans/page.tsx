@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react"
@@ -23,7 +22,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, collectionGroup, doc, writeBatch } from "firebase/firestore"
+import { collection, query, orderBy, collectionGroup, doc, where } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import {
   Dialog,
@@ -72,49 +71,56 @@ export default function EnterpriseOpsHub() {
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
-  React.useEffect(() => {
-    if (profile && !isGlobalAdmin && profile.companyId) {
-      setSelectedCompanyId(profile.companyId);
-      setTaskForm(prev => ({ ...prev, companyId: profile.companyId }));
-    }
-  }, [profile, isGlobalAdmin]);
+  const isProvider = React.useMemo(() => {
+    if (!profile) return false;
+    const role = (profile.role || '').toUpperCase();
+    return ['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role);
+  }, [profile]);
 
-  const providersQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, "users"), orderBy("name", "asc"))
-  }, [db])
-  const { data: users } = useCollection(providersQuery)
-  
-  const providers = users?.filter(u => {
-    const role = (u.role || '').toUpperCase();
-    return role === 'PROVIDER' || role === 'ENGINEER';
-  }) || []
-
+  // Carrega empresas respeitando o isolamento
   const companiesQuery = useMemoFirebase(() => {
-    if (!db) return null
-    return query(collection(db, "companies"), orderBy("name", "asc"))
-  }, [db])
+    if (!db || !profile) return null
+    if (isGlobalAdmin) {
+      return query(collection(db, "companies"), orderBy("name", "asc"))
+    }
+    if (isProvider && profile.servedCompanies && profile.servedCompanies.length > 0) {
+      return query(collection(db, "companies"), where("__name__", "in", profile.servedCompanies.slice(0, 10)))
+    }
+    if (profile.companyId) {
+      return query(collection(db, "companies"), where("__name__", "==", profile.companyId))
+    }
+    return null
+  }, [db, profile, isGlobalAdmin, isProvider])
   const { data: companies, isLoading: loadingCompanies } = useCollection(companiesQuery)
 
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
+    // Admin Global vê tudo
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     } 
-    
-    const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
-    
-    if (companyIdToFilter) {
-      return query(collection(db, "companies", companyIdToFilter, "tasks"), orderBy("dueDate", "asc"))
+
+    // Se uma empresa específica foi selecionada
+    if (selectedCompanyId !== "all") {
+      return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
+    }
+
+    // Prestador vê tarefas das empresas que ele atende
+    if (isProvider && profile.servedCompanies && profile.servedCompanies.length > 0) {
+      return query(collectionGroup(db, "tasks"), where("companyId", "in", profile.servedCompanies.slice(0, 10)), orderBy("dueDate", "asc"))
+    }
+
+    // Cliente vê apenas as suas
+    if (profile.companyId) {
+      return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
     }
     
     return null;
-  }, [db, profile, selectedCompanyId, isGlobalAdmin])
+  }, [db, profile, selectedCompanyId, isGlobalAdmin, isProvider])
 
   const { data: tasks, isLoading: loadingTasks } = useCollection<OpsTask>(tasksQuery)
 
-  // Filtra apenas tarefas operacionais (não comerciais em andamento)
   const operationalTasks = React.useMemo(() => {
     if (!tasks) return []
     return tasks.filter(t => ['started', 'todo', 'doing', 'review', 'done'].includes(t.status))
@@ -126,13 +132,11 @@ export default function EnterpriseOpsHub() {
       return
     }
     const company = companies?.find(c => c.id === taskForm.companyId)
-    const assignee = providers.find(p => p.id === taskForm.assigneeId)
     const colRef = collection(db, "companies", taskForm.companyId, "tasks")
     
     const newTask: Partial<OpsTask> = {
       ...taskForm,
       companyName: company?.name || "Unidade Técnica",
-      assigneeName: assignee?.name || "Nextcon Central",
       checklist: [
         { id: '1', text: 'Realizar Check-in GPS', checked: false, mandatory: true },
         { id: '2', text: 'Coletar Evidências de Risco', checked: false, mandatory: true }
@@ -142,7 +146,7 @@ export default function EnterpriseOpsHub() {
     }
     addDocumentNonBlocking(colRef, newTask)
     setIsCreateOpen(false)
-    toast({ title: "Atividade Designada", description: `OS enviada para ${assignee?.name || 'equipe'}.` })
+    toast({ title: "Atividade Designada", description: `OS criada para ${company?.name}.` })
   }
 
   return (
@@ -162,13 +166,13 @@ export default function EnterpriseOpsHub() {
         
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-64">
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isGlobalAdmin}>
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
               <SelectTrigger className="bg-white border-muted h-11 text-xs">
                 <Building2 className="size-4 mr-2" />
                 <SelectValue placeholder={loadingCompanies ? "Carregando..." : "Filtrar Unidade"} />
               </SelectTrigger>
               <SelectContent>
-                {isGlobalAdmin && <SelectItem value="all">Todas as Unidades</SelectItem>}
+                {(isGlobalAdmin || isProvider) && <SelectItem value="all">Todas as Minhas Unidades</SelectItem>}
                 {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -196,15 +200,6 @@ export default function EnterpriseOpsHub() {
                       <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Selecione o cliente..." /></SelectTrigger>
                       <SelectContent>
                         {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Designar Prestador (Técnico/Engenheiro)</label>
-                    <Select value={taskForm.assigneeId} onValueChange={v => setTaskForm({...taskForm, assigneeId: v})}>
-                      <SelectTrigger className="bg-slate-50 border-none h-14 text-xs font-bold rounded-2xl"><SelectValue placeholder="Escolha o responsável..." /></SelectTrigger>
-                      <SelectContent>
-                        {providers.map(p => <SelectItem key={p.id} value={p.id}>{p.name} ({p.role})</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
