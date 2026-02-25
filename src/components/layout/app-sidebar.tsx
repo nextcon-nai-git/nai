@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -9,6 +10,7 @@ import {
   LogOut,
   TrendingUp,
   SearchCheck,
+  ShieldAlert,
   AlertTriangle,
   Lock,
   Database,
@@ -33,7 +35,10 @@ import {
   ShieldCheck,
   Gavel,
   ChevronRight,
-  Video
+  Video,
+  FileText,
+  Activity,
+  Layers
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -48,74 +53,68 @@ import {
   SidebarMenuItem,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth, useUser, useDoc, useMemoFirebase, useFirestore } from "@/firebase"
 import { signOut } from "firebase/auth"
 import { doc } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 
-const navGroups = [
+const NAV_MODULES = [
   {
-    label: "Equipe Nextcon (Interno)",
-    roles: ['SUPER_ADMIN', 'ADMIN'],
+    label: "DASHBOARD CONTROLE",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'DOCTOR'],
     items: [
-      { title: "Dashboard Global", icon: BarChart3, href: "/analytics" },
-      { title: "ROI & Financeiro", icon: DollarSign, href: "/financial" },
-      { title: "Gestão de Clientes", icon: Building2, href: "/agency/command-center" },
-      { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra" },
-      { title: "Carga de Dados", icon: Database, href: "/data-import" },
-      { title: "Setup Auditoria", icon: ShieldCheck, href: "/audit-setup" },
-      { title: "Importar Clientes", icon: Upload, href: "/importar" },
+      { title: "Início (SESMT)", icon: LayoutDashboard, href: "/" },
+      { title: "BI SST & Analytics", icon: BarChart3, href: "/analytics", roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'] },
+      { title: "Quadro de Vidas", icon: Users, href: "/employees" },
+      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
+      { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
+      // Admin Only Tools
+      { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra", roles: ['SUPER_ADMIN', 'ADMIN'] },
+      { title: "Carga de Dados", icon: Database, href: "/data-import", roles: ['SUPER_ADMIN', 'ADMIN'] },
+      { title: "Setup Auditoria", icon: ShieldCheck, href: "/audit-setup", roles: ['SUPER_ADMIN', 'ADMIN'] },
     ]
   },
   {
-    label: "Crescimento & Vendas",
-    roles: ['SUPER_ADMIN', 'ADMIN'],
+    label: "COMERCIAL",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
       { title: "Proposta Comercial", icon: ShoppingCart, href: "/comercial" },
       { title: "Simulador de Escala", icon: Monitor, href: "/simulator" },
     ]
   },
   {
-    label: "Operação Técnica",
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'PROVIDER', 'ENGINEER', 'DOCTOR'],
+    label: "FINANCEIRO",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
-      { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
-      { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
-      { title: "Controle de Campo", icon: HardHat, href: "/field-control" },
-      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
-      { 
-        title: "Saúde Ocupacional", 
-        icon: Stethoscope, 
-        subItems: [
-          { title: "Telemedicina", icon: Video, href: "/telemedicine" },
-          { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
-          { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
-          { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
-          { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
-        ]
-      },
-      { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
+      { title: "ERP Financeiro", icon: DollarSign, href: "/financial" },
+      { title: "ROI & Perícias", icon: Scale, href: "/legal-financial" },
     ]
   },
   {
-    label: "Painel SST",
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    label: "SAÚDE OCUPACIONAL",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'DOCTOR', 'PROVIDER'],
     items: [
-      { title: "Quadro de Vidas", icon: Users, href: "/employees" },
-      { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
-      { title: "Quiosque EPI", icon: Lock, href: "/ppe-kiosk" },
+      { title: "Telemedicina", icon: Video, href: "/telemedicine" },
+      { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
       { title: "Validador Atestados", icon: FileSearch, href: "/medical-certificates" },
-      { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
+      { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
+      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
+      { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
+    ]
+  },
+  {
+    label: "SEGURANÇA DO TRABALHO",
+    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'PROVIDER'],
+    items: [
+      { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Controle de Campo", icon: HardHat, href: "/field-control" },
+      { title: "Inventário PGR", icon: ShieldAlert, href: "/risk-management" },
+      { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
+      { title: "Quiosque Digital EPI", icon: Lock, href: "/ppe-kiosk" },
+      { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
+      { title: "Sentinela (NTEP)", icon: AlertTriangle, href: "/absenteeism" },
     ]
   }
 ]
@@ -145,7 +144,7 @@ export function AppSidebar() {
   
   return (
     <Sidebar className={cn(
-      "border-r border-sidebar-border text-white w-[260px] transition-colors duration-500",
+      "border-r border-sidebar-border text-white w-[280px] transition-colors duration-500",
       isAdmin ? "bg-[#001F3F]" : "bg-[#003366]"
     )}>
       <SidebarHeader className="p-8">
@@ -159,106 +158,40 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       
-      <SidebarContent className="px-4">
-        <SidebarMenuItem className="mb-4 list-none">
-          <SidebarMenuButton 
-            asChild 
-            isActive={pathname === '/'}
-            className={cn(
-              "h-11 px-4 rounded-xl transition-all group",
-              pathname === '/' 
-                ? "bg-white/10 text-white font-bold border-l-4 border-accent" 
-                : "text-white/60 hover:bg-white/5 hover:text-white"
-            )}
-          >
-            <Link href="/" className="flex items-center gap-3">
-              <LayoutDashboard className={cn("size-4", pathname === '/' ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
-              <span className="text-sm">Início (SESMT)</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+      <SidebarContent className="px-4 pb-10">
+        {NAV_MODULES.map((module) => {
+          // Verifica se o papel do usuário tem acesso ao módulo
+          const hasModuleAccess = module.roles.includes(role);
+          if (!hasModuleAccess) return null;
 
-        {navGroups.map((group) => {
-          const hasAccess = group.roles.some(r => r.toUpperCase() === role);
-          if (!hasAccess) return null
-          
           return (
-            <SidebarGroup key={group.label} className="py-2">
-              <SidebarGroupLabel className="text-white/30 px-2 text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
-                {group.label === "Equipe Nextcon (Interno)" && <Lock className="size-3" />}
-                {group.label}
+            <SidebarGroup key={module.label} className="py-4">
+              <SidebarGroupLabel className="text-white/30 px-4 text-[9px] font-black uppercase tracking-[0.2em] mb-3">
+                {module.label}
               </SidebarGroupLabel>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const isActive = pathname === item.href || (item.subItems?.some(s => s.href === pathname))
-                  const Icon = item.icon
+              <SidebarMenu className="space-y-1">
+                {module.items.map((item) => {
+                  // Verifica se o item tem restrição específica de role
+                  if (item.roles && !item.roles.includes(role)) return null;
 
-                  if (item.subItems) {
-                    return (
-                      <Collapsible
-                        key={item.title}
-                        asChild
-                        defaultOpen={isActive}
-                        className="group/collapsible"
-                      >
-                        <SidebarMenuItem>
-                          <CollapsibleTrigger asChild>
-                            <SidebarMenuButton 
-                              tooltip={item.title}
-                              className={cn(
-                                "h-11 px-4 rounded-xl transition-all group",
-                                isActive 
-                                  ? "bg-white/10 text-white font-bold" 
-                                  : "text-white/60 hover:bg-white/5 hover:text-white"
-                              )}
-                            >
-                              <Icon className={cn("size-4", isActive ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
-                              <span className="text-sm">{item.title}</span>
-                              <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                            </SidebarMenuButton>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <SidebarMenuSub className="border-white/10 ml-6 mt-1 space-y-1">
-                              {item.subItems.map((subItem) => (
-                                <SidebarMenuSubItem key={subItem.title}>
-                                  <SidebarMenuSubButton asChild isActive={pathname === subItem.href}>
-                                    <Link 
-                                      href={subItem.href}
-                                      className={cn(
-                                        "flex items-center gap-3 h-9 px-3 rounded-lg transition-all",
-                                        pathname === subItem.href 
-                                          ? "text-accent font-bold bg-white/5" 
-                                          : "text-white/40 hover:text-white hover:bg-white/5"
-                                      )}
-                                    >
-                                      <subItem.icon className="size-3.5" />
-                                      <span className="text-xs">{subItem.title}</span>
-                                    </Link>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              ))}
-                            </SidebarMenuSub>
-                          </CollapsibleContent>
-                        </SidebarMenuItem>
-                      </Collapsible>
-                    )
-                  }
+                  const isActive = pathname === item.href
+                  const Icon = item.icon
 
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
-                        isActive={pathname === item.href}
+                        isActive={isActive}
                         className={cn(
                           "h-11 px-4 rounded-xl transition-all group",
-                          pathname === item.href 
+                          isActive 
                             ? "bg-white/10 text-white font-bold border-l-4 border-accent" 
                             : "text-white/60 hover:bg-white/5 hover:text-white"
                         )}
                       >
                         <Link href={item.href} className="flex items-center gap-3">
-                          <Icon className={cn("size-4", pathname === item.href ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
-                          <span className="text-sm">{item.title}</span>
+                          <Icon className={cn("size-4 shrink-0", isActive ? "text-accent" : "text-white/30 group-hover:text-white/60")} />
+                          <span className="text-[13px] truncate">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -270,19 +203,19 @@ export function AppSidebar() {
         })}
       </SidebarContent>
 
-      <SidebarFooter className="p-6 border-t border-white/5">
+      <SidebarFooter className="p-6 border-t border-white/5 bg-black/10">
         <div className="flex items-center gap-3 p-2 bg-white/5 rounded-2xl border border-white/5">
           <div className={cn(
-            "size-9 rounded-xl flex items-center justify-center font-black text-[10px] shadow-inner",
+            "size-9 rounded-xl flex items-center justify-center font-black text-[10px] shadow-inner shrink-0",
             isAdmin ? "bg-accent text-primary" : "bg-primary text-white"
           )}>
             {userName.substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-black truncate uppercase tracking-tight">{userName}</p>
+            <p className="text-[11px] font-black truncate uppercase tracking-tight">{userName}</p>
             <p className="text-[8px] text-white/40 uppercase font-black">{role.replace('_', ' ')}</p>
           </div>
-          <button onClick={handleLogout} className="p-2 text-white/20 hover:text-accent transition-colors">
+          <button onClick={handleLogout} className="p-2 text-white/20 hover:text-accent transition-colors shrink-0">
             <LogOut className="size-4" />
           </button>
         </div>
