@@ -148,23 +148,21 @@ const ERGO_DATA: Record<string, { title: string; risk: string; action: string }>
   }
 };
 
-const PAYROLL_OPTIONS = [15000000, 30000000];
+const FIXED_PAYROLL = 30000000;
 const FAP_OPTIONS = [1.0, 1.1, 1.2];
 
 export default function ScaleSimulator() {
   const [scaleSlider, setScaleSlider] = React.useState([0]);
-  const [payrollIndex, setPayrollIndex] = React.useState([0]);
   const [fapIndex, setFapIndex] = React.useState([2]); // Começa em 1.2
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
-  const currentPayroll = PAYROLL_OPTIONS[payrollIndex[0]];
   const currentFap = FAP_OPTIONS[fapIndex[0]];
   
   // Alíquota RAT para construção civil geralmente é 3%
   const ratBase = 0.03;
-  const annualRatCost = currentPayroll * ratBase * currentFap;
-  const bestCaseCost = currentPayroll * ratBase * 1.0;
+  const annualRatCost = FIXED_PAYROLL * ratBase * currentFap;
+  const bestCaseCost = FIXED_PAYROLL * ratBase * 1.0;
   const potentialSaving = annualRatCost - bestCaseCost;
 
   return (
@@ -181,7 +179,7 @@ export default function ScaleSimulator() {
         </Badge>
       </header>
 
-      {/* NOVO: Simulador de Impacto Financeiro (ROI) */}
+      {/* Simulador de Impacto Financeiro (ROI) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
           <CardHeader className="bg-primary text-white p-8">
@@ -196,28 +194,16 @@ export default function ScaleSimulator() {
             </div>
           </CardHeader>
           <CardContent className="p-10 space-y-12">
-            {/* Slider 1: Folha de Pagamento */}
             <div className="space-y-6">
               <div className="flex justify-between items-end">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Folha de Pagamento Anual</label>
-                <span className="text-2xl font-black text-primary font-headline">R$ {(currentPayroll / 1000000).toFixed(0)} Milhões</span>
+                <span className="text-2xl font-black text-primary font-headline">R$ 30 Milhões</span>
               </div>
-              <div className="px-2">
-                <Slider 
-                  value={payrollIndex} 
-                  onValueChange={setPayrollIndex} 
-                  max={1} 
-                  step={1} 
-                  className="py-4"
-                />
-                <div className="flex justify-between mt-2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
-                  <span>15 Milhões</span>
-                  <span>30 Milhões</span>
-                </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <p className="text-[10px] text-slate-400 font-bold uppercase text-center">Valor fixado conforme porte da Unidade Dall</p>
               </div>
             </div>
 
-            {/* Slider 2: Fator FAP */}
             <div className="space-y-6">
               <div className="flex justify-between items-end">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Simulado</label>

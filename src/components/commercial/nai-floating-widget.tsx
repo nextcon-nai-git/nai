@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { Bot, X, Sparkles, Zap, Loader2, MessageSquare, ArrowRight } from "lucide-react";
+import { X, Sparkles, Zap, Loader2, MessageSquare, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import Image from "next/image";
  * @fileOverview Widget Flutuante da NAI (Assistente Comercial).
  * Consome a API pública /api/nai-widget para exibir o pitch de vendas.
  */
+
+const NAI_AVATAR_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/logo%2FAvatar%20Nextcon%20NAI.png?alt=media";
 
 export function NaiFloatingWidget() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -56,17 +58,13 @@ export function NaiFloatingWidget() {
             </button>
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 overflow-hidden">
-                {pitchData?.avatar?.imagem_url ? (
-                  <Image 
-                    src={pitchData.avatar.imagem_url} 
-                    alt="NAI" 
-                    width={40} 
-                    height={40} 
-                    className="object-cover"
-                  />
-                ) : (
-                  <Bot className="size-6 text-accent" />
-                )}
+                <Image 
+                  src={NAI_AVATAR_URL} 
+                  alt="NAI" 
+                  width={40} 
+                  height={40} 
+                  className="object-cover"
+                />
               </div>
               <div>
                 <CardTitle className="text-sm font-black uppercase tracking-tight">NAI Intelligence</CardTitle>
@@ -126,26 +124,22 @@ export function NaiFloatingWidget() {
         </Card>
       )}
 
-      {/* Botão Flutuante */}
+      {/* Botão Flutuante humanizado com avatar NAI */}
       <button 
         onClick={handleToggle}
         className={cn(
-          "h-16 px-8 rounded-full shadow-2xl transition-all duration-500 flex items-center gap-3 hover:scale-105 active:scale-95 group overflow-hidden",
-          isOpen ? "bg-primary text-white" : "gradient-nextcon text-white ring-4 ring-accent/20"
+          "h-16 px-8 rounded-full shadow-2xl transition-all duration-500 flex items-center gap-3 hover:scale-105 active:scale-95 group overflow-hidden border-2 border-white/20",
+          isOpen ? "bg-primary text-white" : "gradient-nextcon text-white ring-4 ring-accent/10"
         )}
       >
         <div className="relative size-10 rounded-full overflow-hidden border-2 border-white/20 bg-[#090e24] flex items-center justify-center shrink-0">
-          {pitchData?.avatar?.imagem_url ? (
-            <Image 
-              src={pitchData.avatar.imagem_url} 
-              alt="NAI" 
-              width={40} 
-              height={40} 
-              className="object-cover"
-            />
-          ) : (
-            <Bot className="size-6 text-accent group-hover:animate-bounce" />
-          )}
+          <Image 
+            src={NAI_AVATAR_URL} 
+            alt="NAI" 
+            fill
+            className="object-cover"
+            sizes="40px"
+          />
           {!isOpen && <span className="absolute top-0 right-0 size-2.5 bg-accent rounded-full border-2 border-primary animate-ping" />}
         </div>
         <span className="font-black uppercase text-xs tracking-widest">
