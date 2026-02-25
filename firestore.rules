@@ -23,7 +23,6 @@ service cloud.firestore {
 
     /**
      * Valida se o prestador atende aquela empresa específica.
-     * O vínculo é gerado automaticamente via raio de 50km no Setup ou manual.
      */
     function isServedProvider(companyId) {
       let data = getUserData();
@@ -38,31 +37,28 @@ service cloud.firestore {
       allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
       allow write: if isAdmin();
 
-      // Permite acesso a sub-coleções baseado na designação ( servedCompanies )
+      // Sub-coleção de Colaboradores (Hierárquica)
+      match /employees/{employeeId} {
+        allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
+        allow write: if isAdmin() || isClientAdmin(companyId);
+      }
+
+      // Outras sub-coleções (Tarefas, Relatórios, etc)
       match /{allChildren=**} {
         allow read, write: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
       }
     }
     
+    // Suporte para Consultas Globais (Collection Groups)
+    // Permite que o Admin veja todos os colaboradores do sistema de uma vez
+    match /{path=**}/employees/{docId} { 
+      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
+    }
+
     // Perfis de Usuário
     match /users/{userId} {
       allow read: if isAutenticado();
       allow write: if isAdmin() || request.auth.uid == userId;
-    }
-
-    // Suporte para Consultas Globais (Collection Groups) protegidas por designação
-    // CRÍTICO: Prestadores só podem ler se a empresa estiver no servedCompanies
-    match /{path=**}/employees/{docId} { 
-      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
-    }
-    match /{path=**}/tasks/{docId} { 
-      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
-    }
-    match /{path=**}/reports/{docId} { 
-      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
-    }
-    match /{path=**}/legalExpertises/{docId} { 
-      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
     }
 
     // Fallback Administrativo

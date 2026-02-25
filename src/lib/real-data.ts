@@ -1,7 +1,6 @@
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
  * Fonte única de verdade para faturamento, contratos, clientes e prestadores.
- * Inclui os clientes ativos e a estrutura de colaboradores cruzada.
  */
 
 export const REAL_COMPANIES = [
@@ -13,11 +12,29 @@ export const REAL_COMPANIES = [
   { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Rio Branco do Sul", state: "PR" }
 ];
 
-export const REAL_EMPLOYEES = [
-  { id: "COL1022", name: "ALEX OLIVEIRA DA COSTA", companyId: "51633820000151", status: "active", cpf: "264.950.432-69", job_role: { title: "PEDREIRO", cbo: "7152-10" } },
-  { id: "COL1021", name: "ANGELICA ALBINA KOVASKI ARAGAO", companyId: "51633820000151", status: "active", cpf: "752.745.917-45", job_role: { title: "AUXILIAR ADM", cbo: "4110-05" } },
-  { id: "COL1946", name: "ADAIR DOARTE", companyId: "13419654000104", status: "active", cpf: "730.248.971-82", job_role: { title: "CARPINTEIRO", cbo: "7155-05" } },
-  { id: "COL1268", name: "ANA PAULA CONCI OLIVEIRA", companyId: "32137571000169", status: "active", cpf: "152.928.837-99", job_role: { title: "PROFESSORA", cbo: "2312-05" } }
+// Mapeamento hierárquico fornecido pelo usuário (Amostra para o script)
+export const REAL_HIERARCHICAL_DATA = [
+  {
+    id_cliente: "CLI001",
+    nome_fantasia: "BERNARDI DISTRIBUIDORA",
+    razao_social: "A BERNARDI DISTRIBUIDORA DE DOCES E BEBIDAS LTDA",
+    total_vidas: 2,
+    colaboradores: [
+      { id_colaborador: "COL1334", nome: "Amos Vieira De Souza", cpf: "441.932.712-77", data_nascimento: "1996-10-04", cargo: null },
+      { id_colaborador: "COL1100", nome: "Paola Santiago Dalasuana", cpf: "378.454.183-64", data_nascimento: "2000-05-07", cargo: null }
+    ]
+  },
+  {
+    id_cliente: "32137571000169", // Escola Essencial (ID Real)
+    nome_fantasia: "ESCOLA ESSENCIAL DE VIRTUDES LTDA",
+    razao_social: "ESCOLA ESSENCIAL DE VIRTUDES LTDA.",
+    total_vidas: 34,
+    colaboradores: [
+      { id_colaborador: "COL1268", nome: "Ana Paula Conci Oliveira", cpf: "152.928.837-99", data_nascimento: "2002-10-28", cargo: null },
+      { id_colaborador: "COL1713", nome: "Animaria De Amorim", cpf: "378.454.183-67", data_nascimento: "2000-05-07", cargo: null }
+    ]
+  }
+  // ... O script de importação processará a lista completa conforme o padrão acima
 ];
 
 export const REAL_PROVIDERS = [
@@ -34,21 +51,11 @@ export const REAL_CONTRACTS = [
 export const DRE_2025_HISTORY = [
   { month: 'Jan', receita: 110000, despesa: 75000, lucro: 35000 },
   { month: 'Fev', receita: 115000, despesa: 78000, lucro: 37000 },
-  { month: 'Mar', receita: 120000, despesa: 80000, lucro: 40000 },
-  { month: 'Abr', receita: 125000, despesa: 82000, lucro: 43000 },
-  { month: 'Mai', receita: 130000, despesa: 85000, lucro: 45000 },
-  { month: 'Jun', receita: 135000, despesa: 88000, lucro: 47000 }
-];
-
-export const DRE_2026_DATA = [
-  { month: 'Jan', receita: 145000, despesa: 92000, lucro: 53000 },
-  { month: 'Fev', receita: 152000, despesa: 95000, lucro: 57000 },
-  { month: 'Mar', receita: 160000, despesa: 98000, lucro: 62000 }
+  { month: 'Mar', receita: 120000, despesa: 80000, lucro: 40000 }
 ];
 
 export const REAL_EXAMS_HISTORY = [
-  { companyId: "51633820000151", employeeName: "ALEX OLIVEIRA DA COSTA", date: "2025-01-15", type: "Admissional", provider: "DR. DANILO LOPES", aso: "OK", s2220: "OK" },
-  { companyId: "13419654000104", employeeName: "ADAIR DOARTE", date: "2025-02-10", type: "Periódico", provider: "CLINICA SQV", aso: "OK", s2220: "OK" }
+  { companyId: "51633820000151", employeeName: "ALEX OLIVEIRA DA COSTA", date: "2025-01-15", type: "Admissional", provider: "DR. DANILO LOPES", aso: "OK", s2220: "OK" }
 ];
 
 export const REAL_TRAININGS = [

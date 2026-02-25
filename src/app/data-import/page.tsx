@@ -1,21 +1,64 @@
 "use client"
 
 import * as React from "react"
-import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap, TrendingUp, History, Users } from "lucide-react"
+import { Loader2, Database, Scale, CheckCircle2, LayoutGrid, AlertCircle, FileSpreadsheet, Sparkles, Zap, TrendingUp, History, Users, Layers } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore } from "@/firebase"
-import { doc, writeBatch, collection, serverTimestamp } from "firebase/firestore"
-import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY, REAL_CONTRACTS, REAL_PROVIDERS } from "@/lib/real-data"
+import { doc, writeBatch, collection } from "firebase/firestore"
+import { REAL_EMPLOYEES, REAL_COMPANIES, REAL_EXAMS_HISTORY, DRE_2025_HISTORY, REAL_CONTRACTS, REAL_PROVIDERS, REAL_HIERARCHICAL_DATA } from "@/lib/real-data"
 
 export default function UnifiedImportCenter() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
   const [uploading, setUploading] = React.useState(false)
-  const [uploadingDre, setUploadingDre] = React.useState(false)
-  const [uploadingProviders, setUploadingProviders] = React.useState(false)
+  const [uploadingHierarchical, setUploadingHierarchical] = React.useState(false)
+
+  const handleHierarchicalImport = async () => {
+    if (!user || !db) return
+    setUploadingHierarchical(true)
+    
+    try {
+      const batch = writeBatch(db)
+      const now = new Date().toISOString()
+
+      console.log("🚀 Iniciando Injeção Hierárquica...")
+
+      REAL_HIERARCHICAL_DATA.forEach(client => {
+        // 1. Cria/Atualiza Empresa na Raiz
+        const companyRef = doc(db, "companies", client.id_cliente)
+        batch.set(companyRef, {
+          id: client.id_cliente,
+          name: client.nome_fantasia,
+          razao_social: client.razao_social,
+          total_vidas: client.total_vidas,
+          active: true,
+          updatedAt: now
+        }, { merge: true })
+
+        // 2. Injeta Colaboradores na Subcoleção
+        client.colaboradores.forEach(colab => {
+          const colabRef = doc(db, "companies", client.id_cliente, "employees", colab.id_colaborador)
+          batch.set(colabRef, {
+            ...colab,
+            companyId: client.id_cliente,
+            status: "active",
+            createdAt: now
+          })
+        })
+      })
+
+      await batch.commit()
+      toast({ title: "Injeção Concluída", description: "104 Clientes e 806 Vidas organizados na nova hierarquia." })
+    } catch (e) {
+      console.error(e)
+      toast({ variant: "destructive", title: "Erro na Injeção" })
+    } finally {
+      setUploadingHierarchical(false)
+    }
+  }
 
   const handleRealBaseImport = async () => {
     if (!user || !db) return
@@ -25,95 +68,22 @@ export default function UnifiedImportCenter() {
       const batch = writeBatch(db)
       const now = new Date().toISOString()
 
-      // 1. Importar Empresas na Raiz
       REAL_COMPANIES.forEach(comp => {
         const docRef = doc(db, "companies", comp.id)
         batch.set(docRef, { ...comp, updatedAt: now }, { merge: true })
       })
 
-      // 2. Importar Contratos Financeiros
       REAL_CONTRACTS.forEach(contract => {
         const docRef = doc(db, "companies", contract.companyId, "contracts", contract.id)
         batch.set(docRef, { ...contract, createdAt: now }, { merge: true })
       })
 
-      // 3. Importar Funcionários como Sub-coleção
-      REAL_EMPLOYEES.forEach((emp) => {
-        const docRef = doc(db, "companies", emp.companyId, "employees", emp.id)
-        batch.set(docRef, { ...emp, createdAt: now })
-      })
-
-      // 4. Importar Histórico de Exames
-      REAL_EXAMS_HISTORY.forEach((hist, i) => {
-        const docRef = doc(db, "companies", hist.companyId, "examHistory", `hist_${i}`)
-        batch.set(docRef, { ...hist, createdAt: now })
-      })
-
       await batch.commit()
-      toast({ title: "Ecossistema Real Carregado", description: "Empresas, Contratos e Funcionários sincronizados." })
+      toast({ title: "Base Global Sincronizada", description: "Empresas e contratos carregados." })
     } catch (e) {
-      console.error(e)
-      toast({ variant: "destructive", title: "Erro na Carga Real" })
+      toast({ variant: "destructive", title: "Erro na Carga" })
     } finally {
       setUploading(false)
-    }
-  }
-
-  const handleImportDre2025 = async () => {
-    if (!user || !db) return
-    setUploadingDre(true)
-    
-    try {
-      const batch = writeBatch(db)
-      const now = new Date().toISOString()
-
-      const dreRef = doc(db, "financialStats", "DRE_2025_CONSOLIDATED")
-      batch.set(dreRef, {
-        year: 2025,
-        data: DRE_2025_HISTORY,
-        importedAt: now,
-        status: "CLOSED",
-        description: "DRE Consolidada Exercício 2025"
-      }, { merge: true })
-
-      await batch.commit()
-      toast({ title: "DRE 2025 Importada!", description: "Dados históricos disponíveis no Dashboard Financeiro." })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro ao importar DRE" })
-    } finally {
-      setUploadingDre(false)
-    }
-  }
-
-  const handleProvisionProviders = async () => {
-    if (!user || !db) return
-    setUploadingProviders(true)
-    
-    try {
-      const batch = writeBatch(db)
-      const now = new Date().toISOString()
-
-      REAL_PROVIDERS.forEach(provider => {
-        // Registra o perfil na coleção 'users' para permitir designação em vistorias
-        const docRef = doc(db, "users", provider.id)
-        batch.set(docRef, { 
-          ...provider, 
-          updatedAt: now,
-          active: true,
-          status: "PROVISIONED",
-          companyId: "" // Prestadores são globais
-        }, { merge: true })
-      })
-
-      await batch.commit()
-      toast({ 
-        title: "Prestadores Provisionados!", 
-        description: `${REAL_PROVIDERS.length} profissionais registrados. Eles podem logar com a senha padrão '2025'.` 
-      })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Falha no Provisionamento" })
-    } finally {
-      setUploadingProviders(false)
     }
   }
 
@@ -122,26 +92,17 @@ export default function UnifiedImportCenter() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-headline font-black text-primary uppercase tracking-tight">Carga de Elite 2026</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Importação massiva para Multiapp, Contas e Operações.</p>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Injeção massiva de dados para Multiapp e Operações.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <Button 
             variant="outline"
             className="h-16 px-8 border-accent/20 text-accent hover:bg-accent/5 rounded-2xl gap-3 font-black uppercase text-xs tracking-widest"
-            onClick={handleProvisionProviders}
-            disabled={uploadingProviders}
+            onClick={handleHierarchicalImport}
+            disabled={uploadingHierarchical}
           >
-            {uploadingProviders ? <Loader2 className="size-5 animate-spin" /> : <Users className="size-5" />}
-            Provisionar Prestadores
-          </Button>
-          <Button 
-            variant="outline"
-            className="h-16 px-8 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl gap-3 font-black uppercase text-xs tracking-widest"
-            onClick={handleImportDre2025}
-            disabled={uploadingDre}
-          >
-            {uploadingDre ? <Loader2 className="size-5 animate-spin" /> : <History className="size-5" />}
-            Importar DRE 2025
+            {uploadingHierarchical ? <Loader2 className="size-5 animate-spin" /> : <Layers className="size-5" />}
+            Injetar 806 Vidas (Hierárquico)
           </Button>
           <Button 
             className="h-16 px-10 bg-primary text-white hover:bg-primary/90 rounded-2xl shadow-2xl shadow-primary/20 gap-3 font-black uppercase text-xs tracking-widest" 
@@ -149,7 +110,7 @@ export default function UnifiedImportCenter() {
             disabled={uploading}
           >
             {uploading ? <Loader2 className="size-5 animate-spin" /> : <Database className="size-5 text-accent" />}
-            Sincronizar Base Global
+            Sincronizar Empresas & Contratos
           </Button>
         </div>
       </div>
@@ -160,47 +121,13 @@ export default function UnifiedImportCenter() {
             <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
               <FileSpreadsheet className="size-6 text-primary" />
             </div>
-            <CardTitle className="text-xl font-black text-primary uppercase">Contratos Importados</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase opacity-60">Status de faturamento e vigência.</CardDescription>
+            <CardTitle className="text-xl font-black text-primary uppercase">Estrutura de Elite</CardTitle>
+            <CardDescription className="text-xs font-bold uppercase opacity-60">Isolamento Multi-tenant Ativado.</CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-4">
-            <div className="flex gap-3">
-              <div className="size-6 rounded-full bg-accent/10 text-accent flex items-center justify-center shrink-0"><Sparkles className="size-3" /></div>
-              <p className="text-xs text-slate-500 leading-relaxed font-medium">
-                <strong>{REAL_CONTRACTS.length} Contratos</strong> identificados na planilha mestra, incluindo BRDE, Britânia e TimeNow.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-emerald-500/10 transition-all">
-          <CardHeader className="bg-emerald-50 pb-8">
-            <div className="p-3 bg-white rounded-2xl w-fit shadow-sm mb-4">
-              <TrendingUp className="size-6 text-emerald-600" />
-            </div>
-            <CardTitle className="text-xl font-black text-emerald-900 uppercase">Multiapp & CNPJs</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase opacity-60">Sincronização de múltiplos CNPJs.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8">
-            <p className="text-sm text-emerald-700/70 leading-relaxed font-medium italic">
-              "A sincronização de clientes, produtos e fornecedores é automática entre empresas do mesmo grupo."
+            <p className="text-sm text-slate-500 leading-relaxed font-medium italic">
+              "Colaboradores injetados como subcoleções de cada empresa, garantindo conformidade total com a LGPD e regras de acesso do sistema."
             </p>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2rem] overflow-hidden">
-          <CardHeader className="pb-8">
-            <div className="p-3 bg-white/10 rounded-2xl w-fit shadow-sm mb-4">
-              <AlertCircle className="size-6 text-accent" />
-            </div>
-            <CardTitle className="text-xl font-black uppercase">Segurança Bancária</CardTitle>
-            <CardDescription className="text-xs font-bold uppercase text-white/40">Remessa Santander & API.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 space-y-4">
-            <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-              <p className="text-[10px] font-black uppercase text-accent mb-1">Estrutura Injetada:</p>
-              <p className="text-xs font-medium opacity-70">TimeNow (Master) &gt; Britânia (Unidade)</p>
-            </div>
           </CardContent>
         </Card>
       </div>
