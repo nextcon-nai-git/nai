@@ -19,7 +19,8 @@ import {
   MoreHorizontal,
   Loader2,
   FileText,
-  QrCode
+  QrCode,
+  Zap
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
