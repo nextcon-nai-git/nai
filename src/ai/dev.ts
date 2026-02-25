@@ -1,3 +1,4 @@
+
 import { config } from 'dotenv';
 config();
 
@@ -17,3 +18,4 @@ import '@/ai/flows/storage-manager-flow.ts';
 import '@/ai/flows/safety-copilot-flow.ts';
 import '@/ai/flows/nai-quote-flow.ts';
 import '@/ai/flows/hello-flow.ts';
+import '@/ai/flows/employee-extraction-flow.ts';

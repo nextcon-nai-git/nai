@@ -13,12 +13,16 @@ import {
   Pencil, 
   CheckCircle2,
   AlertCircle,
-  X
+  Sparkles,
+  X,
+  Copy,
+  Zap
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Table,
   TableBody,
@@ -66,6 +70,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
+import { extractEmployeesFromText } from "@/ai/flows/employee-extraction-flow"
 
 // Schema de validação eSocial Ready
 const employeeFormSchema = z.object({
@@ -87,7 +92,10 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>("all")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
+  const [isAiImportOpen, setIsAiImportOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isAiLoading, setIsAiLoading] = React.useState(false)
+  const [aiRawText, setAiRawText] = React.useState("")
 
   // 1. Perfil do Usuário para RBAC rigoroso
   const profileRef = useMemoFirebase(() => {
@@ -127,43 +135,29 @@ export default function EmployeesPage() {
   // 3. Consultas Firestore protegidas
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
-    // Apenas Admins Globais podem listar a raiz
     if (isGlobalAdmin) {
       return query(collection(db, "companies"), orderBy("name", "asc"))
     }
-    
-    // Usuários de clientes ou prestadores só acessam suas autorizadas
     if (profile.companyId) {
       return query(collection(db, "companies"), where("__name__", "==", profile.companyId))
     }
-
     if (profile.servedCompanies && profile.servedCompanies.length > 0) {
       return query(collection(db, "companies"), where("__name__", "in", profile.servedCompanies.slice(0, 10)))
     }
-    
     return null
   }, [db, profile, isGlobalAdmin])
   const { data: companies } = useCollection(companiesQuery)
 
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
-    
-    // Apenas Admins Globais podem ver todas as vidas via Collection Group se selecionarem "all"
     if (isGlobalAdmin && selectedCompanyId === "all") {
       return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
     } 
-    
-    // Se não for admin, ou se for admin filtrando por uma empresa específica
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
-    
-    // Se ainda for "all" e NÃO for admin global, ignoramos para evitar erro de permissão
     if (companyIdToFilter === "all" && !isGlobalAdmin) return null;
-
     if (companyIdToFilter) {
       return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
     }
-    
     return null
   }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
@@ -173,45 +167,62 @@ export default function EmployeesPage() {
   async function onSubmit(values: EmployeeFormValues) {
     if (!db) return
     setIsSubmitting(true)
-    
     try {
       const targetColRef = collection(db, "companies", values.companyId, "employees")
       const newEmployee = {
         name: values.name.toUpperCase(),
         cpf: values.cpf,
         companyId: values.companyId,
-        job_role: {
-          title: values.jobTitle,
-          cbo: values.jobCbo || ""
-        },
+        job_role: { title: values.jobTitle, cbo: values.jobCbo || "" },
         status: values.status,
         createdAt: new Date().toISOString()
       }
-
       await addDocumentNonBlocking(targetColRef, newEmployee)
-      
-      toast({ title: "Colaborador Cadastrado", description: `${values.name} foi inserido na base eSocial.` })
+      toast({ title: "Colaborador Cadastrado", description: `${values.name} foi inserido na base.` })
       setIsCreateOpen(false)
       form.reset()
     } catch (error) {
-      toast({ variant: "destructive", title: "Erro ao Salvar", description: "Verifique sua conexão ou permissões." })
+      toast({ variant: "destructive", title: "Erro ao Salvar" })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async (emp: any) => {
-    if (!db || !emp.companyId) return
-    
-    const confirm = window.confirm(`Deseja realmente excluir ${emp.name}? Esta ação é irreversível.`)
-    if (!confirm) return
+  async function handleAiImport() {
+    if (!aiRawText.trim() || !db || !selectedCompanyId || selectedCompanyId === "all") {
+      toast({ variant: "destructive", title: "Configuração Incompleta", description: "Selecione uma unidade e cole o texto do documento." });
+      return;
+    }
 
+    setIsAiLoading(true);
     try {
-      const docRef = doc(db, "companies", emp.companyId, "employees", emp.id)
-      deleteDocumentNonBlocking(docRef)
-      toast({ title: "Registro Removido" })
+      const result = await extractEmployeesFromText({ rawText: aiRawText });
+      
+      const targetColRef = collection(db, "companies", selectedCompanyId, "employees");
+      let successCount = 0;
+
+      for (const emp of result.employees) {
+        await addDocumentNonBlocking(targetColRef, {
+          name: emp.name,
+          cpf: emp.cpf,
+          companyId: selectedCompanyId,
+          job_role: { title: emp.jobTitle, cbo: "" },
+          status: "active",
+          createdAt: new Date().toISOString()
+        });
+        successCount++;
+      }
+
+      toast({ 
+        title: "Importação Concluída", 
+        description: `NAI processou ${result.count} colaboradores com ${result.qualityScore}% de precisão.` 
+      });
+      setIsAiImportOpen(false);
+      setAiRawText("");
     } catch (e) {
-      toast({ variant: "destructive", title: "Falha na Exclusão" })
+      toast({ variant: "destructive", title: "Falha na Extração IA" });
+    } finally {
+      setIsAiLoading(false);
     }
   }
 
@@ -231,121 +242,150 @@ export default function EmployeesPage() {
           </p>
         </div>
 
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent text-primary hover:bg-accent/90 font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl shadow-lg shadow-accent/20 gap-2">
-              <UserPlus className="size-4" /> Novo Colaborador
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
-            <DialogHeader className="p-8 bg-primary text-white">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-white/10 rounded-lg"><UserPlus className="size-5 text-accent" /></div>
-                <DialogTitle className="text-xl font-headline font-black uppercase">Admitir Colaborador</DialogTitle>
+        <div className="flex gap-2">
+          <Dialog open={isAiImportOpen} onOpenChange={setIsAiImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary/5 font-black uppercase text-[10px] tracking-widest h-12 px-6 rounded-xl gap-2">
+                <Sparkles className="size-4 text-accent" /> Captura via NAI
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <div className="p-8 bg-primary text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg"><Zap className="size-5 text-accent" /></div>
+                  <DialogTitle className="text-xl font-headline font-black uppercase">Importação sem Certificado</DialogTitle>
+                </div>
+                <DialogDescription className="text-white/70 font-medium">Cole o texto de um PDF, Planilha ou Documento de RH para cadastro massivo.</DialogDescription>
               </div>
-              <DialogDescription className="text-white/70 font-medium italic">Preencha os dados básicos para iniciar a vigilância médica.</DialogDescription>
-            </DialogHeader>
-            
-            <div className="p-8">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Nome Completo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: JOÃO DA SILVA" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <div className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Unidade Destino:</label>
+                  <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} disabled={!isGlobalAdmin && !!profile?.companyId}>
+                    <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold">
+                      <SelectValue placeholder="Selecione a empresa..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Conteúdo do Documento:</label>
+                  <Textarea 
+                    placeholder="Cole aqui a lista de nomes, CPFs e cargos..."
+                    className="min-h-[200px] bg-slate-50 border-none rounded-2xl p-4 text-xs font-medium shadow-inner"
+                    value={aiRawText}
+                    onChange={e => setAiRawText(e.target.value)}
                   />
+                </div>
+                <Button 
+                  onClick={handleAiImport} 
+                  disabled={isAiLoading || !aiRawText || selectedCompanyId === "all"}
+                  className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
+                >
+                  {isAiLoading ? <Loader2 className="size-5 animate-spin" /> : <Sparkles className="size-5 text-accent" />}
+                  Ativar Extração Inteligente
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
-                  <div className="grid grid-cols-2 gap-4">
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent text-primary hover:bg-accent/90 font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl shadow-lg shadow-accent/20 gap-2">
+                <UserPlus className="size-4" /> Novo Individual
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+              <DialogHeader className="p-8 bg-primary text-white">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 rounded-lg"><UserPlus className="size-5 text-accent" /></div>
+                  <DialogTitle className="text-xl font-headline font-black uppercase">Admitir Colaborador</DialogTitle>
+                </div>
+                <DialogDescription className="text-white/70 font-medium italic">Preencha os dados básicos para iniciar a vigilância médica.</DialogDescription>
+              </DialogHeader>
+              <div className="p-8">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                     <FormField
                       control={form.control}
-                      name="cpf"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase text-slate-400">CPF</FormLabel>
-                          <FormControl>
-                            <Input placeholder="000.000.000-00" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" />
-                          </FormControl>
+                          <FormLabel className="text-[10px] font-black uppercase text-slate-400">Nome Completo</FormLabel>
+                          <FormControl><Input placeholder="Ex: JOÃO DA SILVA" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="companyId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase text-slate-400">Unidade</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isGlobalAdmin && !!profile?.companyId}>
-                            <FormControl>
-                              <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold">
-                                <SelectValue placeholder="Selecione..." />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="jobTitle"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase text-slate-400">Cargo</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Ex: PEDREIRO" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-[10px] font-black uppercase text-slate-400">Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="active">Ativo</SelectItem>
-                              <SelectItem value="leave">Afastado</SelectItem>
-                              <SelectItem value="fired">Desligado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
-                    {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5 text-accent" />}
-                    Salvar Colaborador
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          </DialogContent>
-        </Dialog>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="cpf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">CPF</FormLabel>
+                            <FormControl><Input placeholder="000.000.000-00" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="companyId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Unidade</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isGlobalAdmin && !!profile?.companyId}>
+                              <FormControl><SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
+                              <SelectContent>{companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="jobTitle"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Cargo</FormLabel>
+                            <FormControl><Input placeholder="Ex: PEDREIRO" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl><SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger></FormControl>
+                              <SelectContent>
+                                <SelectItem value="active">Ativo</SelectItem>
+                                <SelectItem value="leave">Afastado</SelectItem>
+                                <SelectItem value="fired">Desligado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Button type="submit" disabled={isSubmitting} className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
+                      {isSubmitting ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5 text-accent" />}
+                      Salvar Colaborador
+                    </Button>
+                  </form>
+                </Form>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-4">
@@ -433,7 +473,13 @@ export default function EmployeesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48 rounded-xl border-none shadow-2xl">
                         <DropdownMenuItem className="gap-2 text-xs font-bold py-3"><Pencil className="size-3.5" /> Editar Cadastro</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(emp)} className="gap-2 text-xs font-bold text-red-600 py-3 focus:bg-red-50 focus:text-red-700">
+                        <DropdownMenuItem onClick={() => {
+                          if (!db || !emp.companyId) return
+                          if (window.confirm(`Remover ${emp.name}?`)) {
+                            deleteDocumentNonBlocking(doc(db, "companies", emp.companyId, "employees", emp.id))
+                            toast({ title: "Removido" })
+                          }
+                        }} className="gap-2 text-xs font-bold text-red-600 py-3 focus:bg-red-50 focus:text-red-700">
                           <Trash2 className="size-3.5" /> Remover Vínculo
                         </DropdownMenuItem>
                       </DropdownMenuContent>
