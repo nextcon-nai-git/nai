@@ -29,7 +29,8 @@ import {
   HardHat,
   ChevronRight,
   Zap,
-  Lock
+  Lock,
+  Network
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -56,12 +57,12 @@ const NAV_MODULES = [
     icon: LayoutDashboard,
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'DOCTOR'],
     items: [
-      { title: "Início (SESMT)", icon: Zap, href: "/" },
+      { title: "Cérebro NAI (Início)", icon: Zap, href: "/" },
       { title: "BI SST & Analytics", icon: BarChart3, href: "/analytics", roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'] },
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
-      { title: "Auditoria eSocial", icon: SearchCheck, href: "/esocial-audit" },
+      { title: "Firewall eSocial", icon: SearchCheck, href: "/esocial-audit" },
       { title: "Assistente NAI", icon: Sparkles, href: "/knowledge-base" },
-      { title: "Infraestrutura Cloud", icon: Cloud, href: "/agency/cloud-infra", roles: ['SUPER_ADMIN', 'ADMIN'] },
+      { title: "Infra Cloud NAI", icon: Cloud, href: "/agency/cloud-infra", roles: ['SUPER_ADMIN', 'ADMIN'] },
       { title: "Carga de Dados", icon: Database, href: "/data-import", roles: ['SUPER_ADMIN', 'ADMIN'] },
       { title: "Setup Auditoria", icon: ShieldCheck, href: "/audit-setup", roles: ['SUPER_ADMIN', 'ADMIN'] },
     ]
@@ -71,7 +72,7 @@ const NAV_MODULES = [
     icon: ShoppingCart,
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
-      { title: "Proposta Comercial", icon: DollarSign, href: "/comercial" },
+      { title: "Proposta NAI", icon: DollarSign, href: "/comercial" },
       { title: "Simulador de Escala", icon: Monitor, href: "/simulator" },
     ]
   },
@@ -82,6 +83,7 @@ const NAV_MODULES = [
     items: [
       { title: "ERP Financeiro", icon: Database, href: "/financial" },
       { title: "ROI & Perícias", icon: Gavel, href: "/legal-financial" },
+      { title: "NAI API 2.0", icon: Network, href: "#", roles: ['SUPER_ADMIN', 'ADMIN'] },
     ]
   },
   {
@@ -89,9 +91,9 @@ const NAV_MODULES = [
     icon: HeartPulse,
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'DOCTOR', 'PROVIDER'],
     items: [
-      { title: "Telemedicina", icon: Video, href: "/telemedicine" },
+      { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
-      { title: "Validador Atestados", icon: FileSearch, href: "/medical-certificates" },
+      { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
       { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
       { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
       { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
@@ -103,9 +105,9 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN', 'ENGINEER', 'PROVIDER'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
-      { title: "Controle de Campo", icon: HardHat, href: "/field-control" },
+      { title: "Controle Campo IoT", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
-      { title: "Central de Laudos", icon: ClipboardCheck, href: "/checklists" },
+      { title: "Central NAIGED", icon: ClipboardCheck, href: "/checklists" },
       { title: "Quiosque Digital EPI", icon: Lock, href: "/ppe-kiosk" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
       { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },

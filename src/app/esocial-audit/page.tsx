@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -25,7 +24,8 @@ import {
   Filter,
   ArrowRight,
   ShieldAlert,
-  Zap
+  Zap,
+  Network
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -62,7 +62,6 @@ export default function EsocialAudit() {
   }, [db, profile])
   const { data: queueDocs } = useCollection(queueQuery)
 
-  // LOGICA 3: FIREWALL DO ESOCIAL (S-2240 e C.A.)
   const handleSimulateEvent = async (type: string) => {
     if (!db || !profile?.companyId) return
     
@@ -92,9 +91,9 @@ export default function EsocialAudit() {
     })
 
     if (status.includes('blocked')) {
-      toast({ variant: "destructive", title: "Firewall Ativado!", description: "Evento bloqueado por inconsistência técnica." })
+      toast({ variant: "destructive", title: "NAI Firewall Ativado!", description: "Evento bloqueado por inconsistência técnica." })
     } else {
-      toast({ title: "Evento na Fila", description: "Auditado e pronto para transmissão." })
+      toast({ title: "Evento na Fila", description: "Auditado via NAI API e pronto para transmissão." })
     }
   }
 
@@ -102,33 +101,33 @@ export default function EsocialAudit() {
     <div className="space-y-10 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Portal e-Social 2026</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Firewall NAI contra multas e inconsistências.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">NAI Firewall e-Social</h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Infraestrutura 2026 contra multas e inconsistências via NAI API.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => handleSimulateEvent("S-2240")} variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2">
-            <Zap className="size-4" /> Simular S-2240
+            <Zap className="size-4" /> Validar S-2240
           </Button>
           <Button onClick={() => handleSimulateEvent("S-2220")} className="gradient-nextcon text-white h-11 px-6 rounded-xl font-black uppercase text-[10px] gap-2">
-            <SendHorizontal className="size-4" /> Simular S-2220
+            <SendHorizontal className="size-4" /> Transmitir S-2220
           </Button>
         </div>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[650px] grid-cols-3 bg-muted/50 p-1 rounded-xl h-14">
-          <TabsTrigger value="agrupador" className="rounded-lg gap-2 text-xs font-bold">Fila de Eventos (Firewall)</TabsTrigger>
+          <TabsTrigger value="agrupador" className="rounded-lg gap-2 text-xs font-bold">Fila NAI API</TabsTrigger>
           <TabsTrigger value="auditoria" className="rounded-lg gap-2 text-xs font-bold">Diagnóstico NAI</TabsTrigger>
-          <TabsTrigger value="config" className="rounded-lg gap-2 text-xs font-bold">Configurações</TabsTrigger>
+          <TabsTrigger value="config" className="rounded-lg gap-2 text-xs font-bold">Configuração API</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agrupador" className="mt-8 space-y-6">
           <Card className="card-shadow border-none bg-white overflow-hidden">
             <CardHeader className="bg-primary/5 border-b pb-6">
               <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
-                <ShieldAlert className="size-5 text-accent" /> Monitoramento em Tempo Real
+                <ShieldAlert className="size-5 text-accent" /> Monitoramento Firewall 2026
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Os eventos só avançam para transmissão se aprovados pelo Firewall.</CardDescription>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Os eventos só avançam para transmissão se aprovados pela inteligência NAI.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
@@ -137,7 +136,7 @@ export default function EsocialAudit() {
                     <TableHead className="pl-8">Evento</TableHead>
                     <TableHead>Colaborador</TableHead>
                     <TableHead>Status Firewall</TableHead>
-                    <TableHead className="pr-8">Diagnóstico de Bloqueio</TableHead>
+                    <TableHead className="pr-8">Diagnóstico NAI</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -159,13 +158,13 @@ export default function EsocialAudit() {
                             <AlertCircle className="size-3" /> {evt.firewallMessage}
                           </p>
                         ) : (
-                          <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Pronto para o Governo</p>
+                          <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Sincronização OK</p>
                         )}
                       </TableCell>
                     </TableRow>
                   ))}
                   {(!queueDocs || queueDocs.length === 0) && (
-                    <TableRow><TableCell colSpan={4} className="py-20 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum evento na fila</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={4} className="py-20 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum evento pendente</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -178,20 +177,20 @@ export default function EsocialAudit() {
             <div className="max-w-md mx-auto space-y-6">
               <SearchCheck className="size-16 mx-auto text-primary opacity-20" />
               <div className="space-y-2">
-                <h3 className="text-xl font-black text-primary uppercase">Scanner Gemini 2.0</h3>
+                <h3 className="text-xl font-black text-primary uppercase">Diagnóstico Gemini 2.0</h3>
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
-                  "O motor de inteligência NAI analisa a consistência entre o PGR e o PCMSO, garantindo que nenhum risco identificado fique sem o respectivo monitoramento biológico exigido pela NR-07."
+                  "O motor NAI audita a consistência entre NAIGED, PGR e PCMSO, garantindo conformidade legal plena em milissegundos."
                 </p>
               </div>
               <Button onClick={async () => {
                 setIsAuditing(true)
                 try {
-                  const res = await runEsocialAudit({ sector: "Produção", riskList: ["Ruído"], examList: [] })
+                  const res = await runEsocialAudit({ sector: "Geral", riskList: ["Ruído"], examList: [] })
                   setAiReport(res)
                 } finally { setIsAuditing(false) }
               }} disabled={isAuditing} className="gradient-nextcon text-white h-12 px-10 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-xl">
                 {isAuditing ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-accent" />}
-                Executar Scanner Geral
+                Auditar Toda a Unidade
               </Button>
             </div>
           </Card>

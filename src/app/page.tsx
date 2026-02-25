@@ -18,7 +18,8 @@ import {
   TrendingUp,
   Brain,
   ArrowUpRight,
-  Users as UsersIcon
+  Users as UsersIcon,
+  Network
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -101,14 +102,14 @@ export default function Dashboard() {
             "text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl shadow-primary/10",
             isGlobalAdmin ? "bg-[#001F3F]" : "bg-primary"
           )}>
-            {isGlobalAdmin ? 'NAI 2.0 CONTROL' : 'SESMT CLIENT PORTAL'}
+            {isGlobalAdmin ? 'NAI • PLATFORM 2026' : 'NAI • CLIENT HUB'}
           </Badge>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Executive Summary AI */}
+          {/* Executive Summary NAI 2026 */}
           <Card className="card-shadow border-none bg-gradient-to-br from-white to-blue-50/50 rounded-[2.5rem] overflow-hidden border border-blue-100">
             <CardHeader className="pb-4 px-8 pt-8">
               <div className="flex items-center gap-3">
@@ -116,8 +117,8 @@ export default function Dashboard() {
                   <Brain className="size-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-black text-primary uppercase">CEO Strategic Briefing</CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Análise de Performance e Risco Financeiro NAI.</CardDescription>
+                  <CardTitle className="text-lg font-black text-primary uppercase">NAI Strategic Briefing</CardTitle>
+                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Análise de Performance e Conformidade NAI API.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -131,13 +132,13 @@ export default function Dashboard() {
                   <h3 className="text-2xl font-black text-emerald-600">R$ 142.500,00</h3>
                   <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA anual.</p>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-red-500/20 transition-all">
+                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-blue-500/20 transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <ShieldAlert className="size-4 text-red-500" />
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Exposição ao NTEP</span>
+                    <Network className="size-4 text-blue-500" />
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronização NAIGED</span>
                   </div>
-                  <h3 className="text-2xl font-black text-red-600">04 Casos Ativos</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Risco de passivo trabalhista solidário.</p>
+                  <h3 className="text-2xl font-black text-blue-600">100% Ativo</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Documentação e eSocial integrados.</p>
                 </div>
               </div>
               <div className="bg-primary p-6 rounded-[2rem] text-white relative overflow-hidden group">
@@ -147,7 +148,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current" /> Recomendação Executiva NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed">
-                    "Sua unidade alcançou 100% de conformidade no eSocial este mês. Recomendamos foco na renovação do PGR (vence em 45 dias) para evitar multas automáticas no S-2240."
+                    "A inteligência NAI detectou 100% de conformidade técnica em sua unidade. A infraestrutura de API está agilizando o envio de exames e laudos ao eSocial."
                   </p>
                 </div>
               </div>
@@ -155,9 +156,9 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância SESMT" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
+            <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância NAI" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Treinamentos" value="04" sub="Turmas Digitais" icon={GraduationCap} color="text-orange-600" bg="bg-orange-50" />
+            <StatCard label="Conformidade API" value="98%" sub="Uptime Sistema" icon={Network} color="text-emerald-600" bg="bg-emerald-50" />
           </div>
         </div>
 
@@ -169,7 +170,7 @@ export default function Dashboard() {
                   <Calculator className="size-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-sm font-black text-primary uppercase tracking-tight">Simulador ROI/FAP</CardTitle>
+                  <CardTitle className="text-sm font-black text-primary uppercase tracking-tight">Simulador ROI NAI</CardTitle>
                 </div>
               </div>
             </CardHeader>
@@ -191,7 +192,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <Button asChild variant="outline" className="w-full h-12 border-primary/10 text-primary font-black uppercase text-[9px] tracking-widest rounded-xl">
-                <Link href="/financial">Ver DRE Consolidado</Link>
+                <Link href="/financial">Explorar NAI Financeiro</Link>
               </Button>
             </CardContent>
           </Card>

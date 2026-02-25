@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Nextcon Enterprise Palette - Enhanced */
+    /* Nextcon Enterprise Palette 2026 - Enhanced Vibrancy */
     --background: 210 40% 98%;    /* #F8FAFC */
     --foreground: 215 32% 17%;    /* #1E293B */
     
@@ -32,9 +32,9 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 210 100% 20%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Sidebar Variables - More Vibrant */
+    /* Sidebar Variables 2026 - Ultra Vibrant */
     --sidebar-background: 210 100% 12%; /* Deeper Navy */
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 190 100% 50%;    /* Cyan Neon */
@@ -48,7 +48,7 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/50 shadow-sm transition-all duration-300;
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300;
   }
   
   .glass-card {
@@ -60,7 +60,11 @@
   }
 
   .sidebar-header-glow {
-    text-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+    text-shadow: 0 0 20px rgba(0, 242, 255, 0.5), 0 0 40px rgba(0, 242, 255, 0.2);
+  }
+
+  .card-shadow {
+    box-shadow: 0 10px 30px -10px rgba(0, 51, 102, 0.1);
   }
 }
 
@@ -72,14 +76,14 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
     background-attachment: fixed;
-    background-image: radial-gradient(at 0% 0%, hsla(210, 100%, 95%, 1) 0, transparent 50%),
+    background-image: radial-gradient(at 0% 0%, hsla(210, 100% , 95%, 1) 0, transparent 50%),
                       radial-gradient(at 50% 0%, hsla(209, 100%, 96%, 1) 0, transparent 50%),
                       radial-gradient(at 100% 0%, hsla(161, 84%, 97%, 1) 0, transparent 50%);
   }
 }
 
 .font-headline {
-  @apply font-semibold tracking-tight;
+  @apply tracking-tight;
   font-family: 'Montserrat', sans-serif;
 }
 
