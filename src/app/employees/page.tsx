@@ -16,7 +16,8 @@ import {
   Sparkles,
   X,
   Copy,
-  Zap
+  Zap,
+  Globe
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -108,6 +109,7 @@ export default function EmployeesPage() {
     if (!profile) return false;
     const role = (profile.role || '').toUpperCase();
     const companyId = profile.companyId;
+    // Administrador é global se não tiver companyId vinculado no perfil
     return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
   }, [profile]);
 
@@ -150,14 +152,21 @@ export default function EmployeesPage() {
 
   const employeesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
+    
+    // Visão Global: Consulta por Collection Group (todos os funcionários de todos os clientes)
     if (isGlobalAdmin && selectedCompanyId === "all") {
-      return query(collectionGroup(db, "employees"), orderBy("name", "asc"))
+      // Removido orderBy para evitar erro de índice ausente em consultas globais sem configuração prévia
+      return query(collectionGroup(db, "employees"))
     } 
+    
     const companyIdToFilter = selectedCompanyId !== "all" ? selectedCompanyId : profile.companyId;
+    
     if (companyIdToFilter === "all" && !isGlobalAdmin) return null;
+    
     if (companyIdToFilter) {
       return query(collection(db, "companies", companyIdToFilter, "employees"), orderBy("name", "asc"))
     }
+    
     return null
   }, [db, profile, selectedCompanyId, isGlobalAdmin])
 
@@ -199,8 +208,7 @@ export default function EmployeesPage() {
       const result = await extractEmployeesFromText({ rawText: aiRawText });
       
       const targetColRef = collection(db, "companies", selectedCompanyId, "employees");
-      let successCount = 0;
-
+      
       for (const emp of result.employees) {
         await addDocumentNonBlocking(targetColRef, {
           name: emp.name,
@@ -210,7 +218,6 @@ export default function EmployeesPage() {
           status: "active",
           createdAt: new Date().toISOString()
         });
-        successCount++;
       }
 
       toast({ 
@@ -229,13 +236,25 @@ export default function EmployeesPage() {
   const filteredEmployees = React.useMemo(() => {
     if (!employees) return []
     const term = searchTerm.toLowerCase()
-    return employees.filter(emp => (emp.name || "").toLowerCase().includes(term))
-  }, [employees, searchTerm])
+    
+    // Filtra por termo de busca
+    let results = employees.filter(emp => 
+      (emp.name || "").toLowerCase().includes(term) || 
+      (emp.cpf || "").includes(term)
+    )
+
+    // Se estiver na visão global, ordena em memória para garantir consistência
+    if (isGlobalAdmin && selectedCompanyId === "all") {
+      results = [...results].sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+    }
+
+    return results
+  }, [employees, searchTerm, isGlobalAdmin, selectedCompanyId])
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+        <div className="space-y-1">
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Quadro de Vidas</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
             <Users className="size-3 text-accent" /> Gestão consolidada de vidas sob vigilância SESMT.
@@ -388,7 +407,7 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-3.5 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
           <Input 
@@ -399,14 +418,14 @@ export default function EmployeesPage() {
           />
         </div>
         {isGlobalAdmin && (
-          <div className="w-72">
+          <div className="w-full md:w-72">
             <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
               <SelectTrigger className="h-12 bg-white border-none shadow-sm rounded-xl font-bold uppercase text-[10px]">
-                <Building2 className="size-4 mr-2 text-slate-400" />
+                <Globe className="size-4 mr-2 text-slate-400" />
                 <SelectValue placeholder="Filtrar Unidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Visão Global (Rede)</SelectItem>
+                <SelectItem value="all">Visão Global (Toda a Rede)</SelectItem>
                 {companies?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -446,7 +465,7 @@ export default function EmployeesPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-600 uppercase">{emp.job_role?.title}</span>
+                      <span className="text-xs font-bold text-slate-600 uppercase">{emp.job_role?.title || 'Não Definido'}</span>
                       <span className="text-[9px] text-slate-400 font-bold uppercase">CBO: {emp.job_role?.cbo || '---'}</span>
                     </div>
                   </TableCell>
