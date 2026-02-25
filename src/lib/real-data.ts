@@ -1,36 +1,23 @@
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
  * Fonte única de verdade para faturamento, contratos, clientes e prestadores.
- * Inclui os 104 clientes ativos e a estrutura de colaboradores cruzada.
+ * Inclui os clientes ativos e a estrutura de colaboradores cruzada.
  */
 
 export const REAL_COMPANIES = [
-  { id: "CLI001", name: "BERNARDI DISTRIBUIDORA", cnpj: "00.000.000/0001-01", active: true, risk_degree: 2, segment: "INDUSTRY" },
-  { id: "CLI003", name: "ESCOLA ESSENCIAL DE VIRTUDES LTDA", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION" },
-  { id: "CLI014", name: "CDA STEEL FABRICACAO E MONTAGEM LTDA", cnpj: "00.000.000/0001-14", active: true, risk_degree: 3, segment: "INDUSTRY" },
-  { id: "CLI029", name: "INCORPORADORA GRAN-PARA LTDA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI055", name: "DW MONTEC", cnpj: "00.000.000/0001-55", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI082", name: "NATIVA EMPREENDIMENTOS", cnpj: "51.633.820/0001-51", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI113", name: "RCF CONSTRUCOES CIVIS LTDA", cnpj: "00.000.000/0001-13", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI119", name: "JPF COMERCIO DE CONFECCOES", cnpj: "00.000.000/0001-19", active: true, risk_degree: 2, segment: "INDUSTRY" },
-  { id: "CLI124", name: "CONSTRUFAM ENGENHARIA", cnpj: "81.707.465/0001-89", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI138", name: "PLM REFORMAS EM GERAL", cnpj: "00.000.000/0001-38", active: true, risk_degree: 3, segment: "CONSTRUCTION" },
-  { id: "CLI143", name: "GIRO TECNOLOGIA", cnpj: "00.000.000/0001-43", active: true, risk_degree: 1, segment: "SERVICES" },
-  { id: "01208413000129", name: "TIME NOW ENGENHARIA S/A", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING" }
+  { id: "51633820000151", name: "NATIVA EMPREENDIMENTOS", cnpj: "51.633.820/0001-51", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Guaratuba", state: "PR" },
+  { id: "01208413000129", name: "TIME NOW ENGENHARIA S/A", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING", city: "Vitória", state: "ES" },
+  { id: "13419654000104", name: "INCORPORADORA GRAN-PARA LTDA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Curitiba", state: "PR" },
+  { id: "76492701001129", name: "BRITANIA ELETRODOMESTICOS SA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Joinville", state: "SC" },
+  { id: "32137571000169", name: "ESCOLA ESSENCIAL DE VIRTUDES LTDA", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION", city: "Curitiba", state: "PR" },
+  { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Rio Branco do Sul", state: "PR" }
 ];
 
 export const REAL_EMPLOYEES = [
-  { id: "COL1334", name: "Amos Vieira De Souza", companyId: "CLI001", status: "active", cpf: "441.932.712-77" },
-  { id: "COL1100", name: "Paola Santiago Dalasuana", companyId: "CLI001", status: "active", cpf: "378.454.183-64" },
-  { id: "COL1268", name: "Ana Paula Conci Oliveira", companyId: "CLI003", status: "active", cpf: "152.928.837-99" },
-  { id: "COL1713", name: "Animaria De Amorim", companyId: "CLI003", status: "active", cpf: "378.454.183-67" },
-  { id: "COL1946", name: "Adair Doarte", companyId: "CLI029", status: "active", cpf: "730.248.971-82" },
-  { id: "COL1931", name: "Agnaldo Cordeiro Da Silva", companyId: "CLI029", status: "active", cpf: "267.487.702-27" },
-  { id: "COL1022", name: "Alex Oliveira Da Costa", companyId: "CLI082", status: "active", cpf: "264.950.432-69" },
-  { id: "COL1842", name: "Aldemir Domingos Maciel", companyId: "CLI113", status: "active", cpf: "961.586.877-73" },
-  { id: "COL1807", name: "Aline Siqueira", companyId: "CLI113", status: "active", cpf: "173.973.644-86" },
-  { id: "COL1069", name: "Ana Julia Kwiatkowski Moreira", companyId: "CLI143", status: "active", cpf: "730.248.971-85" },
-  { id: "COL1060", name: "Carla Roberta Franco", companyId: "CLI143", status: "active", cpf: "264.950.432-70" }
+  { id: "COL1022", name: "ALEX OLIVEIRA DA COSTA", companyId: "51633820000151", status: "active", cpf: "264.950.432-69", job_role: { title: "PEDREIRO", cbo: "7152-10" } },
+  { id: "COL1021", name: "ANGELICA ALBINA KOVASKI ARAGAO", companyId: "51633820000151", status: "active", cpf: "752.745.917-45", job_role: { title: "AUXILIAR ADM", cbo: "4110-05" } },
+  { id: "COL1946", name: "ADAIR DOARTE", companyId: "13419654000104", status: "active", cpf: "730.248.971-82", job_role: { title: "CARPINTEIRO", cbo: "7155-05" } },
+  { id: "COL1268", name: "ANA PAULA CONCI OLIVEIRA", companyId: "32137571000169", status: "active", cpf: "152.928.837-99", job_role: { title: "PROFESSORA", cbo: "2312-05" } }
 ];
 
 export const REAL_PROVIDERS = [
@@ -39,8 +26,8 @@ export const REAL_PROVIDERS = [
 ];
 
 export const REAL_CONTRACTS = [
-  { id: "CT_NATIVA", companyId: "CLI082", companyName: "Nativa Empreendimentos", title: "Gestão Full SST", value: 88824.0, status: "Active" },
-  { id: "CT_GRANPARA", companyId: "CLI029", companyName: "Incorporadora Gran-Pará", title: "Gestão Corporativa", value: 142500.0, status: "Active" },
+  { id: "CT_NATIVA", companyId: "51633820000151", companyName: "Nativa Empreendimentos", title: "Gestão Full SST", value: 88824.0, status: "Active" },
+  { id: "CT_GRANPARA", companyId: "13419654000104", companyName: "Incorporadora Gran-Pará", title: "Gestão Corporativa", value: 142500.0, status: "Active" },
   { id: "CT_TIMENOW", companyId: "01208413000129", companyName: "Time Now Engenharia", title: "Contrato Global", value: 250000.0, status: "Active" }
 ];
 
@@ -60,16 +47,15 @@ export const DRE_2026_DATA = [
 ];
 
 export const REAL_EXAMS_HISTORY = [
-  { companyId: "CLI082", employeeName: "Alex Oliveira Da Costa", date: "2025-01-15", type: "Admissional", provider: "DR. DANILO LOPES", aso: "OK", s2220: "OK" },
-  { companyId: "CLI029", employeeName: "Adair Doarte", date: "2025-02-10", type: "Periódico", provider: "CLINICA SQV", aso: "OK", s2220: "OK" },
-  { companyId: "CLI001", employeeName: "Amos Vieira De Souza", date: "2025-01-05", type: "Admissional", provider: "CLINICA BIAVATTI", aso: "OK", s2220: "OK" }
+  { companyId: "51633820000151", employeeName: "ALEX OLIVEIRA DA COSTA", date: "2025-01-15", type: "Admissional", provider: "DR. DANILO LOPES", aso: "OK", s2220: "OK" },
+  { companyId: "13419654000104", employeeName: "ADAIR DOARTE", date: "2025-02-10", type: "Periódico", provider: "CLINICA SQV", aso: "OK", s2220: "OK" }
 ];
 
 export const REAL_TRAININGS = [
   {
     id: "TRN_001",
     title: "NR-18: Segurança na Construção Civil",
-    companyId: "CLI082",
+    companyId: "51633820000151",
     companyName: "Nativa Empreendimentos",
     nrs: ["NR-18", "NR-35"],
     startDate: "2026-02-10",
@@ -77,7 +63,7 @@ export const REAL_TRAININGS = [
     totalHours: 40,
     status: "in_progress",
     students: [
-      { id: "COL1022", name: "Alex Oliveira Da Costa", status: "present" }
+      { id: "COL1022", name: "ALEX OLIVEIRA DA COSTA", status: "present" }
     ]
   }
 ];
