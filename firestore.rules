@@ -33,6 +33,23 @@ service cloud.firestore {
              (data.servedCompanies != null && companyId in data.servedCompanies);
     }
 
+    // Configurações Globais (NAI, Normas, Jurisprudência)
+    // Permite leitura para qualquer usuário autenticado para que a interface funcione.
+    match /config_nai_avatar/{docId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin();
+    }
+    
+    match /config_normas_profissionais/{docId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin();
+    }
+
+    match /config_jurisprudencia/{docId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin();
+    }
+
     // Regras para a Coleção de Empresas (Clientes)
     match /companies/{companyId} {
       allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
