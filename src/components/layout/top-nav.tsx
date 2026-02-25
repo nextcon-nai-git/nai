@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from 'react';
@@ -10,7 +9,8 @@ import {
   ChevronDown,
   Building2,
   ShieldCheck,
-  UserCircle
+  UserCircle,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,8 +45,8 @@ export function TopNav() {
 
   const getUnitLabel = () => {
     if (isAdmin) return "Matriz Curitiba";
-    if (profile?.companyId === 'CLI_NATIVA') return "Matriz Guaratuba";
-    if (profile?.companyId === 'CLI_TIMENOW') return "Matriz Espírito Santo";
+    if (profile?.companyId === '51633820000151') return "Matriz Guaratuba";
+    if (profile?.companyId === '01208413000129') return "Matriz Espírito Santo";
     return "Unidade Operacional";
   };
 
@@ -73,6 +73,9 @@ export function TopNav() {
             placeholder={isAdmin ? "Pesquisar em toda a rede..." : "Pesquisar seus dados..."} 
             className="pl-10 h-10 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 transition-all text-sm"
           />
+          <div className="absolute right-3 top-2.5">
+            <Sparkles className="size-4 text-accent/40 animate-pulse" />
+          </div>
         </div>
       </div>
 
