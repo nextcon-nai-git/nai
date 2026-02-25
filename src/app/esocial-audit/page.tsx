@@ -29,7 +29,9 @@ import {
   Scale,
   Lock,
   RefreshCw,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Activity,
+  Terminal
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -63,7 +65,7 @@ export default function EsocialAudit() {
 
   const queueQuery = useMemoFirebase(() => {
     if (!db || !profile?.companyId) return null
-    return query(collection(db, "companies", profile.companyId, "esocial_events_queue"), orderBy("id", "desc"))
+    return query(collection(db, "companies", profile.companyId, "esocial_events_queue"), orderBy("createdAt", "desc"))
   }, [db, profile])
   const { data: queueDocs } = useCollection(queueQuery)
 
@@ -130,65 +132,102 @@ export default function EsocialAudit() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full md:w-[850px] grid-cols-4 bg-muted/50 p-1.5 rounded-2xl h-16">
           <TabsTrigger value="agrupador" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Fila NAI API</TabsTrigger>
-          <TabsTrigger value="governanca" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-[#00f2ff]"><ShieldCheck className="size-4" /> Governança 2026</TabsTrigger>
+          <TabsTrigger value="governanca" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-accent"><ShieldCheck className="size-4" /> Governança 2026</TabsTrigger>
           <TabsTrigger value="auditoria" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Diagnóstico NAI</TabsTrigger>
           <TabsTrigger value="config" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Configuração API</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agrupador" className="mt-8 space-y-6">
-          <Card className="card-shadow border-none bg-white overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b pb-6">
-              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
-                <ShieldAlert className="size-5 text-accent" /> Monitoramento Firewall 2026
-              </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Os eventos só avançam para transmissão se aprovados pela inteligência NAI.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-muted/30">
-                  <TableRow>
-                    <TableHead className="pl-8">Evento</TableHead>
-                    <TableHead>Colaborador</TableHead>
-                    <TableHead>Status Firewall</TableHead>
-                    <TableHead className="pr-8">Diagnóstico NAI</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {queueDocs?.map((evt) => (
-                    <TableRow key={evt.id} className="hover:bg-slate-50 transition-colors">
-                      <TableCell className="pl-8"><Badge variant="outline" className="font-mono text-primary border-primary/20">{evt.eventType}</Badge></TableCell>
-                      <TableCell><p className="font-black text-xs uppercase text-primary">{evt.employeeName}</p></TableCell>
-                      <TableCell>
-                        <Badge className={cn(
-                          "text-[8px] font-black uppercase border-none px-3",
-                          evt.status === 'blocked_pelo_firewall' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
-                        )}>
-                          {evt.status === 'blocked_pelo_firewall' ? "Bloqueado" : "Aprovado"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="pr-8">
-                        {evt.firewallMessage ? (
-                          <p className="text-[10px] text-red-600 italic font-bold leading-tight flex items-center gap-1">
-                            <AlertCircle className="size-3" /> {evt.firewallMessage}
-                          </p>
-                        ) : (
-                          <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Sincronização OK</p>
-                        )}
-                      </TableCell>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Card className="lg:col-span-3 card-shadow border-none bg-white overflow-hidden">
+              <CardHeader className="bg-primary/5 border-b pb-6">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                    <ShieldAlert className="size-5 text-accent" /> Monitoramento Firewall 2026
+                  </CardTitle>
+                  <Badge variant="outline" className="h-6 gap-2 border-emerald-100 text-emerald-700 font-black uppercase text-[8px] bg-emerald-50">
+                    <div className="size-1.5 bg-emerald-500 rounded-full animate-ping" /> Live Validation
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow>
+                      <TableHead className="pl-8">Evento</TableHead>
+                      <TableHead>Colaborador</TableHead>
+                      <TableHead>Status Firewall</TableHead>
+                      <TableHead className="pr-8">Diagnóstico NAI</TableHead>
                     </TableRow>
-                  ))}
-                  {(!queueDocs || queueDocs.length === 0) && (
-                    <TableRow><TableCell colSpan={4} className="py-20 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum evento pendente</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {queueDocs?.map((evt) => (
+                      <TableRow key={evt.id} className="hover:bg-slate-50 transition-colors group">
+                        <TableCell className="pl-8">
+                          <Badge variant="outline" className="font-mono text-primary border-primary/20 group-hover:bg-primary group-hover:text-white transition-all">
+                            {evt.eventType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell><p className="font-black text-xs uppercase text-primary">{evt.employeeName}</p></TableCell>
+                        <TableCell>
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase border-none px-3",
+                            evt.status === 'blocked_pelo_firewall' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                          )}>
+                            {evt.status === 'blocked_pelo_firewall' ? "Bloqueado" : "Aprovado"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-8">
+                          {evt.firewallMessage ? (
+                            <p className="text-[10px] text-red-600 italic font-bold leading-tight flex items-center gap-1">
+                              <AlertCircle className="size-3" /> {evt.firewallMessage}
+                            </p>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="size-3 text-emerald-500" />
+                              <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Sincronização OK</p>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {(!queueDocs || queueDocs.length === 0) && (
+                      <TableRow><TableCell colSpan={4} className="py-24 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum evento pendente no firewall</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-1 card-shadow border-none bg-slate-900 text-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="bg-white/5 border-b pb-4">
+                <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                  <Terminal className="size-4" /> NAI API Protocol
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 font-mono text-[9px] space-y-4">
+                <div className="space-y-1">
+                  <p className="text-emerald-400">$ GET /api/v2/compliance</p>
+                  <p className="text-slate-400">Verifying TLS 1.2... OK</p>
+                  <p className="text-slate-400">Verifying S-1.3 Dictionary... OK</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-accent">$ VALIDATE EVENT S-2240</p>
+                  <p className="text-slate-400">JSON Payload Check: Valid</p>
+                  <p className="text-slate-400">Cross-Ref NAIGED: PGR-2026-01</p>
+                  <p className="text-emerald-400">Result: PROCEED_TO_GOV</p>
+                </div>
+                <div className="pt-4 border-t border-white/10 flex flex-col items-center gap-3">
+                  <Activity className="size-8 text-accent animate-pulse" />
+                  <p className="text-[8px] font-black uppercase tracking-widest text-center">Firewall Intelligence Ativa 24/7</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="governanca" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* S-1010 Rubricas */}
             <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
               <CardHeader className="bg-slate-50 border-b p-8">
                 <div className="flex justify-between items-center">
@@ -217,8 +256,7 @@ export default function EsocialAudit() {
               </CardContent>
             </Card>
 
-            {/* Certificado Digital TLS 1.2+ */}
-            <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2rem] overflow-hidden">
+            <Card className="card-shadow border-none bg-slate-900 text-white rounded-[2rem] overflow-hidden">
               <CardHeader className="border-b border-white/5 p-8">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
@@ -243,7 +281,6 @@ export default function EsocialAudit() {
             </Card>
           </div>
 
-          {/* Cruzamento SST x Folha (FAE) */}
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-primary text-white p-8">
               <div className="flex items-center gap-4">

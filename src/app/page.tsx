@@ -19,7 +19,10 @@ import {
   Brain,
   ArrowUpRight,
   Users as UsersIcon,
-  Network
+  Network,
+  Activity,
+  BarChart3,
+  Shield
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -109,47 +112,68 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Executive Summary NAI 2026 */}
-          <Card className="card-shadow border-none bg-gradient-to-br from-white to-blue-50/50 rounded-[2.5rem] overflow-hidden border border-blue-100">
+          {/* NAI Strategic Briefing 2026 */}
+          <Card className="card-shadow border-none bg-gradient-to-br from-white to-slate-50/50 rounded-[2.5rem] overflow-hidden border border-slate-100">
             <CardHeader className="pb-4 px-8 pt-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary text-accent rounded-xl shadow-inner">
-                  <Brain className="size-5" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary text-white rounded-xl shadow-inner">
+                    <Brain className="size-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-black text-primary uppercase">NAI Strategic Briefing</CardTitle>
+                    <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Status de Blindagem Técnica e Tributária.</CardDescription>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-lg font-black text-primary uppercase">NAI Strategic Briefing</CardTitle>
-                  <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Análise de Performance e Conformidade NAI API.</CardDescription>
+                <div className="flex flex-col items-end">
+                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Compliance Score</span>
+                  <span className="text-xl font-black text-accent">94%</span>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-accent/20 transition-all">
-                  <div className="flex items-center gap-3 mb-3">
-                    <TrendingUp className="size-4 text-accent" />
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Saving RAT/FAP Est.</span>
+                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-accent/20 transition-all flex justify-between items-center">
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <TrendingUp className="size-4 text-accent" />
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Saving RAT/FAP Est.</span>
+                    </div>
+                    <h3 className="text-2xl font-black text-accent">R$ 142.500,00</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA.</p>
                   </div>
-                  <h3 className="text-2xl font-black text-accent">R$ 142.500,00</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA anual.</p>
+                  <div className="size-16 rounded-full border-4 border-accent/10 border-t-accent flex items-center justify-center">
+                    <span className="text-[10px] font-black">ROI+</span>
+                  </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-blue-500/20 transition-all">
+                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-primary/20 transition-all">
                   <div className="flex items-center gap-3 mb-3">
-                    <Network className="size-4 text-blue-500" />
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronização NAIGED</span>
+                    <Network className="size-4 text-primary" />
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronização NAI API</span>
                   </div>
-                  <h3 className="text-2xl font-black text-blue-600">100% Ativo</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Documentação e eSocial integrados.</p>
+                  <h3 className="text-2xl font-black text-primary">100% On</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">NAIGED e eSocial integrados.</p>
                 </div>
               </div>
-              <div className="bg-primary p-6 rounded-[2rem] text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-1000"><Sparkles className="size-24 text-accent" /></div>
-                <div className="relative z-10">
-                  <p className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-2 flex items-center gap-2">
-                    <Zap className="size-3 fill-current" /> Recomendação Executiva NAI
-                  </p>
-                  <p className="text-sm italic font-medium leading-relaxed text-white/90">
-                    "A inteligência NAI detectou 100% de conformidade técnica em sua unidade. A infraestrutura de API está agilizando o envio de exames e laudos ao eSocial."
-                  </p>
+              
+              {/* Risk Matrix Mini-View */}
+              <div className="bg-slate-900 p-6 rounded-[2rem] text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-1000"><Shield className="size-32 text-accent" /></div>
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                  <div className="md:col-span-2 space-y-2">
+                    <p className="text-[10px] font-black uppercase text-accent tracking-[0.2em] mb-2 flex items-center gap-2">
+                      <Zap className="size-3 fill-current" /> Insight Preditivo NAI
+                    </p>
+                    <p className="text-sm italic font-medium leading-relaxed text-white/80">
+                      "A análise de GHE detectou tendência de aumento em absenteísmo osteomuscular. Recomendamos auditoria na NR-17 Setor Operacional."
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 grid-rows-2 gap-1 size-24 mx-auto">
+                    <div className="risk-matrix-cell bg-emerald-500/20" />
+                    <div className="risk-matrix-cell bg-amber-500/40" />
+                    <div className="risk-matrix-cell bg-emerald-500/40" />
+                    <div className="risk-matrix-cell bg-red-500 animate-pulse border-2 border-white" />
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -158,7 +182,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <StatCard label="Vidas Ativas" value="1.402" sub="Vigilância NAI" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Conformidade API" value="98%" sub="Uptime Sistema" icon={Network} color="text-accent" bg="bg-accent/5" />
+            <StatCard label="Eficiência API" value="99.8%" sub="Uptime Sistema" icon={Network} color="text-accent" bg="bg-accent/5" />
           </div>
         </div>
 
@@ -199,7 +223,10 @@ export default function Dashboard() {
 
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b p-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Próximos Vencimentos</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Próximos Vencimentos</CardTitle>
+                <Activity className="size-3 text-red-500 animate-pulse" />
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {events && events.length > 0 ? (

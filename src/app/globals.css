@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Nextcon Enterprise Palette 2026 - Sober Gray Refresh */
+    /* Nextcon Enterprise Palette 2026 - Sober Grey & Deep Navy */
     --background: 210 40% 98%;    /* #F8FAFC */
     --foreground: 215 32% 17%;    /* #1E293B */
     
@@ -14,16 +14,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 32% 17%;
     
-    --primary: 210 100% 20%;      /* #003366 - Deep Navy */
+    --primary: 210 100% 12%;      /* #001F3F - Darker Navy */
     --primary-foreground: 210 40% 98%;
     
-    --secondary: 209 100% 32%;    /* #0055A4 - Secondary Blue */
+    --secondary: 215 25% 27%;    /* #334155 - Slate Grey */
     --secondary-foreground: 210 40% 98%;
     
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
     
-    --accent: 215 25% 27%;       /* #334155 - Dark Slate Gray */
+    --accent: 215 25% 27%;       /* #334155 - Dark Slate Grey (The main gray) */
     --accent-foreground: 210 40% 98%;
     
     --destructive: 0 84% 60%;     /* #EF4444 - Risk Red */
@@ -31,40 +31,40 @@
     
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 215 25% 27%;
-    --radius: 0.75rem;
+    --ring: 210 100% 12%;
+    --radius: 1rem;
 
-    /* Sidebar Variables 2026 - Deep Corporate Blue */
-    --sidebar-background: 210 100% 12%; 
+    /* Sidebar Variables 2026 - Deep Corporate Presence */
+    --sidebar-background: 210 100% 8%; 
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 215 25% 27%;    
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 209 100% 32%;
+    --sidebar-accent: 210 100% 15%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 100% 18%;
+    --sidebar-border: 210 100% 12%;
     --sidebar-ring: 215 25% 27%;
   }
 }
 
 @layer components {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300;
+    @apply bg-white/80 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300;
   }
   
-  .glass-card {
-    @apply bg-white/40 backdrop-blur-sm border border-white/30 shadow-sm hover:shadow-md transition-all duration-200;
-  }
-
   .gradient-nextcon {
-    background: linear-gradient(135deg, #001F3F 0%, #003366 50%, #001F3F 100%);
+    background: linear-gradient(135deg, #000D1A 0%, #001F3F 50%, #000D1A 100%);
   }
 
   .sidebar-header-glow {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
   }
 
   .card-shadow {
-    box-shadow: 0 10px 30px -10px rgba(0, 51, 102, 0.1);
+    box-shadow: 0 20px 40px -15px rgba(0, 31, 63, 0.08);
+  }
+
+  .risk-matrix-cell {
+    @apply size-full flex items-center justify-center rounded-lg text-[8px] font-black uppercase transition-all hover:scale-105;
   }
 }
 
@@ -76,9 +76,8 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
     background-attachment: fixed;
-    background-image: radial-gradient(at 0% 0%, hsla(210, 100% , 95%, 1) 0, transparent 50%),
-                      radial-gradient(at 50% 0%, hsla(209, 100%, 96%, 1) 0, transparent 50%),
-                      radial-gradient(at 100% 0%, hsla(215, 20%, 97%, 1) 0, transparent 50%);
+    background-image: radial-gradient(at 0% 0%, hsla(210, 100% , 97%, 1) 0, transparent 50%),
+                      radial-gradient(at 100% 100%, hsla(215, 20%, 96%, 1) 0, transparent 50%);
   }
 }
 
@@ -88,9 +87,9 @@
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full hover:bg-primary/40;
+  @apply bg-primary/10 rounded-full hover:bg-primary/20;
 }
