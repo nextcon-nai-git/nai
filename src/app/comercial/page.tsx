@@ -19,7 +19,8 @@ import {
   ExternalLink,
   Search,
   Building2,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -114,17 +115,24 @@ export default function ComercialPortal() {
   const buscarLicitacoes = async () => {
     setLoadingRadar(true)
     setErroRadar('')
+    setLicitacoes([])
+    
     try {
       const res = await fetch('/api/licitacoes')
       const json = await res.json()
+      
       if (json.sucesso) {
         setLicitacoes(json.oportunidades)
-        toast({ title: "Radar Atualizado", description: `${json.oportunidades.length} oportunidades encontradas.` })
+        if (json.oportunidades.length === 0) {
+          setErroRadar('Nenhum edital novo localizado com os termos técnicos de SST hoje.')
+        } else {
+          toast({ title: "Radar Atualizado", description: `${json.oportunidades.length} oportunidades encontradas.` })
+        }
       } else {
-        setErroRadar(json.erro)
+        setErroRadar(json.erro || 'Falha na resposta do servidor governamental.')
       }
     } catch (err) {
-      setErroRadar('Falha na conexão com a base de dados do Governo.')
+      setErroRadar('Falha crítica na conexão com a base de dados do Governo. Verifique o log da API.')
     } finally {
       setLoadingRadar(false)
     }
@@ -303,7 +311,7 @@ export default function ComercialPortal() {
             <CardContent className="p-8 md:p-10 min-h-[400px]">
               {erroRadar && (
                 <div className="p-6 bg-red-50 border border-red-100 rounded-3xl flex items-center gap-4 text-red-700 mb-8">
-                  <Zap className="size-6" />
+                  <AlertTriangle className="size-6 shrink-0" />
                   <p className="text-sm font-bold italic">"{erroRadar}"</p>
                 </div>
               )}
@@ -352,7 +360,7 @@ export default function ComercialPortal() {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : !loadingRadar && !erroRadar ? (
                 <div className="flex flex-col items-center justify-center py-20 opacity-20 text-center space-y-4">
                   <Globe className="size-20" />
                   <div className="max-w-xs">
@@ -360,7 +368,7 @@ export default function ComercialPortal() {
                     <p className="text-sm font-bold">Clique no botão superior para escanear oportunidades nos portais do Governo.</p>
                   </div>
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
         </TabsContent>
