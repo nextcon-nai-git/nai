@@ -11,7 +11,7 @@ import { useFirestore, useStorage } from "@/firebase"
 import { doc, writeBatch } from "firebase/firestore"
 import { ref, uploadString } from "firebase/storage"
 import { firebaseConfig } from "@/firebase/config"
-import { REAL_COMPANIES } from "@/lib/real-data"
+import { REAL_COMPANIES, REAL_PROVIDERS } from "@/lib/real-data"
 import Link from "next/link"
 
 const NORMAS_SAUDE = [
@@ -138,7 +138,16 @@ export default function AuditSetupPage() {
       for (const path of paths) {
         await uploadString(ref(storage, path), marker);
         uploaded++;
-        setProgress(20 + (uploaded / paths.length) * 40);
+        setProgress(20 + (uploaded / paths.length) * 20);
+      }
+
+      // Provisiona estrutura para os Prestadores (Fornecedores)
+      setStatus("Provisionando Repositórios de Prestadores...")
+      let provCount = 0;
+      for (const provider of REAL_PROVIDERS.slice(0, 10)) {
+        provCount++;
+        await uploadString(ref(storage, `internos_nextcon/fornecedores/${provider.id}/.keep`), marker);
+        setProgress(40 + (provCount / 10) * 20);
       }
 
       // Provisiona estrutura para as 5 principais empresas da base real para demonstração
@@ -248,7 +257,7 @@ export default function AuditSetupPage() {
             )}
           </Button>
           <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-tighter">
-            Esta operação provisiona as bases normativas, o roteiro de vendas e a árvore de diretórios oficial no Cloud Storage usando arquivos .keep.
+            Esta operação provisiona as bases normativas, o roteiro de vendas e a árvore de diretórios oficial no Cloud Storage respeitando o isolamento multi-tenant.
           </p>
         </CardFooter>
       </Card>

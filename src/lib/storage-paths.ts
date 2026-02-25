@@ -10,7 +10,7 @@ export const STORAGE_PATHS = {
 
   // 2. INTERNOS NEXTCON (Gestão Própria)
   INTERNAL_PROJECT: (projectId: string, filename: string) => `internos_nextcon/projetos_internos/${projectId}/${filename}`,
-  INTERNAL_SUPPLIER: (supplierId: string, filename: string) => `internos_nextcon/fornecedores/${supplierId}/${filename}`,
+  INTERNAL_PROVIDER: (providerId: string, filename: string) => `internos_nextcon/fornecedores/${providerId}/${filename}`,
 
   // 3. CLIENTES (O Coração do Sistema - Isolamento Total)
   
