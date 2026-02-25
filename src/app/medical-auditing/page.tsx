@@ -16,6 +16,7 @@ import {
   Sparkles,
   Info,
   ChevronRight,
+  ChevronDown,
   User,
   AlertTriangle,
   ClipboardCheck,
