@@ -136,7 +136,7 @@ export function AppSidebar() {
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   
   return (
-    <Sidebar className="border-r border-sidebar-border bg-gradient-to-b from-[#001F3F] via-[#003366] to-[#001F3F] text-white w-[300px] transition-all duration-700 shadow-2xl">
+    <Sidebar className="border-r border-sidebar-border bg-gradient-to-b from-[#001F3F] via-[#003366] to-[#001F3F] text-white transition-all duration-700 shadow-2xl">
       <SidebarHeader className="p-10 pb-6">
         <div className="flex flex-col gap-1 group cursor-default">
           <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105">
