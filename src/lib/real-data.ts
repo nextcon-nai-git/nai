@@ -1,68 +1,47 @@
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
  * Fonte única de verdade para faturamento, contratos, clientes e prestadores.
+ * Inclui coordenadas geográficas para isolamento por raio de atendimento.
  */
 
 export const REAL_COMPANIES = [
-  { id: "75805895000130", name: "COMPANHIA CAMPOLARGUENSE DE ENERGIA COCEL", city: "Campo Largo", state: "PR", cnpj: "75.805.895/0001-30", active: true, segment: "ENERGY", risk_degree: 3 },
-  { id: "76492701001129", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", state: "SC", cnpj: "76.492.701/0011-29", active: true, segment: "INDUSTRY", risk_degree: 2 },
-  { id: "76492701000742", name: "BRITANIA ELETRODOMESTICOS SA (B1/B2)", city: "Joinville", state: "SC", cnpj: "76.492.701/0007-42", active: true, segment: "INDUSTRY", risk_degree: 2 },
-  { id: "51633820000151", name: "NATIVA EMPREENDIMENTOS", city: "Guaratuba", state: "PR", cnpj: "51.633.820/0001-51", active: true, segment: "CONSTRUCTION", risk_degree: 3 },
-  { id: "27051495000134", name: "ROOFSERVICE SERVICOS TECNICOS LTDA", city: "Cotia", state: "SP", cnpj: "27.051.495/0001-34", active: true, segment: "SERVICES", risk_degree: 3 },
-  { id: "92816560000137", name: "BANCO REGIONAL DE DESENVOLVIMENTO DO EXTREMO SUL (BRDE)", city: "Porto Alegre", state: "RS", cnpj: "92.816.560/0001-37", active: true, segment: "FINANCIAL", risk_degree: 1 },
-  { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", city: "Rio Branco do Sul", state: "PR", cnpj: "14.736.446/0012-46", active: true, segment: "HEALTH", risk_degree: 2 },
-  { id: "49949604000178", name: "BIAVATTI ATUBA", city: "Pinhais", state: "PR", cnpj: "49.949.604/0001-78", active: true, segment: "HEALTH", risk_degree: 2 },
-  { id: "06113329000145", name: "SUL CABEAMENTO INSTALACOES ELETRICAS E TECNOLOGICAS LTDA", city: "Canoas", state: "RS", cnpj: "06.113.329/0001-45", active: true, segment: "TELECOM", risk_degree: 3 },
-  { id: "33719485002170", name: "CASSI - BANCO DO BRASIL", city: "Curitiba", state: "PR", cnpj: "33.719.485/0021-70", active: true, segment: "HEALTH", risk_degree: 1 },
-  { id: "01208413000129", name: "TIME NOW ENGENHARIA S/A", city: "Vitória", state: "ES", cnpj: "01.208.413/0001-29", active: true, segment: "ENGINEERING", risk_degree: 3 },
-  { id: "22697661000150", name: "PR-MAX SERVICOS INDUSTRIAIS LTDA", city: "Palmeira", state: "PR", cnpj: "22.697.661/0001-50", active: true, segment: "INDUSTRY", risk_degree: 3 },
-  { id: "13419654000104", name: "INCORPORADORA GRAN-PARA LTDA", city: "Curitiba", state: "PR", cnpj: "13.419.654/0001-04", active: true, segment: "CONSTRUCTION", risk_degree: 3 },
-  { id: "90400888000142", name: "Banco SANTANDER", city: "São Paulo", state: "SP", cnpj: "90.400.888/0001-42", active: true, segment: "FINANCIAL", risk_degree: 1 },
-  { id: "58280956000174", name: "MLS PRESTADORA DE SERVIÇOS LTDA", city: "Colombo", state: "PR", cnpj: "58.280.956/0001-74", active: true, segment: "SERVICES", risk_degree: 2 },
-  { id: "06175128000172", name: "Premcell - Consultoria em Telecomunicacoes Ltda", city: "Bauru", state: "SP", cnpj: "06.175.128/0001-72", active: true, segment: "TELECOM", risk_degree: 2 },
-  { id: "12825178000150", name: "MOPAR ENGENHARIA", city: "Fortaleza", state: "CE", cnpj: "12.825.178/0001-50", active: true, segment: "ENGINEERING", risk_degree: 3 },
-  { id: "39676438000120", name: "CLINICA BIAVATTI LTDA-BACACHERI", city: "Curitiba", state: "PR", cnpj: "39.676.438/0001-20", active: true, segment: "HEALTH", risk_degree: 2 },
-  { id: "32137571000169", name: "ESCOLA ESSENCIAL DE VIRTUDES LTDA", city: "Curitiba", state: "PR", cnpj: "32.137.571/0001-69", active: true, segment: "EDUCATION", risk_degree: 1 },
-  { id: "52793197000167", name: "NOXI QUIMICA LTDA", city: "Tiete", state: "SP", cnpj: "52.793.197/0001-67", active: true, segment: "INDUSTRY", risk_degree: 3 },
-  { id: "45573971000169", name: "BIAVATTI FRANCHISING", city: "Curitiba", state: "PR", cnpj: "45.573.971/0001-69", active: true, segment: "SERVICES", risk_degree: 1 },
-  { id: "81707465000189", name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA", city: "São José dos Pinhais", state: "PR", cnpj: "81.707.465/0001-89", active: true, segment: "CONSTRUCTION", risk_degree: 3 },
-  { id: "32267778000158", name: "LVALLE ENGENHARIA LTDA", city: "Bady Bassitt", state: "SP", cnpj: "32.267.778/0001-58", active: true, segment: "ENGINEERING", risk_degree: 3 },
-  { id: "48865462000106", name: "TIMENOW GESTAO DE OBRAS LTDA", city: "Vitória", state: "ES", cnpj: "48.865.462/0001-06", active: true, isParent: true, segment: "CONSTRUCTION", risk_degree: 3 },
-  { id: "05801908000118", name: "CENTRAL TURBOS PARANA - COMERCIO", city: "Curitiba", state: "PR", cnpj: "05.801.908/0001-18", active: true, segment: "INDUSTRY", risk_degree: 3 },
-  { id: "45822496000117", name: "CLINICA BIAVATTI SAO JOSE DOS PINHAIS LTDA", city: "São José dos Pinhais", state: "PR", cnpj: "45.822.496/0001-17", active: true, segment: "HEALTH", risk_degree: 2 },
-  { id: "10948651005040", name: "SPRINGER CARRIER LTDA", city: "Curitiba", state: "PR", cnpj: "10.948.651/0050-40", active: true, segment: "INDUSTRY", risk_degree: 3 }
+  { id: "75805895000130", name: "COMPANHIA CAMPOLARGUENSE DE ENERGIA COCEL", city: "Campo Largo", state: "PR", cnpj: "75.805.895/0001-30", active: true, segment: "ENERGY", risk_degree: 3, lat: -25.4589, lng: -49.5286 },
+  { id: "76492701001129", name: "BRITANIA ELETRODOMESTICOS SA", city: "Joinville", state: "SC", cnpj: "76.492.701/0011-29", active: true, segment: "INDUSTRY", risk_degree: 2, lat: -26.3045, lng: -48.8434 },
+  { id: "76492701000742", name: "BRITANIA ELETRODOMESTICOS SA (B1/B2)", city: "Joinville", state: "SC", cnpj: "76.492.701/0007-42", active: true, segment: "INDUSTRY", risk_degree: 2, lat: -26.3045, lng: -48.8434 },
+  { id: "51633820000151", name: "NATIVA EMPREENDIMENTOS", city: "Guaratuba", state: "PR", cnpj: "51.633.820/0001-51", active: true, segment: "CONSTRUCTION", risk_degree: 3, lat: -25.8828, lng: -48.5748 },
+  { id: "27051495000134", name: "ROOFSERVICE SERVICOS TECNICOS LTDA", city: "Cotia", state: "SP", cnpj: "27.051.495/0001-34", active: true, segment: "SERVICES", risk_degree: 3, lat: -23.6038, lng: -46.9191 },
+  { id: "92816560000137", name: "BANCO REGIONAL DE DESENVOLVIMENTO DO EXTREMO SUL (BRDE)", city: "Porto Alegre", state: "RS", cnpj: "92.816.560/0001-37", active: true, segment: "FINANCIAL", risk_degree: 1, lat: -30.0346, lng: -51.2177 },
+  { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", city: "Rio Branco do Sul", state: "PR", cnpj: "14.736.446/0012-46", active: true, segment: "HEALTH", risk_degree: 2, lat: -25.1901, lng: -49.3131 },
+  { id: "49949604000178", name: "BIAVATTI ATUBA", city: "Pinhais", state: "PR", cnpj: "49.949.604/0001-78", active: true, segment: "HEALTH", risk_degree: 2, lat: -25.4411, lng: -49.1944 },
+  { id: "06113329000145", name: "SUL CABEAMENTO INSTALACOES ELETRICAS E TECNOLOGICAS LTDA", city: "Canoas", state: "RS", cnpj: "06.113.329/0001-45", active: true, segment: "TELECOM", risk_degree: 3, lat: -29.9189, lng: -51.1781 },
+  { id: "33719485002170", name: "CASSI - BANCO DO BRASIL", city: "Curitiba", state: "PR", cnpj: "33.719.485/0021-70", active: true, segment: "HEALTH", risk_degree: 1, lat: -25.4284, lng: -49.2733 },
+  { id: "01208413000129", name: "TIME NOW ENGENHARIA S/A", city: "Vitória", state: "ES", cnpj: "01.208.413/0001-29", active: true, segment: "ENGINEERING", risk_degree: 3, lat: -20.3155, lng: -40.3128 },
+  { id: "22697661000150", name: "PR-MAX SERVICOS INDUSTRIAIS LTDA", city: "Palmeira", state: "PR", cnpj: "22.697.661/0001-50", active: true, segment: "INDUSTRY", risk_degree: 3, lat: -25.4247, lng: -50.0069 },
+  { id: "13419654000104", name: "INCORPORADORA GRAN-PARA LTDA", city: "Curitiba", state: "PR", cnpj: "13.419.654/0001-04", active: true, segment: "CONSTRUCTION", risk_degree: 3, lat: -25.4284, lng: -49.2733 },
+  { id: "90400888000142", name: "Banco SANTANDER", city: "São Paulo", state: "SP", cnpj: "90.400.888/0001-42", active: true, segment: "FINANCIAL", risk_degree: 1, lat: -23.5505, lng: -46.6333 },
+  { id: "58280956000174", name: "MLS PRESTADORA DE SERVIÇOS LTDA", city: "Colombo", state: "PR", cnpj: "58.280.956/0001-74", active: true, segment: "SERVICES", risk_degree: 2, lat: -25.2917, lng: -49.2242 },
+  { id: "06175128000172", name: "Premcell - Consultoria em Telecomunicacoes Ltda", city: "Bauru", state: "SP", cnpj: "06.175.128/0001-72", active: true, segment: "TELECOM", risk_degree: 2, lat: -22.3145, lng: -49.0587 },
+  { id: "12825178000150", name: "MOPAR ENGENHARIA", city: "Fortaleza", state: "CE", cnpj: "12.825.178/0001-50", active: true, segment: "ENGINEERING", risk_degree: 3, lat: -3.7319, lng: -38.5267 },
+  { id: "39676438000120", name: "CLINICA BIAVATTI LTDA-BACACHERI", city: "Curitiba", state: "PR", cnpj: "39.676.438/0001-20", active: true, segment: "HEALTH", risk_degree: 2, lat: -25.4284, lng: -49.2733 },
+  { id: "32137571000169", name: "ESCOLA ESSENCIAL DE VIRTUDES LTDA", city: "Curitiba", state: "PR", cnpj: "32.137.571/0001-69", active: true, segment: "EDUCATION", risk_degree: 1, lat: -25.4284, lng: -49.2733 },
+  { id: "52793197000167", name: "NOXI QUIMICA LTDA", city: "Tiete", state: "SP", cnpj: "52.793.197/0001-67", active: true, segment: "INDUSTRY", risk_degree: 3, lat: -23.0031, lng: -47.7144 },
+  { id: "45573971000169", name: "BIAVATTI FRANCHISING", city: "Curitiba", state: "PR", cnpj: "45.573.971/0001-69", active: true, segment: "SERVICES", risk_degree: 1, lat: -25.4284, lng: -49.2733 },
+  { id: "81707465000189", name: "CONSTRUFAM ENGENHARIA E EMPREENDIMENTOS LTDA", city: "São José dos Pinhais", state: "PR", cnpj: "81.707.465/0001-89", active: true, segment: "CONSTRUCTION", risk_degree: 3, lat: -25.5312, lng: -49.2033 },
+  { id: "32267778000158", name: "LVALLE ENGENHARIA LTDA", city: "Bady Bassitt", state: "SP", cnpj: "32.267.778/0001-58", active: true, segment: "ENGINEERING", risk_degree: 3, lat: -20.9169, lng: -49.4451 },
+  { id: "48865462000106", name: "TIMENOW GESTAO DE OBRAS LTDA", city: "Vitória", state: "ES", cnpj: "48.865.462/0001-06", active: true, isParent: true, segment: "CONSTRUCTION", risk_degree: 3, lat: -20.3155, lng: -40.3128 },
+  { id: "05801908000118", name: "CENTRAL TURBOS PARANA - COMERCIO", city: "Curitiba", state: "PR", cnpj: "05.801.908/0001-18", active: true, segment: "INDUSTRY", risk_degree: 3, lat: -25.4284, lng: -49.2733 },
+  { id: "45822496000117", name: "CLINICA BIAVATTI SAO JOSE DOS PINHAIS LTDA", city: "São José dos Pinhais", state: "PR", cnpj: "45.822.496/0001-17", active: true, segment: "HEALTH", risk_degree: 2, lat: -25.5312, lng: -49.2033 },
+  { id: "10948651005040", name: "SPRINGER CARRIER LTDA", city: "Curitiba", state: "PR", cnpj: "10.948.651/0050-40", active: true, segment: "INDUSTRY", risk_degree: 3, lat: -25.4284, lng: -49.2733 }
 ];
 
 export const REAL_PROVIDERS = [
-  { id: "PRV_01", name: "MARLON GOMES DA SILVA", email: "marlon.silva@prestador.nai.com.br", role: "PROVIDER", document: "47398877" },
-  { id: "PRV_02", name: "PABLO RICARDO RIBEIRO DE MACEDO NOGUEIRA", email: "pablo.nogueira@prestador.nai.com.br", role: "PROVIDER", document: "63025243" },
-  { id: "PRV_03", name: "ADELMO MARANGONI ANTONIAZZ", email: "adelmo.antoniazz@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_04", name: "AMAURI JOSE DE SOUSA JUNIOR", email: "amauri.junior@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_05", name: "DIGITAL LTDA", email: "digital.ltda@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_06", name: "BOA SAUDE FISIOTERAPIA LTDA", email: "boasaude.fisioterapia@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_07", name: "CLIMB CLEAN", email: "climb.clean@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_08", name: "Clinica Correia e Morais Palmeira", email: "correia.morais@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_09", name: "CLINICA SQV", email: "clinica.sqv@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_10", name: "Clinicalmed", email: "clinicalmed@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_11", name: "CLIOMED", email: "cliomed@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_12", name: "Daiana Francisca da Costa Amaral", email: "daiana.amaral@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_13", name: "Diego Aparecido Saraiva da Cruz", email: "diego.cruz@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_14", name: "DOUGLAS EVANS NEVES", email: "douglas.neves@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_15", name: "DW Montec", email: "dw.montec@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_16", name: "Ecomed", email: "ecomed@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_17", name: "EcoSesmt", email: "ecosesmt@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_18", name: "FERREIRA & MARQUES LTDA", email: "ferreira.marques@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_19", name: "GDA CONSULTORIA LTDA", email: "gda.consultoria@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_20", name: "GENUS PALOTINA", email: "genus.palotina@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_21", name: "GRS Marketing Digital Ltda", email: "grs.marketing@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_22", name: "HB12 TREINAMENTOS", email: "hb12.treinamentos@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_23", name: "J A SEG ASSESSORIA EM SEGURANCA", email: "jaseg.assessoria@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_24", name: "JCJ FALAVINHA LTDA", email: "jcj.falavinha@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_25", name: "KFS TREINAMENTOS", email: "kfs.treinamentos@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_26", name: "MED - CLINICA MEDICA EMPRESARIAL", email: "med.clinica@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_27", name: "Saude Vital", email: "saude.vital@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_28", name: "VIZIMED", email: "vizimed@prestador.nai.com.br", role: "PROVIDER" },
-  { id: "PRV_29", name: "WORKING", email: "working@prestador.nai.com.br", role: "PROVIDER" }
+  { id: "PRV_09", name: "CLINICA SQV", email: "clinica.sqv@prestador.nai.com.br", role: "PROVIDER", lat: -25.4284, lng: -49.2733 }, // Curitiba (Matriz)
+  { id: "PRV_01", name: "MARLON GOMES DA SILVA", email: "marlon.silva@prestador.nai.com.br", role: "PROVIDER", lat: -25.4284, lng: -49.2733 },
+  { id: "PRV_12", name: "Daiana Francisca", email: "daiana.amaral@prestador.nai.com.br", role: "PROVIDER", lat: -20.3155, lng: -40.3128 }, // Vitória (Local)
+  { id: "PRV_29", name: "WORKING", email: "working@prestador.nai.com.br", role: "PROVIDER", lat: -26.3045, lng: -48.8434 }, // Joinville (Local)
+  { id: "PRV_03", name: "ADELMO MARANGONI ANTONIAZZ", email: "adelmo.antoniazz@prestador.nai.com.br", role: "PROVIDER", lat: -25.4284, lng: -49.2733 },
+  { id: "PRV_04", name: "AMAURI JOSE DE SOUSA JUNIOR", email: "amauri.junior@prestador.nai.com.br", role: "PROVIDER", lat: -25.4284, lng: -49.2733 },
+  { id: "PRV_05", name: "DIGITAL LTDA", email: "digital.ltda@prestador.nai.com.br", role: "PROVIDER", lat: -25.4284, lng: -49.2733 }
 ];
 
 export const REAL_CONTRACTS = [
