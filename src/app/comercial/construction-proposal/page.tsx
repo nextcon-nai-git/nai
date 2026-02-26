@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,8 @@ import {
   Sparkles,
   ArrowRight,
   Info,
-  CheckCircle2
+  CheckCircle2,
+  Box
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,6 +28,7 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
 
 const COMERCIAL_CONFIG = {
   taxa_setup_unica: 4500.00,
@@ -70,24 +73,20 @@ const COMERCIAL_CONFIG = {
     {
       id: "custom",
       nome: "Plano Custom",
-      foco: "Blindagem Total & Terceiros",
+      foco: "Configuração à La Carte",
       icon: ShieldPlus,
-      tiers: {
-        200: 3890.00,
-        400: 7990.00,
-        600: 10990.00,
-        800: 13990.00
-      },
-      features: [
-        { title: "Tudo do Premium", desc: "Automação total de processos inclusa." },
-        { title: "Gestão de Terceiros", desc: "Auditoria documental de empreiteiras (Passivo Solidário)." },
-        { title: "Prontuário de Ambulatório", desc: "Gestão clínica para enfermaria de canteiro." },
-        { title: "Integração Catracas IoT", desc: "Bloqueio físico de entrada para funcionários irregulares." },
-        { title: "SLA de Suporte Exclusivo", desc: "Gerente de conta dedicado para implantação VIP." }
-      ]
+      features: [] // Populado dinamicamente via CUSTOM_OPTIONS
     }
   ]
 };
+
+const CUSTOM_OPTIONS = [
+  { id: 'terceiros', title: "Gestão de Terceiros", desc: "Auditoria documental de subempreiteiras.", price: 1500 },
+  { id: 'ambulatorio', title: "Prontuário Ambulatório", desc: "Gestão clínica de enfermaria interna.", price: 1200 },
+  { id: 'iot', title: "Integração Catracas IoT", desc: "Bloqueio físico via API Nextcon.", price: 2500 },
+  { id: 'auditoria', title: "Auditoria Mensal Campo", desc: "Vistoria técnica presencial/remota.", price: 1800 },
+  { id: 'suporte', title: "Gerente de Conta VIP", desc: "SLA de resposta em até 2h.", price: 1000 }
+];
 
 const LIVES_STEPS = [200, 400, 600, 800];
 
@@ -100,6 +99,7 @@ export default function ConstructionProposalPage() {
   const [isSaving, setIsSaving] = React.useState(false)
   const [companyName, setCompanyName] = React.useState("")
   const [livesIndex, setLivesIndex] = React.useState([0])
+  const [selectedCustomOptions, setSelectedCustomOptions] = React.useState<string[]>([])
 
   const dallLogo = "https://i.ibb.co/gZv2fyXt/logo.png";
   const numLives = LIVES_STEPS[livesIndex[0]];
@@ -110,12 +110,29 @@ export default function ConstructionProposalPage() {
 
   const pricingDetails = React.useMemo(() => {
     if (!selectedPlan) return { monthly: 0, total: 0 };
-    const monthly = (selectedPlan.tiers as any)[numLives] || 0;
+    
+    let monthly = 0;
+    
+    if (selectedPlan.id === 'custom') {
+      monthly = selectedCustomOptions.reduce((acc, optId) => {
+        const option = CUSTOM_OPTIONS.find(o => o.id === optId);
+        return acc + (option?.price || 0);
+      }, 0);
+    } else {
+      monthly = (selectedPlan.tiers as any)[numLives] || 0;
+    }
+
     return { 
       monthly, 
       total: monthly + COMERCIAL_CONFIG.taxa_setup_unica
     };
-  }, [selectedPlan, numLives]);
+  }, [selectedPlan, numLives, selectedCustomOptions]);
+
+  const toggleCustomOption = (id: string) => {
+    setSelectedCustomOptions(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const handleCreateProposal = async () => {
     if (!db || !selectedPlan || !companyName) {
@@ -126,7 +143,7 @@ export default function ConstructionProposalPage() {
     setIsSaving(true)
     try {
       const proposalData = {
-        title: `Proposta Construtora: ${selectedPlan.nome} (${numLives} Vidas)`,
+        title: `Proposta Construtora: ${selectedPlan.nome} ${selectedPlan.id === 'custom' ? '(Configuração Especial)' : `(${numLives} Vidas)`}`,
         companyId: "leads",
         companyName: companyName.toUpperCase(),
         type: 'comercial',
@@ -135,10 +152,11 @@ export default function ConstructionProposalPage() {
         origin: 'construction_specialized',
         metadata: {
           planId: selectedPlan.id,
-          lives: numLives,
+          lives: selectedPlan.id === 'custom' ? null : numLives,
           setupFee: COMERCIAL_CONFIG.taxa_setup_unica,
           monthlyFee: pricingDetails.monthly,
-          totalInitial: pricingDetails.total
+          totalInitial: pricingDetails.total,
+          customOptions: selectedPlan.id === 'custom' ? selectedCustomOptions : []
         },
         dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
         createdAt: new Date().toISOString(),
@@ -187,7 +205,7 @@ export default function ConstructionProposalPage() {
         <div>
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">NAI para Construtoras Premium</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
-            <HardHat className="size-3 text-accent" /> Orçamentos automatizados por escala de canteiro.
+            <HardHat className="size-3 text-accent" /> Inteligência de Precificação em Escala.
           </p>
         </div>
         <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 flex items-center gap-2">
@@ -195,7 +213,11 @@ export default function ConstructionProposalPage() {
         </Badge>
       </header>
 
-      <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-10 mb-8 overflow-hidden relative">
+      {/* Slider desativado visualmente no Custom para focar nas caixas */}
+      <Card className={cn(
+        "card-shadow border-none bg-white rounded-[2.5rem] p-10 mb-8 overflow-hidden relative transition-opacity duration-500",
+        selectedPlanId === 'custom' ? "opacity-30 pointer-events-none grayscale" : "opacity-100"
+      )}>
         <div className="absolute top-0 right-0 p-8 opacity-5"><Building2 className="size-40" /></div>
         <div className="max-w-2xl mx-auto space-y-10 relative z-10">
           <div className="text-center space-y-2">
@@ -231,7 +253,10 @@ export default function ConstructionProposalPage() {
             {COMERCIAL_CONFIG.planos.map((plan) => {
               const Icon = plan.icon;
               const isActive = selectedPlanId === plan.id;
-              const currentPrice = (plan.tiers as any)[numLives];
+              
+              const displayPrice = plan.id === 'custom' 
+                ? pricingDetails.monthly 
+                : (plan.tiers as any)[numLives];
               
               return (
                 <Card 
@@ -260,27 +285,68 @@ export default function ConstructionProposalPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Investimento Mensal</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">
+                          {plan.id === 'custom' ? 'Configuração Atual' : 'Investimento Mensal'}
+                        </p>
                         <p className="text-3xl font-black text-primary font-headline">
-                          {currentPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          {displayPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {plan.features.map((feature, i) => (
-                        <div key={i} className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 group-hover:border-primary/10 transition-all">
-                          <div className="p-1.5 bg-primary/5 rounded-lg h-fit">
-                            <CheckCircle2 className="size-3.5 text-primary" />
-                          </div>
-                          <div className="space-y-0.5">
-                            <p className="text-[11px] font-black text-primary uppercase">{feature.title}</p>
-                            <p className="text-[10px] text-slate-400 font-medium leading-tight">{feature.desc}</p>
-                          </div>
+                    {plan.id === 'custom' ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Box className="size-4 text-accent" />
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Módulos Opcionais (Selecione o que precisa)</span>
                         </div>
-                      ))}
-                    </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {CUSTOM_OPTIONS.map((opt) => (
+                            <div 
+                              key={opt.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleCustomOption(opt.id);
+                              }}
+                              className={cn(
+                                "flex items-start gap-4 p-4 rounded-2xl border transition-all hover:shadow-md",
+                                selectedCustomOptions.includes(opt.id) 
+                                  ? "bg-accent/5 border-accent/20" 
+                                  : "bg-white border-slate-100"
+                              )}
+                            >
+                              <Checkbox 
+                                checked={selectedCustomOptions.includes(opt.id)}
+                                onCheckedChange={() => toggleCustomOption(opt.id)}
+                                className="mt-1"
+                              />
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <p className="text-[11px] font-black text-primary uppercase">{opt.title}</p>
+                                  <span className="text-[9px] font-bold text-accent">+ R$ {opt.price}</span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium leading-tight">{opt.desc}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {plan.features?.map((feature, i) => (
+                          <div key={i} className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 group-hover:border-primary/10 transition-all">
+                            <div className="p-1.5 bg-primary/5 rounded-lg h-fit">
+                              <CheckCircle2 className="size-3.5 text-primary" />
+                            </div>
+                            <div className="space-y-0.5">
+                              <p className="text-[11px] font-black text-primary uppercase">{feature.title}</p>
+                              <p className="text-[10px] text-slate-400 font-medium leading-tight">{feature.desc}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -311,6 +377,12 @@ export default function ConstructionProposalPage() {
                   <p className="text-[10px] font-black uppercase text-slate-400">Plano Selecionado</p>
                   <Badge variant="secondary" className="text-[9px] font-black uppercase">{selectedPlan?.nome}</Badge>
                 </div>
+                {selectedPlanId !== 'custom' && (
+                  <div className="flex justify-between items-center">
+                    <p className="text-[10px] font-black uppercase text-slate-400">Escala de Vidas</p>
+                    <p className="text-[10px] font-bold text-primary">{numLives} Vidas</p>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] font-black uppercase text-slate-400">Setup Único (Engenharia)</p>
                   <p className="text-sm font-bold text-primary">R$ 4.500,00</p>
@@ -324,7 +396,7 @@ export default function ConstructionProposalPage() {
                   </div>
                   <Button 
                     onClick={handleCreateProposal} 
-                    disabled={isSaving || !companyName}
+                    disabled={isSaving || !companyName || (selectedPlanId === 'custom' && selectedCustomOptions.length === 0)}
                     className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
                   >
                     {isSaving ? <Loader2 className="size-5 animate-spin" /> : <FileText className="size-5 text-accent" />}
@@ -346,7 +418,10 @@ export default function ConstructionProposalPage() {
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-[11px] leading-relaxed italic text-white/60">
-                "Esta proposta contempla a automação de conformidade para o canteiro de {numLives} vidas, incluindo a gestão de eventos e-Social e a proteção jurídica contra o passivo solidário de empreiteiras."
+                {selectedPlanId === 'custom' 
+                  ? "Esta configuração personalizada permite selecionar módulos específicos de governança, garantindo flexibilidade total para operações complexas ou híbridas."
+                  : `Esta proposta contempla a automação de conformidade para o canteiro de ${numLives} vidas, incluindo a gestão de eventos e-Social e a proteção jurídica contra o passivo solidário de empreiteiras.`
+                }
               </p>
             </CardContent>
           </Card>
