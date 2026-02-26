@@ -21,7 +21,8 @@ import {
   CheckSquare,
   User,
   Download,
-  FileText
+  FileText,
+  Scale
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -72,8 +73,9 @@ import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { PDFDownloadLink } from "@react-pdf/renderer"
 import { MedicalReferralReport } from "@/components/documents/medical-referral-report"
+import { NtepContestationReport } from "@/components/documents/ntep-contestation-report"
 
-// Schema para novos registros de perícia/afastamento - Expandido para o Laudo INSS
+// Schema expandido para incluir dados do benefício e ciência jurídica
 const recordFormSchema = z.object({
   employeeName: z.string().min(3, "Nome obrigatório"),
   cpf: z.string().optional(),
@@ -84,6 +86,8 @@ const recordFormSchema = z.object({
   companyId: z.string().min(1, "Selecione uma unidade"),
   jobRole: z.string().optional(),
   caseNumber: z.string().optional(),
+  benefitNumber: z.string().optional(),
+  knowledgeDate: z.string().optional(),
   value: z.string().optional(),
   status: z.enum(["Pendente", "Em Análise", "Concluído"]),
 })
@@ -172,6 +176,8 @@ export default function LimboSentinel() {
       companyId: "",
       jobRole: "",
       caseNumber: "",
+      benefitNumber: "",
+      knowledgeDate: "",
       value: "",
       status: "Pendente",
     },
@@ -266,7 +272,7 @@ export default function LimboSentinel() {
                 <Plus className="size-4" /> Novo Registro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+            <DialogContent className="sm:max-w-[650px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
               <DialogHeader className="p-8 bg-primary text-white">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-white/10 rounded-lg"><AlertTriangle className="size-5 text-accent" /></div>
@@ -334,6 +340,31 @@ export default function LimboSentinel() {
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase text-slate-400">Último Dia Trab. (DUT)</FormLabel>
                             <FormControl><Input type="date" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="benefitNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Número do Benefício (NB)</FormLabel>
+                            <FormControl><Input placeholder="91/000.000.000-0" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="knowledgeDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Data Ciência B91</FormLabel>
+                            <FormControl><Input type="date" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold text-red-600" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -460,7 +491,7 @@ export default function LimboSentinel() {
                                 <ClipboardList className="size-3.5" /> Gestão Nexo
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2.5rem]">
+                            <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl rounded-[2.5rem]">
                               <DialogHeader className="p-8 bg-primary text-white shrink-0">
                                 <div className="flex justify-between items-start">
                                   <div className="space-y-1">
@@ -534,25 +565,36 @@ export default function LimboSentinel() {
 
                               <DialogFooter className="p-6 bg-white border-t shrink-0 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div className="text-[10px] font-black uppercase text-slate-400 italic flex items-center gap-2">
-                                  <ArrowRight className="size-3 text-accent" /> "Checklist em conformidade com o Manual de Perícias do INSS."
+                                  <ArrowRight className="size-3 text-accent" /> "Dossiês blindados com AET e PGR geram êxito de 91% no INSS."
                                 </div>
                                 <div className="flex gap-2">
                                   {isClient && (
-                                    <PDFDownloadLink 
-                                      document={<MedicalReferralReport data={record} company={companies?.find(c => c.id === record.companyId)} doctor={profile} />} 
-                                      fileName={`Relatorio_INSS_${record.employeeName}.pdf`}
-                                    >
-                                      {({ loading }) => (
-                                        <Button className="bg-primary px-8 h-12 rounded-xl gap-2 font-black uppercase text-[10px] text-white shadow-xl" disabled={loading}>
-                                          {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
-                                          Exportar Laudo Médico INSS
-                                        </Button>
-                                      )}
-                                    </PDFDownloadLink>
+                                    <>
+                                      <PDFDownloadLink 
+                                        document={<MedicalReferralReport data={record} company={companies?.find(c => c.id === record.companyId)} doctor={profile} />} 
+                                        fileName={`Relatorio_INSS_${record.employeeName}.pdf`}
+                                      >
+                                        {({ loading }) => (
+                                          <Button variant="outline" className="border-primary text-primary h-12 rounded-xl gap-2 font-black uppercase text-[10px]" disabled={loading}>
+                                            {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+                                            Laudo Médico
+                                          </Button>
+                                        )}
+                                      </PDFDownloadLink>
+                                      
+                                      <PDFDownloadLink 
+                                        document={<NtepContestationReport data={record} company={companies?.find(c => c.id === record.companyId)} currentUser={profile} />} 
+                                        fileName={`Contestacao_NTEP_${record.employeeName}.pdf`}
+                                      >
+                                        {({ loading }) => (
+                                          <Button className="bg-primary text-white h-12 rounded-xl gap-2 font-black uppercase text-[10px] shadow-xl" disabled={loading}>
+                                            {loading ? <Loader2 className="size-4 animate-spin" /> : <Scale className="size-4 text-accent" />}
+                                            Peça de Contestação NTEP
+                                          </Button>
+                                        )}
+                                      </PDFDownloadLink>
+                                    </>
                                   )}
-                                  <Button variant="outline" className="h-12 rounded-xl gap-2 font-black uppercase text-[10px] border-primary text-primary">
-                                    <Download className="size-4" /> Dossiê Completo (ZIP)
-                                  </Button>
                                 </div>
                               </DialogFooter>
                             </DialogContent>
@@ -606,7 +648,7 @@ export default function LimboSentinel() {
             <div className="space-y-1">
               <h4 className="text-sm font-black text-primary uppercase">Efeito Jurídico</h4>
               <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
-                "Dossiês completos com AET e Ficha de EPI geram contestações administrativas com 91% de êxito no INSS."
+                "Contestações fundamentadas com AET e Ficha de EPI garantem a conversão de espécie B91 para B31 no INSS."
               </p>
             </div>
           </Card>
