@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -19,7 +18,10 @@ import {
   ArrowRight,
   ShieldAlert,
   Search,
-  CheckSquare
+  CheckSquare,
+  User,
+  Download,
+  FileText
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -64,16 +66,19 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, collectionGroup, doc } from "firebase/firestore"
 import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase/non-blocking-updates"
-import { generateNtepContestation } from "@/ai/flows/ntep-contestation-generator"
-import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
+import { PDFDownloadLink } from "@react-pdf/renderer"
+import { MedicalReferralReport } from "@/components/documents/medical-referral-report"
 
-// Schema para novos registros de perícia/afastamento
+// Schema para novos registros de perícia/afastamento - Expandido para o Laudo INSS
 const recordFormSchema = z.object({
   employeeName: z.string().min(3, "Nome obrigatório"),
+  cpf: z.string().optional(),
+  admissionDate: z.string().optional(),
+  dut: z.string().optional(),
   cid: z.string().min(3, "CID é obrigatório"),
   disease: z.string().min(3, "Descrição da doença obrigatória"),
   companyId: z.string().min(1, "Selecione uma unidade"),
@@ -136,9 +141,12 @@ export default function LimboSentinel() {
   
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [isGenerating, setIsGenerating] = React.useState(false)
-  const [aiDraft, setAiDraft] = React.useState<string | null>(null)
   const [activeWorkflowRecord, setActiveWorkflowRecord] = React.useState<any>(null)
+  const [isClient, setIsClient] = React.useState(false)
+
+  React.useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
@@ -156,6 +164,9 @@ export default function LimboSentinel() {
     resolver: zodResolver(recordFormSchema),
     defaultValues: {
       employeeName: "",
+      cpf: "",
+      admissionDate: "",
+      dut: "",
       cid: "",
       disease: "",
       companyId: "",
@@ -255,7 +266,7 @@ export default function LimboSentinel() {
                 <Plus className="size-4" /> Novo Registro
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+            <DialogContent className="sm:max-w-[600px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
               <DialogHeader className="p-8 bg-primary text-white">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-white/10 rounded-lg"><AlertTriangle className="size-5 text-accent" /></div>
@@ -264,7 +275,7 @@ export default function LimboSentinel() {
                 <DialogDescription className="text-white/70 font-medium italic">Insira os dados do colaborador para análise de nexo NTEP.</DialogDescription>
               </DialogHeader>
               
-              <div className="p-8">
+              <div className="p-8 max-h-[70vh] overflow-y-auto">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleCreateRecord)} className="space-y-5">
                     <FormField
@@ -278,6 +289,56 @@ export default function LimboSentinel() {
                         </FormItem>
                       )}
                     />
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="cpf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">CPF</FormLabel>
+                            <FormControl><Input placeholder="000.000.000-00" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="jobRole"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Cargo</FormLabel>
+                            <FormControl><Input placeholder="Ex: ARMADOR" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="admissionDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Data Admissão</FormLabel>
+                            <FormControl><Input type="date" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dut"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase text-slate-400">Último Dia Trab. (DUT)</FormLabel>
+                            <FormControl><Input type="date" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <FormField
@@ -471,13 +532,26 @@ export default function LimboSentinel() {
                                 </Tabs>
                               </div>
 
-                              <DialogFooter className="p-6 bg-white border-t shrink-0 flex justify-between items-center sm:justify-between">
+                              <DialogFooter className="p-6 bg-white border-t shrink-0 flex flex-col sm:flex-row justify-between items-center gap-4">
                                 <div className="text-[10px] font-black uppercase text-slate-400 italic flex items-center gap-2">
                                   <ArrowRight className="size-3 text-accent" /> "Checklist em conformidade com o Manual de Perícias do INSS."
                                 </div>
                                 <div className="flex gap-2">
-                                  <Button className="bg-primary px-8 h-12 rounded-xl gap-2 font-black uppercase text-[10px] text-white shadow-xl">
-                                    <Download className="size-4" /> Exportar Dossiê PDF
+                                  {isClient && (
+                                    <PDFDownloadLink 
+                                      document={<MedicalReferralReport data={record} company={companies?.find(c => c.id === record.companyId)} doctor={profile} />} 
+                                      fileName={`Relatorio_INSS_${record.employeeName}.pdf`}
+                                    >
+                                      {({ loading }) => (
+                                        <Button className="bg-primary px-8 h-12 rounded-xl gap-2 font-black uppercase text-[10px] text-white shadow-xl" disabled={loading}>
+                                          {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+                                          Exportar Laudo Médico INSS
+                                        </Button>
+                                      )}
+                                    </PDFDownloadLink>
+                                  )}
+                                  <Button variant="outline" className="h-12 rounded-xl gap-2 font-black uppercase text-[10px] border-primary text-primary">
+                                    <Download className="size-4" /> Dossiê Completo (ZIP)
                                   </Button>
                                 </div>
                               </DialogFooter>
@@ -539,21 +613,5 @@ export default function LimboSentinel() {
         </div>
       </div>
     </div>
-  )
-}
-
-function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
-  return (
-    <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}><Icon className="size-5" /></div>
-          <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
-        </div>
-        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>
-        <h3 className="text-2xl font-black text-primary leading-none mb-1">{value}</h3>
-        <p className="text-[8px] font-bold text-slate-400 uppercase">{sub}</p>
-      </CardContent>
-    </Card>
   )
 }
