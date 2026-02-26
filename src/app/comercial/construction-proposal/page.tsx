@@ -180,7 +180,7 @@ export default function ConstructionProposalPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b p-8">
-              <CardTitle className="text-lg font-black text-primary uppercase">Assinaturas Nextcon SST</CardTitle>
+              <CardTitle className="text-lg font-black text-primary uppercase">Planos Nextcon SST</CardTitle>
               <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Taxa de Setup Única: R$ 4.500,00</CardDescription>
             </CardHeader>
             <CardContent className="p-8">
