@@ -1,29 +1,24 @@
+
 "use client"
 
 import * as React from "react"
 import { 
-  Monitor, 
   Building2, 
-  Users, 
-  HardHat, 
-  ShieldAlert, 
-  CheckCircle2, 
-  Zap, 
-  Info,
-  ChevronDown,
-  ArrowRight,
-  Stethoscope,
-  HeartPulse,
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown, 
+  ArrowUpRight,
+  Users,
+  HardHat,
+  ShieldAlert,
+  ClipboardCheck,
+  Zap,
+  Monitor,
   Brain,
   AlertTriangle,
-  Scale,
-  ClipboardCheck,
-  ChevronRight,
-  TrendingUp,
-  FileWarning,
-  DollarSign,
-  TrendingDown,
-  ArrowUpRight
+  ArrowRight,
+  CheckCircle2,
+  FileWarning
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -38,6 +33,7 @@ import {
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 const SIMULATOR_DATA = [
   {
@@ -137,12 +133,12 @@ const ERGO_DATA: Record<string, { title: string; risk: string; action: string }>
 const FIXED_PAYROLL = 30000000;
 const FAP_OPTIONS = [1.0, 1.1, 1.2];
 
-const DALL_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Flogo-dall-slider.png?alt=media";
-
 export default function ScaleSimulator() {
   const [scaleSlider, setScaleSlider] = React.useState([0]);
   const [fapIndex, setFapIndex] = React.useState([2]); 
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
+
+  const dallLogo = PlaceHolderImages.find(img => img.id === 'dall-logo-thumb')?.imageUrl || "https://i.ibb.co/kg0tTWPN/dall-logo.png";
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
   const currentFap = FAP_OPTIONS[fapIndex[0]];
@@ -156,22 +152,23 @@ export default function ScaleSimulator() {
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
       <style jsx global>{`
         .dall-custom-slider [role="slider"] {
-          width: 80px !important;
-          height: 45px !important;
-          border-radius: 8px !important;
-          background-image: url('${DALL_LOGO_URL}') !important;
+          width: 90px !important;
+          height: 50px !important;
+          border-radius: 12px !important;
+          background-image: url('${dallLogo}') !important;
           background-size: contain !important;
           background-repeat: no-repeat !important;
           background-position: center !important;
           background-color: white !important;
           border: 2px solid #001F3F !important;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
           cursor: grab;
-          transition: transform 0.2s ease;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .dall-custom-slider [role="slider"]:active {
           cursor: grabbing;
           transform: scale(1.1);
+          box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
         }
       `}</style>
 
