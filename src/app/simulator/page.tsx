@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -88,7 +87,7 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 3: Complexidade Máxima (Mini-Hospital)",
+    phase: "Fase 3: Alta Complexidade (Mini-Hospital)",
     lives: "800+ vidas",
     color: "text-red-600",
     bg: "bg-red-50",
