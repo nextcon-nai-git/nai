@@ -151,6 +151,8 @@ const ERGO_DATA: Record<string, { title: string; risk: string; action: string }>
 const FIXED_PAYROLL = 30000000;
 const FAP_OPTIONS = [1.0, 1.1, 1.2];
 
+const DALL_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Flogo-dall-slider.png?alt=media";
+
 export default function ScaleSimulator() {
   const [scaleSlider, setScaleSlider] = React.useState([0]);
   const [fapIndex, setFapIndex] = React.useState([2]); // Começa em 1.2
@@ -159,7 +161,6 @@ export default function ScaleSimulator() {
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
   const currentFap = FAP_OPTIONS[fapIndex[0]];
   
-  // Alíquota RAT para construção civil geralmente é 3%
   const ratBase = 0.03;
   const annualRatCost = FIXED_PAYROLL * ratBase * currentFap;
   const bestCaseCost = FIXED_PAYROLL * ratBase * 1.0;
@@ -167,6 +168,26 @@ export default function ScaleSimulator() {
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
+      <style jsx global>{`
+        .dall-custom-slider [role="slider"] {
+          width: 60px !important;
+          height: 35px !important;
+          border-radius: 6px !important;
+          background-image: url('${DALL_LOGO_URL}') !important;
+          background-size: contain !important;
+          background-repeat: no-repeat !important;
+          background-position: center !important;
+          background-color: white !important;
+          border: 1px solid #e2e8f0 !important;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+          cursor: grab;
+        }
+        .dall-custom-slider [role="slider"]:active {
+          cursor: grabbing;
+          transform: scale(1.05);
+        }
+      `}</style>
+
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">DALL CONSTRUCOES LTDA</h1>
@@ -179,7 +200,6 @@ export default function ScaleSimulator() {
         </Badge>
       </header>
 
-      {/* Simulador de Impacto Financeiro (ROI) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
           <CardHeader className="bg-primary text-white p-8">
@@ -188,25 +208,15 @@ export default function ScaleSimulator() {
                 <DollarSign className="size-6 text-accent" />
               </div>
               <div>
-                <CardTitle className="text-xl font-black uppercase tracking-tight">Simulador de Impacto Tributário (RAT/FAP)</CardTitle>
-                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Análise de custo sobre a folha de pagamento anual.</CardDescription>
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Impacto Tributário (RAT/FAP)</CardTitle>
+                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Análise baseada em folha anual de R$ 30M.</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-10 space-y-12">
             <div className="space-y-6">
               <div className="flex justify-between items-end">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Folha de Pagamento Anual</label>
-                <span className="text-2xl font-black text-primary font-headline">R$ 30 Milhões</span>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                <p className="text-[10px] text-slate-400 font-bold uppercase text-center">Valor fixado conforme porte da Unidade Dall</p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex justify-between items-end">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Simulado</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Alvo (Arraste a Logo)</label>
                 <span className={cn(
                   "text-2xl font-black font-headline px-4 py-1 rounded-xl shadow-inner",
                   currentFap === 1.0 ? "text-emerald-600 bg-emerald-50" : 
@@ -216,25 +226,24 @@ export default function ScaleSimulator() {
                   {currentFap.toFixed(1)}
                 </span>
               </div>
-              <div className="px-2">
+              <div className="px-4">
                 <Slider 
                   value={fapIndex} 
                   onValueChange={setFapIndex} 
                   max={2} 
                   step={1} 
-                  className="py-4"
+                  className="py-4 dall-custom-slider"
                 />
                 <div className="flex justify-between mt-2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
                   <span>1.0 (Meta)</span>
                   <span>1.1</span>
-                  <span>1.2 (Atual/Risco)</span>
+                  <span>1.2 (Atual)</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Card de Resultado ROI */}
         <Card className="card-shadow border-none bg-slate-900 text-white rounded-[2.5rem] flex flex-col overflow-hidden relative group">
           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
             <TrendingUp className="size-48" />
@@ -258,7 +267,7 @@ export default function ScaleSimulator() {
                 <h3 className="text-2xl font-black text-emerald-400">
                   {potentialSaving.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </h3>
-                <p className="text-[9px] text-white/40 leading-tight">Valor que a gestão Nextcon busca recuperar reduzindo o FAP para 1.0.</p>
+                <p className="text-[9px] text-white/40 leading-tight">Economia gerada pela gestão ativa Nextcon.</p>
               </div>
             )}
 
@@ -269,11 +278,10 @@ export default function ScaleSimulator() {
         </Card>
       </div>
 
-      {/* Slider de Escala Operacional */}
       <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-10">
         <div className="max-w-3xl mx-auto space-y-10">
           <div className="space-y-4">
-            <div className="flex justify-between items-end px-2">
+            <div className="flex justify-between items-end px-4">
               {["200", "500", "800", "1000+"].map((label, i) => (
                 <span key={label} className={cn("text-[10px] font-black uppercase tracking-widest", scaleSlider[0] === i ? "text-primary scale-110" : "text-slate-300")}>
                   {label} Vidas
@@ -285,7 +293,7 @@ export default function ScaleSimulator() {
               onValueChange={setScaleSlider} 
               max={3} 
               step={1} 
-              className="py-4"
+              className="py-4 dall-custom-slider"
             />
           </div>
           
@@ -298,7 +306,6 @@ export default function ScaleSimulator() {
         </div>
       </Card>
 
-      {/* Dashboard de Acidentalidade Real */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <Card className="card-shadow border-none bg-red-50/50 border-l-4 border-red-500 rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
@@ -316,8 +323,8 @@ export default function ScaleSimulator() {
               <span className="text-xl font-black text-red-600 animate-pulse">1</span>
             </div>
             <div className="p-3 bg-red-600 text-white rounded-xl text-center">
-              <p className="text-[8px] font-black uppercase opacity-70">Impacto no FAP</p>
-              <p className="text-lg font-black tracking-tighter">1,2137 (MALUS)</p>
+              <p className="text-[8px] font-black uppercase opacity-70">FAP Consolidado</p>
+              <p className="text-lg font-black tracking-tighter">1,2137</p>
             </div>
           </CardContent>
         </Card>
@@ -329,7 +336,6 @@ export default function ScaleSimulator() {
         </div>
       </div>
 
-      {/* Accordions de NRs */}
       <div className="space-y-6">
         <h2 className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
           <ClipboardCheck className="size-6 text-primary" /> Inspeções Virtuais e Checklists
@@ -373,7 +379,6 @@ export default function ScaleSimulator() {
         </div>
       </div>
 
-      {/* Módulo Ergonomia */}
       <div className="space-y-6">
         <h2 className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
           <Brain className="size-6 text-primary" /> Diagrama de Risco Ergonômico (NR-17)
@@ -381,7 +386,6 @@ export default function ScaleSimulator() {
         
         <Card className="card-shadow border-none bg-slate-100 rounded-[3rem] p-10 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
-            {/* SVG do Boneco */}
             <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] shadow-inner flex flex-col items-center">
               <p className="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Interativo: Clique nas partes</p>
               <svg viewBox="0 0 200 400" className="w-full max-w-[200px] h-auto drop-shadow-xl">

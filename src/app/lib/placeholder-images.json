@@ -18,6 +18,12 @@
       "description": "Occupational health checkup in progress",
       "imageUrl": "https://picsum.photos/seed/health3/800/600",
       "imageHint": "medical occupational"
+    },
+    {
+      "id": "dall-logo-thumb",
+      "description": "Dall Empreendimentos logo for slider thumb",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/public%2Flogo-dall-slider.png?alt=media",
+      "imageHint": "construction logo"
     }
   ]
 }
