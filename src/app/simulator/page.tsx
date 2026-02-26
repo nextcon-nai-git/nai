@@ -42,7 +42,7 @@ import Link from "next/link"
 const SIMULATOR_DATA = [
   {
     phase: "Fase 1: Baixa Complexidade (Canteiro)",
-    lives: "Até 200 vidas",
+    lives: "200 vidas",
     color: "text-emerald-600",
     bg: "bg-emerald-50",
     cipa: "14 Membros",
@@ -65,7 +65,7 @@ const SIMULATOR_DATA = [
   },
   {
     phase: "Fase 2: Média Complexidade (EXPANSÃO PLANEJADA)",
-    lives: "Até 500 vidas",
+    lives: "500 vidas",
     color: "text-amber-600",
     bg: "bg-amber-50",
     cipa: "18 Membros (Eleição Digital)",
@@ -141,7 +141,7 @@ const DALL_LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/studio-843929
 
 export default function ScaleSimulator() {
   const [scaleSlider, setScaleSlider] = React.useState([0]);
-  const [fapIndex, setFapIndex] = React.useState([2]); // Começa em 1.2
+  const [fapIndex, setFapIndex] = React.useState([2]); 
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
@@ -156,21 +156,22 @@ export default function ScaleSimulator() {
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
       <style jsx global>{`
         .dall-custom-slider [role="slider"] {
-          width: 60px !important;
-          height: 35px !important;
-          border-radius: 6px !important;
+          width: 80px !important;
+          height: 45px !important;
+          border-radius: 8px !important;
           background-image: url('${DALL_LOGO_URL}') !important;
           background-size: contain !important;
           background-repeat: no-repeat !important;
           background-position: center !important;
           background-color: white !important;
-          border: 1px solid #e2e8f0 !important;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+          border: 2px solid #001F3F !important;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
           cursor: grab;
+          transition: transform 0.2s ease;
         }
         .dall-custom-slider [role="slider"]:active {
           cursor: grabbing;
-          transform: scale(1.05);
+          transform: scale(1.1);
         }
       `}</style>
 
@@ -413,7 +414,7 @@ export default function ScaleSimulator() {
 
       <div className="flex justify-center pt-10">
         <Button asChild size="lg" className="h-16 px-12 bg-primary text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl shadow-2xl gap-3">
-          <Link href="/comercial">Solicitar Proposta de Blindagem <ArrowRight className="size-5" /></Link>
+          <Link href="/comercial" className="gap-2">Solicitar Proposta de Blindagem <ArrowRight className="size-5" /></Link>
         </Button>
       </div>
     </div>
