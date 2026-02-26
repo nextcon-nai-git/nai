@@ -64,7 +64,7 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 2: Média Complexidade (EXPANSÃO BEM PLANEJADA)",
+    phase: "Fase 2: Média Complexidade (EXPANSÃO PLANEJADA)",
     lives: "Até 500 vidas",
     color: "text-amber-600",
     bg: "bg-amber-50",
