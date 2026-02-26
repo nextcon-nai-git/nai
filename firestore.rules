@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -37,6 +38,12 @@ service cloud.firestore {
       allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
       allow write: if isAdmin();
 
+      // Assinaturas: Cliente lê sua assinatura, mas nunca escreve (apenas Admin Nextcon via Dashboard ou Cloud Functions)
+      match /subscriptions/{subId} {
+        allow read: if isAdmin() || isClientAdmin(companyId);
+        allow write: if isAdmin();
+      }
+
       // Sub-coleção de Colaboradores (Hierárquica)
       match /employees/{employeeId} {
         allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
@@ -50,7 +57,6 @@ service cloud.firestore {
     }
     
     // Suporte para Consultas Globais (Collection Groups)
-    // Permite que o Admin veja todos os colaboradores do sistema de uma vez
     match /{path=**}/employees/{docId} { 
       allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
     }

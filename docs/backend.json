@@ -39,6 +39,21 @@
       },
       "required": ["id", "name", "cnpj"]
     },
+    "Subscription": {
+      "title": "Subscription",
+      "type": "object",
+      "properties": {
+        "planId": { "type": "string", "enum": ["essencial", "avancado", "enterprise"] },
+        "status": { "type": "string", "enum": ["active", "past_due", "canceled"] },
+        "currentTier": { "type": "string", "description": "Ex: ate_200, 201_a_500" },
+        "livesLimit": { "type": "number" },
+        "currentLives": { "type": "number" },
+        "monthlyValue": { "type": "number" },
+        "nextBillingDate": { "type": "string", "format": "date-time" },
+        "stripeSubscriptionId": { "type": "string" }
+      },
+      "required": ["planId", "status", "currentTier"]
+    },
     "OccupationalExamAppointment": {
       "title": "OccupationalExamAppointment",
       "type": "object",
@@ -67,6 +82,10 @@
     "/companies/{companyId}": {
       "schema": "#/entities/Company",
       "description": "Empresas clientes (Raiz)."
+    },
+    "/companies/{companyId}/subscriptions/{subId}": {
+      "schema": "#/entities/Subscription",
+      "description": "Controle de planos e faturamento por cliente."
     },
     "/exam_appointments/{id}": {
       "schema": "#/entities/OccupationalExamAppointment",
