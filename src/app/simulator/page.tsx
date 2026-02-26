@@ -138,7 +138,8 @@ export default function ScaleSimulator() {
   const [fapIndex, setFapIndex] = React.useState([2]); 
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
 
-  const dallLogo = PlaceHolderImages.find(img => img.id === 'dall-logo-thumb')?.imageUrl || "https://i.ibb.co/kg0tTWPN/dall-logo.png";
+  // Link direto para garantir carregamento no thumb do slider
+  const dallLogo = "https://i.ibb.co/gZv2fyXt/logo.png";
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
   const currentFap = FAP_OPTIONS[fapIndex[0]];
@@ -152,11 +153,11 @@ export default function ScaleSimulator() {
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
       <style jsx global>{`
         .dall-custom-slider [role="slider"] {
-          width: 90px !important;
-          height: 50px !important;
+          width: 110px !important;
+          height: 60px !important;
           border-radius: 12px !important;
           background-image: url('${dallLogo}') !important;
-          background-size: contain !important;
+          background-size: 90% !important;
           background-repeat: no-repeat !important;
           background-position: center !important;
           background-color: white !important;
@@ -167,7 +168,7 @@ export default function ScaleSimulator() {
         }
         .dall-custom-slider [role="slider"]:active {
           cursor: grabbing;
-          transform: scale(1.1);
+          transform: scale(1.05);
           box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
         }
       `}</style>
