@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -43,7 +42,7 @@
       "title": "Subscription",
       "type": "object",
       "properties": {
-        "planId": { "type": "string", "enum": ["essencial", "avancado", "enterprise"] },
+        "planId": { "type": "string", "enum": ["essencial", "premium", "custom"] },
         "status": { "type": "string", "enum": ["active", "past_due", "canceled"] },
         "currentTier": { "type": "string", "description": "Ex: ate_200, 201_a_500" },
         "livesLimit": { "type": "number" },

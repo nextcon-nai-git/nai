@@ -13,7 +13,8 @@ import {
   Construction,
   Sparkles,
   ArrowRight,
-  Info
+  Info,
+  CheckCircle2
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,6 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const COMERCIAL_CONFIG = {
   taxa_setup_unica: 4500.00,
@@ -49,9 +49,9 @@ const COMERCIAL_CONFIG = {
       ]
     },
     {
-      id: "avancado",
-      nome: "Plano Avançado",
-      foco: "Automação e-Social",
+      id: "premium",
+      nome: "Plano Premium",
+      foco: "Automação e-Social Full",
       icon: Zap,
       tiers: {
         200: 2490.00,
@@ -68,8 +68,8 @@ const COMERCIAL_CONFIG = {
       ]
     },
     {
-      id: "enterprise",
-      nome: "Plano Enterprise",
+      id: "custom",
+      nome: "Plano Custom",
       foco: "Blindagem Total & Terceiros",
       icon: ShieldPlus,
       tiers: {
@@ -79,7 +79,7 @@ const COMERCIAL_CONFIG = {
         800: 13990.00
       },
       features: [
-        { title: "Tudo do Avançado", desc: "Automação total de processos inclusa." },
+        { title: "Tudo do Premium", desc: "Automação total de processos inclusa." },
         { title: "Gestão de Terceiros", desc: "Auditoria documental de empreiteiras (Passivo Solidário)." },
         { title: "Prontuário de Ambulatório", desc: "Gestão clínica para enfermaria de canteiro." },
         { title: "Integração Catracas IoT", desc: "Bloqueio físico de entrada para funcionários irregulares." },
@@ -110,7 +110,7 @@ export default function ConstructionProposalPage() {
 
   const pricingDetails = React.useMemo(() => {
     if (!selectedPlan) return { monthly: 0, total: 0 };
-    const monthly = selectedPlan.tiers[numLives as keyof typeof selectedPlan.tiers] || 0;
+    const monthly = (selectedPlan.tiers as any)[numLives] || 0;
     return { 
       monthly, 
       total: monthly + COMERCIAL_CONFIG.taxa_setup_unica
@@ -231,7 +231,7 @@ export default function ConstructionProposalPage() {
             {COMERCIAL_CONFIG.planos.map((plan) => {
               const Icon = plan.icon;
               const isActive = selectedPlanId === plan.id;
-              const currentPrice = plan.tiers[numLives as keyof typeof plan.tiers];
+              const currentPrice = (plan.tiers as any)[numLives];
               
               return (
                 <Card 
