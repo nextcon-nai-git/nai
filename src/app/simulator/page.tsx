@@ -65,7 +65,7 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 2: A Virada",
+    phase: "Fase 2: O Ponto de Virada",
     lives: "Até 500 vidas",
     color: "text-amber-600",
     bg: "bg-amber-50",
@@ -88,7 +88,7 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 3: Complexidade Máxima",
+    phase: "Fase 3: Complexidade Máxima (Mini-Hospital)",
     lives: "800+ vidas",
     color: "text-red-600",
     bg: "bg-red-50",
