@@ -41,7 +41,7 @@ import Link from "next/link"
 
 const SIMULATOR_DATA = [
   {
-    phase: "Fase 1: O Canteiro",
+    phase: "Fase 1: Baixa Complexidade (Canteiro)",
     lives: "Até 200 vidas",
     color: "text-emerald-600",
     bg: "bg-emerald-50",
@@ -64,7 +64,7 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 2: O Ponto de Virada",
+    phase: "Fase 2: Média Complexidade (EXPANSÃO BEM PLANEJADA)",
     lives: "Até 500 vidas",
     color: "text-amber-600",
     bg: "bg-amber-50",
