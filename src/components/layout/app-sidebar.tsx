@@ -72,6 +72,7 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Proposta NAI", icon: DollarSign, href: "/comercial" },
+      { title: "Proposta Construtoras", icon: HardHat, href: "/comercial/construction-proposal" },
       { title: "Simulador de Escala", icon: Monitor, href: "/simulator" },
     ]
   },
