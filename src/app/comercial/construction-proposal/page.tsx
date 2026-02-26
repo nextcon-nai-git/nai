@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -167,7 +166,7 @@ export default function ConstructionProposalPage() {
 
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Proposta Especializada: Construtoras</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">NAI para Construtoras Premium</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
             <HardHat className="size-3 text-accent" /> Orçamentos automatizados por escala de canteiro.
           </p>
