@@ -12,7 +12,8 @@ import {
   Target,
   Construction,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Info
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const COMERCIAL_CONFIG = {
   taxa_setup_unica: 4500.00,
@@ -31,7 +33,7 @@ const COMERCIAL_CONFIG = {
     {
       id: "essencial",
       nome: "Plano Essencial",
-      foco: "Gestão Básica",
+      foco: "Gestão Básica & NR-18",
       icon: Construction,
       tiers: {
         200: 1590.00,
@@ -39,12 +41,17 @@ const COMERCIAL_CONFIG = {
         600: 4590.00,
         800: 5890.00
       },
-      features: ["Armazenamento Nuvem ASOs", "Alertas de Vencimento", "Emissão PGR/PCMSO"]
+      features: [
+        { title: "PGR e PCMSO Digital", desc: "Emissão e controle de validade automática." },
+        { title: "Gestão de EPIs (NR-06)", desc: "Ficha digital com assinatura por foto/biometria." },
+        { title: "Checklists NR-18", desc: "Inspeções de canteiro via App mobile." },
+        { title: "Alertas de Vencimento", desc: "Avisos automáticos para ASOs e Exames." }
+      ]
     },
     {
       id: "avancado",
       nome: "Plano Avançado",
-      foco: "Automação eSocial",
+      foco: "Automação e-Social",
       icon: Zap,
       tiers: {
         200: 2490.00,
@@ -52,12 +59,18 @@ const COMERCIAL_CONFIG = {
         600: 7490.00,
         800: 9890.00
       },
-      features: ["Tudo do Essencial", "Integração eSocial S-2220/S-2240", "CIPA Digital"]
+      features: [
+        { title: "Tudo do Essencial", desc: "Base de gestão completa inclusa." },
+        { title: "Firewall eSocial", desc: "Envio automático de S-2220 e S-2240 sem erros." },
+        { title: "Treinamentos via QR Code", desc: "Presença digital em treinamentos de NR-35/18." },
+        { title: "CIPA Digital (NR-05)", desc: "Eleição, atas e reuniões 100% no sistema." },
+        { title: "Dashboards de BI", desc: "Visão estratégica de saúde e segurança por obra." }
+      ]
     },
     {
       id: "enterprise",
       nome: "Plano Enterprise",
-      foco: "Blindagem Total + Terceiros",
+      foco: "Blindagem Total & Terceiros",
       icon: ShieldPlus,
       tiers: {
         200: 3890.00,
@@ -65,7 +78,13 @@ const COMERCIAL_CONFIG = {
         600: 10990.00,
         800: 13990.00
       },
-      features: ["Tudo do Avançado", "Gestão de Empreiteiras", "Prontuário Ambulatório", "SLA Exclusivo"]
+      features: [
+        { title: "Tudo do Avançado", desc: "Automação total de processos inclusa." },
+        { title: "Gestão de Terceiros", desc: "Auditoria documental de empreiteiras (Passivo Solidário)." },
+        { title: "Prontuário de Ambulatório", desc: "Gestão clínica para enfermaria de canteiro." },
+        { title: "Integração Catracas IoT", desc: "Bloqueio físico de entrada para funcionários irregulares." },
+        { title: "SLA de Suporte Exclusivo", desc: "Gerente de conta dedicado para implantação VIP." }
+      ]
     }
   ]
 };
@@ -208,63 +227,72 @@ export default function ConstructionProposalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-primary/5 border-b p-8">
-              <CardTitle className="text-lg font-black text-primary uppercase">Planos Nextcon SST</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Escala de Preços para {numLives} Vidas</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 gap-4">
-                {COMERCIAL_CONFIG.planos.map((plan) => {
-                  const Icon = plan.icon;
-                  const isActive = selectedPlanId === plan.id;
-                  const currentPrice = plan.tiers[numLives as keyof typeof plan.tiers];
-                  
-                  return (
-                    <div 
-                      key={plan.id}
-                      onClick={() => setSelectedPlanId(plan.id)}
-                      className={cn(
-                        "p-6 rounded-[2rem] border-2 transition-all cursor-pointer group flex items-center gap-6",
-                        isActive ? "bg-primary/5 border-primary shadow-lg scale-[1.01]" : "bg-slate-50 border-transparent hover:border-slate-200"
-                      )}
-                    >
-                      <div className={cn(
-                        "p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform",
-                        isActive ? "bg-primary text-white" : "bg-white text-primary"
-                      )}>
-                        <Icon className="size-8" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex justify-between items-center">
-                          <h3 className="font-black text-primary uppercase text-sm">{plan.nome}</h3>
-                          <Badge className="bg-slate-200 text-slate-600 font-black text-[8px] uppercase px-2">{plan.foco}</Badge>
+          <div className="grid grid-cols-1 gap-6">
+            {COMERCIAL_CONFIG.planos.map((plan) => {
+              const Icon = plan.icon;
+              const isActive = selectedPlanId === plan.id;
+              const currentPrice = plan.tiers[numLives as keyof typeof plan.tiers];
+              
+              return (
+                <Card 
+                  key={plan.id}
+                  onClick={() => setSelectedPlanId(plan.id)}
+                  className={cn(
+                    "cursor-pointer border-2 transition-all duration-500 rounded-[2.5rem] overflow-hidden group",
+                    isActive ? "bg-white border-primary shadow-2xl scale-[1.02]" : "bg-slate-50 border-transparent hover:border-slate-200"
+                  )}
+                >
+                  <CardHeader className={cn(
+                    "p-8 border-b transition-colors",
+                    isActive ? "bg-primary/5" : "bg-transparent"
+                  )}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-5">
+                        <div className={cn(
+                          "p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform",
+                          isActive ? "bg-primary text-white" : "bg-white text-primary"
+                        )}>
+                          <Icon className="size-8" />
                         </div>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {plan.features.map(f => (
-                            <Badge key={f} variant="outline" className="text-[8px] font-bold uppercase border-primary/10 text-primary/40 h-5 px-2">{f}</Badge>
-                          ))}
+                        <div>
+                          <h3 className="text-xl font-black text-primary uppercase leading-none">{plan.nome}</h3>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{plan.foco}</p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">Mensal</p>
-                        <p className="text-xl font-black text-primary font-headline">
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Investimento Mensal</p>
+                        <p className="text-3xl font-black text-primary font-headline">
                           {currentPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                         </p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {plan.features.map((feature, i) => (
+                        <div key={i} className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 group-hover:border-primary/10 transition-all">
+                          <div className="p-1.5 bg-primary/5 rounded-lg h-fit">
+                            <CheckCircle2 className="size-3.5 text-primary" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <p className="text-[11px] font-black text-primary uppercase">{feature.title}</p>
+                            <p className="text-[10px] text-slate-400 font-medium leading-tight">{feature.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-6">
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden sticky top-24">
             <CardHeader className="bg-primary text-white p-8">
               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Building2 className="size-4 text-accent" /> Fechar Proposta
+                <Building2 className="size-4 text-accent" /> Protocolar Proposta
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
@@ -284,12 +312,12 @@ export default function ConstructionProposalPage() {
                   <Badge variant="secondary" className="text-[9px] font-black uppercase">{selectedPlan?.nome}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Setup Único</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400">Setup Único (Engenharia)</p>
                   <p className="text-sm font-bold text-primary">R$ 4.500,00</p>
                 </div>
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-end mb-6">
-                    <p className="text-[10px] font-black uppercase text-slate-400">Total Inicial</p>
+                    <p className="text-[10px] font-black uppercase text-slate-400">Total Primeiro Mês</p>
                     <h2 className="text-2xl font-black text-accent font-headline">
                       {pricingDetails.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </h2>
@@ -312,13 +340,13 @@ export default function ConstructionProposalPage() {
               <ShieldCheck className="size-24 text-accent" />
             </div>
             <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-[0.2em] flex items-center gap-2">
-                <Sparkles className="size-3" /> Blindagem NAI
+              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                <Sparkles className="size-3" /> Blindagem Especializada
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <p className="text-[11px] leading-relaxed italic text-white/60">
-                "Este orçamento já contempla a automação de eventos S-2220 e S-2240 para o tier de {numLives} vidas, garantindo 100% de conformidade com a Reforma eSocial."
+                "Esta proposta contempla a automação de conformidade para o canteiro de {numLives} vidas, incluindo a gestão de eventos e-Social e a proteção jurídica contra o passivo solidário de empreiteiras."
               </p>
             </CardContent>
           </Card>
