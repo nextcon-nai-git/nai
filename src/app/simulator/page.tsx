@@ -88,34 +88,21 @@ const SIMULATOR_DATA = [
     ]
   },
   {
-    phase: "Fase 3: O Mini-Hospital",
-    lives: "Até 800 vidas",
-    color: "text-orange-600",
-    bg: "bg-orange-50",
+    phase: "Fase 3: Complexidade Máxima",
+    lives: "800+ vidas",
+    color: "text-red-600",
+    bg: "bg-red-50",
     cipa: "22 Membros (Gestão Atas)",
-    sesmt: "Enfermaria e Ambulatório",
-    status: "Risco Alto",
-    statusCor: "text-orange-600",
-    subStatus: "Malha Fina S-2220",
+    sesmt: "Ambulatório e Enfermagem",
+    status: "Risco Crítico",
+    statusCor: "text-red-600",
+    subStatus: "Responsabilidade Solidária",
     nrs: [
       { 
         nr: "NR-04 (Saúde Ocupacional)", 
         items: ["Médico do trabalho na obra 3h/dia?", "Controle de absenteísmo por CID?", "Prontuários físicos organizados?"], 
         solution: "Prontuário Eletrônico Nextcon eliminando o passivo de papel no ambulatório." 
-      }
-    ]
-  },
-  {
-    phase: "Fase 4: Passivo Solidário",
-    lives: "1000+ vidas",
-    color: "text-red-600",
-    bg: "bg-red-50",
-    cipa: "Comissão Integrada",
-    sesmt: "Auditoria de Terceiros",
-    status: "Risco Crítico",
-    statusCor: "text-red-600",
-    subStatus: "Responsabilidade Solidária",
-    nrs: [
+      },
       { 
         nr: "Gestão de Terceiros", 
         items: ["Empreiteiras com ASO em dia?", "Documentação fiscal de SST validada?", "Treinamentos das contratadas cruzados?"], 
@@ -282,7 +269,7 @@ export default function ScaleSimulator() {
         <div className="max-w-3xl mx-auto space-y-10">
           <div className="space-y-4">
             <div className="flex justify-between items-end px-4">
-              {["200", "500", "800", "1000+"].map((label, i) => (
+              {["200", "500", "800+"].map((label, i) => (
                 <span key={label} className={cn("text-[10px] font-black uppercase tracking-widest", scaleSlider[0] === i ? "text-primary scale-110" : "text-slate-300")}>
                   {label} Vidas
                 </span>
@@ -291,7 +278,7 @@ export default function ScaleSimulator() {
             <Slider 
               value={scaleSlider} 
               onValueChange={setScaleSlider} 
-              max={3} 
+              max={2} 
               step={1} 
               className="py-4 dall-custom-slider"
             />
