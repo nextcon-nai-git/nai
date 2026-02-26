@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
@@ -19,7 +20,8 @@ import {
   TrendingUp,
   MapPin,
   User,
-  Phone
+  Phone,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, isValid } from 'date-fns';
@@ -77,7 +79,7 @@ export function TaskCard({ task }: { task: OpsTask }) {
   const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
-  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA", "leads"].includes(task.companyId);
+  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA", "leads", "51633820000151"].includes(task.companyId);
 
   const handlePromoteToOps = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,9 +114,9 @@ export function TaskCard({ task }: { task: OpsTask }) {
               <TypeIcon type={task.type} />
               {task.type}
             </span>
-            {task.ai_risk_score && task.ai_risk_score > 80 && (
-              <Badge className="bg-red-50 text-red-600 text-[7px] font-black border-none uppercase px-1.5 h-4">
-                Score Crítico
+            {task.origin?.includes('commercial') && (
+              <Badge className="bg-blue-50 text-blue-600 text-[7px] font-black border-none uppercase px-1.5 h-4 gap-1">
+                <BarChart3 className="size-2" /> Vindo do Comercial
               </Badge>
             )}
           </div>
@@ -159,11 +161,6 @@ export function TaskCard({ task }: { task: OpsTask }) {
               </p>
             )}
           </div>
-          {(task as any).metadata.interesse && (
-            <Badge variant="outline" className="w-full justify-center text-[7px] font-black uppercase border-emerald-100 bg-emerald-50 text-emerald-700 h-5">
-              Interesse: {(task as any).metadata.interesse}
-            </Badge>
-          )}
         </div>
       )}
 

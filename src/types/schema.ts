@@ -63,4 +63,5 @@ export interface OpsTask {
   createdAt: string;
   assigneeId?: string;
   assigneeName?: string;
+  origin?: 'commercial_ai' | 'manual_sim' | 'direct'; // Rastreia a origem da demanda
 }
