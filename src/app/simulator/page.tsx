@@ -18,7 +18,12 @@ import {
   AlertTriangle,
   ArrowRight,
   CheckCircle2,
-  FileWarning
+  FileWarning,
+  Flame,
+  ZapOff,
+  MoveUp,
+  Stethoscope,
+  Construction
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
@@ -33,7 +38,6 @@ import {
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 const SIMULATOR_DATA = [
   {
@@ -48,14 +52,33 @@ const SIMULATOR_DATA = [
     subStatus: "S-2240 Estável",
     nrs: [
       { 
-        nr: "NR-35 (Trabalho em Altura)", 
-        items: ["Análise de Risco (APR) preenchida e assinada?", "Cinto de segurança tipo paraquedista inspecionado?", "Linha de vida instalada no andaime?"], 
-        solution: "Checklist digital no tablet com foto do cinto arquivada em nuvem." 
+        nr: "NR-18 (A Bíblia da Construção)", 
+        items: [
+          "PGR específico do canteiro emitido e atualizado?", 
+          "Áreas de vivência (alojamento/refeitório) limpas e higienizadas?", 
+          "Proteções coletivas (bandejas e guarda-corpos) instaladas?",
+          "Sinalização de segurança visível em todas as frentes de obra?"
+        ], 
+        solution: "Checklist digital via App Nextcon com coleta de evidências fotográficas e geolocalização." 
       },
       { 
-        nr: "NR-18 (Construção Civil)", 
-        items: ["Área de vivência e banheiros limpos?", "Sinalização de buracos e vãos no piso?", "Bandejas de proteção contra queda de materiais instaladas?"], 
-        solution: "Auditoria fotográfica com geolocalização e relatórios em PDF." 
+        nr: "NR-35 (Trabalho em Altura)", 
+        items: [
+          "Análise de Risco (APR) preenchida e assinada por todos?", 
+          "Cinto de segurança paraquedista inspecionado e registrado?", 
+          "Linha de vida instalada e certificada por engenheiro?",
+          "Treinamento de 8h realizado para 100% dos executantes?"
+        ], 
+        solution: "Bloqueio inteligente: O sistema impede o check-in do colaborador se o treinamento NR-35 estiver vencido." 
+      },
+      { 
+        nr: "NR-24 (Condições Sanitárias)", 
+        items: [
+          "Número de chuveiros e vasos sanitários atende ao efetivo atual?", 
+          "Refeitório possui local adequado para lavagem de mãos?", 
+          "Vestiários possuem armários individuais com cadeado?"
+        ], 
+        solution: "Dimensionamento automático no sistema baseado no número de vidas importado do RH." 
       }
     ]
   },
@@ -71,14 +94,67 @@ const SIMULATOR_DATA = [
     subStatus: "Cruzamento eSocial Ativo",
     nrs: [
       { 
-        nr: "NR-12 (Máquinas e Equip.)", 
-        items: ["Betoneiras com aterramento elétrico adequado?", "Serras circulares com coifa protetora e cutelo?", "Operadores com treinamento válido da máquina?"], 
-        solution: "QR Code na máquina: O técnico lê com o celular e vê a validade da manutenção." 
+        nr: "NR-01 (GRO / PGR)", 
+        items: [
+          "Inventário de riscos cruzado com o eSocial S-2240?", 
+          "Plano de ação possui prazos e responsáveis designados?",
+          "Identificação de perigos inclui fatores psicossociais?"
+        ], 
+        solution: "Dashboard de Gestão de Riscos: Visualização em tempo real das ações pendentes e críticas." 
+      },
+      { 
+        nr: "NR-04 & NR-05 (SESMT e CIPA)", 
+        items: [
+          "Dimensionamento do SESMT atende ao Quadro II da norma?", 
+          "Eleição da CIPA realizada digitalmente com atas registradas?",
+          "Treinamento de assédio realizado para toda a comissão?"
+        ], 
+        solution: "Módulo CIPA Digital: Votação, atas e treinamentos 100% sem papel e auditáveis." 
       },
       { 
         nr: "NR-06 (Controle de EPIs)", 
-        items: ["Fichas de EPI atualizadas sem rasuras?", "Certificado de Aprovação (CA) válido?", "Reposição de protetor auricular registrada?"], 
-        solution: "Assinatura Biométrica na tela do sistema. Fim do passivo do papel perdido." 
+        items: [
+          "Fichas de EPI assinadas digitalmente (sem papel)?", 
+          "Controle de validade do CA (Certificado de Aprovação)?",
+          "Reposição periódica baseada na vida útil do equipamento?"
+        ], 
+        solution: "Quiosque Digital EPI: Assinatura biométrica/foto na entrega, gerando validade jurídica total." 
+      },
+      { 
+        nr: "NR-07 (PCMSO)", 
+        items: [
+          "Cronograma de exames (Admissionais/Periódicos) em dia?", 
+          "Exames complementares (audiometria/visão) realizados?",
+          "ASOs emitidos conforme riscos do PGR (NR-01)?"
+        ], 
+        solution: "Sincronização PGR x PCMSO: Se o PGR muda, o sistema alerta a necessidade de novos exames." 
+      },
+      { 
+        nr: "NR-09 (Exposições Ocupacionais)", 
+        items: [
+          "Medições de ruído (dosimetria) realizadas recentemente?", 
+          "Avaliação quantitativa de poeira (sílica/cimento)?",
+          "Laudo de Higiene Ocupacional assinado por técnico?"
+        ], 
+        solution: "Central de Laudos NAI: Armazenamento e alerta de vencimento de medições ambientais." 
+      },
+      { 
+        nr: "NR-12 (Máquinas e Equipamentos)", 
+        items: [
+          "Betoneiras e serras possuem proteções fixas e móveis?", 
+          "Sensores de segurança testados e funcionando?",
+          "Manutenções preventivas registradas em livro próprio?"
+        ], 
+        solution: "QR Code nas máquinas: Inspeção diária via celular antes de ligar o equipamento." 
+      },
+      { 
+        nr: "NR-10 (Segurança Elétrica)", 
+        items: [
+          "Instalações provisórias possuem DR (Diferencial Residual)?", 
+          "Quadros de força trancados e sinalizados corretamente?",
+          "Eletricistas possuem treinamento NR-10 Básico e SEP?"
+        ], 
+        solution: "Firewall Elétrico: Monitoramento de certificados de treinamento na admissão do eletricista." 
       }
     ]
   },
@@ -94,14 +170,58 @@ const SIMULATOR_DATA = [
     subStatus: "Responsabilidade Solidária",
     nrs: [
       { 
-        nr: "NR-04 (Saúde Ocupacional)", 
-        items: ["Médico do trabalho na obra 3h/dia?", "Controle de absenteísmo por CID?", "Prontuários físicos organizados?"], 
-        solution: "Prontuário Eletrônico Nextcon eliminando o passivo de papel no ambulatório." 
+        nr: "NR-11 (Movimentação de Cargas)", 
+        items: [
+          "Cachorros, eslingas e cabos de aço inspecionados?", 
+          "Operadores de grua possuem ASO específico?",
+          "Plano de Içamento (Rigging) aprovado para cargas pesadas?"
+        ], 
+        solution: "Gestão de Ativos: Controle rigoroso de inspeções de acessórios de içamento." 
       },
       { 
-        nr: "Gestão de Terceiros", 
-        items: ["Empreiteiras com ASO em dia?", "Documentação fiscal de SST validada?", "Treinamentos das contratadas cruzados?"], 
-        solution: "Portal do Terceiro Nextcon: Só entra na obra quem estiver 100% conforme no sistema." 
+        nr: "NR-33 (Espaços Confinados)", 
+        items: [
+          "Permissão de Entrada e Trabalho (PET) emitida?", 
+          "Vigilante de espaço confinado presente no local?",
+          "Medição de gases realizada antes e durante o acesso?"
+        ], 
+        solution: "Monitoramento de Riscos Críticos: Alerta instantâneo para o SESMT ao abrir uma PET." 
+      },
+      { 
+        nr: "NR-15 & NR-16 (Insalubridade / Periculosidade)", 
+        items: [
+          "Laudos técnicos fundamentam o pagamento de adicionais?", 
+          "Cruzamento de rubricas da folha com eventos eSocial?",
+          "Avaliação de agentes químicos e vibração em dia?"
+        ], 
+        solution: "ROI Tributário: Auditoria NAI para evitar pagamentos indevidos ou multas por omissão." 
+      },
+      { 
+        nr: "NR-17 (Ergonomia)", 
+        items: [
+          "Análise Ergonômica do Trabalho (AET) das funções pesadas?", 
+          "Equipamentos de auxílio para transporte de sacaria?",
+          "Rodízio de atividades para evitar LER/DORT implementado?"
+        ], 
+        solution: "Diagrama de Risco NAI: Identificação visual de postos com alta carga ergonômica." 
+      },
+      { 
+        nr: "NR-23 (Incêndio) & NR-35", 
+        items: [
+          "Brigada de Incêndio formada e treinada conforme carga?", 
+          "Extintores desobstruídos e com validade de carga OK?",
+          "Rotas de fuga sinalizadas e iluminadas?"
+        ], 
+        solution: "Checklist de Segurança Predial: Inspeção mensal automatizada dos itens de combate a incêndio." 
+      },
+      { 
+        nr: "Gestão de Terceiros (O Maior Passivo)", 
+        items: [
+          "Empreiteiras enviaram PGR e PCMSO compatíveis?", 
+          "Terceirizados possuem ASO e treinamentos em dia?",
+          "Controle de acesso bloqueia terceiros irregulares?"
+        ], 
+        solution: "Portal do Terceiro Nextcon: A subcontratada sobe os documentos e o sistema valida a entrada." 
       }
     ]
   }
@@ -138,7 +258,6 @@ export default function ScaleSimulator() {
   const [fapIndex, setFapIndex] = React.useState([2]); 
   const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
 
-  // Link direto para garantir carregamento no thumb do slider
   const dallLogo = "https://i.ibb.co/gZv2fyXt/logo.png";
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
@@ -323,12 +442,12 @@ export default function ScaleSimulator() {
 
       <div className="space-y-6">
         <h2 className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
-          <ClipboardCheck className="size-6 text-primary" /> Inspeções Virtuais e Checklists
+          <ClipboardCheck className="size-6 text-primary" /> Central de NRs e Checklists Digitais
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {currentData.nrs.map((item, idx) => (
-            <Card key={idx} className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+            <Card key={idx} className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1" className="border-none">
                   <AccordionTrigger className="px-8 py-6 hover:no-underline hover:bg-slate-50 transition-colors">
@@ -339,7 +458,7 @@ export default function ScaleSimulator() {
                   </AccordionTrigger>
                   <AccordionContent className="px-8 pb-8 pt-2">
                     <div className="space-y-4">
-                      <p className="text-[10px] font-black text-slate-400 tracking-widest">Checklist de Campo Dall:</p>
+                      <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Itens de Inspeção Obrigatória:</p>
                       <div className="space-y-3">
                         {item.items.map((check, cIdx) => (
                           <div key={cIdx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
@@ -352,7 +471,7 @@ export default function ScaleSimulator() {
                       </div>
                       <div className="mt-6 p-4 bg-primary text-white rounded-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-3 opacity-10"><Zap className="size-8 text-white" /></div>
-                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">🚀 Solução Nextcon:</p>
+                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">🚀 Automação Nextcon:</p>
                         <p className="text-xs font-medium leading-relaxed italic">{item.solution}</p>
                       </div>
                     </div>
@@ -402,7 +521,7 @@ export default function ScaleSimulator() {
               ) : (
                 <div className="h-full flex flex-col items-center justify-center p-20 border-4 border-dashed rounded-[3rem] opacity-30 text-center space-y-4">
                   <Monitor className="size-20 text-primary" />
-                  <p className="text-xl font-black uppercase tracking-widest text-primary">Aguardando Interação</p>
+                  <p className="text-xl font-black uppercase tracking-widest text-primary">Aguardando Interação Ergonômica</p>
                 </div>
               )}
             </div>
