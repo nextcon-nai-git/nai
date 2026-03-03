@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -160,7 +159,7 @@ export default function HealthControl() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Fila Zero Medicina</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Clínica Digital Nextcon</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest flex items-center gap-2">
             <Zap className="size-3 text-accent animate-pulse" /> Monitoramento de Fluxo em Tempo Real.
           </p>

@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -95,7 +94,7 @@ const NAV_MODULES = [
       { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
       { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
       { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
-      { title: "Fila de Atendimento", icon: Stethoscope, href: "/health-control" },
+      { title: "Clínica Digital", icon: Stethoscope, href: "/health-control" },
     ]
   },
   {
