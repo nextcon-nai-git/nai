@@ -1,7 +1,8 @@
+
 "use client"
 
 import * as React from "react"
-import { Database, Loader2, CheckCircle2, ShieldCheck, FolderTree, ArrowLeft, MapPin } from "lucide-react"
+import { Database, Loader2, CheckCircle2, ShieldCheck, FolderTree, ArrowLeft, MapPin, Sparkles } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -31,7 +32,7 @@ export default function AuditSetupPage() {
       const now = new Date().toISOString()
       
       // 1. Provisionar Empresas
-      setStatus("Sincronizando 27 Unidades Estratégicas...")
+      setStatus("Sincronizando Unidades Estratégicas...")
       REAL_COMPANIES.forEach(comp => {
         batch.set(doc(db, "companies", comp.id), { 
           ...comp, 
@@ -39,12 +40,11 @@ export default function AuditSetupPage() {
           active: true 
         }, { merge: true })
       })
-      setProgress(30)
+      setProgress(25)
 
       // 2. Provisionar Prestadores com Geofencing (Raio 50km)
       setStatus("Calculando Raio de 50km para Fornecedores...")
       REAL_PROVIDERS.forEach((provider) => {
-        // Filtra empresas num raio de 50km do prestador
         const servedCompanies = REAL_COMPANIES
           .filter(comp => {
             const distance = calculateDistance(
@@ -64,9 +64,26 @@ export default function AuditSetupPage() {
           radius_limit: 50
         }, { merge: true })
       })
-      setProgress(70)
+      setProgress(50)
 
-      // 3. Provisionamento de Pastas Storage
+      // 3. Provisionamento da Inteligência NAI (Pitch de Vendas)
+      setStatus("Semeando Inteligência NAI...")
+      const naiRef = doc(db, "config_nai_avatar", "pitch_vendas_padrao");
+      batch.set(naiRef, {
+        avatar: {
+          saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria Médica. Como posso ajudar seu negócio hoje?"
+        },
+        pilares_venda: [
+          { ordem: 1, titulo: "Saúde: A Super-Junta Jurídica", resumo: "Proteção contra liminares de alto custo (TEA/Autismo)." },
+          { ordem: 2, titulo: "Financeiro: Glosa Reversa", resumo: "Bloqueio de cobranças indevidas hospitalares." },
+          { ordem: 3, titulo: "SST 2026: Firewall Físico", resumo: "Integração com catracas e bloqueio de multas eSocial." }
+        ],
+        cta_final: "A Nextcon é sobre gestão de risco. Blinde sua operação agora.",
+        updatedAt: now
+      }, { merge: true });
+      setProgress(75)
+
+      // 4. Provisionamento de Pastas Storage
       setStatus("Sincronizando Hierarquia Multi-tenant...")
       const targetCompanies = REAL_COMPANIES.slice(0, 5);
       const clientFolders = ["docs_legais", "sst_nrs/nr01_pgr", "sst_nrs/nr07_pcmso", "saude_gestao/afastados"];
@@ -79,15 +96,15 @@ export default function AuditSetupPage() {
 
       await batch.commit()
       setProgress(100)
-      setStatus("✅ Blindagem Geográfica Ativada!")
+      setStatus("✅ Blindagem Geográfica e Inteligência NAI Ativadas!")
       
       toast({
-        title: "Raio de 50km Ativado",
-        description: "Fornecedores agora só visualizam clientes próximos."
+        title: "Setup Concluído",
+        description: "Geofencing e Configurações da NAI foram ativadas com sucesso."
       })
     } catch (error) {
       console.error(error)
-      toast({ variant: "destructive", title: "Erro no Setup Geográfico" })
+      toast({ variant: "destructive", title: "Erro no Setup Global" })
     } finally {
       setLoading(false)
     }
@@ -104,18 +121,31 @@ export default function AuditSetupPage() {
                 <ArrowLeft className="size-4" /> Voltar
               </Button>
             </Link>
-            <CardTitle className="text-3xl font-headline font-black uppercase tracking-tight">Ativar Blindagem Geográfica</CardTitle>
-            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Fornecedor vê apenas clientes em um raio de 50km.</CardDescription>
+            <CardTitle className="text-3xl font-headline font-black uppercase tracking-tight">Ativar Infraestrutura NAI</CardTitle>
+            <CardDescription className="text-white/70 font-bold uppercase text-[10px] tracking-widest">Ativação de Geofencing, Inteligência NAI e Storage.</CardDescription>
           </div>
         </CardHeader>
 
         <CardContent className="p-10 space-y-8">
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">
-              <span>Processamento Geofencing</span>
+              <span>Status do Provisionamento</span>
               <span className="text-primary">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-3 bg-slate-100" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+              <MapPin className="size-5 text-primary" />
+              <p className="text-[10px] font-black uppercase text-slate-400">Blindagem</p>
+              <p className="text-xs font-bold">Filtro de 50km para Prestadores</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+              <Sparkles className="size-5 text-accent" />
+              <p className="text-[10px] font-black uppercase text-slate-400">Inteligência</p>
+              <p className="text-xs font-bold">Roteiro de Vendas da NAI</p>
+            </div>
           </div>
 
           {status && (
@@ -133,7 +163,7 @@ export default function AuditSetupPage() {
             className="w-full h-16 bg-primary text-white text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl gap-3"
           >
             {loading ? <Loader2 className="size-5 animate-spin" /> : <ShieldCheck className="size-5 text-accent" />}
-            Ativar Filtro de 50km
+            Iniciar Provisionamento Global
           </Button>
         </CardFooter>
       </Card>

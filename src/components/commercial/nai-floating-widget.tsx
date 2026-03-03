@@ -9,39 +9,57 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
 
 /**
  * @fileOverview Widget Flutuante da NAI (Assistente Comercial).
- * Consome a API pública /api/nai-widget para exibir o pitch de vendas.
+ * Agora consome diretamente do Firestore para evitar falhas em rotas de API server-side.
  */
 
 const NAI_AVATAR_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/logo%2FAvatar%20Nextcon%20NAI.png?alt=media";
 
+// Fallback robusto caso o Firestore ainda não tenha sido semeado
+const DEFAULT_PITCH = {
+  avatar: {
+    saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria Médica. Como posso ajudar seu negócio hoje?"
+  },
+  pilares_venda: [
+    {
+      ordem: 1,
+      titulo: "Saúde: A Super-Junta Jurídica",
+      resumo: "Proteção contra liminares de alto custo (TEA/Autismo)."
+    },
+    {
+      ordem: 2,
+      titulo: "Financeiro: Glosa Reversa",
+      resumo: "Bloqueio de cobranças indevidas hospitalares."
+    },
+    {
+      ordem: 3,
+      titulo: "SST 2026: Firewall Físico",
+      resumo: "Integração com catracas e bloqueio de multas eSocial."
+    }
+  ],
+  cta_final: "A Nextcon é sobre gestão de risco. Blinde sua operação agora."
+};
+
 export function NaiFloatingWidget() {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [pitchData, setPitchData] = React.useState<any>(null);
+  const db = useFirestore();
 
-  const fetchPitch = async () => {
-    if (pitchData) return;
-    setLoading(true);
-    try {
-      const response = await fetch("/api/nai-widget");
-      const data = await response.json();
-      if (data.sucesso) {
-        setPitchData(data.dados);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar widget NAI:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const pitchRef = useMemoFirebase(() => {
+    if (!db) return null;
+    return doc(db, "config_nai_avatar", "pitch_vendas_padrao");
+  }, [db]);
+
+  const { data: remotePitch, isLoading: loading } = useDoc(pitchRef);
+
+  // Usa dados do banco ou o fallback padrão
+  const pitchData = remotePitch || DEFAULT_PITCH;
 
   const handleToggle = () => {
-    const newState = !isOpen;
-    setIsOpen(newState);
-    if (newState) fetchPitch();
+    setIsOpen(!isOpen);
   };
 
   return (
@@ -77,18 +95,18 @@ export function NaiFloatingWidget() {
             {loading ? (
               <div className="py-12 flex flex-col items-center gap-3">
                 <Loader2 className="size-8 animate-spin text-primary opacity-20" />
-                <p className="text-[10px] font-black uppercase text-slate-400">Chamando NAI...</p>
+                <p className="text-[10px] font-black uppercase text-slate-400">Sincronizando NAI...</p>
               </div>
-            ) : pitchData ? (
+            ) : (
               <div className="space-y-6">
                 <div className="bg-slate-50 p-4 rounded-2xl rounded-tl-none border shadow-inner">
                   <p className="text-xs italic text-slate-600 leading-relaxed font-medium">
-                    "{pitchData.avatar.saudacao_inicial}"
+                    "{pitchData.avatar?.saudacao_inicial}"
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  {pitchData.pilares_venda.map((pilar: any) => (
+                  {pitchData.pilares_venda?.map((pilar: any) => (
                     <div key={pilar.ordem} className="p-3 bg-white border border-slate-100 rounded-xl shadow-sm hover:border-accent/30 transition-all group">
                       <h4 className="text-[11px] font-black text-primary uppercase mb-1 flex items-center gap-2">
                         <Zap className="size-3 text-accent" />
@@ -114,10 +132,6 @@ export function NaiFloatingWidget() {
                     </Link>
                   </Button>
                 </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center text-xs text-slate-400 italic">
-                Não foi possível carregar a inteligência NAI.
               </div>
             )}
           </CardContent>
