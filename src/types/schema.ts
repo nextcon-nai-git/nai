@@ -15,6 +15,25 @@ export interface FiscalConfig {
   tax_table_version?: string;
 }
 
+export interface UserCertificateInfo {
+  has_certificate: boolean;
+  issuer: string;
+  expiration: string;
+  serial_number: string;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: 'SUPER_ADMIN' | 'CLIENT_ADMIN' | 'ENGINEER' | 'DOCTOR' | 'PROVIDER';
+  email: string;
+  crm?: string;
+  rqe?: string;
+  companyId?: string;
+  servedCompanies?: string[];
+  certificate_info?: UserCertificateInfo;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -79,6 +98,13 @@ export interface MedicalAppointment {
   companyId: string;
 }
 
+export interface AsoSignatureInfo {
+  hash: string;
+  protocol: string;
+  certificate_issuer: string;
+  timestamp: string;
+}
+
 export interface AsoAttendance {
   id: string;
   agendamento_id: string;
@@ -86,6 +112,7 @@ export interface AsoAttendance {
   data_emissao: string;
   resultado: 'Apto' | 'Inapto';
   url_documento_signed?: string;
+  signature_info?: AsoSignatureInfo;
   status_esocial: 'Pendente' | 'Enviado' | 'Erro';
   protocolo_governo?: string;
   employeeName: string;

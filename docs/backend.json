@@ -9,8 +9,19 @@
         "name": { "type": "string" },
         "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "ENGINEER", "DOCTOR", "PROVIDER"] },
         "email": { "type": "string" },
+        "crm": { "type": "string" },
+        "rqe": { "type": "string" },
         "companyId": { "type": "string", "description": "ID da empresa caso o usuário seja CLIENT_ADMIN" },
-        "servedCompanies": { "type": "array", "items": { "type": "string" }, "description": "Lista de IDs de empresas atendidas (raio 50km)" }
+        "servedCompanies": { "type": "array", "items": { "type": "string" }, "description": "Lista de IDs de empresas atendidas (raio 50km)" },
+        "certificate_info": {
+          "type": "object",
+          "properties": {
+            "has_certificate": { "type": "boolean" },
+            "issuer": { "type": "string" },
+            "expiration": { "type": "string", "format": "date-time" },
+            "serial_number": { "type": "string" }
+          }
+        }
       },
       "required": ["id", "name", "role", "email"]
     },
@@ -71,6 +82,15 @@
         "data_emissao": { "type": "string", "format": "date-time" },
         "resultado": { "type": "string", "enum": ["Apto", "Inapto"] },
         "url_documento_signed": { "type": "string" },
+        "signature_info": {
+          "type": "object",
+          "properties": {
+            "hash": { "type": "string" },
+            "protocol": { "type": "string" },
+            "certificate_issuer": { "type": "string" },
+            "timestamp": { "type": "string", "format": "date-time" }
+          }
+        },
         "status_esocial": { "type": "string", "enum": ["Pendente", "Enviado", "Erro"] },
         "protocolo_governo": { "type": "string" }
       },

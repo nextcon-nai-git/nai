@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -25,7 +26,8 @@ import {
   Users,
   UserCheck,
   TrendingUp,
-  Search
+  Search,
+  Fingerprint
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -54,6 +56,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@
 import { collection, query, orderBy, addDoc, serverTimestamp, where, doc, updateDoc, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { DigitalSignatureDialog } from "@/components/medical/digital-signature-dialog"
 
 export default function HealthControl() {
   const { toast } = useToast()
@@ -63,6 +66,8 @@ export default function HealthControl() {
   const [activeTab, setActiveTab] = React.useState("queue")
   const [searchTerm, setSearchTerm] = React.useState("")
   const [currentTime, setCurrentTime] = React.useState(new Date())
+  const [isSignDialogOpen, setIsSignDialogOpen] = React.useState(false)
+  const [selectedApptForSign, setSelectedApptForSign] = React.useState<any>(null)
 
   // Atualiza relógio para cálculo de espera real-time a cada 10s
   React.useEffect(() => {
@@ -104,13 +109,19 @@ export default function HealthControl() {
     toast({ title: "Chamada Realizada", description: "O paciente foi direcionado ao consultório." })
   }
 
-  const handleFinalizeASO = async (appt: any) => {
-    if (!db || !user) return
+  const openSignDialog = (appt: any) => {
+    setSelectedApptForSign(appt)
+    setIsSignDialogOpen(true)
+  }
+
+  const handleFinalizeWithSignature = async (signatureData: any) => {
+    if (!db || !user || !selectedApptForSign) return
     
+    const appt = selectedApptForSign
     const docRef = doc(db, "agendamentos", appt.id)
     updateDocumentNonBlocking(docRef, { status: "Concluído" })
 
-    // Registra o atendimento ASO para o RH visualizar
+    // Registra o atendimento ASO com metadados de assinatura ICP-Brasil
     const asoRef = collection(db, "atendimentos_aso")
     await addDocumentNonBlocking(asoRef, {
       agendamento_id: appt.id,
@@ -119,14 +130,12 @@ export default function HealthControl() {
       companyId: appt.companyId || "CLI_NATIVA",
       data_emissao: new Date().toISOString(),
       resultado: "Apto",
+      signature_info: signatureData, // Metadados da assinatura ICP-Brasil
       status_esocial: "Pendente",
       createdAt: new Date().toISOString()
     })
 
-    toast({ 
-      title: "Protocolo Finalizado", 
-      description: "ASO assinado e fila eSocial S-2220 acionada." 
-    })
+    setSelectedApptForSign(null)
   }
 
   const getWaitTime = (checkInAt: string) => {
@@ -144,7 +153,6 @@ export default function HealthControl() {
     
     let totalWait = 0
     completed.forEach(a => {
-      // Aqui simulamos uma média baseada nos já concluídos do dia
       totalWait += 15 // Mock de 15 min de média
     })
     
@@ -306,10 +314,10 @@ export default function HealthControl() {
                           )}
                           {appt.status === 'Em Atendimento' && (
                             <Button 
-                              onClick={() => handleFinalizeASO(appt)} 
+                              onClick={() => openSignDialog(appt)} 
                               className="h-10 px-5 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg gap-2"
                             >
-                              <ShieldCheck className="size-3.5" /> Finalizar ASO
+                              <Fingerprint className="size-3.5" /> Assinar ASO
                             </Button>
                           )}
                         </div>
@@ -330,23 +338,32 @@ export default function HealthControl() {
         <div className="p-6 bg-[#090e24] text-white rounded-[2rem] shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><TrendingUp className="size-32 text-accent" /></div>
           <div className="relative z-10 space-y-4">
-            <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Otimização NAI</Badge>
-            <h3 className="text-lg font-black uppercase font-headline">Previsão de Fluxo</h3>
+            <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Soberania Digital</Badge>
+            <h3 className="text-lg font-black uppercase font-headline">Validade ICP-Brasil</h3>
             <p className="text-xs text-white/60 leading-relaxed font-medium">
-              O tempo médio de atendimento para exames <strong>{appointments?.[0]?.tipo || 'Admissionais'}</strong> nesta unidade é de 12 minutos. O sistema sugere a abertura de um terceiro guichê de triagem para os próximos 30 minutos.
+              Todos os ASOs finalizados nesta unidade utilizam assinatura eletrônica qualificada. O hash de integridade garante que o documento não sofra alterações após a assinatura do médico.
             </p>
           </div>
         </div>
         <div className="p-6 bg-blue-50 border border-blue-100 rounded-[2rem] flex flex-col justify-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><Zap className="size-4" /></div>
-            <h4 className="text-sm font-black text-primary uppercase">Assinatura Digital Cloud</h4>
+            <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><Fingerprint className="size-4" /></div>
+            <h4 className="text-sm font-black text-primary uppercase">Nota sobre Certificados</h4>
           </div>
           <p className="text-[11px] text-primary/70 leading-relaxed font-medium italic">
-            "Ao clicar em 'Finalizar ASO', o sistema dispara o motor de assinatura digital NAI, gera o PDF final e protocola automaticamente a pendência no eSocial do cliente."
+            "Suportamos tokens A3 em nuvem e certificados A1. A assinatura qualificada é indispensável para a aceitabilidade do evento S-2220 pelo governo federal."
           </p>
         </div>
       </div>
+
+      {/* Dialog de Assinatura Digital */}
+      <DigitalSignatureDialog 
+        isOpen={isSignDialogOpen}
+        onOpenChange={setIsSignDialogOpen}
+        onSign={handleFinalizeWithSignature}
+        patientName={selectedApptForSign?.colaborador_nome || ""}
+        doctorProfile={profile}
+      />
     </div>
   )
 }
