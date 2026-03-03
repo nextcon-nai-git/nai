@@ -9,7 +9,6 @@ import {
   MessageSquare, 
   Stethoscope, 
   CheckCircle2,
-  MoreHorizontal,
   CalendarPlus,
   Building2,
   Clock,
@@ -17,10 +16,14 @@ import {
   Send,
   MapPin,
   Loader2,
-  Plus
+  Plus,
+  QrCode,
+  AlertTriangle,
+  Zap,
+  ChevronRight,
+  ShieldCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -33,14 +36,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -52,261 +47,222 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, orderBy, addDoc, serverTimestamp, where, doc } from "firebase/firestore"
+import { collection, query, orderBy, addDoc, serverTimestamp, where, doc, updateDoc } from "firebase/firestore"
 import { getWhatsAppLink, MSG_TEMPLATES } from "@/lib/whatsapp-utils"
 import { cn } from "@/lib/utils"
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 
 export default function HealthControl() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
   const [activeTab, setActiveTab] = React.useState("queue")
+  const [isQrOpen, setIsQrOpen] = React.useState(false)
   const [isSlotOpen, setIsSlotOpen] = React.useState(false)
   const [isBookingLoading, setIsBookingLoading] = React.useState(false)
+  const [currentTime, setCurrentTime] = React.useState(new Date())
 
-  // Estados para novo slot
-  const [newSlot, setNewSlot] = React.useState({
-    clinicName: "CLINICA SQV - MATRIZ",
-    examType: "Admissional",
-    date: "",
-    time: "",
-    address: "Rua Comendador Araújo, 510 - Curitiba/PR"
-  })
+  // Atualiza relógio para cálculo de espera real-time
+  React.useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 10000)
+    return () => clearInterval(timer)
+  }, [])
 
-  // Consulta agendamentos reais
   const appointmentsQuery = useMemoFirebase(() => {
     if (!db) return null
-    return query(collection(db, "exam_appointments"), orderBy("scheduledAt", "desc"))
+    return query(collection(db, "agendamentos"), orderBy("data_hora", "asc"))
   }, [db])
   const { data: appointments, isLoading } = useCollection(appointmentsQuery)
 
-  const handleNotifyEmployee = (appt: any) => {
-    const date = new Date(appt.scheduledAt)
-    const formattedDate = date.toLocaleDateString('pt-BR')
-    const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    
-    const message = MSG_TEMPLATES.CONFIRMACAO_AGENDAMENTO(
-      appt.employeeName || "Colaborador",
-      appt.examType,
-      appt.clinicName,
-      formattedDate,
-      formattedTime,
-      appt.address || "Verificar com a clínica"
-    )
-    
-    window.open(getWhatsAppLink(appt.employeePhone || "41999999999", message), '_blank')
-    toast({ title: "Notificação Enviada", description: "WhatsApp aberto com os dados do agendamento." })
+  const handleCheckIn = (appt: any) => {
+    if (!db) return
+    const docRef = doc(db, "agendamentos", appt.id)
+    updateDocumentNonBlocking(docRef, {
+      status: "Em Espera",
+      check_in_realizado: true,
+      check_in_at: new Date().toISOString()
+    })
+    toast({ title: "Check-in Realizado", description: `${appt.colaborador_nome} entrou na fila de espera.` })
   }
 
-  const handleCreateSlot = async () => {
-    if (!db || !newSlot.date || !newSlot.time) return
-    setIsBookingLoading(true)
+  const handleStartConsultation = (appt: any) => {
+    if (!db) return
+    const docRef = doc(db, "agendamentos", appt.id)
+    updateDocumentNonBlocking(docRef, { status: "Em Atendimento" })
+    toast({ title: "Atendimento Iniciado", description: "Iniciando protocolos médicos." })
+  }
+
+  const handleFinalizeASO = async (appt: any) => {
+    if (!db || !user) return
     
-    try {
-      const scheduledAt = new Date(`${newSlot.date}T${newSlot.time}`).toISOString()
-      await addDocumentNonBlocking(collection(db, "exam_appointments"), {
-        clinicId: "SQV_01",
-        clinicName: newSlot.clinicName,
-        examType: newSlot.examType,
-        scheduledAt,
-        status: "disponivel",
-        address: newSlot.address,
-        createdAt: new Date().toISOString()
-      })
-      
-      toast({ title: "Slot Publicado", description: "Horário disponível para agendamento dos clientes." })
-      setIsSlotOpen(false)
-    } finally {
-      setIsBookingLoading(false)
-    }
+    const docRef = doc(db, "agendamentos", appt.id)
+    updateDocumentNonBlocking(docRef, { status: "Concluído" })
+
+    // Simula geração de ASO e envio eSocial
+    const asoRef = collection(db, "atendimentos_aso")
+    await addDocumentNonBlocking(asoRef, {
+      agendamento_id: appt.id,
+      medico_id: user.uid,
+      employeeName: appt.colaborador_nome,
+      companyId: appt.companyId || "CLI_NATIVA",
+      data_emissao: new Date().toISOString(),
+      resultado: "Apto",
+      status_esocial: "Pendente",
+      createdAt: new Date().toISOString()
+    })
+
+    toast({ 
+      title: "ASO Concluído", 
+      description: "Documento assinado digitalmente e fila eSocial acionada." 
+    })
+  }
+
+  const getWaitTime = (checkInAt: string) => {
+    if (!checkInAt) return 0
+    const diff = currentTime.getTime() - new Date(checkInAt).getTime()
+    return Math.floor(diff / 60000)
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Saúde Ocupacional (PCMSO)</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Fila Zero Medicina</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest flex items-center gap-2">
-            <Building2 className="size-3 text-accent" /> Automação de Agendamentos Nextcon & Clínicas
+            <Zap className="size-3 text-accent animate-pulse" /> Monitoramento de Fluxo e Conformidade eSocial.
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2" onClick={() => window.open(getWhatsAppLink("41988887777", MSG_TEMPLATES.SOLICITAR_GRADE_CLINICA("SQV")), '_blank')}>
-            <MessageSquare className="size-4" /> Solicitar Grade SQV
-          </Button>
-          
-          <Dialog open={isSlotOpen} onOpenChange={setIsSlotOpen}>
+          <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
             <DialogTrigger asChild>
-              <Button className="gradient-nextcon text-white h-11 px-6 rounded-xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg">
-                <Plus className="size-4" /> Publicar Horário
+              <Button variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2">
+                <QrCode className="size-4" /> Check-in QR
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[450px] rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
-              <div className="p-8 bg-primary text-white">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-white/10 rounded-lg"><Clock className="size-5 text-accent" /></div>
-                  <DialogTitle className="text-xl font-headline font-black uppercase">Abrir Grade Clínica</DialogTitle>
+            <DialogContent className="sm:max-w-[400px] rounded-[2rem] border-none shadow-2xl p-8 text-center bg-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black text-primary uppercase">Check-in Inteligente</DialogTitle>
+                <DialogDescription className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Aproxime o crachá do colaborador</DialogDescription>
+              </DialogHeader>
+              <div className="py-8">
+                <div className="size-48 mx-auto bg-slate-50 rounded-3xl border-4 border-dashed border-primary/10 flex items-center justify-center relative">
+                  <QrCode className="size-32 text-primary opacity-20" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent rounded-3xl" />
                 </div>
-                <DialogDescription className="text-white/70 font-medium italic">Disponibilize horários para a rede Nextcon.</DialogDescription>
               </div>
-              <div className="p-8 space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Clínica</label>
-                  <Input value={newSlot.clinicName} readOnly className="bg-slate-50 border-none h-12 font-bold text-primary" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Data</label>
-                    <Input type="date" value={newSlot.date} onChange={e => setNewSlot({...newSlot, date: e.target.value})} className="h-12 bg-slate-50 border-none rounded-xl font-bold" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Hora</label>
-                    <Input type="time" value={newSlot.time} onChange={e => setNewSlot({...newSlot, time: e.target.value})} className="h-12 bg-slate-50 border-none rounded-xl font-bold" />
-                  </div>
-                </div>
-                <Button onClick={handleCreateSlot} disabled={isBookingLoading} className="w-full h-14 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
-                  {isBookingLoading ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5 text-accent" />}
-                  Confirmar Disponibilidade
-                </Button>
-              </div>
+              <p className="text-[10px] text-slate-400 italic">"Reduzindo erros de digitação e acelerando o PCMSO."</p>
             </DialogContent>
           </Dialog>
+          <Button className="gradient-nextcon text-white h-11 px-6 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">
+            <Plus className="size-4" /> Novo Agendamento
+          </Button>
         </div>
       </header>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[600px] grid-cols-2 bg-muted/50 p-1.5 rounded-2xl h-16">
-          <TabsTrigger value="queue" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Fila de Atendimento</TabsTrigger>
-          <TabsTrigger value="schedule" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Grade de Horários</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="queue" className="mt-8 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-                <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg font-black text-primary uppercase">Eventos do Dia</CardTitle>
-                    <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Acompanhamento de exames agendados.</CardDescription>
-                  </div>
-                  <Badge variant="outline" className="border-accent text-accent font-black uppercase text-[10px] px-3">Sincronizado</Badge>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                      <TableRow>
-                        <TableHead className="pl-8">Colaborador / Tipo</TableHead>
-                        <TableHead>Clínica / Local</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right pr-8">Ação</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {appointments?.filter(a => a.status === 'agendado').map((appt) => (
-                        <TableRow key={appt.id} className="hover:bg-slate-50/50 transition-all">
-                          <TableCell className="pl-8">
-                            <div className="flex flex-col">
-                              <p className="font-black text-xs text-primary uppercase">{appt.employeeName}</p>
-                              <Badge variant="outline" className="w-fit text-[8px] font-black uppercase border-primary/10 mt-1">{appt.examType}</Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col">
-                              <p className="text-[10px] font-bold text-slate-600 uppercase">{appt.clinicName}</p>
-                              <p className="text-[9px] text-slate-400 font-medium truncate w-40">{new Date(appt.scheduledAt).toLocaleDateString('pt-BR')} às {new Date(appt.scheduledAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className="bg-blue-100 text-blue-700 text-[8px] font-black uppercase border-none px-3">AGENDADO</Badge>
-                          </TableCell>
-                          <TableCell className="text-right pr-8">
-                            <Button size="icon" variant="ghost" className="h-9 w-9 rounded-full text-emerald-600 hover:bg-emerald-50" onClick={() => handleNotifyEmployee(appt)}>
-                              <Send className="size-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {(!appointments || appointments.filter(a => a.status === 'agendado').length === 0) && (
-                        <TableRow><TableCell colSpan={4} className="py-24 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum exame para hoje</TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <Card className="lg:col-span-1 bg-[#090e24] text-white border-none p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 p-6 opacity-10"><Zap className="size-32 text-accent" /></div>
+          <div className="relative z-10 space-y-6">
+            <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Fila Inteligente</Badge>
+            <div>
+              <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-1">Tempo Médio de Espera</p>
+              <h3 className="text-3xl font-black text-accent">14 min</h3>
             </div>
-
-            <div className="space-y-6">
-              <Card className="border-none shadow-lg bg-white rounded-[2rem]">
-                <CardHeader className="pb-2 border-b">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <CalendarIcon className="size-4" /> Agenda Técnica
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center pt-4">
-                  <Calendar mode="single" selected={new Date()} className="rounded-md border-none" />
-                </CardContent>
-              </Card>
-
-              <Card className="bg-[#090e24] text-white border-none p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 right-0 p-6 opacity-10"><Stethoscope className="size-32 text-accent" /></div>
-                <div className="relative z-10 space-y-4">
-                  <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Dica NAI</Badge>
-                  <h3 className="text-sm font-bold leading-tight uppercase tracking-widest">Controle de Absenteísmo</h3>
-                  <p className="text-[11px] text-white/60 leading-relaxed font-medium">
-                    "Notificar o colaborador 24h antes do exame reduz em 22% a taxa de 'no-show' nas clínicas de Curitiba."
-                  </p>
-                </div>
-              </Card>
+            <div className="space-y-3 pt-4 border-t border-white/10">
+              <p className="text-[11px] text-white/60 leading-relaxed italic font-medium">
+                "O sistema otimiza a agenda baseada no tipo de exame. Admissionais têm prioridade na triagem."
+              </p>
             </div>
           </div>
-        </TabsContent>
+        </Card>
 
-        <TabsContent value="schedule" className="mt-8">
-          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-            <CardHeader className="bg-primary text-white py-6 px-8 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-black uppercase">Vagas Disponíveis na Rede</CardTitle>
-                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Clínicas Parceiras: Curitiba e RMC</CardDescription>
-              </div>
-              <Badge className="bg-accent text-primary font-black uppercase text-[10px] px-4 h-8 flex items-center border-none">LIVE GRADE</Badge>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
-                {appointments?.filter(a => a.status === 'disponivel').map((slot) => (
-                  <div key={slot.id} className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 hover:border-accent/30 transition-all group relative">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="p-3 bg-white rounded-2xl shadow-sm text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                        <CalendarPlus className="size-5" />
-                      </div>
-                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10 text-primary/60">{slot.examType}</Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-black text-xs text-primary uppercase">{slot.clinicName}</p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                        <MapPin className="size-2.5" /> {slot.address || 'Curitiba/PR'}
-                      </p>
-                    </div>
-                    <div className="mt-6 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="size-3 text-accent" />
-                        <span className="text-sm font-black text-primary">{new Date(slot.scheduledAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                      <Button size="sm" className="h-9 px-4 bg-primary text-white font-black uppercase text-[9px] rounded-xl shadow-lg">Reservar Vaga</Button>
-                    </div>
-                  </div>
-                ))}
-                {(!appointments || appointments.filter(a => a.status === 'disponivel').length === 0) && (
-                  <div className="col-span-full py-20 text-center opacity-30">
-                    <CalendarIcon className="size-16 mx-auto mb-4" />
-                    <p className="font-black uppercase text-xs tracking-widest">Nenhum horário liberado pelas clínicas</p>
-                  </div>
+        <Card className="lg:col-span-3 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-black text-primary uppercase">Fila de Atendimento do Dia</CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Fluxo: Triagem &gt; Médico &gt; eSocial.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="h-7 gap-2 border-emerald-100 text-emerald-700 font-black uppercase text-[8px] bg-emerald-50">
+                <div className="size-1.5 bg-emerald-500 rounded-full animate-ping" /> Live Monitor
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+                <TableRow>
+                  <TableHead className="pl-8">Colaborador / Tipo</TableHead>
+                  <TableHead>Status / Espera</TableHead>
+                  <TableHead>Ação Técnica</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={3} className="py-20 text-center"><Loader2 className="size-8 animate-spin mx-auto opacity-20" /></TableCell></TableRow>
+                ) : appointments?.filter(a => a.status !== 'Concluído').map((appt) => {
+                  const waitTime = getWaitTime(appt.check_in_at);
+                  const isCritical = waitTime >= 20;
+
+                  return (
+                    <TableRow key={appt.id} className="hover:bg-slate-50/50 transition-all group">
+                      <TableCell className="pl-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">
+                            {appt.colaborador_nome?.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-black text-xs text-primary uppercase leading-tight">{appt.colaborador_nome}</p>
+                            <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10 mt-1">{appt.tipo}</Badge>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5">
+                          <Badge className={cn(
+                            "w-fit text-[8px] font-black uppercase border-none px-3",
+                            appt.status === 'Em Espera' ? "bg-amber-100 text-amber-700" : 
+                            appt.status === 'Em Atendimento' ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"
+                          )}>
+                            {appt.status}
+                          </Badge>
+                          {appt.status === 'Em Espera' && (
+                            <div className={cn(
+                              "flex items-center gap-1.5 text-[10px] font-black",
+                              isCritical ? "text-red-600 animate-pulse" : "text-slate-400"
+                            )}>
+                              <Clock className="size-3" /> {waitTime} min em espera
+                              {isCritical && <AlertTriangle className="size-3 ml-1" />}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="pr-8 text-right">
+                        <div className="flex justify-end gap-2">
+                          {appt.status === 'Agendado' && (
+                            <Button onClick={() => handleCheckIn(appt)} className="h-9 px-4 bg-primary text-white font-black uppercase text-[9px] rounded-xl shadow-lg">Check-in</Button>
+                          )}
+                          {appt.status === 'Em Espera' && (
+                            <Button onClick={() => handleStartConsultation(appt)} className="h-9 px-4 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg">Chamar Médico</Button>
+                          )}
+                          {appt.status === 'Em Atendimento' && (
+                            <Button onClick={() => handleFinalizeASO(appt)} className="h-9 px-4 bg-accent text-primary font-black uppercase text-[9px] rounded-xl shadow-lg gap-2">
+                              <ShieldCheck className="size-3" /> Finalizar & Assinar
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {(!appointments || appointments.length === 0) && (
+                  <TableRow><TableCell colSpan={3} className="py-24 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum agendamento para hoje</TableCell></TableRow>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

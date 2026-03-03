@@ -2,7 +2,19 @@
 "use client"
 
 import * as React from "react"
-import { HeartPulse, Search, Filter, CheckCircle2, AlertCircle, FileText, Download, Stethoscope, Loader2, SendHorizontal } from "lucide-react"
+import { 
+  HeartPulse, 
+  Search, 
+  CheckCircle2, 
+  AlertCircle, 
+  FileText, 
+  Download, 
+  Loader2, 
+  SendHorizontal,
+  CloudDownload,
+  ShieldCheck,
+  Globe
+} from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,13 +22,8 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, doc } from "firebase/firestore"
+import { collection, query, orderBy, doc, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
-
-/**
- * @fileOverview Histórico de Atendimentos (Portal do Cliente)
- * Visão consolidada de ASOs e conformidade eSocial para a unidade logada.
- */
 
 export default function ClientExamsHistory() {
   const { user } = useUser()
@@ -29,30 +36,31 @@ export default function ClientExamsHistory() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  const examsQuery = useMemoFirebase(() => {
+  // Consulta real de ASOs da empresa logada
+  const asoQuery = useMemoFirebase(() => {
     if (!db || !profile?.companyId) return null
-    return query(collection(db, "companies", profile.companyId, "examHistory"), orderBy("date", "desc"))
+    return query(collection(db, "atendimentos_aso"), where("companyId", "==", profile.companyId), orderBy("data_emissao", "desc"))
   }, [db, profile])
 
-  const { data: exams, isLoading } = useCollection(examsQuery)
+  const { data: asos, isLoading } = useCollection(asoQuery)
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Vigilância Médica (RH)</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-[0.2em]">Monitoramento de ASOs, Vencimentos e eSocial S-2220.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Portal do RH: Vigilância Médica</h1>
+          <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-[0.2em] mt-2">Monitoramento de ASOs, Assinaturas Digitais e eSocial S-2220.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-11 px-6 border-primary text-primary font-bold uppercase text-[10px] tracking-widest gap-2">
-            <Download className="size-4" /> Exportar Planilha
+          <Button variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] tracking-widest gap-2">
+            <Download className="size-4" /> Exportar Tudo
           </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="relative md:col-span-3">
-          <Search className="absolute left-4 top-3.5 size-4 text-slate-400" />
+        <div className="relative md:col-span-3 group">
+          <Search className="absolute left-4 top-3.5 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
           <Input 
             placeholder="Buscar colaborador por nome ou CPF..." 
             className="pl-12 h-12 bg-white border-none shadow-sm rounded-xl font-medium"
@@ -62,12 +70,12 @@ export default function ClientExamsHistory() {
         </div>
         <Select defaultValue="all">
           <SelectTrigger className="h-12 bg-white border-none shadow-sm rounded-xl font-bold uppercase text-[10px]">
-            <SelectValue placeholder="Status do ASO" />
+            <SelectValue placeholder="Status eSocial" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os Status</SelectItem>
-            <SelectItem value="ok">Apto (OK)</SelectItem>
-            <SelectItem value="expired">Vencido</SelectItem>
+            <SelectItem value="Enviado">Enviado (OK)</SelectItem>
+            <SelectItem value="Pendente">Pendente</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -84,52 +92,86 @@ export default function ClientExamsHistory() {
               <TableHeader className="bg-slate-50/50">
                 <TableRow>
                   <TableHead className="text-[10px] font-black uppercase py-5 pl-8">Colaborador</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Data / Tipo</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase">Credenciado</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-center">ASO</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase">Data / Emissão</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-center">ASO (Status)</TableHead>
                   <TableHead className="text-[10px] font-black uppercase text-center">eSocial (S-2220)</TableHead>
-                  <TableHead className="text-right pr-8"></TableHead>
+                  <TableHead className="text-right pr-8">Dossiê</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exams?.filter(e => e.employeeName.toLowerCase().includes(searchTerm.toLowerCase())).map((exam, i) => (
-                  <TableRow key={i} className="hover:bg-slate-50 transition-colors">
-                    <TableCell className="pl-8">
-                      <p className="font-bold text-primary text-xs uppercase">{exam.employeeName}</p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase">Matrícula: {exam.employeeId || '---'}</p>
+                {asos?.filter(a => a.employeeName.toLowerCase().includes(searchTerm.toLowerCase())).map((aso) => (
+                  <TableRow key={aso.id} className="hover:bg-slate-50 transition-colors group">
+                    <TableCell className="pl-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">
+                          {aso.employeeName?.substring(0, 2).toUpperCase()}
+                        </div>
+                        <p className="font-bold text-primary text-xs uppercase leading-tight">{aso.employeeName}</p>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <p className="text-xs font-bold text-primary">{new Date(exam.date).toLocaleDateString('pt-BR')}</p>
-                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20 text-primary/60">{exam.type}</Badge>
+                      <p className="text-xs font-bold text-primary">{new Date(aso.data_emissao).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Assinado via NAI Cloud</p>
                     </TableCell>
-                    <TableCell className="text-[10px] font-black text-slate-500 uppercase">{exam.provider}</TableCell>
                     <TableCell className="text-center">
                       <Badge className={cn(
-                        "text-[9px] font-black uppercase border-none px-3",
-                        exam.aso === 'OK' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                        "text-[9px] font-black uppercase border-none px-3 h-6",
+                        aso.resultado === 'Apto' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
                       )}>
-                        {exam.aso === 'OK' ? <CheckCircle2 className="size-2.5 mr-1" /> : <AlertCircle className="size-2.5 mr-1" />}
-                        {exam.aso}
+                        {aso.resultado === 'Apto' ? <CheckCircle2 className="size-2.5 mr-1" /> : <AlertCircle className="size-2.5 mr-1" />}
+                        {aso.resultado}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <SendHorizontal className={cn("size-3", exam.s2220 === 'OK' ? "text-emerald-500" : "text-slate-300")} />
-                        <span className="text-[9px] font-black uppercase text-slate-400">{exam.s2220}</span>
+                      <div className="flex flex-col items-center gap-1">
+                        <Badge variant="outline" className={cn(
+                          "text-[8px] font-black uppercase h-5",
+                          aso.status_esocial === 'Enviado' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-orange-50 text-orange-600 border-orange-100"
+                        )}>
+                          {aso.status_esocial === 'Enviado' ? "PROTOCOLADO" : "PROCESSANDO"}
+                        </Badge>
+                        {aso.protocolo_governo && (
+                          <span className="text-[8px] font-mono text-slate-400">ID: {aso.protocolo_governo}</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right pr-8">
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-primary hover:bg-primary/5">
-                        <FileText className="size-4" />
+                      <Button variant="ghost" size="sm" className="h-10 px-4 rounded-xl text-primary hover:bg-primary/5 font-black uppercase text-[9px] gap-2">
+                        <CloudDownload className="size-3.5" /> ASO Assinado
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
+                {(!asos || asos.length === 0) && (
+                  <TableRow><TableCell colSpan={5} className="py-24 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum ASO disponível para esta unidade</TableCell></TableRow>
+                )}
               </TableBody>
             </Table>
           )}
         </CardContent>
       </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-6 bg-[#090e24] text-white rounded-[2rem] shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><ShieldCheck className="size-32 text-accent" /></div>
+          <div className="relative z-10 space-y-4">
+            <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Blindagem Legal</Badge>
+            <h3 className="text-lg font-black uppercase font-headline">Validade Jurídica</h3>
+            <p className="text-xs text-white/60 leading-relaxed font-medium">
+              Todos os documentos gerados neste portal possuem assinatura digital certificada e registro de metadados de emissão, garantindo plena aceitação em fiscalizações e perícias judiciais.
+            </p>
+          </div>
+        </div>
+        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-[2rem] flex flex-col justify-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><Globe className="size-4" /></div>
+            <h4 className="text-sm font-black text-primary uppercase">NAI eSocial Engine</h4>
+          </div>
+          <p className="text-[11px] text-primary/70 leading-relaxed font-medium italic">
+            "Nosso motor de transmissão envia o evento S-2220 automaticamente para o governo assim que o médico finaliza o atendimento, eliminando o risco de atrasos na folha."
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

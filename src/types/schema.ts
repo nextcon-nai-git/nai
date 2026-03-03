@@ -39,6 +39,7 @@ export interface Employee {
   admissionDate: string;
   status: 'active' | 'leave' | 'fired';
   jobRole: string;
+  riscos: string[];
 }
 
 export interface ComplianceItem {
@@ -63,5 +64,30 @@ export interface OpsTask {
   createdAt: string;
   assigneeId?: string;
   assigneeName?: string;
-  origin?: 'commercial_ai' | 'manual_sim' | 'direct'; // Rastreia a origem da demanda
+  origin?: 'commercial_ai' | 'manual_sim' | 'direct';
+}
+
+export interface MedicalAppointment {
+  id: string;
+  colaborador_id: string;
+  colaborador_nome: string;
+  data_hora: string;
+  check_in_at?: string;
+  tipo: 'Admissional' | 'Periódico' | 'Demissional' | 'Mudança de Função' | 'Retorno ao Trabalho';
+  status: 'Agendado' | 'Em Espera' | 'Em Atendimento' | 'Concluído';
+  check_in_realizado: boolean;
+  companyId: string;
+}
+
+export interface AsoAttendance {
+  id: string;
+  agendamento_id: string;
+  medico_id: string;
+  data_emissao: string;
+  resultado: 'Apto' | 'Inapto';
+  url_documento_signed?: string;
+  status_esocial: 'Pendente' | 'Enviado' | 'Erro';
+  protocolo_governo?: string;
+  employeeName: string;
+  companyId: string;
 }

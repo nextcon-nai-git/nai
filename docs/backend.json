@@ -42,7 +42,7 @@
         "nome": { "type": "string" },
         "cpf": { "type": "string" },
         "funcao": { "type": "string" },
-        "riscos": { "type": "array", "items": { "type": "string" }, "description": "Essencial para S-2240" }
+        "riscos": { "type": "array", "items": { "type": "string" }, "description": "Essencial para S-2240 e automação de ASO" }
       },
       "required": ["empresa_id", "nome", "cpf"]
     },
@@ -52,7 +52,9 @@
       "properties": {
         "agendamento_id": { "type": "string" },
         "colaborador_id": { "type": "string" },
+        "colaborador_nome": { "type": "string" },
         "data_hora": { "type": "string", "format": "date-time" },
+        "check_in_at": { "type": "string", "format": "date-time", "description": "Timestamp do início da espera" },
         "tipo": { "type": "string", "enum": ["Admissional", "Periódico", "Demissional", "Mudança de Função", "Retorno ao Trabalho"] },
         "status": { "type": "string", "enum": ["Agendado", "Em Espera", "Em Atendimento", "Concluído"] },
         "check_in_realizado": { "type": "boolean" }
@@ -68,7 +70,7 @@
         "medico_id": { "type": "string" },
         "data_emissao": { "type": "string", "format": "date-time" },
         "resultado": { "type": "string", "enum": ["Apto", "Inapto"] },
-        "url_documento_assinado": { "type": "string" },
+        "url_documento_signed": { "type": "string" },
         "status_esocial": { "type": "string", "enum": ["Pendente", "Enviado", "Erro"] },
         "protocolo_governo": { "type": "string" }
       },
@@ -109,11 +111,11 @@
     },
     "/agendamentos/{agendamentoId}": {
       "schema": "#/entities/Appointment",
-      "description": "Fila de exames ocupacionais."
+      "description": "Fila de exames ocupacionais monitorada em tempo real."
     },
     "/atendimentos_aso/{atendimentoId}": {
       "schema": "#/entities/AsoAttendance",
-      "description": "Registros de ASOs e integração eSocial."
+      "description": "Registros de ASOs e integração eSocial para visualização do RH."
     },
     "/clinicas_parceiras/{clinicaId}": {
       "schema": "#/entities/PartnerClinic",
