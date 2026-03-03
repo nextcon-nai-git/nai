@@ -33,7 +33,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className="bg-[#003366] text-white flex flex-col items-center justify-center h-screen p-10 text-center font-sans">
         <div className="space-y-6 max-w-lg animate-in fade-in duration-700">
           <div className="size-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
