@@ -22,9 +22,6 @@ service cloud.firestore {
       return isAutenticado() && data.role == 'CLIENT_ADMIN' && data.companyId == companyId;
     }
 
-    /**
-     * Valida se o prestador atende aquela empresa específica.
-     */
     function isServedProvider(companyId) {
       let data = getUserData();
       let role = data.role;
@@ -33,32 +30,31 @@ service cloud.firestore {
              (data.servedCompanies != null && companyId in data.servedCompanies);
     }
 
-    // Regras para a Coleção de Empresas (Clientes)
-    match /companies/{companyId} {
-      allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
-      allow write: if isAdmin();
-
-      // Assinaturas: Cliente lê sua assinatura, mas nunca escreve (apenas Admin Nextcon via Dashboard ou Cloud Functions)
-      match /subscriptions/{subId} {
-        allow read: if isAdmin() || isClientAdmin(companyId);
-        allow write: if isAdmin();
-      }
-
-      // Sub-coleção de Colaboradores (Hierárquica)
-      match /employees/{employeeId} {
-        allow read: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
-        allow write: if isAdmin() || isClientAdmin(companyId);
-      }
-
-      // Outras sub-coleções (Tarefas, Relatórios, etc)
-      match /{allChildren=**} {
-        allow read, write: if isAdmin() || isClientAdmin(companyId) || isServedProvider(companyId);
-      }
-    }
+    // Regras para Medicina do Trabalho
     
-    // Suporte para Consultas Globais (Collection Groups)
-    match /{path=**}/employees/{docId} { 
-      allow read: if isAdmin() || isServedProvider(resource.data.companyId); 
+    match /empresas/{empresaId} {
+      allow read: if isAdmin() || isClientAdmin(empresaId) || isServedProvider(empresaId);
+      allow write: if isAdmin();
+    }
+
+    match /colaboradores/{colaboradorId} {
+      allow read: if isAdmin() || isClientAdmin(resource.data.empresa_id) || isServedProvider(resource.data.empresa_id);
+      allow write: if isAdmin() || isClientAdmin(request.resource.data.empresa_id);
+    }
+
+    match /agendamentos/{agendamentoId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin() || isClientAdmin(request.resource.data.empresa_id) || isServedProvider(request.resource.data.empresa_id);
+    }
+
+    match /atendimentos_aso/{atendimentoId} {
+      allow read: if isAdmin() || isClientAdmin(resource.data.empresa_id) || isServedProvider(resource.data.empresa_id);
+      allow write: if isAdmin() || isServedProvider(request.resource.data.empresa_id);
+    }
+
+    match /clinicas_parceiras/{clinicaId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin();
     }
 
     // Perfis de Usuário

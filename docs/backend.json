@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -13,61 +14,81 @@
       },
       "required": ["id", "name", "role", "email"]
     },
-    "Company": {
-      "title": "Company",
+    "MedicalCompany": {
+      "title": "Empresa (Medicina)",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
+        "empresa_id": { "type": "string" },
+        "razao_social": { "type": "string" },
         "cnpj": { "type": "string" },
-        "segment": { "type": "string" },
-        "logoUrl": { "type": "string" },
-        "address": { "type": "string" },
-        "risk_degree": { "type": "number" },
-        "cnae": { "type": "string" },
-        "lat": { "type": "number" },
-        "lng": { "type": "number" },
-        "fiscal_config": {
+        "contato_rh": {
           "type": "object",
           "properties": {
-            "ibpt_token": { "type": "string" },
-            "last_ibpt_update": { "type": "string", "format": "date-time" },
-            "tax_table_version": { "type": "string" }
+            "nome": { "type": "string" },
+            "email": { "type": "string" },
+            "telefone": { "type": "string" }
           }
-        }
+        },
+        "setores": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["id", "name", "cnpj"]
+      "required": ["razao_social", "cnpj"]
     },
-    "Subscription": {
-      "title": "Subscription",
+    "MedicalEmployee": {
+      "title": "Colaborador",
       "type": "object",
       "properties": {
-        "planId": { "type": "string", "enum": ["essencial", "premium", "custom"] },
-        "status": { "type": "string", "enum": ["active", "past_due", "canceled"] },
-        "currentTier": { "type": "string", "description": "Ex: ate_200, 201_a_500" },
-        "livesLimit": { "type": "number" },
-        "currentLives": { "type": "number" },
-        "monthlyValue": { "type": "number" },
-        "nextBillingDate": { "type": "string", "format": "date-time" },
-        "stripeSubscriptionId": { "type": "string" }
+        "colaborador_id": { "type": "string" },
+        "empresa_id": { "type": "string" },
+        "nome": { "type": "string" },
+        "cpf": { "type": "string" },
+        "funcao": { "type": "string" },
+        "riscos": { "type": "array", "items": { "type": "string" }, "description": "Essencial para S-2240" }
       },
-      "required": ["planId", "status", "currentTier"]
+      "required": ["empresa_id", "nome", "cpf"]
     },
-    "OccupationalExamAppointment": {
-      "title": "OccupationalExamAppointment",
+    "Appointment": {
+      "title": "Agendamento",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "employeePhone": { "type": "string" },
-        "clinicId": { "type": "string" },
-        "clinicName": { "type": "string" },
-        "examType": { "type": "string", "enum": ["Admissional", "Periódico", "Demissional", "Mudança de Função", "Retorno ao Trabalho"] },
-        "scheduledAt": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["disponivel", "agendado", "concluido", "cancelado"] },
-        "companyId": { "type": "string" }
+        "agendamento_id": { "type": "string" },
+        "colaborador_id": { "type": "string" },
+        "data_hora": { "type": "string", "format": "date-time" },
+        "tipo": { "type": "string", "enum": ["Admissional", "Periódico", "Demissional", "Mudança de Função", "Retorno ao Trabalho"] },
+        "status": { "type": "string", "enum": ["Agendado", "Em Espera", "Em Atendimento", "Concluído"] },
+        "check_in_realizado": { "type": "boolean" }
       },
-      "required": ["clinicId", "examType", "scheduledAt", "status"]
+      "required": ["colaborador_id", "data_hora", "tipo", "status"]
+    },
+    "AsoAttendance": {
+      "title": "Atendimento ASO",
+      "type": "object",
+      "properties": {
+        "atendimento_id": { "type": "string" },
+        "agendamento_id": { "type": "string" },
+        "medico_id": { "type": "string" },
+        "data_emissao": { "type": "string", "format": "date-time" },
+        "resultado": { "type": "string", "enum": ["Apto", "Inapto"] },
+        "url_documento_assinado": { "type": "string" },
+        "status_esocial": { "type": "string", "enum": ["Pendente", "Enviado", "Erro"] },
+        "protocolo_governo": { "type": "string" }
+      },
+      "required": ["agendamento_id", "medico_id", "resultado"]
+    },
+    "PartnerClinic": {
+      "title": "Clínica Parceira",
+      "type": "object",
+      "properties": {
+        "clinica_id": { "type": "string" },
+        "nome_fantasia": { "type": "string" },
+        "localizacao": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        },
+        "servicos_disponiveis": { "type": "array", "items": { "type": "string" } }
+      }
     }
   },
   "auth": {
@@ -78,17 +99,25 @@
       "schema": "#/entities/UserProfile",
       "description": "Perfis de acesso e permissões RBAC."
     },
-    "/companies/{companyId}": {
-      "schema": "#/entities/Company",
-      "description": "Empresas clientes (Raiz)."
+    "/empresas/{empresaId}": {
+      "schema": "#/entities/MedicalCompany",
+      "description": "Empresas clientes do módulo médico."
     },
-    "/companies/{companyId}/subscriptions/{subId}": {
-      "schema": "#/entities/Subscription",
-      "description": "Controle de planos e faturamento por cliente."
+    "/colaboradores/{colaboradorId}": {
+      "schema": "#/entities/MedicalEmployee",
+      "description": "Base de colaboradores para vigilância em saúde."
     },
-    "/exam_appointments/{id}": {
-      "schema": "#/entities/OccupationalExamAppointment",
-      "description": "Agendamentos de exames ocupacionais com clínicas parceiras."
+    "/agendamentos/{agendamentoId}": {
+      "schema": "#/entities/Appointment",
+      "description": "Fila de exames ocupacionais."
+    },
+    "/atendimentos_aso/{atendimentoId}": {
+      "schema": "#/entities/AsoAttendance",
+      "description": "Registros de ASOs e integração eSocial."
+    },
+    "/clinicas_parceiras/{clinicaId}": {
+      "schema": "#/entities/PartnerClinic",
+      "description": "Rede credenciada Nextcon."
     }
   }
 }
