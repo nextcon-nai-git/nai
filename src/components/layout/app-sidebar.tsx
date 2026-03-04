@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -28,7 +29,8 @@ import {
   HardHat,
   Zap,
   Network,
-  Lock
+  Lock,
+  Hospital
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -90,6 +92,7 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER'],
     items: [
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
+      { title: "Gestão Ambulatório", icon: Hospital, href: "/medical/ambulatory" },
       { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
       { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
       { title: "Auditoria Médica", icon: Gavel, href: "/medical-auditing" },
