@@ -9,14 +9,18 @@ import {
   FileText,
   Loader2,
   ShieldCheck,
-  ShieldPlus,
   Target,
   Construction,
   Sparkles,
   ArrowRight,
-  Info,
+  TrendingDown,
+  Activity,
+  HeartPulse,
+  Box,
+  Scale,
   CheckCircle2,
-  Box
+  CalendarDays,
+  DollarSign
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,403 +30,270 @@ import { useUser, useFirestore } from "@/firebase"
 import { collection } from "firebase/firestore"
 import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Progress } from "@/components/ui/progress"
 
-const COMERCIAL_CONFIG = {
-  taxa_setup_unica: 4500.00,
-  planos: [
+const PROPOSAL_DATA = {
+  client: "Dall Empreendimentos",
+  project: "Obra Atmosphere",
+  location: "Praia Brava, Itajaí/SC",
+  cells: [
     {
-      id: "essencial",
-      nome: "Plano Essencial",
-      foco: "Gestão Básica & NR-18",
-      icon: Construction,
-      tiers: {
-        200: 1590.00,
-        400: 3290.00,
-        600: 4590.00,
-        800: 5890.00
-      },
-      features: [
-        { title: "PGR e PCMSO Digital", desc: "Emissão e controle de validade automática." },
-        { title: "Gestão de EPIs (NR-06)", desc: "Ficha digital com assinatura por foto/biometria." },
-        { title: "Checklists NR-18", desc: "Inspeções de canteiro via App mobile." },
-        { title: "Alertas de Vencimento", desc: "Avisos automáticos para ASOs e Exames." }
-      ]
+      id: "sst",
+      title: "Célula de Segurança (Campo)",
+      icon: HardHat,
+      description: "02 Técnicos de Segurança + Supervisão de Engenharia Semanal.",
+      price: 26400.00,
+      features: ["Presença Seg-Sáb", "Liberações PET/APR", "Treinamentos In Loco", "Engenheiro (Bonificado)"]
     },
     {
-      id: "premium",
-      nome: "Plano Premium",
-      foco: "Automação e-Social Full",
-      icon: Zap,
-      tiers: {
-        200: 2490.00,
-        400: 5190.00,
-        600: 7490.00,
-        800: 9890.00
-      },
-      features: [
-        { title: "Tudo do Essencial", desc: "Base de gestão completa inclusa." },
-        { title: "Firewall eSocial", desc: "Envio automático de S-2220 e S-2240 sem erros." },
-        { title: "Treinamentos via QR Code", desc: "Presença digital em treinamentos de NR-35/18." },
-        { title: "CIPA Digital (NR-05)", desc: "Eleição, atas e reuniões 100% no sistema." },
-        { title: "Dashboards de BI", desc: "Visão estratégica de saúde e segurança por obra." }
-      ]
+      id: "health",
+      title: "Célula de Enfermagem (Ambulatório)",
+      icon: HeartPulse,
+      description: "02 Técnicos de Enfermagem em regime 12x36h.",
+      price: 24200.00,
+      features: ["Primeiros Socorros", "Controle Absenteísmo", "Acompanhamento de Queixas", "Prontuário Digital"]
     },
     {
-      id: "custom",
-      nome: "Plano Custom",
-      foco: "Configuração à La Carte",
-      icon: ShieldPlus,
-      features: [] // Populado dinamicamente via CUSTOM_OPTIONS
+      id: "infra",
+      title: "Infraestrutura e Insumos",
+      icon: Box,
+      description: "Locação de DEA, Maca, Oxigênio e Reposição Mensal.",
+      price: 6500.00,
+      features: ["Equipamentos de Ponta", "Manutenção Inclusa", "Insumos Descartáveis", "Kits de Emergência"]
     }
-  ]
+  ],
+  roi: {
+    payroll: 5000000,
+    currentFap: 1.2,
+    targetFap: 0.5,
+    rat: 0.03
+  }
 };
-
-const CUSTOM_OPTIONS = [
-  { id: 'terceiros', title: "Gestão de Terceiros", desc: "Auditoria documental de subempreiteiras.", price: 1500 },
-  { id: 'ambulatorio', title: "Prontuário Ambulatório", desc: "Gestão clínica de enfermaria interna.", price: 1200 },
-  { id: 'iot', title: "Integração Catracas IoT", desc: "Bloqueio físico via API Nextcon.", price: 2500 },
-  { id: 'auditoria', title: "Auditoria Mensal Campo", desc: "Vistoria técnica presencial/remota.", price: 1800 },
-  { id: 'suporte', title: "Gerente de Conta VIP", desc: "SLA de resposta em até 2h.", price: 1000 }
-];
-
-const LIVES_STEPS = [200, 400, 600, 800];
 
 export default function ConstructionProposalPage() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  
-  const [selectedPlanId, setSelectedPlanId] = React.useState<string>("essencial")
   const [isSaving, setIsSaving] = React.useState(false)
-  const [companyName, setCompanyName] = React.useState("")
-  const [livesIndex, setLivesIndex] = React.useState([0])
-  const [selectedCustomOptions, setSelectedCustomOptions] = React.useState<string[]>([])
 
-  const dallLogo = "https://i.ibb.co/gZv2fyXt/logo.png";
-  const numLives = LIVES_STEPS[livesIndex[0]];
+  const totalMonthly = PROPOSAL_DATA.cells.reduce((acc, curr) => acc + curr.price, 0);
+  const currentTax = PROPOSAL_DATA.roi.payroll * PROPOSAL_DATA.roi.rat * PROPOSAL_DATA.roi.currentFap;
+  const targetTax = PROPOSAL_DATA.roi.payroll * PROPOSAL_DATA.roi.rat * PROPOSAL_DATA.roi.targetFap;
+  const annualSaving = currentTax - targetTax;
 
-  const selectedPlan = React.useMemo(() => 
-    COMERCIAL_CONFIG.planos.find(p => p.id === selectedPlanId), 
-  [selectedPlanId]);
-
-  const pricingDetails = React.useMemo(() => {
-    if (!selectedPlan) return { monthly: 0, total: 0 };
-    
-    let monthly = 0;
-    
-    if (selectedPlan.id === 'custom') {
-      monthly = selectedCustomOptions.reduce((acc, optId) => {
-        const option = CUSTOM_OPTIONS.find(o => o.id === optId);
-        return acc + (option?.price || 0);
-      }, 0);
-    } else {
-      monthly = (selectedPlan.tiers as any)[numLives] || 0;
-    }
-
-    return { 
-      monthly, 
-      total: monthly + COMERCIAL_CONFIG.taxa_setup_unica
-    };
-  }, [selectedPlan, numLives, selectedCustomOptions]);
-
-  const toggleCustomOption = (id: string) => {
-    setSelectedCustomOptions(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  const handleCreateProposal = async () => {
-    if (!db || !selectedPlan || !companyName) {
-      toast({ variant: "destructive", title: "Dados Incompletos", description: "Informe a empresa antes de gerar." })
-      return
-    }
-
+  const handleSendToClient = async () => {
+    if (!db) return
     setIsSaving(true)
     try {
-      const proposalData = {
-        title: `Proposta Construtora: ${selectedPlan.nome} ${selectedPlan.id === 'custom' ? '(Configuração Especial)' : `(${numLives} Vidas)`}`,
-        companyId: "leads",
-        companyName: companyName.toUpperCase(),
+      const proposalRef = collection(db, "companies", "leads", "tasks")
+      await addDocumentNonBlocking(proposalRef, {
+        title: `Proposta Estratégica: ${PROPOSAL_DATA.project}`,
+        companyName: PROPOSAL_DATA.client,
         type: 'comercial',
-        status: 'to_review',
-        priority: 'high',
-        origin: 'construction_specialized',
-        metadata: {
-          planId: selectedPlan.id,
-          lives: selectedPlan.id === 'custom' ? null : numLives,
-          setupFee: COMERCIAL_CONFIG.taxa_setup_unica,
-          monthlyFee: pricingDetails.monthly,
-          totalInitial: pricingDetails.total,
-          customOptions: selectedPlan.id === 'custom' ? selectedCustomOptions : []
-        },
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'sent',
+        priority: 'critical',
+        totalValue: totalMonthly,
         createdAt: new Date().toISOString(),
+        metadata: {
+          project: PROPOSAL_DATA.project,
+          roi_saving: annualSaving
+        },
         checklist: [
-          { id: '1', text: 'Vincular cronograma de obra', checked: false, mandatory: true },
-          { id: '2', text: 'Validar lista de subempreiteiras', checked: false, mandatory: true },
-          { id: '3', text: 'Confirmar Taxa de Setup R$ 4.500', checked: false, mandatory: true }
+          { id: '1', text: 'Confirmar mobilização em 15 dias', checked: false, mandatory: true },
+          { id: '2', text: 'Validar escala 12x36h com RH Dall', checked: false, mandatory: true }
         ]
-      }
-
-      await addDocumentNonBlocking(collection(db, "companies", "leads", "tasks"), proposalData)
-      
-      toast({ 
-        title: "Proposta Comercial Gerada!", 
-        description: `O card para ${companyName} foi enviado para o funil comercial.` 
       })
-      setCompanyName("")
-    } catch (e) {
-      toast({ variant: "destructive", title: "Erro ao Protocolar" })
+      toast({ title: "Proposta Enviada!", description: "O dossiê foi protocolado no funil comercial." })
     } finally {
       setIsSaving(false)
     }
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <style jsx global>{`
-        .dall-proposal-slider [role="slider"] {
-          width: 80px !important;
-          height: 45px !important;
-          border-radius: 8px !important;
-          background-image: url('${dallLogo}') !important;
-          background-size: 85% !important;
-          background-repeat: no-repeat !important;
-          background-position: center !important;
-          background-color: white !important;
-          border: 2px solid #001F3F !important;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.15) !important;
-          cursor: grab;
-          transition: transform 0.2s ease;
-        }
-        .dall-proposal-slider [role="slider"]:active { cursor: grabbing; transform: scale(1.05); }
-      `}</style>
-
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">NAI para Construtoras Premium</h1>
-          <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest mt-2 flex items-center gap-2">
-            <HardHat className="size-3 text-accent" /> Inteligência de Precificação em Escala.
-          </p>
-        </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 flex items-center gap-2">
-          <Target className="size-4" /> FOCO ENGENHARIA
-        </Badge>
-      </header>
-
-      {/* Slider desativado visualmente no Custom para focar nas caixas */}
-      <Card className={cn(
-        "card-shadow border-none bg-white rounded-[2.5rem] p-10 mb-8 overflow-hidden relative transition-opacity duration-500",
-        selectedPlanId === 'custom' ? "opacity-30 pointer-events-none grayscale" : "opacity-100"
-      )}>
-        <div className="absolute top-0 right-0 p-8 opacity-5"><Building2 className="size-40" /></div>
-        <div className="max-w-2xl mx-auto space-y-10 relative z-10">
-          <div className="text-center space-y-2">
-            <label className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Arraste para definir a escala de vidas</label>
-            <h2 className="text-4xl font-black text-primary font-headline tracking-tighter">{numLives} VIDAS</h2>
-          </div>
-          
-          <div className="px-10">
-            <Slider 
-              value={livesIndex} 
-              onValueChange={setLivesIndex} 
-              max={LIVES_STEPS.length - 1} 
-              step={1} 
-              className="dall-proposal-slider"
-            />
-            <div className="flex justify-between mt-6">
-              {LIVES_STEPS.map((step, i) => (
-                <div key={step} className="flex flex-col items-center">
-                  <div className={cn("size-2 rounded-full mb-2", livesIndex[0] === i ? "bg-primary" : "bg-slate-200")} />
-                  <span className={cn("text-[9px] font-black uppercase tracking-tighter", livesIndex[0] === i ? "text-primary" : "text-slate-300")}>
-                    {step} Vidas
-                  </span>
-                </div>
-              ))}
+    <div className="space-y-10 animate-in fade-in duration-700 pb-20">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-primary text-accent rounded-2xl shadow-xl">
+              <Building2 className="size-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-primary uppercase font-headline tracking-tight leading-none">Gestão Atmosphere</h1>
+              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">{PROPOSAL_DATA.client} • ITACAÍ/SC</p>
             </div>
           </div>
         </div>
-      </Card>
+        <div className="flex gap-3">
+          <Button variant="outline" className="border-primary text-primary font-black uppercase text-[10px] h-12 px-6 rounded-xl">
+            <FileText className="size-4 mr-2" /> PDF Executivo
+          </Button>
+          <Button onClick={handleSendToClient} disabled={isSaving} className="gradient-nextcon text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl shadow-2xl gap-2">
+            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4 text-accent" />}
+            Aprovar Mobilização
+          </Button>
+        </div>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Coluna de Células de Serviço */}
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 gap-6">
-            {COMERCIAL_CONFIG.planos.map((plan) => {
-              const Icon = plan.icon;
-              const isActive = selectedPlanId === plan.id;
-              
-              const displayPrice = plan.id === 'custom' 
-                ? pricingDetails.monthly 
-                : (plan.tiers as any)[numLives];
-              
+            {PROPOSAL_DATA.cells.map((cell) => {
+              const Icon = cell.icon;
               return (
-                <Card 
-                  key={plan.id}
-                  onClick={() => setSelectedPlanId(plan.id)}
-                  className={cn(
-                    "cursor-pointer border-2 transition-all duration-500 rounded-[2.5rem] overflow-hidden group",
-                    isActive ? "bg-white border-primary shadow-2xl scale-[1.02]" : "bg-slate-50 border-transparent hover:border-slate-200"
-                  )}
-                >
-                  <CardHeader className={cn(
-                    "p-8 border-b transition-colors",
-                    isActive ? "bg-primary/5" : "bg-transparent"
-                  )}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-5">
-                        <div className={cn(
-                          "p-4 rounded-2xl shadow-inner group-hover:scale-110 transition-transform",
-                          isActive ? "bg-primary text-white" : "bg-white text-primary"
-                        )}>
-                          <Icon className="size-8" />
+                <Card key={cell.id} className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+                  <div className="flex flex-col md:flex-row">
+                    <div className="p-8 flex-1">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                          <Icon className="size-6" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-black text-primary uppercase leading-none">{plan.nome}</h3>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">{plan.foco}</p>
+                          <h3 className="font-black text-primary uppercase text-sm">{cell.title}</h3>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">{cell.description}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase mb-1">
-                          {plan.id === 'custom' ? 'Configuração Atual' : 'Investimento Mensal'}
-                        </p>
-                        <p className="text-3xl font-black text-primary font-headline">
-                          {displayPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    {plan.id === 'custom' ? (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 mb-4">
-                          <Box className="size-4 text-accent" />
-                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Módulos Opcionais (Selecione o que precisa)</span>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {CUSTOM_OPTIONS.map((opt) => (
-                            <div 
-                              key={opt.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleCustomOption(opt.id);
-                              }}
-                              className={cn(
-                                "flex items-start gap-4 p-4 rounded-2xl border transition-all hover:shadow-md",
-                                selectedCustomOptions.includes(opt.id) 
-                                  ? "bg-accent/5 border-accent/20" 
-                                  : "bg-white border-slate-100"
-                              )}
-                            >
-                              <Checkbox 
-                                checked={selectedCustomOptions.includes(opt.id)}
-                                onCheckedChange={() => toggleCustomOption(opt.id)}
-                                className="mt-1"
-                              />
-                              <div className="space-y-1">
-                                <div className="flex justify-between items-center">
-                                  <p className="text-[11px] font-black text-primary uppercase">{opt.title}</p>
-                                  <span className="text-[9px] font-bold text-accent">+ R$ {opt.price}</span>
-                                </div>
-                                <p className="text-[10px] text-slate-400 font-medium leading-tight">{opt.desc}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {plan.features?.map((feature, i) => (
-                          <div key={i} className="flex gap-3 p-4 bg-white rounded-2xl border border-slate-100 group-hover:border-primary/10 transition-all">
-                            <div className="p-1.5 bg-primary/5 rounded-lg h-fit">
-                              <CheckCircle2 className="size-3.5 text-primary" />
-                            </div>
-                            <div className="space-y-0.5">
-                              <p className="text-[11px] font-black text-primary uppercase">{feature.title}</p>
-                              <p className="text-[10px] text-slate-400 font-medium leading-tight">{feature.desc}</p>
-                            </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {cell.features.map((f, i) => (
+                          <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-600">
+                            <CheckCircle2 className="size-3 text-emerald-500" /> {f}
                           </div>
                         ))}
                       </div>
-                    )}
-                  </CardContent>
+                    </div>
+                    <div className="bg-slate-50 p-8 flex flex-col items-center justify-center border-l md:w-64">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Mensalidade</p>
+                      <h4 className="text-xl font-black text-primary">
+                        {cell.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </h4>
+                    </div>
+                  </div>
                 </Card>
-              );
+              )
             })}
           </div>
-        </div>
 
-        <div className="space-y-6">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden sticky top-24">
-            <CardHeader className="bg-primary text-white p-8">
-              <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Building2 className="size-4 text-accent" /> Protocolar Proposta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Empresa Alvo</label>
-                <Input 
-                  placeholder="Nome da Construtora" 
-                  value={companyName}
-                  onChange={e => setCompanyName(e.target.value)}
-                  className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase shadow-inner" 
-                />
-              </div>
-
-              <div className="pt-6 border-t border-dashed space-y-4">
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Plano Selecionado</p>
-                  <Badge variant="secondary" className="text-[9px] font-black uppercase">{selectedPlan?.nome}</Badge>
-                </div>
-                {selectedPlanId !== 'custom' && (
-                  <div className="flex justify-between items-center">
-                    <p className="text-[10px] font-black uppercase text-slate-400">Escala de Vidas</p>
-                    <p className="text-[10px] font-bold text-primary">{numLives} Vidas</p>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400">Setup Único (Engenharia)</p>
-                  <p className="text-sm font-bold text-primary">R$ 4.500,00</p>
-                </div>
-                <div className="pt-4 border-t">
-                  <div className="flex justify-between items-end mb-6">
-                    <p className="text-[10px] font-black uppercase text-slate-400">Total Primeiro Mês</p>
-                    <h2 className="text-2xl font-black text-accent font-headline">
-                      {pricingDetails.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </h2>
-                  </div>
-                  <Button 
-                    onClick={handleCreateProposal} 
-                    disabled={isSaving || !companyName || (selectedPlanId === 'custom' && selectedCustomOptions.length === 0)}
-                    className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3"
-                  >
-                    {isSaving ? <Loader2 className="size-5 animate-spin" /> : <FileText className="size-5 text-accent" />}
-                    Ativar Card Comercial
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#090e24] text-white border-none p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
-              <ShieldCheck className="size-24 text-accent" />
-            </div>
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest flex items-center gap-2">
-                <Sparkles className="size-3" /> Blindagem Especializada
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-primary/5 border-b p-8">
+              <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
+                <CalendarDays className="size-4" /> Planejamento de Escala (12x36h)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <p className="text-[11px] leading-relaxed italic text-white/60">
-                {selectedPlanId === 'custom' 
-                  ? "Esta configuração personalizada permite selecionar módulos específicos de governança, garantindo flexibilidade total para operações complexas ou híbridas."
-                  : `Esta proposta contempla a automação de conformidade para o canteiro de ${numLives} vidas, incluindo a gestão de eventos e-Social e a proteção jurídica contra o passivo solidário de empreiteiras.`
-                }
-              </p>
+              <Table>
+                <TableHeader className="bg-slate-50/50">
+                  <TableRow>
+                    <TableHead className="pl-8 text-[9px] font-black uppercase">Turno</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase">Seg a Sex</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase">Sábado</TableHead>
+                    <TableHead className="text-[9px] font-black uppercase pr-8">Domingo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="pl-8 font-black text-xs text-primary">Horário</TableCell>
+                    <TableCell className="text-xs font-medium">07:00 às 19:00</TableCell>
+                    <TableCell className="text-xs font-medium">07:00 às 13:00</TableCell>
+                    <TableCell className="text-[10px] font-black uppercase text-slate-300 pr-8">Folga Geral</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="pl-8 font-black text-xs text-primary">Equipe</TableCell>
+                    <TableCell className="text-xs font-medium">2 Profissionais (Revezamento)</TableCell>
+                    <TableCell className="text-xs font-medium">1 Profissional (Alternado)</TableCell>
+                    <TableCell className="text-xs font-medium pr-8">---</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+              <div className="p-6 bg-slate-50 italic text-[10px] font-bold text-slate-400 text-center">
+                *Escala garante 42h de descanso pós-plantão de sábado, assegurando bem-estar e conformidade legal.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Coluna ROI e Resumo */}
+        <div className="space-y-6">
+          <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-8 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-1000">
+              <TrendingDown className="size-48 text-accent" />
+            </div>
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-accent rounded-xl text-primary shadow-lg shadow-accent/20">
+                  <Scale className="size-5" />
+                </div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-accent">Análise de ROI (FAP)</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <p className="text-[10px] font-black uppercase text-white/40 mb-2">Economia Anual Estimada</p>
+                  <h2 className="text-3xl font-black text-emerald-400 font-headline">
+                    {annualSaving.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <TrendingDown className="size-3 text-emerald-400" />
+                    <span className="text-[9px] font-bold uppercase text-white/60">Redução direta na folha anual</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-[8px] font-black text-white/40 uppercase mb-1">Cenário Atual</p>
+                    <p className="text-xs font-bold">FAP 1.2</p>
+                  </div>
+                  <div className="p-4 bg-accent/20 rounded-xl border border-accent/30">
+                    <p className="text-[8px] font-black text-accent uppercase mb-1">Cenário NAI</p>
+                    <p className="text-xs font-bold text-accent">FAP 0.5</p>
+                  </div>
+                </div>
+
+                <p className="text-[10px] leading-relaxed italic text-white/40 border-t border-white/5 pt-4">
+                  "A economia gerada no FAP cobre cerca de 20% do investimento anual total nesta proposta."
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-primary text-white p-8">
+              <CardTitle className="text-xs font-black uppercase tracking-widest">Resumo Consolidado</CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-slate-400">Mão de Obra (4 Prof.)</span>
+                  <span className="text-primary">R$ 50.600,00</span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-slate-400">Infra e Insumos Full</span>
+                  <span className="text-primary">R$ 6.500,00</span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-slate-400">Supervisão e IA</span>
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[8px]">INCLUSO</Badge>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-dashed">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investimento Total</p>
+                    <h2 className="text-2xl font-black text-primary font-headline">
+                      {totalMonthly.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </h2>
+                  </div>
+                  <Badge className="bg-primary text-white h-6 font-black text-[8px] uppercase">Mensal</Badge>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3 items-start">
+                <Sparkles className="size-4 text-primary shrink-0" />
+                <p className="text-[9px] font-medium text-primary/70 leading-relaxed italic">
+                  Próximos Passos: Assinatura do contrato e mobilização técnica em até 15 dias após aprovação.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
