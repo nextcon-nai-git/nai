@@ -42,7 +42,7 @@ const PROPOSAL_DATA = {
       id: "sst",
       title: "Célula de Segurança (Campo)",
       icon: HardHat,
-      description: "02 Técnicos de Segurança + Supervisão de Engenharia Semanal.",
+      description: "02 Técnicos de Segurança do Trabalho dedicados.",
       price: 26400.00,
       features: ["Presença Seg-Sáb", "Liberações PET/APR", "Treinamentos In Loco", "Engenheiro (Bonificado)"]
     },
@@ -50,7 +50,7 @@ const PROPOSAL_DATA = {
       id: "health",
       title: "Célula de Enfermagem (Ambulatório)",
       icon: HeartPulse,
-      description: "02 Técnicos de Enfermagem em regime 12x36h.",
+      description: "02 Técnicos de Enfermagem (Regime 12x36h).",
       price: 24200.00,
       features: ["Primeiros Socorros", "Controle Absenteísmo", "Acompanhamento de Queixas", "Prontuário Digital"]
     },
@@ -101,7 +101,7 @@ export default function ConstructionProposalPage() {
         },
         checklist: [
           { id: '1', text: 'Confirmar mobilização em 15 dias', checked: false, mandatory: true },
-          { id: '2', text: 'Validar escala 12x36h com RH Dall', checked: false, mandatory: true }
+          { id: '2', text: 'Validar escala com RH Dall', checked: false, mandatory: true }
         ]
       })
       toast({ title: "Proposta Enviada!", description: "O dossiê foi protocolado no funil comercial." })
@@ -136,7 +136,6 @@ export default function ConstructionProposalPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Coluna de Células de Serviço */}
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 gap-6">
             {PROPOSAL_DATA.cells.map((cell) => {
@@ -146,7 +145,10 @@ export default function ConstructionProposalPage() {
                   <div className="flex flex-col md:flex-row">
                     <div className="p-8 flex-1">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                        <div className={cn(
+                          "p-3 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner",
+                          cell.id === 'infra' ? 'bg-slate-50' : 'bg-primary/5'
+                        )}>
                           <Icon className="size-6" />
                         </div>
                         <div>
@@ -177,7 +179,7 @@ export default function ConstructionProposalPage() {
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b p-8">
               <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                <CalendarDays className="size-4" /> Planejamento de Escala (12x36h)
+                <CalendarDays className="size-4" /> Planejamento de Escala (Presença Diária)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -198,21 +200,20 @@ export default function ConstructionProposalPage() {
                     <TableCell className="text-[10px] font-black uppercase text-slate-300 pr-8">Folga Geral</TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell className="pl-8 font-black text-xs text-primary">Equipe</TableCell>
-                    <TableCell className="text-xs font-medium">2 Profissionais (Revezamento)</TableCell>
-                    <TableCell className="text-xs font-medium">1 Profissional (Alternado)</TableCell>
+                    <TableCell className="pl-8 font-black text-xs text-primary">Equipe em Obra</TableCell>
+                    <TableCell className="text-xs font-bold text-primary">1 TST + 1 Enfermeiro</TableCell>
+                    <TableCell className="text-xs font-bold text-primary">1 TST + 1 Enfermeiro</TableCell>
                     <TableCell className="text-xs font-medium pr-8">---</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
-              <div className="p-6 bg-slate-50 italic text-[10px] font-bold text-slate-400 text-center">
-                *Escala garante 42h de descanso pós-plantão de sábado, assegurando bem-estar e conformidade legal.
+              <div className="p-6 bg-blue-50 italic text-[10px] font-bold text-slate-400 text-center">
+                *Dimensionamento para 2 técnicos por célula (Total 4 prof.), garantindo revezamento 12x36h e conformidade legal.
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Coluna ROI e Resumo */}
         <div className="space-y-6">
           <Card className="card-shadow border-none bg-[#090e24] text-white rounded-[2.5rem] p-8 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-1000">
@@ -238,17 +239,6 @@ export default function ConstructionProposalPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                    <p className="text-[8px] font-black text-white/40 uppercase mb-1">Cenário Atual</p>
-                    <p className="text-xs font-bold">FAP 1.2</p>
-                  </div>
-                  <div className="p-4 bg-accent/20 rounded-xl border border-accent/30">
-                    <p className="text-[8px] font-black text-accent uppercase mb-1">Cenário NAI</p>
-                    <p className="text-xs font-bold text-accent">FAP 0.5</p>
-                  </div>
-                </div>
-
                 <p className="text-[10px] leading-relaxed italic text-white/40 border-t border-white/5 pt-4">
                   "A economia gerada no FAP cobre cerca de 20% do investimento anual total nesta proposta."
                 </p>
@@ -263,7 +253,7 @@ export default function ConstructionProposalPage() {
             <CardContent className="p-8 space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-400">Mão de Obra (4 Prof.)</span>
+                  <span className="text-slate-400">Equipe (2 TST + 2 Enf.)</span>
                   <span className="text-primary">R$ 50.600,00</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
