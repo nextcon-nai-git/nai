@@ -23,7 +23,10 @@ import {
   Network,
   Activity,
   BarChart3,
-  Shield
+  Shield,
+  XCircle,
+  MapPin,
+  CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +42,7 @@ export default function Dashboard() {
   const { user } = useUser();
   const db = useFirestore();
   const [saudacao, setSaudacao] = React.useState('');
+  const [alertResolved, setAlertResolved] = React.useState(false);
   
   const [fapValue, setFapValue] = React.useState([0.74]);
   const [payroll, setPayroll] = React.useState(150000);
@@ -82,6 +86,75 @@ export default function Dashboard() {
           {isGlobalAdmin ? 'NAI • BACKOFFICE 2026' : 'NAI • CLIENT HUB'}
         </Badge>
       </div>
+
+      {/* ⚠️ ALERTA DE RISCO PREDITIVO - JOÃO SILVA */}
+      {!alertResolved && (
+        <Card className="border-none bg-red-50 ring-2 ring-red-200 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-200/20">
+          <div className="flex flex-col lg:flex-row">
+            <div className="p-8 lg:w-1/3 bg-red-600 text-white flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+                  <ShieldAlert className="size-6 text-white animate-pulse" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tight">Risco Crítico</h2>
+              </div>
+              <p className="text-sm font-bold text-red-100 leading-tight mb-6">
+                A NAI identificou alta probabilidade de incidente grave nas próximas 2 horas.
+              </p>
+              <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
+                "Impacto Evitado: Queda de altura e passivo solidário. Economia de R$ 315k preservada."
+              </div>
+            </div>
+            
+            <div className="p-8 lg:flex-1 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
+                <div>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">João Silva • Terceirizado</Badge>
+                  <h3 className="text-lg font-black text-primary uppercase">Obra Atmosphere - Torre A (Andar 18)</h3>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase">Detecção</p>
+                  <p className="text-xs font-bold text-red-600">Hoje, 09:15 AM</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <HeartPulse className="size-3.5 text-red-500" />
+                    <span className="text-[9px] font-black uppercase text-slate-400">Ambulatório</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-primary leading-tight">Pico Hipertensivo ontem (160/100 mmHg).</p>
+                </div>
+                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="size-3.5 text-red-500" />
+                    <span className="text-[9px] font-black uppercase text-slate-400">Conformidade</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-primary leading-tight">ASO Apto, mas sem restrição cardiovascular atualizada.</p>
+                </div>
+                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="size-3.5 text-red-500" />
+                    <span className="text-[9px] font-black uppercase text-slate-400">Atividade</span>
+                  </div>
+                  <p className="text-[11px] font-bold text-primary leading-tight">Escalado para periferia (Trabalho em Altura).</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg shadow-red-600/20">
+                  <XCircle className="size-4" /> Retirar do Andar 18
+                </Button>
+                <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2">
+                  <Stethoscope className="size-4" /> Reavaliar no Ambulatório
+                </Button>
+                <Button variant="ghost" className="text-slate-400 font-bold uppercase text-[9px]">Ignorar Risco (Não Recomendado)</Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -136,7 +209,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise de GHE detectou tendência de aumento em absenteísmo osteomuscular. Recomendamos auditoria na NR-17 Setor Operacional para evitar multas de até R$ 44k."
+                    "A análise de GHE detectou tendência de aumento em absenteísmo osteomuscular na Torre A. Recomendamos auditoria na NR-17 para evitar multas de até R$ 44k."
                   </p>
                 </div>
               </div>
@@ -185,12 +258,31 @@ export default function Dashboard() {
 
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b p-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Próximos Alertas</CardTitle>
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sincronização Ativa</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="p-10 text-center opacity-20">
-                <Clock size={40} className="mx-auto text-primary mb-2" />
-                <p className="text-[9px] font-black text-primary uppercase">Sincronizando Fila eSocial...</p>
+              <div className="p-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Digital</span>
+                  </div>
+                  <span className="text-[9px] font-black text-emerald-600">SINC</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Gestão de Escala TST</span>
+                  </div>
+                  <span className="text-[9px] font-black text-emerald-600">SINC</span>
+                </div>
+                <div className="flex items-center justify-between opacity-50">
+                  <div className="flex items-center gap-2">
+                    <Clock className="size-3 text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Fila eSocial S-2240</span>
+                  </div>
+                  <span className="text-[9px] font-black text-slate-400">QUEUE</span>
+                </div>
               </div>
             </CardContent>
           </Card>
