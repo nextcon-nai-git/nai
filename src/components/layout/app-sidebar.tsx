@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -30,7 +29,8 @@ import {
   Zap,
   Network,
   Lock,
-  Hospital
+  Hospital,
+  CalendarDays
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -106,6 +106,7 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'ENGINEER', 'PROVIDER'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
+      { title: "Escala Técnica TST", icon: CalendarDays, href: "/safety/operational-scale" },
       { title: "Controle Campo IoT", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
       { title: "Central NAIGED", icon: ClipboardCheck, href: "/checklists" },
