@@ -34,10 +34,10 @@ import { cn } from "@/lib/utils"
 
 export default function SafetyOperationalScale() {
   const scale = [
-    { week: "1", role: "TST A (Sênior)", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
-    { week: "1", role: "TST B (Pleno)", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
-    { week: "2", role: "TST A (Sênior)", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
-    { week: "2", role: "TST B (Pleno)", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
+    { week: "1", role: "TST A", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
+    { week: "1", role: "TST B", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
+    { week: "2", role: "TST A", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
+    { week: "2", role: "TST B", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
   ]
 
   return (
