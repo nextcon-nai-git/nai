@@ -43,7 +43,7 @@ const PROPOSAL_DATA = {
       title: "Célula de Segurança (Campo)",
       icon: HardHat,
       description: "02 Técnicos de Segurança do Trabalho dedicados.",
-      price: 20000.00,
+      price: 23000.00,
       features: ["Presença Seg-Sáb", "Liberações PET/APR", "Treinamentos In Loco", "Engenheiro (Bonificado)"]
     },
     {
@@ -51,7 +51,7 @@ const PROPOSAL_DATA = {
       title: "Célula de Enfermagem (Ambulatório)",
       icon: HeartPulse,
       description: "02 Técnicos de Enfermagem (Regime 12x36h).",
-      price: 20000.00,
+      price: 23000.00,
       features: ["Primeiros Socorros", "Controle Absenteísmo", "Acompanhamento de Queixas", "Prontuário Digital"]
     },
     {
@@ -254,7 +254,7 @@ export default function ConstructionProposalPage() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400">Equipe (2 TST + 2 Enf.)</span>
-                  <span className="text-primary">R$ 40.000,00</span>
+                  <span className="text-primary">R$ 46.000,00</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400">Infra e Insumos Full</span>
