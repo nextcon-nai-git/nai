@@ -40,7 +40,7 @@ const SCENARIOS = {
   standard: {
     id: "standard",
     label: "Plano Standard (1+1)",
-    description: "Ideal para mobilizações iniciais ou canteiros enxutos.",
+    description: "Cenário 1: Presença fixa para suporte técnico administrativo.",
     professionals: "2 especialistas (1 TST + 1 Enf.)",
     prices: {
       sst: 11900.00,
@@ -52,7 +52,7 @@ const SCENARIOS = {
   full: {
     id: "full",
     label: "Plano Full (2+2)",
-    description: "Cobertura total 12x36h para alta produtividade.",
+    description: "Cenário 2: Cobertura total 12x36h para alta produtividade.",
     professionals: "4 especialistas (2 TST + 2 Enf.)",
     prices: {
       sst: 22400.00,
@@ -74,7 +74,7 @@ export default function ConstructionProposalPage() {
   const { toast } = useToast()
   const db = useFirestore()
   const [isSaving, setIsSaving] = React.useState(false)
-  const [activeScenario, setActiveScenario] = React.useState<"standard" | "full">("full")
+  const [activeScenario, setActiveScenario] = React.useState<"standard" | "full">("standard")
 
   const current = SCENARIOS[activeScenario];
   const totalMonthly = current.prices.sst + current.prices.health + current.prices.infra;
@@ -142,10 +142,10 @@ export default function ConstructionProposalPage() {
         <Tabs value={activeScenario} onValueChange={(v: any) => setActiveScenario(v)} className="w-full">
           <TabsList className="grid grid-cols-2 bg-transparent h-14">
             <TabsTrigger value="standard" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
-              Plano Standard (1+1)
+              Standard (1+1)
             </TabsTrigger>
             <TabsTrigger value="full" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
-              Plano Full (2+2)
+              Full (2+2)
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -163,7 +163,9 @@ export default function ConstructionProposalPage() {
                       <HardHat className="size-6" />
                     </div>
                     <div>
-                      <h3 className="font-black text-primary uppercase text-sm">Célula de Segurança (Campo)</h3>
+                      <h3 className="font-black text-primary uppercase text-sm">
+                        {activeScenario === 'standard' ? "Célula de Segurança (1 TST)" : "Célula de Segurança (2 TSTs)"}
+                      </h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase">
                         {activeScenario === 'standard' ? "01 Técnico de Segurança dedicado." : "02 Técnicos de Segurança em revezamento."}
                       </p>
@@ -194,7 +196,9 @@ export default function ConstructionProposalPage() {
                       <HeartPulse className="size-6" />
                     </div>
                     <div>
-                      <h3 className="font-black text-primary uppercase text-sm">Célula de Enfermagem (Ambulatório)</h3>
+                      <h3 className="font-black text-primary uppercase text-sm">
+                        {activeScenario === 'standard' ? "Célula de Enfermagem (1 Enf.)" : "Célula de Enfermagem (2 Enf.)"}
+                      </h3>
                       <p className="text-[10px] text-slate-400 font-bold uppercase">
                         {activeScenario === 'standard' ? "01 Técnico de Enfermagem dedicado." : "02 Técnicos de Enfermagem (12x36h)."}
                       </p>
@@ -254,7 +258,7 @@ export default function ConstructionProposalPage() {
                 "{current.scaleText}"
               </div>
               <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                *Dimensionamento para {activeScenario === 'standard' ? '2' : '4'} profissionais no total, garantindo a conformidade legal e o descanso de 42h pós-turno.
+                *Dimensionamento garantindo a conformidade legal e o bem-estar da equipe técnica em obra.
               </p>
             </CardContent>
           </Card>
