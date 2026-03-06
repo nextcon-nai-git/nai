@@ -20,7 +20,9 @@ import {
   Scale,
   CheckCircle2,
   CalendarDays,
-  DollarSign
+  DollarSign,
+  UserCheck,
+  Users
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -32,54 +34,53 @@ import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { cn } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const PROPOSAL_DATA = {
-  client: "Dall Empreendimentos",
-  project: "Obra Atmosphere",
-  location: "Praia Brava, Itajaí/SC",
-  cells: [
-    {
-      id: "sst",
-      title: "Célula de Segurança (Campo)",
-      icon: HardHat,
-      description: "02 Técnicos de Segurança do Trabalho dedicados.",
-      price: 23000.00,
-      features: ["Presença Seg-Sáb", "Liberações PET/APR", "Treinamentos In Loco", "Engenheiro (Bonificado)"]
+const SCENARIOS = {
+  standard: {
+    id: "standard",
+    label: "Plano Standard (1+1)",
+    description: "Ideal para mobilizações iniciais ou canteiros enxutos.",
+    professionals: "2 especialistas (1 TST + 1 Enf.)",
+    prices: {
+      sst: 11900.00,
+      health: 11900.00,
+      infra: 6500.00
     },
-    {
-      id: "health",
-      title: "Célula de Enfermagem (Ambulatório)",
-      icon: HeartPulse,
-      description: "02 Técnicos de Enfermagem (Regime 12x36h).",
-      price: 23000.00,
-      features: ["Primeiros Socorros", "Controle Absenteísmo", "Acompanhamento de Queixas", "Prontuário Digital"]
+    scaleText: "Presença diária em horário administrativo (Seg-Sáb)."
+  },
+  full: {
+    id: "full",
+    label: "Plano Full (2+2)",
+    description: "Cobertura total 12x36h para alta produtividade.",
+    professionals: "4 especialistas (2 TST + 2 Enf.)",
+    prices: {
+      sst: 22400.00,
+      health: 22400.00,
+      infra: 6500.00
     },
-    {
-      id: "infra",
-      title: "Infraestrutura e Insumos",
-      icon: Box,
-      description: "Locação de DEA, Maca, Oxigênio e Reposição Mensal.",
-      price: 6500.00,
-      features: ["Equipamentos de Ponta", "Manutenção Inclusa", "Insumos Descartáveis", "Kits de Emergência"]
-    }
-  ],
-  roi: {
-    payroll: 5000000,
-    currentFap: 1.2,
-    targetFap: 0.5,
-    rat: 0.03
+    scaleText: "Regime 12x36h garantindo 100% de cobertura operacional."
   }
+};
+
+const ROI_BASE = {
+  payroll: 5000000,
+  currentFap: 1.2,
+  targetFap: 0.5,
+  rat: 0.03
 };
 
 export default function ConstructionProposalPage() {
   const { toast } = useToast()
-  const { user } = useUser()
   const db = useFirestore()
   const [isSaving, setIsSaving] = React.useState(false)
+  const [activeScenario, setActiveScenario] = React.useState<"standard" | "full">("full")
 
-  const totalMonthly = PROPOSAL_DATA.cells.reduce((acc, curr) => acc + curr.price, 0);
-  const currentTax = PROPOSAL_DATA.roi.payroll * PROPOSAL_DATA.roi.rat * PROPOSAL_DATA.roi.currentFap;
-  const targetTax = PROPOSAL_DATA.roi.payroll * PROPOSAL_DATA.roi.rat * PROPOSAL_DATA.roi.targetFap;
+  const current = SCENARIOS[activeScenario];
+  const totalMonthly = current.prices.sst + current.prices.health + current.prices.infra;
+  
+  const currentTax = ROI_BASE.payroll * ROI_BASE.rat * ROI_BASE.currentFap;
+  const targetTax = ROI_BASE.payroll * ROI_BASE.rat * ROI_BASE.targetFap;
   const annualSaving = currentTax - targetTax;
 
   const handleSendToClient = async () => {
@@ -88,15 +89,16 @@ export default function ConstructionProposalPage() {
     try {
       const proposalRef = collection(db, "companies", "leads", "tasks")
       await addDocumentNonBlocking(proposalRef, {
-        title: `Proposta Estratégica: ${PROPOSAL_DATA.project}`,
-        companyName: PROPOSAL_DATA.client,
+        title: `Proposta Atmosphere: ${current.label}`,
+        companyName: "Dall Empreendimentos",
         type: 'comercial',
         status: 'sent',
         priority: 'critical',
         totalValue: totalMonthly,
         createdAt: new Date().toISOString(),
         metadata: {
-          project: PROPOSAL_DATA.project,
+          project: "Obra Atmosphere",
+          scenario: activeScenario,
           roi_saving: annualSaving
         },
         checklist: [
@@ -104,7 +106,7 @@ export default function ConstructionProposalPage() {
           { id: '2', text: 'Validar escala com RH Dall', checked: false, mandatory: true }
         ]
       })
-      toast({ title: "Proposta Enviada!", description: "O dossiê foi protocolado no funil comercial." })
+      toast({ title: "Proposta Enviada!", description: `Plano ${current.label} protocolado no funil comercial.` })
     } finally {
       setIsSaving(false)
     }
@@ -120,7 +122,7 @@ export default function ConstructionProposalPage() {
             </div>
             <div>
               <h1 className="text-3xl font-black text-primary uppercase font-headline tracking-tight leading-none">Gestão Atmosphere</h1>
-              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">{PROPOSAL_DATA.client} • ITACAÍ/SC</p>
+              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Dall Empreendimentos • Itajaí/SC</p>
             </div>
           </div>
         </div>
@@ -135,81 +137,125 @@ export default function ConstructionProposalPage() {
         </div>
       </header>
 
+      {/* Seletor de Plano */}
+      <Card className="card-shadow border-none bg-slate-100 p-2 rounded-[2rem] max-w-2xl mx-auto">
+        <Tabs value={activeScenario} onValueChange={(v: any) => setActiveScenario(v)} className="w-full">
+          <TabsList className="grid grid-cols-2 bg-transparent h-14">
+            <TabsTrigger value="standard" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
+              Plano Standard (1+1)
+            </TabsTrigger>
+            <TabsTrigger value="full" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
+              Plano Full (2+2)
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </Card>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 gap-6">
-            {PROPOSAL_DATA.cells.map((cell) => {
-              const Icon = cell.icon;
-              return (
-                <Card key={cell.id} className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="p-8 flex-1">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className={cn(
-                          "p-3 rounded-2xl text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner",
-                          cell.id === 'infra' ? 'bg-slate-50' : 'bg-primary/5'
-                        )}>
-                          <Icon className="size-6" />
-                        </div>
-                        <div>
-                          <h3 className="font-black text-primary uppercase text-sm">{cell.title}</h3>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase">{cell.description}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        {cell.features.map((f, i) => (
-                          <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-600">
-                            <CheckCircle2 className="size-3 text-emerald-500" /> {f}
-                          </div>
-                        ))}
-                      </div>
+            {/* Célula Segurança */}
+            <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+              <div className="flex flex-col md:flex-row">
+                <div className="p-8 flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                      <HardHat className="size-6" />
                     </div>
-                    <div className="bg-slate-50 p-8 flex flex-col items-center justify-center border-l md:w-64">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Mensalidade</p>
-                      <h4 className="text-xl font-black text-primary">
-                        {cell.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                      </h4>
+                    <div>
+                      <h3 className="font-black text-primary uppercase text-sm">Célula de Segurança (Campo)</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">
+                        {activeScenario === 'standard' ? "01 Técnico de Segurança dedicado." : "02 Técnicos de Segurança em revezamento."}
+                      </p>
                     </div>
                   </div>
-                </Card>
-              )
-            })}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Liberações PET/APR</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Engenheiro (Bonificado)</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Treinamentos In Loco</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Presença Diária</div>
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-8 flex flex-col items-center justify-center border-l md:w-64">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investimento</p>
+                  <h4 className="text-xl font-black text-primary">
+                    {current.prices.sst.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </h4>
+                </div>
+              </div>
+            </Card>
+
+            {/* Célula Enfermagem */}
+            <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+              <div className="flex flex-col md:flex-row">
+                <div className="p-8 flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-inner">
+                      <HeartPulse className="size-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-primary uppercase text-sm">Célula de Enfermagem (Ambulatório)</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">
+                        {activeScenario === 'standard' ? "01 Técnico de Enfermagem dedicado." : "02 Técnicos de Enfermagem (12x36h)."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Primeiros Socorros</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Controle Absenteísmo</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Prontuário Digital</div>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600"><CheckCircle2 className="size-3 text-emerald-500" /> Gestão de Queixas</div>
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-8 flex flex-col items-center justify-center border-l md:w-64">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investimento</p>
+                  <h4 className="text-xl font-black text-primary">
+                    {current.prices.health.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </h4>
+                </div>
+              </div>
+            </Card>
+
+            {/* Infraestrutura */}
+            <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
+              <div className="flex flex-col md:flex-row">
+                <div className="p-8 flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 rounded-2xl bg-slate-50 text-primary shadow-inner">
+                      <Box className="size-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-primary uppercase text-sm">Infraestrutura e Insumos</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">Locação de DEA, Maca, Oxigênio e Reposição.</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <Badge variant="outline" className="text-[8px] font-black uppercase">Equipamentos de Ponta</Badge>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase">Manutenção Inclusa</Badge>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase">Reposição Mensal</Badge>
+                  </div>
+                </div>
+                <div className="bg-slate-50 p-8 flex flex-col items-center justify-center border-l md:w-64">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Fixo</p>
+                  <h4 className="text-xl font-black text-primary">R$ 6.500,00</h4>
+                </div>
+              </div>
+            </Card>
           </div>
 
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b p-8">
               <CardTitle className="text-sm font-black uppercase text-primary tracking-widest flex items-center gap-2">
-                <CalendarDays className="size-4" /> Planejamento de Escala (Presença Diária)
+                <CalendarDays className="size-4" /> Logística de Escala
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50">
-                  <TableRow>
-                    <TableHead className="pl-8 text-[9px] font-black uppercase">Turno</TableHead>
-                    <TableHead className="text-[9px] font-black uppercase">Seg a Sex</TableHead>
-                    <TableHead className="text-[9px] font-black uppercase">Sábado</TableHead>
-                    <TableHead className="text-[9px] font-black uppercase pr-8">Domingo</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="pl-8 font-black text-xs text-primary">Horário</TableCell>
-                    <TableCell className="text-xs font-medium">07:00 às 19:00</TableCell>
-                    <TableCell className="text-xs font-medium">07:00 às 13:00</TableCell>
-                    <TableCell className="text-[10px] font-black uppercase text-slate-300 pr-8">Folga Geral</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="pl-8 font-black text-xs text-primary">Equipe em Obra</TableCell>
-                    <TableCell className="text-xs font-bold text-primary">1 TST + 1 Enfermeiro</TableCell>
-                    <TableCell className="text-xs font-bold text-primary">1 TST + 1 Enfermeiro</TableCell>
-                    <TableCell className="text-xs font-medium pr-8">---</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-              <div className="p-6 bg-blue-50 italic text-[10px] font-bold text-slate-400 text-center">
-                *Dimensionamento para 2 técnicos por célula (Total 4 prof.), garantindo revezamento 12x36h e conformidade legal.
+            <CardContent className="p-8 text-center space-y-4">
+              <div className="inline-flex p-4 bg-blue-50 rounded-2xl border border-blue-100 text-blue-700 font-bold text-sm italic">
+                "{current.scaleText}"
               </div>
+              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                *Dimensionamento para {activeScenario === 'standard' ? '2' : '4'} profissionais no total, garantindo a conformidade legal e o descanso de 42h pós-turno.
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -240,7 +286,7 @@ export default function ConstructionProposalPage() {
                 </div>
 
                 <p className="text-[10px] leading-relaxed italic text-white/40 border-t border-white/5 pt-4">
-                  "A economia gerada no FAP cobre cerca de 20% do investimento anual total nesta proposta."
+                  "A economia gerada no FAP cobre cerca de {Math.round((annualSaving / (totalMonthly * 12)) * 100)}% do investimento anual total nesta proposta."
                 </p>
               </div>
             </div>
@@ -248,13 +294,13 @@ export default function ConstructionProposalPage() {
 
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary text-white p-8">
-              <CardTitle className="text-xs font-black uppercase tracking-widest">Resumo Consolidado</CardTitle>
+              <CardTitle className="text-xs font-black uppercase tracking-widest">Resumo {current.label}</CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-400">Equipe (2 TST + 2 Enf.)</span>
-                  <span className="text-primary">R$ 46.000,00</span>
+                  <span className="text-slate-400">{current.professionals}</span>
+                  <span className="text-primary">{(current.prices.sst + current.prices.health).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400">Infra e Insumos Full</span>
