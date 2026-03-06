@@ -22,7 +22,10 @@ import {
   CalendarDays,
   DollarSign,
   UserCheck,
-  Users
+  Users,
+  Stethoscope,
+  Brain,
+  Wind
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -39,27 +42,42 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 const SCENARIOS = {
   standard: {
     id: "standard",
-    label: "Plano Standard (1+1)",
+    label: "Standard (1+1)",
     description: "Cenário 1: Presença fixa para suporte técnico administrativo.",
     professionals: "2 especialistas (1 TST + 1 Enf.)",
     prices: {
       sst: 11900.00,
       health: 11900.00,
+      specialized: 0,
       infra: 6500.00
     },
     scaleText: "Presença diária em horário administrativo (Seg-Sáb)."
   },
   full: {
     id: "full",
-    label: "Plano Full (2+2)",
+    label: "Full (2+2)",
     description: "Cenário 2: Cobertura total 12x36h para alta produtividade.",
     professionals: "4 especialistas (2 TST + 2 Enf.)",
     prices: {
       sst: 22400.00,
       health: 22400.00,
+      specialized: 0,
       infra: 6500.00
     },
     scaleText: "Regime 12x36h garantindo 100% de cobertura operacional."
+  },
+  elite: {
+    id: "elite",
+    label: "Elite (Full + Especialistas)",
+    description: "Cenário 3: Gestão de alta performance com suporte clínico e mental.",
+    professionals: "4 especialistas fixos + 3 consultores semanais",
+    prices: {
+      sst: 22400.00,
+      health: 22400.00,
+      specialized: 12000.00, // 4800 (Med) + 3600 (Fisio) + 3600 (Psico)
+      infra: 6500.00
+    },
+    scaleText: "Regime 12x36h + Visitas semanais de Médico, Fisio e Psicólogo."
   }
 };
 
@@ -74,13 +92,13 @@ export default function ConstructionProposalPage() {
   const { toast } = useToast()
   const db = useFirestore()
   const [isSaving, setIsSaving] = React.useState(false)
-  const [activeScenario, setActiveScenario] = React.useState<"standard" | "full">("standard")
+  const [activeScenario, setActiveScenario] = React.useState<"standard" | "full" | "elite">("standard")
 
   const current = SCENARIOS[activeScenario];
-  const totalMonthly = current.prices.sst + current.prices.health + current.prices.infra;
+  const totalMonthly = current.prices.sst + current.prices.health + current.prices.specialized + current.prices.infra;
   
   const currentTax = ROI_BASE.payroll * ROI_BASE.rat * ROI_BASE.currentFap;
-  const targetTax = ROI_BASE.payroll * ROI_BASE.rat * ROI_BASE.targetFap;
+  const targetTax = ROI_BASE.payroll * ROI_BASE.rat * (activeScenario === 'elite' ? 0.4 : ROI_BASE.targetFap);
   const annualSaving = currentTax - targetTax;
 
   const handleSendToClient = async () => {
@@ -138,14 +156,17 @@ export default function ConstructionProposalPage() {
       </header>
 
       {/* Seletor de Plano */}
-      <Card className="card-shadow border-none bg-slate-100 p-2 rounded-[2rem] max-w-2xl mx-auto">
+      <Card className="card-shadow border-none bg-slate-100 p-2 rounded-[2rem] max-w-3xl mx-auto">
         <Tabs value={activeScenario} onValueChange={(v: any) => setActiveScenario(v)} className="w-full">
-          <TabsList className="grid grid-cols-2 bg-transparent h-14">
+          <TabsList className="grid grid-cols-3 bg-transparent h-14">
             <TabsTrigger value="standard" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
               Standard (1+1)
             </TabsTrigger>
             <TabsTrigger value="full" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest">
               Full (2+2)
+            </TabsTrigger>
+            <TabsTrigger value="elite" className="rounded-2xl data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md font-black uppercase text-[10px] tracking-widest text-accent">
+              Elite (2+2 + Esp.)
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -220,6 +241,50 @@ export default function ConstructionProposalPage() {
               </div>
             </Card>
 
+            {/* ESPECIALISTAS (Somente no Elite) */}
+            {activeScenario === 'elite' && (
+              <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-accent/20 transition-all border-2 border-accent/5">
+                <div className="flex flex-col md:flex-row">
+                  <div className="p-8 flex-1">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="p-3 rounded-2xl bg-accent/5 text-accent shadow-inner">
+                        <Stethoscope className="size-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-black text-primary uppercase text-sm">Corpo Clínico Especializado</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">Suporte Semanal Multidisciplinar (Meio Período).</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-primary">
+                          <UserCheck className="size-3 text-blue-500" /> Médico do Trabalho (1x/Semana)
+                        </div>
+                        <span className="text-[10px] font-black text-primary">R$ 1.200,00/Per.</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-primary">
+                          <Activity className="size-3 text-emerald-500" /> Fisioterapeuta Ergon. (1x/Semana)
+                        </div>
+                        <span className="text-[10px] font-black text-primary">R$ 900,00/Per.</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-primary">
+                          <Brain className="size-3 text-purple-500" /> Psicólogo do Trabalho (1x/Semana)
+                        </div>
+                        <span className="text-[10px] font-black text-primary">R$ 900,00/Per.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-accent/5 p-8 flex flex-col items-center justify-center border-l md:w-64">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Especialistas</p>
+                    <h4 className="text-xl font-black text-primary">R$ 12.000,00</h4>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">4 Semanas/Mês</p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* Infraestrutura */}
             <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
               <div className="flex flex-col md:flex-row">
@@ -285,7 +350,9 @@ export default function ConstructionProposalPage() {
                   </h2>
                   <div className="flex items-center gap-2 mt-2">
                     <TrendingDown className="size-3 text-emerald-400" />
-                    <span className="text-[9px] font-bold uppercase text-white/60">Redução direta na folha anual</span>
+                    <span className="text-[9px] font-bold uppercase text-white/60">
+                      {activeScenario === 'elite' ? "FAP Estimado: 0.40" : "FAP Estimado: 0.50"}
+                    </span>
                   </div>
                 </div>
 
@@ -306,6 +373,12 @@ export default function ConstructionProposalPage() {
                   <span className="text-slate-400">{current.professionals}</span>
                   <span className="text-primary">{(current.prices.sst + current.prices.health).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                 </div>
+                {current.prices.specialized > 0 && (
+                  <div className="flex justify-between items-center text-xs font-bold text-accent">
+                    <span>Corpo Clínico Semanal</span>
+                    <span>{current.prices.specialized.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-slate-400">Infra e Insumos Full</span>
                   <span className="text-primary">R$ 6.500,00</span>
