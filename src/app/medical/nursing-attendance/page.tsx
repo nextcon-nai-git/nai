@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -56,7 +55,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, addDoc, doc, serverTimestamp, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
-import { REAL_EMPLOYEES } from "@/lib/real-data"
+import { REAL_EMPLOYEES, MOCK_NURSING_ATTENDANCES } from "@/lib/real-data"
 
 export default function NursingAttendancePage() {
   const { toast } = useToast()
@@ -89,7 +88,17 @@ export default function NursingAttendancePage() {
     if (!db) return null
     return query(collection(db, "nursing_attendances"), orderBy("createdAt", "desc"), limit(50))
   }, [db])
-  const { data: attendances, isLoading } = useCollection(attendancesQuery)
+  const { data: remoteAttendances, isLoading } = useCollection(attendancesQuery)
+
+  // Integração de Dados: Une o histórico mockado (necessário para o alerta do João Silva) com os registros reais
+  const attendances = React.useMemo(() => {
+    const list = [...(remoteAttendances || [])]
+    // Se João Silva não estiver na lista remota, injetamos o mock para consistência do dashboard
+    if (!list.find(a => a.employeeId === 'COL_JOAO_SILVA')) {
+      list.push(...MOCK_NURSING_ATTENDANCES)
+    }
+    return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [remoteAttendances])
 
   async function handleSaveAttendance() {
     if (!db || !formData.employeeId || !formData.coren) {
@@ -150,7 +159,6 @@ export default function NursingAttendancePage() {
             </div>
 
             <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar space-y-8">
-              {/* Identificação */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black uppercase text-primary border-b pb-2 tracking-widest">Identificação</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -172,7 +180,6 @@ export default function NursingAttendancePage() {
                 </div>
               </div>
 
-              {/* Sinais Vitais */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black uppercase text-primary border-b pb-2 tracking-widest">Triagem (Sinais Vitais)</h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -199,7 +206,6 @@ export default function NursingAttendancePage() {
                 </div>
               </div>
 
-              {/* Anamnese e Conduta */}
               <div className="space-y-4">
                 <h4 className="text-[10px] font-black uppercase text-primary border-b pb-2 tracking-widest">Avaliação e Conduta</h4>
                 <div className="space-y-4">
@@ -292,7 +298,10 @@ export default function NursingAttendancePage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-[10px] font-mono border-primary/10 text-primary">{item.bp_sys}/{item.bp_dia}</Badge>
+                      <Badge variant="outline" className={cn(
+                        "text-[10px] font-mono border-primary/10 text-primary",
+                        Number(item.bp_sys) >= 140 && "bg-red-50 text-red-600 border-red-200"
+                      )}>{item.bp_sys}/{item.bp_dia}</Badge>
                       <div className="flex items-center gap-1 text-[9px] font-black text-slate-400">
                         <HeartPulse className="size-3 text-red-400" /> {item.heart_rate}
                       </div>

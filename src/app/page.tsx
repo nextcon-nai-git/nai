@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -32,8 +31,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
-import { doc, collection, query, orderBy, limit, collectionGroup } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,14 +79,14 @@ export default function Dashboard() {
               {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div>{saudacao}, <span className="text-slate-500">{profile?.name || 'Gestor'}</span></div>}
             </h1>
           </div>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] ml-4">Monitoramento Estratégico NAI</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] ml-4">Cérebro NAI • Inteligência Nextcon 2026</p>
         </div>
         <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl">
-          {isGlobalAdmin ? 'NAI • BACKOFFICE 2026' : 'NAI • CLIENT HUB'}
+          {isGlobalAdmin ? 'BACKOFFICE ATIVO' : 'CONFORMIDADE CLIENTE'}
         </Badge>
       </div>
 
-      {/* ⚠️ ALERTA DE RISCO PREDITIVO - JOÃO SILVA */}
+      {/* ⚠️ ALERTA DE RISCO PREDITIVO - JOÃO SILVA INTEGRADO */}
       {!alertResolved && (
         <Card className="border-none bg-red-50 ring-2 ring-red-200 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-200/20">
           <div className="flex flex-col lg:flex-row">
@@ -99,57 +98,42 @@ export default function Dashboard() {
                 <h2 className="text-xl font-black uppercase tracking-tight">Risco Crítico</h2>
               </div>
               <p className="text-sm font-bold text-red-100 leading-tight mb-6">
-                A NAI identificou alta probabilidade de incidente grave nas próximas 2 horas.
+                Bloqueio preventivo automático para atividade em altura (Andar 18).
               </p>
               <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
-                "Impacto Evitado: Queda de altura e passivo solidário. Economia de R$ 315k preservada."
+                "Integração Cross-Data: Hipertensão detectada nos logs de triagem de ontem."
               </div>
             </div>
             
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">João Silva • Terceirizado</Badge>
-                  <h3 className="text-lg font-black text-primary uppercase">Obra Atmosphere - Torre A (Andar 18)</h3>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • DALL ATMOSPHERE</Badge>
+                  <h3 className="text-lg font-black text-primary uppercase">Andar 18 (Torre A)</h3>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-400 uppercase">Detecção</p>
-                  <p className="text-xs font-bold text-red-600">Hoje, 09:15 AM</p>
-                </div>
+                <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
+                  <Link href="/medical/nursing-attendance">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
+                </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <HeartPulse className="size-3.5 text-red-500" />
-                    <span className="text-[9px] font-black uppercase text-slate-400">Ambulatório</span>
-                  </div>
-                  <p className="text-[11px] font-bold text-primary leading-tight">Pico Hipertensivo ontem (160/100 mmHg).</p>
+                  <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Motivo do Alerta</p>
+                  <p className="text-[11px] font-bold text-primary leading-tight">Spike de PA (160/100) registrado há 24h. Risco de síncope em altura.</p>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="size-3.5 text-red-500" />
-                    <span className="text-[9px] font-black uppercase text-slate-400">Conformidade</span>
-                  </div>
-                  <p className="text-[11px] font-bold text-primary leading-tight">ASO Apto, mas sem restrição cardiovascular atualizada.</p>
-                </div>
-                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin className="size-3.5 text-red-500" />
-                    <span className="text-[9px] font-black uppercase text-slate-400">Atividade</span>
-                  </div>
-                  <p className="text-[11px] font-bold text-primary leading-tight">Escalado para periferia (Trabalho em Altura).</p>
+                  <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>
+                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI de R$ 315k em passivo.</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg shadow-red-600/20">
-                  <XCircle className="size-4" /> Retirar do Andar 18
+                <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg">
+                  <CheckCircle2 className="size-4" /> Validar Remanejamento para Solo
                 </Button>
-                <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2">
-                  <Stethoscope className="size-4" /> Reavaliar no Ambulatório
+                <Button variant="outline" asChild className="border-red-200 text-red-600 h-11 px-6 rounded-xl font-black uppercase text-[10px]">
+                  <Link href="/medical/nursing-attendance">Refazer Triagem Agora</Link>
                 </Button>
-                <Button variant="ghost" className="text-slate-400 font-bold uppercase text-[9px]">Ignorar Risco (Não Recomendado)</Button>
               </div>
             </div>
           </div>
@@ -158,8 +142,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* NAI Strategic Briefing 2026 */}
-          <Card className="card-shadow border-none bg-gradient-to-br from-white to-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
             <CardHeader className="pb-4 px-8 pt-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -171,34 +154,26 @@ export default function Dashboard() {
                     <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Status de Blindagem Técnica e Tributária.</CardDescription>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Compliance Score</span>
-                  <span className="text-xl font-black text-primary">94%</span>
-                </div>
+                <Badge variant="outline" className="bg-emerald-50 border-emerald-100 text-emerald-700 font-black text-[10px] h-8">S-2240 OK</Badge>
               </div>
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-primary/10 transition-all flex justify-between items-center">
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <TrendingUp className="size-4 text-primary" />
-                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Saving RAT/FAP Est.</span>
-                    </div>
-                    <h3 className="text-2xl font-black text-primary">R$ 142.500,00</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Impacto direto no EBITDA.</p>
-                  </div>
-                  <div className="size-16 rounded-full border-4 border-slate-100 border-t-primary flex items-center justify-center">
-                    <span className="text-[10px] font-black text-primary">ROI+</span>
+                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Saving FAP Projetado</p>
+                  <h3 className="text-2xl font-black text-primary">R$ 142.500,00</h3>
+                  <div className="flex items-center gap-1 mt-2">
+                    <TrendingDown className="size-3 text-emerald-500" />
+                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Efeito da Gestão Ativa</span>
                   </div>
                 </div>
-                <div className="bg-white p-6 rounded-3xl border shadow-sm group hover:ring-2 ring-primary/10 transition-all">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Network className="size-4 text-primary" />
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Sincronização NAI API</span>
+                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Eficiência Operacional</p>
+                  <h3 className="text-2xl font-black text-primary">94.2%</h3>
+                  <div className="flex items-center gap-1 mt-2">
+                    <CheckCircle2 className="size-3 text-blue-500" />
+                    <span className="text-[9px] font-bold text-blue-600 uppercase">Cronograma de NRs em dia</span>
                   </div>
-                  <h3 className="text-2xl font-black text-primary">100% On</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">NAIGED e eSocial integrados.</p>
                 </div>
               </div>
               
@@ -209,7 +184,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise de GHE detectou tendência de aumento em absenteísmo osteomuscular na Torre A. Recomendamos auditoria na NR-17 para evitar multas de até R$ 44k."
+                    "A análise cruzada detectou tendência de absenteísmo na Torre A. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
                   </p>
                 </div>
               </div>
@@ -217,14 +192,14 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard label="Vidas Ativas" value="806" sub="Vigilância NAI" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
-            <StatCard label="ASOs Pendentes" value="12" sub="Vencimento 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Eficiência API" value="99.8%" sub="Uptime Sistema" icon={Network} color="text-primary" bg="bg-primary/5" />
+            <StatCard label="Vidas sob Vigilância" value="806" sub="Multitenant Ativo" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
+            <StatCard label="ASOs Pendentes" value="12" sub="Próximos 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
+            <StatCard label="Check-ins Campo" value="142" sub="Logs Georeferenciados" icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
           </div>
         </div>
 
         <div className="space-y-8">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 pb-6 p-8 border-b">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary text-white rounded-xl shadow-lg">
@@ -250,38 +225,38 @@ export default function Dashboard() {
                   <ArrowUpRight className="size-5 text-primary" />
                 </div>
               </div>
-              <Button asChild variant="outline" className="w-full h-12 border-primary/10 text-primary font-black uppercase text-[9px] tracking-widest rounded-xl">
-                <Link href="/financial">Explorar NAI Financeiro</Link>
+              <Button asChild className="w-full h-12 bg-primary text-white font-black uppercase text-[9px] tracking-widest rounded-xl">
+                <Link href="/analytics">Análise de Performance Completa</Link>
               </Button>
             </CardContent>
           </Card>
 
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-slate-50 border-b p-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sincronização Ativa</CardTitle>
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Conexões Ativas</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="p-8 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3 text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Digital</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Atmosphere</span>
                   </div>
-                  <span className="text-[9px] font-black text-emerald-600">SINC</span>
+                  <span className="text-[9px] font-black text-emerald-600">LIVE</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3 text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Gestão de Escala TST</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Firewall eSocial</span>
                   </div>
-                  <span className="text-[9px] font-black text-emerald-600">SINC</span>
+                  <span className="text-[9px] font-black text-emerald-600">SYNC</span>
                 </div>
                 <div className="flex items-center justify-between opacity-50">
                   <div className="flex items-center gap-2">
                     <Clock className="size-3 text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Fila eSocial S-2240</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Portais Governamentais</span>
                   </div>
-                  <span className="text-[9px] font-black text-slate-400">QUEUE</span>
+                  <span className="text-[9px] font-black text-slate-400">POLLING</span>
                 </div>
               </div>
             </CardContent>
