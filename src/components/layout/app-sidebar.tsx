@@ -32,7 +32,8 @@ import {
   Lock,
   Hospital,
   CalendarDays,
-  UserPlus
+  UserPlus,
+  Thermometer
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -94,6 +95,7 @@ const NAV_MODULES = [
     icon: HeartPulse,
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER'],
     items: [
+      { title: "Triagem & Prontuário", icon: Thermometer, href: "/medical/nursing-attendance" },
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Gestão Ambulatório", icon: Hospital, href: "/medical/ambulatory" },
       { title: "Vigilância Médica", icon: HeartPulse, href: "/client/exams" },
