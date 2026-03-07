@@ -78,14 +78,20 @@ service cloud.firestore {
       allow write: if isSuperAdmin() || isDoctor() || isProvider();
     }
 
-    // Auditoria Médica e Regulação (Super-Junta)
+    // Auditoria Médica e Regulação
     match /medical_audit_requests/{requestId} {
       allow read, write: if isSuperAdmin() || isDoctor();
     }
 
-    // Telemedicina (Google Meet Links)
+    // Telemedicina
     match /agendamentos_telemedicina/{id} {
       allow read, write: if isSignedIn();
+    }
+
+    // Feedback da Plataforma
+    match /feedback/{id} {
+      allow create: if isSignedIn();
+      allow read: if isSuperAdmin();
     }
 
     // Perfis de Usuário
@@ -94,32 +100,28 @@ service cloud.firestore {
       // Permite que o usuário crie seu próprio perfil no login ou o Admin gerencie
       allow create: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
       allow delete: if isSuperAdmin();
-      allow update: if isSuperAdmin() || (request.auth.uid == userId);
+      allow update: if isSuperAdmin() || (
+        request.auth.uid == userId 
+        && request.resource.data.role == resource.data.role 
+        && request.resource.data.companyId == resource.data.companyId
+      );
     }
 
-    // --- Suporte para Collection Group Queries (Buscas globais otimizadas) ---
-    // Estrutura esperada: /companies/{cid}/subcolecao/{id}
-    
-    match /companies/{cid}/employees/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
+    // --- Suporte para Collection Group Queries ---
+    match /{path=**}/employees/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(path.split('/')[1]);
     }
-    match /companies/{cid}/tasks/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
+    match /{path=**}/tasks/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(path.split('/')[1]);
     }
-    match /companies/{cid}/legalExpertises/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
+    match /{path=**}/legalExpertises/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(path.split('/')[1]);
     }
-    match /companies/{cid}/reports/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
+    match /{path=**}/reports/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(path.split('/')[1]);
     }
-    match /companies/{cid}/contracts/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
-    }
-    match /companies/{cid}/esocial_events_queue/{id} {
-      allow read: if isSuperAdmin() || isClientAdmin(cid);
-    }
-    match /companies/{cid}/access_logs/{id} {
-      allow read: if isSuperAdmin() || isClientAdmin(cid);
+    match /{path=**}/contracts/{id} {
+      allow read: if isSuperAdmin() || isClientAdmin(path.split('/')[1]);
     }
   }
 }

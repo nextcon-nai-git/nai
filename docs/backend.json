@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -9,137 +8,55 @@
         "name": { "type": "string" },
         "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "ENGINEER", "DOCTOR", "PROVIDER"] },
         "email": { "type": "string" },
-        "crm": { "type": "string" },
-        "rqe": { "type": "string" },
-        "companyId": { "type": "string", "description": "ID da empresa caso o usuário seja CLIENT_ADMIN" },
-        "servedCompanies": { "type": "array", "items": { "type": "string" }, "description": "Lista de IDs de empresas atendidas (raio 50km)" },
-        "certificate_info": {
-          "type": "object",
-          "properties": {
-            "has_certificate": { "type": "boolean" },
-            "issuer": { "type": "string" },
-            "expiration": { "type": "string", "format": "date-time" },
-            "serial_number": { "type": "string" }
-          }
-        }
+        "companyId": { "type": "string" },
+        "servedCompanies": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["id", "name", "role", "email"]
     },
-    "MedicalCompany": {
-      "title": "Empresa (Medicina)",
+    "Company": {
+      "title": "Empresa Cliente",
       "type": "object",
       "properties": {
-        "empresa_id": { "type": "string" },
-        "razao_social": { "type": "string" },
+        "id": { "type": "string" },
+        "name": { "type": "string" },
         "cnpj": { "type": "string" },
-        "contato_rh": {
-          "type": "object",
-          "properties": {
-            "nome": { "type": "string" },
-            "email": { "type": "string" },
-            "telefone": { "type": "string" }
-          }
-        },
-        "setores": { "type": "array", "items": { "type": "string" } }
+        "risk_degree": { "type": "number" },
+        "active": { "type": "boolean" }
       },
-      "required": ["razao_social", "cnpj"]
+      "required": ["name", "cnpj"]
     },
-    "MedicalEmployee": {
-      "title": "Colaborador",
+    "OpsTask": {
+      "title": "Tarefa Operacional / Comercial",
       "type": "object",
       "properties": {
-        "colaborador_id": { "type": "string" },
-        "empresa_id": { "type": "string" },
-        "nome": { "type": "string" },
-        "cpf": { "type": "string" },
-        "funcao": { "type": "string" },
-        "riscos": { "type": "array", "items": { "type": "string" }, "description": "Essencial para S-2240 e automação de ASO" }
-      },
-      "required": ["empresa_id", "nome", "cpf"]
-    },
-    "Appointment": {
-      "title": "Agendamento",
-      "type": "object",
-      "properties": {
-        "agendamento_id": { "type": "string" },
-        "colaborador_id": { "type": "string" },
-        "colaborador_nome": { "type": "string" },
-        "data_hora": { "type": "string", "format": "date-time" },
-        "check_in_at": { "type": "string", "format": "date-time", "description": "Timestamp do início da espera" },
-        "tipo": { "type": "string", "enum": ["Admissional", "Periódico", "Demissional", "Mudança de Função", "Retorno ao Trabalho"] },
-        "status": { "type": "string", "enum": ["Agendado", "Em Espera", "Em Atendimento", "Concluído"] },
-        "check_in_realizado": { "type": "boolean" }
-      },
-      "required": ["colaborador_id", "data_hora", "tipo", "status"]
-    },
-    "AsoAttendance": {
-      "title": "Atendimento ASO",
-      "type": "object",
-      "properties": {
-        "atendimento_id": { "type": "string" },
-        "agendamento_id": { "type": "string" },
-        "medico_id": { "type": "string" },
-        "data_emissao": { "type": "string", "format": "date-time" },
-        "resultado": { "type": "string", "enum": ["Apto", "Inapto"] },
-        "url_documento_signed": { "type": "string" },
-        "signature_info": {
-          "type": "object",
-          "properties": {
-            "hash": { "type": "string" },
-            "protocol": { "type": "string" },
-            "certificate_issuer": { "type": "string" },
-            "timestamp": { "type": "string", "format": "date-time" }
-          }
-        },
-        "status_esocial": { "type": "string", "enum": ["Pendente", "Enviado", "Erro"] },
-        "protocolo_governo": { "type": "string" }
-      },
-      "required": ["agendamento_id", "medico_id", "resultado"]
-    },
-    "PartnerClinic": {
-      "title": "Clínica Parceira",
-      "type": "object",
-      "properties": {
-        "clinica_id": { "type": "string" },
-        "nome_fantasia": { "type": "string" },
-        "localizacao": {
-          "type": "object",
-          "properties": {
-            "lat": { "type": "number" },
-            "lng": { "type": "number" }
-          }
-        },
-        "servicos_disponiveis": { "type": "array", "items": { "type": "string" } }
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "type": { "type": "string" },
+        "companyId": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" }
       }
     }
   },
   "auth": {
-    "providers": ["password", "anonymous"]
+    "providers": ["password"]
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": "#/entities/UserProfile",
+      "schema": "#/backend/entities/UserProfile",
       "description": "Perfis de acesso e permissões RBAC."
     },
-    "/empresas/{empresaId}": {
-      "schema": "#/entities/MedicalCompany",
-      "description": "Empresas clientes do módulo médico."
+    "/companies/{companyId}": {
+      "schema": "#/backend/entities/Company",
+      "description": "Base de empresas clientes."
     },
-    "/colaboradores/{colaboradorId}": {
-      "schema": "#/entities/MedicalEmployee",
-      "description": "Base de colaboradores para vigilância em saúde."
+    "/companies/{companyId}/tasks/{taskId}": {
+      "schema": "#/backend/entities/OpsTask",
+      "description": "Fila de tarefas e propostas comerciais."
     },
-    "/agendamentos/{agendamentoId}": {
-      "schema": "#/entities/Appointment",
-      "description": "Fila de exames ocupacionais monitorada em tempo real."
-    },
-    "/atendimentos_aso/{atendimentoId}": {
-      "schema": "#/entities/AsoAttendance",
-      "description": "Registros de ASOs e integração eSocial para visualização do RH."
-    },
-    "/clinicas_parceiras/{clinicaId}": {
-      "schema": "#/entities/PartnerClinic",
-      "description": "Rede credenciada Nextcon."
+    "/companies/{companyId}/employees/{employeeId}": {
+      "schema": "object",
+      "description": "Vidas sob vigilância de cada unidade."
     }
   }
 }

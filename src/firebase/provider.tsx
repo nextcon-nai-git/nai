@@ -86,22 +86,29 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
           // Listener do Documento do Usuário para Sincronização de Claims (Real-time)
           const userRef = doc(firestore, "users", firebaseUser.uid);
-          const unsubscribeSnapshot = onSnapshot(userRef, async (docSnap) => {
-            if (docSnap.exists()) {
-              try {
-                // Força a atualização do token ignorando o cache de 1 hora
-                const newTokenResult = await firebaseUser.getIdTokenResult(true);
-                setAuthState(prev => ({
-                  ...prev,
-                  role: (newTokenResult.claims.role as string) || "USER",
-                  companyId: (newTokenResult.claims.companyId as string) || null,
-                }));
-                console.log("NAI: Permissões sincronizadas via Token Refresh.");
-              } catch (e) {
-                console.error("NAI: Erro ao forçar refresh de token:", e);
+          const unsubscribeSnapshot = onSnapshot(
+            userRef, 
+            async (docSnap) => {
+              if (docSnap.exists()) {
+                try {
+                  // Força a atualização do token ignorando o cache de 1 hora
+                  const newTokenResult = await firebaseUser.getIdTokenResult(true);
+                  setAuthState(prev => ({
+                    ...prev,
+                    role: (newTokenResult.claims.role as string) || "USER",
+                    companyId: (newTokenResult.claims.companyId as string) || null,
+                  }));
+                  console.log("NAI: Permissões sincronizadas via Token Refresh.");
+                } catch (e) {
+                  console.error("NAI: Erro ao forçar refresh de token:", e);
+                }
               }
+            },
+            (error) => {
+              // Silencia erros de permissão temporários durante logout/transição
+              console.warn("NAI: Listener de perfil suspenso ou sem acesso.");
             }
-          });
+          );
 
           return () => unsubscribeSnapshot();
         } catch (error: any) {
