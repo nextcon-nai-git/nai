@@ -1,12 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Users, Clock, Activity, CheckCircle, Search, Loader2 } from 'lucide-react';
+import { Users, Clock, Activity, CheckCircle, Search, Loader2, TrendingUp } from 'lucide-react';
 import { useAppointmentsQueue, type Appointment } from '@/hooks/use-appointments-queue';
 import { cn } from '@/lib/utils';
 
 export function ReceptionDashboard() {
-  const { data: appointments, loading, error } = useAppointmentsQueue();
+  const { appointments, loading, error } = useAppointmentsQueue();
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const stats = React.useMemo(() => ({
@@ -33,7 +33,13 @@ export function ReceptionDashboard() {
     }
   };
 
-  if (error) return <div className="p-8 text-red-500 font-bold">Erro ao carregar fila: {error.message}</div>;
+  if (error) {
+    return (
+      <div className="p-8 bg-red-50 rounded-2xl border border-red-100 text-red-700 font-bold">
+        Falha na sincronização da fila: {error.message}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -87,7 +93,7 @@ export function ReceptionDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm">
                 {filteredAppointments.map((apt) => (
-                  <tr key={apt.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr key={apt.agendamento_id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-6 pl-8 font-mono text-xs font-bold text-slate-500">
                       {new Date(apt.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </td>

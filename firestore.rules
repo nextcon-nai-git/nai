@@ -34,7 +34,7 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin() || isDoctor(resource.data.medico_id || request.resource.data.medico_id);
     }
 
-    // Agendamentos: Visibilidade para recepção/médicos, escrita para Admins
+    // Agendamentos: Visibilidade para recepção/médicos
     match /agendamentos/{agendamentoId} {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin() || isClientAdmin(request.resource.data.companyId);

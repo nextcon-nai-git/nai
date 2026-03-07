@@ -1,17 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
 export interface Appointment {
-  id: string;
-  agendamento_id?: string;
+  agendamento_id: string;
+  colaborador_id: string;
   colaborador_nome: string;
-  tipo: string;
-  status: 'Agendado' | 'Em Espera' | 'Em Atendimento' | 'Concluído';
   data_hora: string;
   check_in_at?: string;
+  tipo: 'Admissional' | 'Periódico' | 'Demissional' | 'Mudança de Função' | 'Retorno ao Trabalho';
+  status: 'Agendado' | 'Em Espera' | 'Em Atendimento' | 'Concluído';
+  check_in_realizado: boolean;
   companyId: string;
 }
 
@@ -20,49 +21,53 @@ export interface Appointment {
  */
 export function useAppointmentsQueue() {
   const db = useFirestore();
-  const [data, setData] = useState<Appointment[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!db) return;
 
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999);
+    // Pegando a data de hoje para filtrar apenas os agendamentos do dia
+    const today = new Date().toISOString().split('T')[0];
+    const startOfDay = `${today}T00:00:00.000Z`;
+    const endOfDay = `${today}T23:59:59.999Z`;
 
     const q = query(
       collection(db, 'agendamentos'),
-      where('data_hora', '>=', startOfToday.toISOString()),
-      where('data_hora', '<=', endOfToday.toISOString()),
+      where('data_hora', '>=', startOfDay),
+      where('data_hora', '<=', endOfDay),
       orderBy('data_hora', 'asc')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const appointments: Appointment[] = [];
-      snapshot.forEach((doc) => {
-        appointments.push({ id: doc.id, ...doc.data() } as Appointment);
-      });
-      
-      // Ordena em memória por status de chegada para "Em Espera"
-      const sorted = appointments.sort((a, b) => {
-        if (a.status === 'Em Espera' && b.status === 'Em Espera') {
-          return (a.check_in_at || '') > (b.check_in_at || '') ? 1 : -1;
-        }
-        return 0;
-      });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          agendamento_id: doc.id,
+          ...doc.data(),
+        })) as Appointment[];
 
-      setData(sorted);
-      setLoading(false);
-    }, (err) => {
-      console.error("Fila Real-time Error:", err);
-      setError(err);
-      setLoading(false);
-    });
+        // Ordenação secundária em memória por horário de check-in para quem está "Em Espera"
+        const sortedData = data.sort((a, b) => {
+          if (a.status === 'Em Espera' && b.status === 'Em Espera' && a.check_in_at && b.check_in_at) {
+            return a.check_in_at.localeCompare(b.check_in_at);
+          }
+          return 0;
+        });
+
+        setAppointments(sortedData);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Erro ao buscar a fila de agendamentos:', err);
+        setError(err);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [db]);
 
-  return { data, loading, error };
+  return { appointments, loading, error };
 }
