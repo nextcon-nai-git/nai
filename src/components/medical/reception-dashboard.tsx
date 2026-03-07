@@ -1,22 +1,26 @@
+
 'use client';
 
 import * as React from 'react';
-import { Users, Clock, Activity, CheckCircle, Search, Loader2, TrendingUp } from 'lucide-react';
-import { useAppointmentsQueue, type Appointment } from '@/hooks/use-appointments-queue';
+import { Users, Clock, Activity, CheckCircle, Search, Loader2 } from 'lucide-react';
+import { useAppointmentsQueue } from '@/hooks/use-appointments-queue';
 import { cn } from '@/lib/utils';
 
 export function ReceptionDashboard() {
-  const { appointments, loading, error } = useAppointmentsQueue();
+  const { data: appointments, loading, error } = useAppointmentsQueue();
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const stats = React.useMemo(() => ({
-    total: appointments.length,
-    espera: appointments.filter(a => a.status === 'Em Espera').length,
-    atendimento: appointments.filter(a => a.status === 'Em Atendimento').length,
-    concluido: appointments.filter(a => a.status === 'Concluído').length,
-  }), [appointments]);
+  const stats = React.useMemo(() => {
+    if (!appointments) return { total: 0, espera: 0, atendimento: 0, concluido: 0 };
+    return {
+      total: appointments.length,
+      espera: appointments.filter(a => a.status === 'Em Espera').length,
+      atendimento: appointments.filter(a => a.status === 'Em Atendimento').length,
+      concluido: appointments.filter(a => a.status === 'Concluído').length,
+    };
+  }, [appointments]);
 
-  const filteredAppointments = appointments.filter(a => 
+  const filteredAppointments = (appointments || []).filter(a => 
     a.colaborador_nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -50,7 +54,6 @@ export function ReceptionDashboard() {
         </div>
       </div>
 
-      {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard label="Total do Dia" value={stats.total} icon={Users} color="text-slate-600" bg="bg-slate-50" />
         <StatCard label="Aguardando" value={stats.espera} icon={Clock} color="text-amber-600" bg="bg-amber-50" />
@@ -58,7 +61,6 @@ export function ReceptionDashboard() {
         <StatCard label="Concluídos" value={stats.concluido} icon={CheckCircle} color="text-emerald-600" bg="bg-emerald-50" />
       </div>
 
-      {/* Tabela de Fila */}
       <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
         <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
           <h2 className="text-lg font-black text-primary uppercase">Fila de Atendimento</h2>
@@ -95,7 +97,7 @@ export function ReceptionDashboard() {
                 {filteredAppointments.map((apt) => (
                   <tr key={apt.agendamento_id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-6 pl-8 font-mono text-xs font-bold text-slate-500">
-                      {new Date(apt.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                      {apt.data_hora ? new Date(apt.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                     </td>
                     <td className="p-6">
                       <p className="font-black text-primary uppercase text-xs">{apt.colaborador_nome}</p>

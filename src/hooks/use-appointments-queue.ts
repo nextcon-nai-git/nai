@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -21,14 +22,13 @@ export interface Appointment {
  */
 export function useAppointmentsQueue() {
   const db = useFirestore();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [data, setData] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!db) return;
 
-    // Pegando a data de hoje para filtrar apenas os agendamentos do dia
     const today = new Date().toISOString().split('T')[0];
     const startOfDay = `${today}T00:00:00.000Z`;
     const endOfDay = `${today}T23:59:59.999Z`;
@@ -43,20 +43,20 @@ export function useAppointmentsQueue() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
+        const appointmentsData = snapshot.docs.map((doc) => ({
           agendamento_id: doc.id,
           ...doc.data(),
         })) as Appointment[];
 
-        // Ordenação secundária em memória por horário de check-in para quem está "Em Espera"
-        const sortedData = data.sort((a, b) => {
+        // Ordenação por horário de check-in para quem está "Em Espera"
+        const sortedData = appointmentsData.sort((a, b) => {
           if (a.status === 'Em Espera' && b.status === 'Em Espera' && a.check_in_at && b.check_in_at) {
             return a.check_in_at.localeCompare(b.check_in_at);
           }
           return 0;
         });
 
-        setAppointments(sortedData);
+        setData(sortedData);
         setLoading(false);
       },
       (err) => {
@@ -69,5 +69,5 @@ export function useAppointmentsQueue() {
     return () => unsubscribe();
   }, [db]);
 
-  return { appointments, loading, error };
+  return { data, appointments: data, loading, error };
 }
