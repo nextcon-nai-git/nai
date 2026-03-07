@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -24,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, doc, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+import { DownloadAsoButton } from "@/components/documents/download-aso-button"
 
 export default function ClientExamsHistory() {
   const { user } = useUser()
@@ -36,7 +36,6 @@ export default function ClientExamsHistory() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  // Consulta real de ASOs da empresa logada
   const asoQuery = useMemoFirebase(() => {
     if (!db || !profile?.companyId) return null
     return query(collection(db, "atendimentos_aso"), where("companyId", "==", profile.companyId), orderBy("data_emissao", "desc"))
@@ -136,9 +135,14 @@ export default function ClientExamsHistory() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right pr-8">
-                      <Button variant="ghost" size="sm" className="h-10 px-4 rounded-xl text-primary hover:bg-primary/5 font-black uppercase text-[9px] gap-2">
-                        <CloudDownload className="size-3.5" /> ASO Assinado
-                      </Button>
+                      <DownloadAsoButton 
+                        patientData={{
+                          patientName: aso.employeeName,
+                          companyName: profile?.companyName,
+                          status: aso.resultado,
+                          type: 'Periódico'
+                        }} 
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

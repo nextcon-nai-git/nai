@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -57,6 +56,7 @@ import { collection, query, orderBy, addDoc, serverTimestamp, where, doc, update
 import { cn } from "@/lib/utils"
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { DigitalSignatureDialog } from "@/components/medical/digital-signature-dialog"
+import { DownloadAsoButton } from "@/components/documents/download-aso-button"
 
 export default function HealthControl() {
   const { toast } = useToast()
@@ -69,7 +69,6 @@ export default function HealthControl() {
   const [isSignDialogOpen, setIsSignDialogOpen] = React.useState(false)
   const [selectedApptForSign, setSelectedApptForSign] = React.useState<any>(null)
 
-  // Atualiza relógio para cálculo de espera real-time a cada 10s
   React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 10000)
     return () => clearInterval(timer)
@@ -81,7 +80,6 @@ export default function HealthControl() {
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
 
-  // Consulta de agendamentos do dia (ou últimos 50)
   const appointmentsQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "agendamentos"), orderBy("data_hora", "asc"), limit(50))
@@ -121,7 +119,6 @@ export default function HealthControl() {
     const docRef = doc(db, "agendamentos", appt.id)
     updateDocumentNonBlocking(docRef, { status: "Concluído" })
 
-    // Registra o atendimento ASO com metadados de assinatura ICP-Brasil
     const asoRef = collection(db, "atendimentos_aso")
     await addDocumentNonBlocking(asoRef, {
       agendamento_id: appt.id,
@@ -130,7 +127,7 @@ export default function HealthControl() {
       companyId: appt.companyId || "CLI_NATIVA",
       data_emissao: new Date().toISOString(),
       resultado: "Apto",
-      signature_info: signatureData, // Metadados da assinatura ICP-Brasil
+      signature_info: signatureData,
       status_esocial: "Pendente",
       createdAt: new Date().toISOString()
     })
@@ -144,22 +141,12 @@ export default function HealthControl() {
     return Math.floor(diff / 60000)
   }
 
-  // Estatísticas Rápidas
   const stats = React.useMemo(() => {
-    if (!appointments) return { waiting: 0, inProgress: 0, avgWait: 0 }
-    const waiting = appointments.filter(a => a.status === 'Em Espera').length
-    const inProgress = appointments.filter(a => a.status === 'Em Atendimento').length
-    const completed = appointments.filter(a => a.status === 'Concluído' && a.check_in_at)
-    
-    let totalWait = 0
-    completed.forEach(a => {
-      totalWait += 15 // Mock de 15 min de média
-    })
-    
+    if (!appointments) return { waiting: 0, inProgress: 0, completed: 0 }
     return {
-      waiting,
-      inProgress,
-      avgWait: completed.length > 0 ? Math.round(totalWait / completed.length) : 14
+      waiting: appointments.filter(a => a.status === 'Em Espera').length,
+      inProgress: appointments.filter(a => a.status === 'Em Atendimento').length,
+      completed: appointments.filter(a => a.status === 'Concluído').length
     }
   }, [appointments])
 
@@ -182,181 +169,116 @@ export default function HealthControl() {
         </div>
       </header>
 
-      {/* Painel de KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard 
-          label="Em Espera" 
-          value={stats.waiting} 
-          icon={Users} 
-          color="text-amber-600" 
-          bg="bg-amber-50" 
-        />
-        <MetricCard 
-          label="Em Atendimento" 
-          value={stats.inProgress} 
-          icon={Stethoscope} 
-          color="text-blue-600" 
-          bg="bg-blue-50" 
-        />
-        <MetricCard 
-          label="Tempo Médio" 
-          value={`${stats.avgWait} min`} 
-          icon={Timer} 
-          color="text-emerald-600" 
-          bg="bg-emerald-50" 
-        />
-        <MetricCard 
-          label="SLA de Atendimento" 
-          value="20 min" 
-          icon={ShieldCheck} 
-          color="text-primary" 
-          bg="bg-slate-100" 
-        />
+        <MetricCard label="Em Espera" value={stats.waiting} icon={Users} color="text-amber-600" bg="bg-amber-50" />
+        <MetricCard label="Em Atendimento" value={stats.inProgress} icon={Stethoscope} color="text-blue-600" bg="bg-blue-50" />
+        <MetricCard label="Concluídos Hoje" value={stats.completed} icon={CheckCircle2} color="text-emerald-600" bg="bg-emerald-50" />
+        <MetricCard label="SLA de Atendimento" value="20 min" icon={ShieldCheck} color="text-primary" bg="bg-slate-100" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-lg font-black text-primary uppercase">Painel de Atendimento</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Fluxo: Triagem &gt; Médico &gt; Assinatura.</CardDescription>
-            </div>
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-3 top-2.5 size-4 text-slate-300" />
-              <Input 
-                placeholder="Buscar na fila..." 
-                className="pl-10 h-10 bg-white border-none shadow-sm rounded-xl text-xs"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                <TableRow>
-                  <TableHead className="pl-8">Colaborador / Empresa</TableHead>
-                  <TableHead>Tipo de Exame</TableHead>
-                  <TableHead>Status / Tempo de Espera</TableHead>
-                  <TableHead className="pr-8 text-right">Ação Operacional</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow><TableCell colSpan={4} className="py-24 text-center"><Loader2 className="size-10 animate-spin mx-auto text-primary opacity-20" /></TableCell></TableRow>
-                ) : appointments?.filter(a => a.status !== 'Concluído').map((appt) => {
-                  const waitTime = getWaitTime(appt.check_in_at);
-                  const isCritical = waitTime >= 20;
-                  const isNearCritical = waitTime >= 15 && waitTime < 20;
+      <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
+        <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-lg font-black text-primary uppercase">Painel de Atendimento</CardTitle>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Fluxo: Triagem > Médico > Assinatura.</CardDescription>
+          </div>
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-2.5 size-4 text-slate-300" />
+            <Input 
+              placeholder="Buscar na fila..." 
+              className="pl-10 h-10 bg-white border-none shadow-sm rounded-xl text-xs"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
+              <TableRow>
+                <TableHead className="pl-8">Colaborador / Empresa</TableHead>
+                <TableHead>Tipo de Exame</TableHead>
+                <TableHead>Status / Tempo de Espera</TableHead>
+                <TableHead className="pr-8 text-right">Ação Operacional</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={4} className="py-24 text-center"><Loader2 className="size-10 animate-spin mx-auto text-primary opacity-20" /></TableCell></TableRow>
+              ) : appointments?.map((appt) => {
+                const waitTime = getWaitTime(appt.check_in_at);
+                const isCritical = waitTime >= 20;
 
-                  return (
-                    <TableRow key={appt.id} className={cn(
-                      "hover:bg-slate-50/50 transition-all group",
-                      isCritical && appt.status === 'Em Espera' ? "bg-red-50/30" : ""
-                    )}>
-                      <TableCell className="pl-8 py-5">
-                        <div className="flex items-center gap-4">
-                          <div className={cn(
-                            "size-10 rounded-xl flex items-center justify-center text-xs font-black shadow-inner transition-colors",
-                            isCritical && appt.status === 'Em Espera' ? "bg-red-100 text-red-600 animate-pulse" : "bg-primary/5 text-primary"
-                          )}>
-                            {appt.colaborador_nome?.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-black text-xs text-primary uppercase leading-tight">{appt.colaborador_nome}</p>
-                            <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Empresa ID: {appt.companyId || "Matriz"}</p>
-                          </div>
+                return (
+                  <TableRow key={appt.id} className={cn(
+                    "hover:bg-slate-50/50 transition-all group",
+                    appt.status === 'Concluído' ? "opacity-60" : ""
+                  )}>
+                    <TableCell className="pl-8 py-5">
+                      <div className="flex items-center gap-4">
+                        <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-xs font-black shadow-inner">
+                          {appt.colaborador_nome?.substring(0, 2).toUpperCase()}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-[9px] font-black uppercase border-primary/10 text-primary py-1 px-3">
-                          {appt.tipo}
+                        <div>
+                          <p className="font-black text-xs text-primary uppercase leading-tight">{appt.colaborador_nome}</p>
+                          <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Empresa ID: {appt.companyId || "Matriz"}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[9px] font-black uppercase border-primary/10 text-primary py-1 px-3">
+                        {appt.tipo}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1.5">
+                        <Badge className={cn(
+                          "w-fit text-[8px] font-black uppercase border-none px-3 h-5",
+                          appt.status === 'Em Espera' ? "bg-amber-100 text-amber-700" : 
+                          appt.status === 'Em Atendimento' ? "bg-blue-100 text-blue-700" : 
+                          "bg-emerald-100 text-emerald-700"
+                        )}>
+                          {appt.status}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1.5">
-                          <Badge className={cn(
-                            "w-fit text-[8px] font-black uppercase border-none px-3 h-5",
-                            appt.status === 'Em Espera' ? "bg-amber-100 text-amber-700" : 
-                            appt.status === 'Em Atendimento' ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-500"
-                          )}>
-                            {appt.status}
-                          </Badge>
-                          {appt.status === 'Em Espera' && (
-                            <div className={cn(
-                              "flex items-center gap-1.5 text-[10px] font-black",
-                              isCritical ? "text-red-600" : isNearCritical ? "text-orange-500" : "text-slate-400"
-                            )}>
-                              <Clock className="size-3" /> 
-                              {waitTime} min de espera
-                              {isCritical && <AlertTriangle className="size-3 ml-1 animate-bounce" />}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="pr-8 text-right">
-                        <div className="flex justify-end gap-2">
-                          {appt.status === 'Agendado' && (
-                            <Button 
-                              onClick={() => handleCheckIn(appt)} 
-                              className="h-10 px-5 bg-primary text-white font-black uppercase text-[9px] rounded-xl shadow-lg hover:scale-105 transition-transform"
-                            >
-                              Check-in
-                            </Button>
-                          )}
-                          {appt.status === 'Em Espera' && (
-                            <Button 
-                              onClick={() => handleStartConsultation(appt)} 
-                              className="h-10 px-5 bg-blue-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2"
-                            >
-                              <UserCheck className="size-3.5" /> Chamar Paciente
-                            </Button>
-                          )}
-                          {appt.status === 'Em Atendimento' && (
-                            <Button 
-                              onClick={() => openSignDialog(appt)} 
-                              className="h-10 px-5 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg gap-2"
-                            >
-                              <Fingerprint className="size-3.5" /> Assinar ASO
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-                {(!appointments || appointments.length === 0) && (
-                  <TableRow><TableCell colSpan={4} className="py-32 text-center opacity-30 font-black uppercase text-xs tracking-widest">Nenhum atendimento em curso</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
+                        {appt.status === 'Em Espera' && (
+                          <div className={cn("flex items-center gap-1.5 text-[10px] font-black", isCritical ? "text-red-600" : "text-slate-400")}>
+                            <Clock className="size-3" /> {waitTime} min de espera
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="pr-8 text-right">
+                      <div className="flex justify-end gap-2">
+                        {appt.status === 'Agendado' && (
+                          <Button onClick={() => handleCheckIn(appt)} className="h-10 px-5 bg-primary text-white font-black uppercase text-[9px] rounded-xl shadow-lg">Check-in</Button>
+                        )}
+                        {appt.status === 'Em Espera' && (
+                          <Button onClick={() => handleStartConsultation(appt)} className="h-10 px-5 bg-blue-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2"><UserCheck className="size-3.5" /> Chamar</Button>
+                        )}
+                        {appt.status === 'Em Atendimento' && (
+                          <Button onClick={() => openSignDialog(appt)} className="h-10 px-5 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2"><Fingerprint className="size-3.5" /> Assinar</Button>
+                        )}
+                        {appt.status === 'Concluído' && (
+                          <DownloadAsoButton 
+                            patientData={{
+                              patientName: appt.colaborador_nome,
+                              companyName: appt.companyId,
+                              status: 'Apto',
+                              type: appt.tipo
+                            }}
+                            variant="default"
+                          />
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <div className="p-6 bg-[#090e24] text-white rounded-[2rem] shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform"><TrendingUp className="size-32 text-accent" /></div>
-          <div className="relative z-10 space-y-4">
-            <Badge className="bg-accent text-primary border-none text-[8px] font-black uppercase tracking-[0.2em]">Soberania Digital</Badge>
-            <h3 className="text-lg font-black uppercase font-headline">Validade ICP-Brasil</h3>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
-              Todos os ASOs finalizados nesta unidade utilizam assinatura eletrônica qualificada. O hash de integridade garante que o documento não sofra alterações após a assinatura do médico.
-            </p>
-          </div>
-        </div>
-        <div className="p-6 bg-blue-50 border border-blue-100 rounded-[2rem] flex flex-col justify-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><Fingerprint className="size-4" /></div>
-            <h4 className="text-sm font-black text-primary uppercase">Nota sobre Certificados</h4>
-          </div>
-          <p className="text-[11px] text-primary/70 leading-relaxed font-medium italic">
-            "Suportamos tokens A3 em nuvem e certificados A1. A assinatura qualificada é indispensável para a aceitabilidade do evento S-2220 pelo governo federal."
-          </p>
-        </div>
-      </div>
-
-      {/* Dialog de Assinatura Digital */}
       <DigitalSignatureDialog 
         isOpen={isSignDialogOpen}
         onOpenChange={setIsSignDialogOpen}
@@ -373,9 +295,7 @@ function MetricCard({ label, value, icon: Icon, color, bg }: any) {
     <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl", bg, color)}>
-            <Icon className="size-5" />
-          </div>
+          <div className={cn("p-3 rounded-2xl", bg, color)}><Icon className="size-5" /></div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
         <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>
