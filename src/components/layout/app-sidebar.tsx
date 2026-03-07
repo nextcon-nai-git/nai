@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -94,7 +93,7 @@ const NAV_MODULES = [
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Escala Técnica TST", icon: CalendarDays, href: "/safety/operational-scale" },
-      { title: "Controle Campo IoT", icon: HardHat, href: "/field-control" },
+      { title: "Profissionais de Campo", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
       { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },

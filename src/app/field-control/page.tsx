@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -21,7 +20,11 @@ import {
   Cpu,
   CheckCircle2,
   XCircle,
-  ScanLine
+  ScanLine,
+  PenTool,
+  Save,
+  ShieldPlus,
+  ArrowRight
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -30,9 +33,8 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc, useStorage } from "@/firebase"
+import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, doc, collectionGroup, addDoc, serverTimestamp } from "firebase/firestore"
-import { ref, uploadString } from "firebase/storage"
 import { 
   Select, 
   SelectContent, 
@@ -41,17 +43,48 @@ import {
   SelectValue 
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { extractStorageData } from "@/ai/flows/storage-manager-flow"
+import { Checkbox } from "@/components/ui/checkbox"
 import { REAL_EMPLOYEES } from "@/lib/real-data"
+
+const FIELD_PROFESSIONALS = {
+  tst: {
+    title: "Análise TST",
+    role: "Técnico de Segurança (Operacional)",
+    icon: HardHat,
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    checklist: [
+      { id: "tst1", label: "Realizar liberação de PT / APR nas frentes de trabalho.", ref: "NR-01 / NR-18" },
+      { id: "tst2", label: "Fiscalizar uso de EPIs e integridade de EPCs (Bandejas/Redes).", ref: "NR-06 / NR-18" },
+      { id: "tst3", label: "Executar DDS (Diálogo Diário de Segurança) com a equipe.", ref: "NR-01" },
+      { id: "tst4", label: "Registrar inspeção de equipamentos e ferramentas manuais.", ref: "NR-12" },
+      { id: "tst5", label: "Monitorar validade de treinamentos de terceiros em obra.", ref: "Solidária" }
+    ]
+  },
+  eng: {
+    title: "Análise ENG SEG",
+    role: "Engenheiro de Segurança (Estratégico)",
+    icon: ShieldPlus,
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    checklist: [
+      { id: "eng1", label: "Elaborar / Revisar Inventário de Riscos do PGR.", ref: "NR-01" },
+      { id: "eng2", label: "Emitir ART (Anotação de Responsabilidade Técnica) de segurança.", ref: "CREA" },
+      { id: "eng3", label: "Realizar auditoria de conformidade das NRs na unidade.", ref: "SST 2026" },
+      { id: "eng4", label: "Coordenar treinamentos técnicos especializados (NR-10/33/35).", ref: "Capacitação" },
+      { id: "eng5", label: "Definir medidas de controle de engenharia para riscos críticos.", ref: "EPC" }
+    ]
+  }
+};
 
 export default function FieldControlOperational() {
   const { toast } = useToast()
   const { user } = useUser()
   const db = useFirestore()
-  const storage = useStorage()
   const [activeTab, setActiveTab] = React.useState("gatekeeper")
+  const [activeProfessional, setActiveProfessional] = React.useState<keyof typeof FIELD_PROFESSIONALS>("tst")
+  const [checklistProgress, setChecklistProgress] = React.useState<Record<string, boolean>>({})
   
-  // States para o "Teatro de Vendas" da Catraca
   const [isGatekeeperLoading, setIsGatekeeperLoading] = React.useState(false)
   const [gatekeeperForm, setGatekeeperForm] = React.useState({
     employeeId: "",
@@ -78,23 +111,16 @@ export default function FieldControlOperational() {
   }, [db, profile])
   const { data: accessLogs } = useCollection(accessLogsQuery)
 
-  const activitiesQuery = useMemoFirebase(() => {
-    if (!db || !profile) return null
-    if (isGlobalAdmin) return query(collectionGroup(db, "tasks"), orderBy("createdAt", "desc"))
-    if (profile.companyId) return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("createdAt", "desc"))
-    return null;
-  }, [db, profile, isGlobalAdmin])
-  const { data: allTasks } = useCollection(activitiesQuery)
+  const handleToggleCheck = (id: string) => {
+    setChecklistProgress(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
-  const fieldTasks = React.useMemo(() => {
-    if (!allTasks) return []
-    const rawTasks = allTasks.filter(t => ['pgr', 'ltcat', 'iot_check', 'vistoria'].includes(t.type))
-    if (isGlobalAdmin) return rawTasks
-    if (profile?.role === 'PROVIDER' || profile?.role === 'ENGINEER') return rawTasks.filter(t => t.assigneeId === user?.uid)
-    return rawTasks
-  }, [allTasks, isGlobalAdmin, profile, user])
+  const getPercent = (profKey: keyof typeof FIELD_PROFESSIONALS) => {
+    const items = FIELD_PROFESSIONALS[profKey].checklist
+    const checked = items.filter(item => checklistProgress[item.id]).length
+    return Math.round((checked / items.length) * 100)
+  }
 
-  // Lógica da Catraca (Simulador NAI IoT)
   const handleSimulateTurnstile = async () => {
     if (!gatekeeperForm.employeeId || !db || !profile?.companyId) return
     setIsGatekeeperLoading(true)
@@ -104,7 +130,6 @@ export default function FieldControlOperational() {
       const emp = REAL_EMPLOYEES.find(e => e.id === gatekeeperForm.employeeId)
       let bloqueios = []
 
-      // Simulação da Lógica do Webhook (Script simulador-catraca.js)
       if (gatekeeperForm.area === "caldeira_nr33") {
         const hasAso = Math.random() > 0.3
         const hasTraining = Math.random() > 0.2
@@ -148,7 +173,7 @@ export default function FieldControlOperational() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Controle de Campo</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Controle Profissionais de Campo</h1>
           <p className="text-muted-foreground font-medium uppercase text-[9px] tracking-widest flex items-center gap-2">
             <Signal className="size-3 text-accent animate-pulse" /> 
             Motor de Inteligência Operacional NAI
@@ -162,19 +187,119 @@ export default function FieldControlOperational() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <KpiCard label="Minhas Atividades" value={fieldTasks.length} icon={ClipboardCheck} color="text-blue-600" bg="bg-blue-50" />
         <KpiCard label="Status do Perímetro" value="Ativo" icon={ScanLine} color="text-emerald-600" bg="bg-emerald-50" />
         <KpiCard label="Tentativas Negadas" value={accessLogs?.filter(l => l.status === 'denied').length || 0} icon={ShieldAlert} color="text-red-600" bg="bg-red-50" />
         <KpiCard label="Acessos Seguros" value={accessLogs?.filter(l => l.status === 'authorized').length || 0} icon={ShieldCheck} color="text-primary" bg="bg-primary/5" />
+        <KpiCard label="Check-ins Campo" value="142" icon={MapPin} color="text-blue-600" bg="bg-blue-50" />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[750px] grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
+        <TabsList className="grid w-full md:w-[850px] grid-cols-4 bg-muted/50 p-1 rounded-2xl h-16">
           <TabsTrigger value="gatekeeper" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Catracas (IoT)</TabsTrigger>
+          <TabsTrigger value="evolution" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-primary">Evolução Técnica</TabsTrigger>
           <TabsTrigger value="activities" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Agenda Campo</TabsTrigger>
-          <TabsTrigger value="allocations" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Alocações</TabsTrigger>
           <TabsTrigger value="equipments" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">Instrumentos</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="evolution" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-1 space-y-3">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-4 mb-4">Selecione o Profissional</p>
+              {(Object.entries(FIELD_PROFESSIONALS) as [keyof typeof FIELD_PROFESSIONALS, any][]).map(([key, prof]) => {
+                const Icon = prof.icon;
+                const isActive = activeProfessional === key;
+                const progress = getPercent(key);
+                
+                return (
+                  <Card 
+                    key={key} 
+                    className={cn(
+                      "cursor-pointer border-none shadow-sm transition-all duration-300 rounded-2xl overflow-hidden",
+                      isActive ? "ring-2 ring-primary bg-white scale-[1.02] shadow-lg" : "bg-slate-50 opacity-60 hover:opacity-100"
+                    )}
+                    onClick={() => setActiveProfessional(key)}
+                  >
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className={cn("p-2.5 rounded-xl", isActive ? "bg-primary text-white" : prof.bg + " " + prof.color)}>
+                        <Icon className="size-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black text-primary uppercase truncate leading-none">{prof.title}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden mr-3">
+                            <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                          </div>
+                          <span className="text-[9px] font-black text-primary">{progress}%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+
+            <Card className="lg:col-span-3 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="bg-primary text-white p-8">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      {React.createElement(FIELD_PROFESSIONALS[activeProfessional].icon, { className: "size-8 text-accent" })}
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-headline font-black uppercase tracking-tight">
+                        {FIELD_PROFESSIONALS[activeProfessional].title}
+                      </CardTitle>
+                      <CardDescription className="text-white/60 font-bold uppercase text-[10px] tracking-widest mt-1">
+                        {FIELD_PROFESSIONALS[activeProfessional].role}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase opacity-40">Status do Plantão</p>
+                    <h3 className="text-3xl font-black text-accent">{getPercent(activeProfessional)}%</h3>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Atividades Legais Obrigatórias:</p>
+                  {FIELD_PROFESSIONALS[activeProfessional].checklist.map((item: any) => (
+                    <div 
+                      key={item.id} 
+                      className={cn(
+                        "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group",
+                        checklistProgress[item.id] ? "bg-emerald-50 border-emerald-100" : "bg-white border-slate-50 hover:border-primary/10 shadow-sm"
+                      )}
+                      onClick={() => handleToggleCheck(item.id)}
+                    >
+                      <Checkbox 
+                        checked={!!checklistProgress[item.id]} 
+                        onCheckedChange={() => handleToggleCheck(item.id)}
+                        className="size-5 rounded-md border-slate-300"
+                      />
+                      <div className="flex-1">
+                        <p className={cn("text-sm font-bold", checklistProgress[item.id] ? "text-emerald-800" : "text-primary")}>
+                          {item.label}
+                        </p>
+                        <Badge variant="outline" className="text-[8px] font-black border-none bg-slate-100 text-slate-400 mt-1">Ref: {item.ref}</Badge>
+                      </div>
+                      {checklistProgress[item.id] && <CheckCircle2 className="size-5 text-emerald-500" />}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-6 border-t border-dashed flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <p className="text-[10px] text-slate-400 italic font-medium">
+                    "O preenchimento deste log garante a integridade do PGR e a defesa em fiscalizações do MTE."
+                  </p>
+                  <Button className="h-12 px-8 bg-primary text-white font-black uppercase text-[10px] rounded-xl shadow-xl gap-2">
+                    <Save className="size-4" /> Protocolar Evolução Campo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
         <TabsContent value="gatekeeper" className="mt-8 space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -188,7 +313,6 @@ export default function FieldControlOperational() {
               </div>
               
               <CardContent className="p-8 space-y-6">
-                {/* O "Visor" da Catraca */}
                 <div className={cn(
                   "h-32 rounded-3xl border-4 flex flex-col items-center justify-center text-center p-4 transition-all duration-500 shadow-inner",
                   !lastResult ? "bg-slate-900 border-slate-800" : 
@@ -279,7 +403,7 @@ export default function FieldControlOperational() {
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             <Badge className={cn(
-                              "w-fit text-[8px] font-black uppercase border-none px-3",
+                              "w-fit text-[8px] font-black uppercase border-none px-3 h-6",
                               log.status === 'authorized' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
                             )}>
                               {log.status === 'authorized' ? "Autorizado" : "Bloqueado"}
@@ -309,30 +433,9 @@ export default function FieldControlOperational() {
             <CardHeader className="bg-slate-50 border-b py-6 px-8">
               <CardTitle className="text-lg font-black text-primary uppercase">Agenda de Campo</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50 text-[10px] uppercase font-black">
-                  <TableRow>
-                    <TableHead className="pl-8">Status / OS</TableHead>
-                    <TableHead>Unidade Cliente</TableHead>
-                    <TableHead className="text-right pr-8">Ação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fieldTasks.map((task) => (
-                    <TableRow key={task.id} className="hover:bg-slate-50/50">
-                      <TableCell className="pl-8">
-                        <p className="font-black text-xs text-primary uppercase">{task.title}</p>
-                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10">{task.type}</Badge>
-                      </TableCell>
-                      <TableCell><p className="text-xs font-bold text-slate-600">{task.companyName}</p></TableCell>
-                      <TableCell className="text-right pr-8">
-                        <Button size="sm" className="h-8 text-[9px] font-black uppercase bg-primary rounded-lg">Coletar Dados</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="p-0 text-center py-20 opacity-30">
+              <History className="size-16 mx-auto mb-4" />
+              <p className="font-black uppercase text-xs tracking-widest">Histórico de Ordens de Serviço Externas</p>
             </CardContent>
           </Card>
         </TabsContent>
