@@ -28,8 +28,8 @@ import {
 import { cn } from "@/lib/utils"
 
 /**
- * @fileOverview Gestão de Escala Técnica TST - Obra Atmosphere
- * Replicando a lógica de escala 12x36h para a equipe de Segurança do Trabalho.
+ * @fileOverview Gestão de Escala Técnica TST
+ * Módulo genérico para controle de escalas 12x36h em unidades operacionais.
  */
 
 export default function SafetyOperationalScale() {
@@ -45,9 +45,9 @@ export default function SafetyOperationalScale() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <Badge className="bg-primary text-white font-black uppercase text-[8px] tracking-[0.3em] mb-3">GESTÃO DE EQUIPE TST</Badge>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Obra Atmosphere</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Escala Técnica Operacional</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">
-            <Building2 className="size-3" /> Dall Empreendimentos | Segurança Ativa de Canteiro
+            <Building2 className="size-3" /> Unidade Selecionada | Segurança Ativa de Campo
           </p>
         </div>
         <div className="flex gap-2">
@@ -102,9 +102,9 @@ export default function SafetyOperationalScale() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl font-black text-primary uppercase">Escala Quinzenal TST</CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Alternância para monitoramento ininterrupto do canteiro.</CardDescription>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Alternância para monitoramento ininterrupto da unidade.</CardDescription>
             </div>
-            <Badge className="bg-primary text-white font-black uppercase text-[10px] h-8 px-4">Equipe Dall Atmosphere</Badge>
+            <Badge className="bg-primary text-white font-black uppercase text-[10px] h-8 px-4">Equipe Técnica Alocada</Badge>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -152,7 +152,7 @@ export default function SafetyOperationalScale() {
           <div className="space-y-2">
             <h4 className="text-sm font-black text-primary uppercase">Nota Operacional TST</h4>
             <p className="text-xs text-primary/70 leading-relaxed font-medium italic">
-              "O TST escalado para o sábado deve realizar a inspeção periférica de bandejas e o checklist de geradores para a liberação da concretagem de segunda-feira."
+              "O TST escalado para o sábado deve realizar a inspeção periférica e o checklist de geradores para a liberação das atividades de segunda-feira."
             </p>
           </div>
         </div>

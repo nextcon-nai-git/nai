@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -270,37 +269,15 @@ export default function ScaleSimulator() {
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
-      <style jsx global>{`
-        .dall-custom-slider [role="slider"] {
-          width: 110px !important;
-          height: 60px !important;
-          border-radius: 12px !important;
-          background-image: url('${dallLogo}') !important;
-          background-size: 90% !important;
-          background-repeat: no-repeat !important;
-          background-position: center !important;
-          background-color: white !important;
-          border: 2px solid #001F3F !important;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
-          cursor: grab;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .dall-custom-slider [role="slider"]:active {
-          cursor: grabbing;
-          transform: scale(1.05);
-          box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
-        }
-      `}</style>
-
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">DALL CONSTRUCOES LTDA</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Simulador de Impacto Financeiro SST</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">
-            <Building2 className="size-3" /> CNPJ: 11.306.970/0001-36 • Simulador de Escala e Acidentalidade
+            <Building2 className="size-3" /> Análise de Performance Tributária para o Setor de Construção
           </p>
         </div>
         <Badge className="bg-[#090e24] text-[#f59e0b] font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#f59e0b]/20 shadow-lg">
-          FAP ATUAL: 1,2137
+          FAP REFERÊNCIA: 1,2137
         </Badge>
       </header>
 
@@ -313,14 +290,14 @@ export default function ScaleSimulator() {
               </div>
               <div>
                 <CardTitle className="text-xl font-black uppercase tracking-tight">Impacto Tributário (RAT/FAP)</CardTitle>
-                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Análise baseada em folha anual de R$ 30M.</CardDescription>
+                <CardDescription className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Simulação baseada em folha anual estimada de R$ 30M.</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-10 space-y-12">
             <div className="space-y-6">
               <div className="flex justify-between items-end">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Alvo (Arraste a Logo)</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Fator FAP Alvo</label>
                 <span className={cn(
                   "text-2xl font-black font-headline px-4 py-1 rounded-xl shadow-inner",
                   currentFap === 1.0 ? "text-emerald-600 bg-emerald-50" : 
@@ -336,12 +313,12 @@ export default function ScaleSimulator() {
                   onValueChange={setFapIndex} 
                   max={2} 
                   step={1} 
-                  className="py-4 dall-custom-slider"
+                  className="py-4"
                 />
                 <div className="flex justify-between mt-2 text-[9px] font-black text-slate-300 uppercase tracking-tighter">
                   <span>1.0 (Meta)</span>
                   <span>1.1</span>
-                  <span>1.2 (Atual)</span>
+                  <span>1.2 (Referência)</span>
                 </div>
               </div>
             </div>
@@ -353,7 +330,7 @@ export default function ScaleSimulator() {
             <TrendingUp className="size-48" />
           </div>
           <CardHeader className="p-8 pb-4">
-            <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.3em]">Custo RAT Anual</CardTitle>
+            <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.3em]">Custo RAT Projetado</CardTitle>
           </CardHeader>
           <CardContent className="p-8 pt-0 flex-1 flex flex-col justify-between space-y-8">
             <div>
@@ -366,17 +343,17 @@ export default function ScaleSimulator() {
             {potentialSaving > 0 && (
               <div className="bg-white/5 border border-white/10 p-6 rounded-3xl space-y-2 animate-in zoom-in-95">
                 <p className="text-[9px] font-black uppercase text-emerald-400 tracking-widest flex items-center gap-2">
-                  <TrendingDown className="size-3" /> Potencial de Economia
+                  <TrendingDown className="size-3" /> Economia Potencial
                 </p>
                 <h3 className="text-2xl font-black text-emerald-400">
                   {potentialSaving.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                 </h3>
-                <p className="text-[9px] text-white/40 leading-tight">Economia gerada pela gestão ativa Nextcon.</p>
+                <p className="text-[9px] text-white/40 leading-tight">Saving anual com a implementação da Gestão Ativa NAI.</p>
               </div>
             )}
 
             <Button asChild className="w-full h-14 bg-accent hover:bg-accent/90 text-primary font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-2xl mt-auto">
-              <Link href="/comercial" className="gap-2">Solicitar Blindagem ROI <ArrowUpRight className="size-4" /></Link>
+              <Link href="/comercial" className="gap-2">Solicitar Diagnóstico ROI <ArrowUpRight className="size-4" /></Link>
             </Button>
           </CardContent>
         </Card>
@@ -397,7 +374,7 @@ export default function ScaleSimulator() {
               onValueChange={setScaleSlider} 
               max={2} 
               step={1} 
-              className="py-4 dall-custom-slider"
+              className="py-4"
             />
           </div>
           
@@ -414,20 +391,20 @@ export default function ScaleSimulator() {
         <Card className="card-shadow border-none bg-red-50/50 border-l-4 border-red-500 rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-[10px] font-black uppercase text-red-600 tracking-widest flex items-center gap-2">
-              <FileWarning className="size-3" /> Acidentalidade Previdenciária
+              <FileWarning className="size-3" /> Risco de Acidentalidade
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-red-100">
-              <span className="text-[10px] font-bold text-slate-500 uppercase">CAT Emitidas</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase">CAT Simuladas</span>
               <span className="text-xl font-black text-primary">0</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-white rounded-xl border border-red-100 shadow-sm">
-              <span className="text-[10px] font-bold text-slate-500 uppercase">Auxílio B91 (Acidente)</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase">Afastamentos B91</span>
               <span className="text-xl font-black text-red-600 animate-pulse">1</span>
             </div>
             <div className="p-3 bg-red-600 text-white rounded-xl text-center">
-              <p className="text-[8px] font-black uppercase opacity-70">FAP Consolidado</p>
+              <p className="text-[8px] font-black uppercase opacity-70">FAP de Referência</p>
               <p className="text-lg font-black tracking-tighter">1,2137</p>
             </div>
           </CardContent>
@@ -438,95 +415,6 @@ export default function ScaleSimulator() {
           <StatCard label="SESMT (NR-04)" value={currentData.sesmt} icon={HardHat} color="text-orange-600" bg="bg-orange-50" />
           <StatCard label="Status eSocial" value={currentData.status} sub={currentData.subStatus} icon={ShieldAlert} color={currentData.statusCor} bg={currentData.bg} />
         </div>
-      </div>
-
-      <div className="space-y-6">
-        <h2 className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
-          <ClipboardCheck className="size-6 text-primary" /> Central de NRs e Checklists Digitais
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {currentData.nrs.map((item, idx) => (
-            <Card key={idx} className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden group hover:ring-2 ring-primary/5 transition-all">
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1" className="border-none">
-                  <AccordionTrigger className="px-8 py-6 hover:no-underline hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4 text-left">
-                      <div className="p-2 bg-primary/5 rounded-xl text-primary"><ClipboardCheck className="size-5" /></div>
-                      <span className="font-black text-primary uppercase text-sm">{item.nr}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-8 pb-8 pt-2">
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Itens de Inspeção Obrigatória:</p>
-                      <div className="space-y-3">
-                        {item.items.map((check, cIdx) => (
-                          <div key={cIdx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
-                            <Checkbox id={`check-${idx}-${cIdx}`} className="mt-0.5" />
-                            <label htmlFor={`check-${idx}-${cIdx}`} className="text-xs font-medium text-slate-600 leading-tight cursor-pointer">
-                              {check}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-6 p-4 bg-primary text-white rounded-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-3 opacity-10"><Zap className="size-8 text-white" /></div>
-                        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">🚀 Automação Nextcon:</p>
-                        <p className="text-xs font-medium leading-relaxed italic">{item.solution}</p>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        <h2 className="text-xl font-headline font-black text-primary uppercase flex items-center gap-3">
-          <Brain className="size-6 text-primary" /> Diagrama de Risco Ergonômico (NR-17)
-        </h2>
-        
-        <Card className="card-shadow border-none bg-slate-100 rounded-[3rem] p-10 overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
-            <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] shadow-inner flex flex-col items-center">
-              <p className="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Interativo: Clique nas partes</p>
-              <svg viewBox="0 0 200 400" className="w-full max-w-[200px] h-auto drop-shadow-xl">
-                <circle cx="100" cy="50" r="30" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'head' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('head')} />
-                <path d="M 60 90 L 140 90 L 130 220 L 70 220 Z" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'back' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('back')} />
-                <path d="M 55 95 L 15 180 L 35 190 L 65 110 Z" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'arms' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('arms')} />
-                <path d="M 145 95 L 185 180 L 165 190 L 135 110 Z" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'arms' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('arms')} />
-                <path d="M 70 225 L 50 380 L 80 380 L 95 225 Z" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'legs' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('legs')} />
-                <path d="M 130 225 L 150 380 L 120 380 L 105 225 Z" className={cn("transition-all duration-300 cursor-pointer stroke-[3]", selectedPart === 'legs' ? "fill-red-500 stroke-red-700" : "fill-blue-100 stroke-blue-400")} onClick={() => setSelectedPart('legs')} />
-              </svg>
-            </div>
-
-            <div className="lg:col-span-2 space-y-6">
-              {selectedPart ? (
-                <div className="animate-in slide-in-from-right-4 duration-500 space-y-6">
-                  <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border-l-[12px] border-red-500">
-                    <h3 className="text-2xl font-black text-primary uppercase font-headline mb-4 flex items-center gap-3">
-                      <AlertTriangle className="size-8 text-red-500" /> {ERGO_DATA[selectedPart].title}
-                    </h3>
-                    <p className="text-lg text-slate-600 font-medium leading-relaxed italic mb-8">
-                      "{ERGO_DATA[selectedPart].risk}"
-                    </p>
-                    <div className="bg-primary text-white p-8 rounded-3xl relative overflow-hidden shadow-2xl">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-slate-400">🛡️ Blindagem Nextcon</p>
-                      <p className="text-sm font-bold leading-relaxed">{ERGO_DATA[selectedPart].action}</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center p-20 border-4 border-dashed rounded-[3rem] opacity-30 text-center space-y-4">
-                  <Monitor className="size-20 text-primary" />
-                  <p className="text-xl font-black uppercase tracking-widest text-primary">Aguardando Interação Ergonômica</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
       </div>
 
       <div className="flex justify-center pt-10">

@@ -87,7 +87,7 @@ export default function Dashboard() {
         </Badge>
       </div>
 
-      {/* ⚠️ ALERTA DE RISCO PREDITIVO - JOÃO SILVA INTEGRADO */}
+      {/* ⚠️ ALERTA DE RISCO PREDITIVO - INTEGRADO À BASE DE DADOS */}
       {!alertResolved && (
         <Card className="border-none bg-red-50 ring-2 ring-red-200 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-200/20">
           <div className="flex flex-col lg:flex-row">
@@ -99,7 +99,7 @@ export default function Dashboard() {
                 <h2 className="text-xl font-black uppercase tracking-tight">Risco Crítico</h2>
               </div>
               <p className="text-sm font-bold text-red-100 leading-tight mb-6">
-                Bloqueio preventivo automático para atividade em altura (Andar 18).
+                Bloqueio preventivo automático para atividade em altura.
               </p>
               <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
                 "Integração Cross-Data: Hipertensão detectada nos logs de triagem de ontem."
@@ -109,8 +109,8 @@ export default function Dashboard() {
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • DALL ATMOSPHERE</Badge>
-                  <h3 className="text-lg font-black text-primary uppercase">Andar 18 (Torre A)</h3>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE EM OPERAÇÃO</Badge>
+                  <h3 className="text-lg font-black text-primary uppercase">Posto de Trabalho Elevado</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
                   <Link href="/medical/health-management">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
@@ -124,7 +124,7 @@ export default function Dashboard() {
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>
-                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI de R$ 315k em passivo.</p>
+                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI de R$ 315k em passivo trabalhista.</p>
                 </div>
               </div>
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise cruzada detectou tendência de absenteísmo na Torre A. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
+                    "A análise cruzada detectou tendência de absenteísmo na unidade principal. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
                   </p>
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3 text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Atmosphere</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Digital</span>
                   </div>
                   <span className="text-[9px] font-black text-emerald-600">LIVE</span>
                 </div>

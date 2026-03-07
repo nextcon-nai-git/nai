@@ -210,7 +210,7 @@ export default function HealthManagementUnified() {
       await addDoc(collection(db, "nursing_attendances"), {
         ...formData,
         employeeName: emp?.name || "Colaborador",
-        companyId: emp?.companyId || "DALL_ATMOSPHERE",
+        companyId: emp?.companyId || "CLI_NATIVA",
         nurseId: user?.uid,
         nurseName: profile?.name || user?.email,
         createdAt: new Date().toISOString(),
@@ -225,8 +225,8 @@ export default function HealthManagementUnified() {
   }
 
   const sectors = [
-    { name: "Operacional (Nativa)", stress: 85, mood: "Crítico", trend: "+12%", color: "bg-red-500", lives: 42 },
-    { name: "Engenharia (TimeNow)", stress: 42, mood: "Estável", trend: "-5%", color: "bg-green-500", lives: 18 },
+    { name: "Unidade Operacional", stress: 85, mood: "Crítico", trend: "+12%", color: "bg-red-500", lives: 42 },
+    { name: "Setor Administrativo", stress: 42, mood: "Estável", trend: "-5%", color: "bg-green-500", lives: 18 },
     { name: "Logística", stress: 68, mood: "Alerta", trend: "+2%", color: "bg-orange-500", lives: 25 },
   ]
 
@@ -234,9 +234,9 @@ export default function HealthManagementUnified() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Gestão de Saúde & Ambulatório</h1>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Gestão de Saúde da Unidade</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest flex items-center gap-2">
-            <Building2 className="size-3" /> Central Atmosphere • NR-07 | NR-18 | COFEN
+            <Building2 className="size-3" /> Central de Saúde | NR-07 | NR-18 | COFEN
           </p>
         </div>
         <div className="flex gap-2">
@@ -255,7 +255,7 @@ export default function HealthManagementUnified() {
                   <div className="p-2 bg-white/10 rounded-lg text-accent"><HeartPulse className="size-5" /></div>
                   <DialogTitle className="text-xl font-headline font-black uppercase">Ficha de Triagem Técnica</DialogTitle>
                 </div>
-                <DialogDescription className="text-white/60 font-medium italic">Registro auditável de intercorrência em obra.</DialogDescription>
+                <DialogDescription className="text-white/60 font-medium italic">Registro auditável de intercorrência em unidade operacional.</DialogDescription>
               </div>
               <div className="p-8 max-h-[60vh] overflow-y-auto space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -326,7 +326,7 @@ export default function HealthManagementUnified() {
             <StatCard label="Triagens Hoje" value={attendances.filter(a => new Date(a.createdAt).toDateString() === new Date().toDateString()).length} icon={Activity} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="Casos Críticos" value={attendances.filter(a => Number(a.bp_sys) >= 160).length} icon={AlertTriangle} color="text-red-600" bg="bg-red-50" />
             <StatCard label="SLA Atendimento" value="4.2 min" icon={Timer} color="text-emerald-600" bg="bg-emerald-50" />
-            <StatCard label="Vidas em Obra" value="806" icon={Users} color="text-primary" bg="bg-slate-100" />
+            <StatCard label="Vidas em Vigilância" value="806" icon={Users} color="text-primary" bg="bg-slate-100" />
           </div>
 
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
@@ -486,7 +486,7 @@ export default function HealthManagementUnified() {
             <Card className="card-shadow border-none bg-white rounded-[2rem] p-8 flex gap-6 items-start">
               <div className="p-4 bg-blue-50 rounded-2xl text-blue-600 shadow-inner"><Clock className="size-8" /></div>
               <div className="space-y-2">
-                <h3 className="text-lg font-black text-primary uppercase">Regime Atmosphere</h3>
+                <h3 className="text-lg font-black text-primary uppercase">Regime Operacional da Unidade</h3>
                 <p className="text-sm text-slate-500 leading-relaxed font-medium">Segunda a Sexta: 07h às 19h (12x36h).<br/>Sábado: 07h às 13h (Checklist Geral).</p>
                 <Badge variant="outline" className="border-emerald-100 text-emerald-700 bg-emerald-50 text-[8px] font-black uppercase mt-2">Operação Ativa</Badge>
               </div>
@@ -541,7 +541,7 @@ export default function HealthManagementUnified() {
                 </CardHeader>
                 <CardContent className="p-0 space-y-6">
                   <p className="text-sm italic text-white/80 leading-relaxed font-medium">
-                    "Detectada correlação de 0.82 entre stress e absenteísmo na unidade Nativa. Recomendamos Pausa Ativa de 15min."
+                    "Detectada correlação de 0.82 entre stress e absenteísmo na unidade principal. Recomendamos Pausa Ativa de 15min."
                   </p>
                   <Button className="w-full h-12 bg-accent text-primary font-black uppercase text-[10px] rounded-xl shadow-lg">Solicitar Blitz Ergonômica</Button>
                 </CardContent>

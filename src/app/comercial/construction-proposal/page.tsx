@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -107,21 +106,21 @@ export default function ConstructionProposalPage() {
     try {
       const proposalRef = collection(db, "companies", "leads", "tasks")
       await addDocumentNonBlocking(proposalRef, {
-        title: `Proposta Atmosphere: ${current.label}`,
-        companyName: "Dall Empreendimentos",
+        title: `Proposta Técnica: ${current.label}`,
+        companyName: "Prospect Setor Construção",
         type: 'comercial',
         status: 'sent',
         priority: 'critical',
         totalValue: totalMonthly,
         createdAt: new Date().toISOString(),
         metadata: {
-          project: "Obra Atmosphere",
+          project: "Unidade Operacional",
           scenario: activeScenario,
           roi_saving: annualSaving
         },
         checklist: [
-          { id: '1', text: 'Confirmar mobilização em 15 dias', checked: false, mandatory: true },
-          { id: '2', text: 'Validar escala com RH Dall', checked: false, mandatory: true }
+          { id: '1', text: 'Confirmar mobilização técnica', checked: false, mandatory: true },
+          { id: '2', text: 'Validar escala com RH do cliente', checked: false, mandatory: true }
         ]
       })
       toast({ title: "Proposta Enviada!", description: `Plano ${current.label} protocolado no funil comercial.` })
@@ -136,11 +135,11 @@ export default function ConstructionProposalPage() {
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-primary text-accent rounded-2xl shadow-xl">
-              <Building2 className="size-6" />
+              <Construction className="size-6" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-primary uppercase font-headline tracking-tight leading-none">Gestão Atmosphere</h1>
-              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Dall Empreendimentos • Itajaí/SC</p>
+              <h1 className="text-3xl font-black text-primary uppercase font-headline tracking-tight leading-none">Proposta Setor Construção</h1>
+              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Gestão de Risco & Saúde de Canteiro</p>
             </div>
           </div>
         </div>
@@ -150,7 +149,7 @@ export default function ConstructionProposalPage() {
           </Button>
           <Button onClick={handleSendToClient} disabled={isSaving} className="gradient-nextcon text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl shadow-2xl gap-2">
             {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4 text-accent" />}
-            Aprovar Mobilização
+            Gerar Proposta
           </Button>
         </div>
       </header>

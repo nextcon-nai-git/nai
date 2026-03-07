@@ -69,8 +69,8 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Gerador de Propostas", icon: ShoppingCart, href: "/comercial" },
-      { title: "Atmosphere (Dall)", icon: HardHat, href: "/comercial/construction-proposal" },
-      { title: "Multidisciplinar", icon: UserPlus, href: "/comercial/multidisciplinary-proposal" },
+      { title: "Proposta Construção", icon: HardHat, href: "/comercial/construction-proposal" },
+      { title: "Atendimento In Company", icon: UserPlus, href: "/comercial/multidisciplinary-proposal" },
       { title: "ERP Financeiro", icon: Database, href: "/financial" },
       { title: "ROI & Perícias", icon: Gavel, href: "/legal-financial" },
     ]
@@ -92,7 +92,7 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'ENGINEER', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
-      { title: "Escala Técnica TST", icon: CalendarDays, href: "/safety/operational-scale" },
+      { title: "Escala Técnica", icon: CalendarDays, href: "/safety/operational-scale" },
       { title: "Profissionais de Campo", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
       { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },
