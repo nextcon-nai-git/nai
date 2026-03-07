@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -55,6 +54,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, doc, getDoc, addDoc, updateDoc, limit, where } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+import MedicalCopilot from "@/components/medical/medical-copilot"
 
 export default function MedicalAuditingPage() {
   const { toast } = useToast()
@@ -159,27 +159,37 @@ export default function MedicalAuditingPage() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-1 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[700px]">
-          <CardHeader className="bg-primary/5 border-b py-6 px-8 shrink-0">
-            <CardTitle className="text-lg font-black text-primary uppercase">Fila de Regulação</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1 overflow-y-auto custom-scrollbar">
-            {isLoading ? (
-              <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto opacity-20" /></div>
-            ) : requests?.map((req) => (
-              <div key={req.id} className={cn("p-6 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-between group", selectedRequest?.id === req.id && "bg-primary/5 border-l-4 border-primary")} onClick={() => setSelectedRequest(req)}>
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white shadow-inner"><User className="size-6" /></div>
-                  <div>
-                    <p className="font-black text-xs text-primary uppercase truncate w-40">{req.patientName}</p>
-                    <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10 mt-1">{req.diagnosis}</Badge>
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden flex flex-col h-[400px]">
+            <CardHeader className="bg-primary/5 border-b py-6 px-8 shrink-0">
+              <CardTitle className="text-lg font-black text-primary uppercase">Fila de Regulação</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-y-auto custom-scrollbar">
+              {isLoading ? (
+                <div className="p-20 text-center"><Loader2 className="size-8 animate-spin mx-auto opacity-20" /></div>
+              ) : requests?.map((req) => (
+                <div key={req.id} className={cn("p-6 hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-between group", selectedRequest?.id === req.id && "bg-primary/5 border-l-4 border-primary")} onClick={() => setSelectedRequest(req)}>
+                  <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white shadow-inner"><User className="size-6" /></div>
+                    <div>
+                      <p className="font-black text-xs text-primary uppercase truncate w-40">{req.patientName}</p>
+                      <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10 mt-1">{req.diagnosis}</Badge>
+                    </div>
                   </div>
+                  <ChevronRight className="size-5 text-slate-200 group-hover:text-primary" />
                 </div>
-                <ChevronRight className="size-5 text-slate-200 group-hover:text-primary" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Integração do MedicalCopilot com o contexto do paciente selecionado */}
+          {selectedRequest && (
+            <MedicalCopilot 
+              pacienteId={selectedRequest.id} 
+              className="animate-in slide-in-from-bottom-4 duration-500"
+            />
+          )}
+        </div>
 
         <div className="lg:col-span-2 space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
