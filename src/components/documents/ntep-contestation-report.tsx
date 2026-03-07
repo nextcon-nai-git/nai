@@ -2,11 +2,6 @@
 
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
-/**
- * @fileOverview Gerador de Peça de Contestação Administrativa ao NTEP.
- * Estrutura jurídica fundamentada para descaracterização de acidente de trabalho.
- */
-
 const styles = StyleSheet.create({
   page: { padding: 50, fontSize: 10, fontFamily: 'Helvetica', color: '#1e293b' },
   header: { marginBottom: 30, borderBottomWidth: 1, borderBottomColor: '#001F3F', paddingBottom: 15 },
@@ -55,7 +50,7 @@ export const NtepContestationReport = ({ data, company, currentUser }: any) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#001F3F' }}>ILUSTRÍSSIMO SENHOR GERENTE EXECUTIVO DA AGÊNCIA DA PREVIDÊNCIA SOCIAL</Text>
-          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b' }}>{company?.city || 'CURITIBA'} - {company?.state || 'PR'}</Text>
+          <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748b' }}>{company?.city || 'UNIDADE'} - {company?.state || 'UF'}</Text>
         </View>
 
         <View style={styles.infoBox}>
@@ -66,7 +61,7 @@ export const NtepContestationReport = ({ data, company, currentUser }: any) => {
         </View>
 
         <Text style={styles.paragraph}>
-          <Text style={styles.bold}>{company?.name || 'DALL EMPREENDIMENTOS'}</Text>, inscrita no CNPJ sob o nº {company?.cnpj || '---'}, com sede em {company?.city || 'Curitiba'} - {company?.state || 'PR'}, vem, tempestiva e respeitosamente, à presença de Vossa Senhoria, com fulcro no Art. 21-A, §1º da Lei nº 8.213/91 apresentar a presente:
+          <Text style={styles.bold}>{company?.name || 'UNIDADE CONTRATANTE'}</Text>, inscrita no CNPJ sob o nº {company?.cnpj || '---'}, com sede em {company?.city || '---'} - {company?.state || '---'}, vem, tempestiva e respeitosamente, à presença de Vossa Senhoria, com fulcro no Art. 21-A, §1º da Lei nº 8.213/91 apresentar a presente:
         </Text>
 
         <Text style={styles.title}>CONTESTAÇÃO ADMINISTRATIVA AO NTEP</Text>

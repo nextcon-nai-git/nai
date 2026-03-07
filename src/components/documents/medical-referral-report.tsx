@@ -2,11 +2,6 @@
 
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
-/**
- * @fileOverview Gerador de Relatório Médico de Encaminhamento ao INSS (Modelo Técnico).
- * Baseado no checklist NTEP para fundamentação de auxílio doença comum (B31).
- */
-
 const styles = StyleSheet.create({
   page: { padding: 50, fontSize: 10, fontFamily: 'Helvetica', color: '#1e293b' },
   header: { marginBottom: 30, borderBottomWidth: 1, borderBottomColor: '#001F3F', paddingBottom: 15 },
@@ -66,14 +61,14 @@ export const MedicalReferralReport = ({ data, company, doctor }: any) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.logoArea}>
-            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#001F3F' }}>{company?.name || 'DALL EMPREENDIMENTOS'}</Text>
+            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#001F3F' }}>{company?.name || 'UNIDADE CONTRATANTE'}</Text>
             <Text style={{ fontSize: 8, color: '#94a3b8' }}>PLATAFORMA NAI</Text>
           </View>
           <Text style={styles.title}>RELATÓRIO MÉDICO DE ENCAMINHAMENTO AO INSS</Text>
         </View>
 
         <View style={styles.dateLocation}>
-          <Text>{company?.city || 'Curitiba'} - {company?.state || 'PR'}, {formattedDate}.</Text>
+          <Text>{company?.city || 'Unidade'} - {company?.state || 'Local'}, {formattedDate}.</Text>
         </View>
 
         <View style={styles.recipient}>

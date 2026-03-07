@@ -69,11 +69,10 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, addDoc, doc, serverTimestamp, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
-import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { REAL_EMPLOYEES, MOCK_NURSING_ATTENDANCES } from "@/lib/real-data"
 import { Progress } from "@/components/ui/progress"
 
-// Definição dos Profissionais e Checklists
 const PROFESSIONAL_EVOLUTION = {
   medico: {
     title: "Médico do Trabalho",
@@ -167,7 +166,6 @@ export default function HealthManagementUnified() {
     coren: ""
   })
 
-  // Perfil e Dados
   const profileRef = useMemoFirebase(() => {
     if (!db || !user) return null
     return doc(db, "users", user.uid)
@@ -198,7 +196,6 @@ export default function HealthManagementUnified() {
     return Math.round((checked / items.length) * 100)
   }
 
-  // Lógica de Atendimento
   async function handleSaveAttendance() {
     if (!db || !formData.employeeId || !formData.coren) {
       toast({ variant: "destructive", title: "Dados Incompletos", description: "Colaborador e Registro COREN são obrigatórios." })

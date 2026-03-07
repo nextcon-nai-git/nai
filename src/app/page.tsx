@@ -87,7 +87,6 @@ export default function Dashboard() {
         </Badge>
       </div>
 
-      {/* ⚠️ ALERTA DE RISCO PREDITIVO - INTEGRADO À BASE DE DADOS */}
       {!alertResolved && (
         <Card className="border-none bg-red-50 ring-2 ring-red-200 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-200/20">
           <div className="flex flex-col lg:flex-row">

@@ -10,17 +10,12 @@ import {
   CheckCircle2, 
   Loader2, 
   Sparkles, 
-  MessageSquare, 
   TrendingUp, 
-  Copy, 
   Gavel,
   ClipboardList,
   ArrowRight,
   ShieldAlert,
-  Search,
-  CheckSquare,
   User,
-  Download,
   FileText,
   Scale
 } from "lucide-react"
@@ -75,7 +70,6 @@ import { PDFDownloadLink } from "@react-pdf/renderer"
 import { MedicalReferralReport } from "@/components/documents/medical-referral-report"
 import { NtepContestationReport } from "@/components/documents/ntep-contestation-report"
 
-// Schema expandido para incluir dados do benefício e ciência jurídica
 const recordFormSchema = z.object({
   employeeName: z.string().min(3, "Nome obrigatório"),
   cpf: z.string().optional(),
@@ -103,7 +97,7 @@ const NTEP_WORKFLOW_STEPS = [
       { id: "p1_1", label: "Recepção: Validar se > 15 dias ou soma > 15 em 60 dias." },
       { id: "p1_2", label: "Identificação do CID: Verificar se consta informação clínica." },
       { id: "p1_3", label: "Alerta de Risco: CID Ortopédico (M) ou Trauma (S/T) identificado?" },
-      { id: "p1_4", label: "Agendamento Prévio: Marcar consulta com Médico do Trabalho Dall." },
+      { id: "p1_4", label: "Agendamento Prévio: Marcar consulta com Médico do Trabalho Nextcon." },
       { id: "p1_5", label: "Comunicação Imediata: Notificar SESMT e Jurídico/FAP." },
     ]
   },
@@ -188,12 +182,6 @@ export default function LimboSentinel() {
     return query(collection(db, "companies"), orderBy("name", "asc"))
   }, [db])
   const { data: companies } = useCollection(companiesQuery)
-
-  React.useEffect(() => {
-    if (profile && profile.companyId) {
-      form.setValue("companyId", profile.companyId)
-    }
-  }, [profile, form])
 
   const expertisesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
