@@ -2,26 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- Funções de Apoio para RBAC ---
+    // --- Funções de Apoio Baseadas em Custom Claims ---
     function isSignedIn() { 
       return request.auth != null; 
     }
     
-    // Usando $(database) ao invés de (default) garante compatibilidade caso você crie outros bancos
-    function getUserData() { 
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; 
-    }
-    
+    // Checagem otimizada via token (Custom Claims)
     function isSuperAdmin() { 
-      return isSignedIn() && (getUserData().role == 'SUPER_ADMIN' || getUserData().role == 'ADMIN'); 
+      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN'); 
     }
     
     function isClientAdmin(companyId) { 
-      return isSignedIn() && getUserData().role == 'CLIENT_ADMIN' && getUserData().companyId == companyId; 
+      return isSignedIn() && request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId; 
     }
     
     function isDoctor(medicoId) { 
-      return isSignedIn() && getUserData().role == 'DOCTOR' && request.auth.uid == medicoId; 
+      return isSignedIn() && request.auth.token.role == 'DOCTOR' && request.auth.uid == medicoId; 
     }
 
     // --- Regras por Coleção ---
@@ -55,8 +51,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, delete: if isSuperAdmin();
       
-      // Proteção contra escalonamento de privilégios:
-      // O usuário pode atualizar o próprio perfil, desde que não mude seu cargo ou sua empresa.
+      // Impede que o usuário mude seu próprio cargo ou empresa (prevenção de hacking)
       allow update: if isSuperAdmin() || (
         request.auth.uid == userId && 
         request.resource.data.role == resource.data.role &&
