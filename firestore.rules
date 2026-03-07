@@ -7,38 +7,38 @@ service cloud.firestore {
       return request.auth != null; 
     }
     
+    // Verificação de Email de Engenharia/Admin (Segurança de Bootstrap)
+    function isSystemAdminEmail() {
+      return request.auth.token.email in ['nextcon@nextconsaude.com.br', 'admin@nextcon.com.br', 'felipe.bianca@prestador.nai.com.br'];
+    }
+
     // Obtém dados do perfil em tempo real (cacheado pelo Firestore por requisição)
     function profile() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
+        : null;
     }
     
+    function hasRole(roles) {
+      let userRole = request.auth.token.role != null ? request.auth.token.role : (profile() != null ? profile().role : 'USER');
+      return userRole in roles || isSystemAdminEmail();
+    }
+
     function isSuperAdmin() { 
-      return isSignedIn() && (
-        request.auth.token.role in ['SUPER_ADMIN', 'ADMIN', 'ENGINEER'] || 
-        profile().role in ['SUPER_ADMIN', 'ADMIN', 'ENGINEER']
-      );
+      return hasRole(['SUPER_ADMIN', 'ADMIN', 'ENGINEER']);
     }
     
     function isClientAdmin(companyId) { 
+      let p = profile();
       return isSignedIn() && (
         (request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId) ||
-        (profile().role == 'CLIENT_ADMIN' && profile().companyId == companyId)
+        (p != null && p.role == 'CLIENT_ADMIN' && p.companyId == companyId) ||
+        isSuperAdmin()
       );
     }
     
-    function isDoctor() { 
-      return isSignedIn() && (
-        request.auth.token.role == 'DOCTOR' || 
-        profile().role == 'DOCTOR'
-      );
-    }
-    
-    function isProvider() {
-      return isSignedIn() && (
-        request.auth.token.role == 'PROVIDER' || 
-        profile().role == 'PROVIDER'
-      );
-    }
+    function isDoctor() { return hasRole(['DOCTOR', 'SUPER_ADMIN', 'ADMIN']); }
+    function isProvider() { return hasRole(['PROVIDER', 'ENGINEER', 'SUPER_ADMIN', 'ADMIN']); }
 
     // --- Regras por Coleção ---
 
@@ -88,40 +88,38 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
-    // Feedback da Plataforma
-    match /feedback/{id} {
-      allow read: if isSuperAdmin();
-      allow create: if isSignedIn();
-    }
-
     // Perfis de Usuário
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create, delete: if isSuperAdmin();
-      
-      // Bloqueia alteração de cargo/empresa por conta própria
-      allow update: if isSuperAdmin() || (
-        request.auth.uid == userId && 
-        request.resource.data.role == resource.data.role &&
-        request.resource.data.companyId == resource.data.companyId
-      );
+      // Permite que o usuário crie seu próprio perfil no login ou o Admin gerencie
+      allow create: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      allow delete: if isSuperAdmin();
+      allow update: if isSuperAdmin() || (request.auth.uid == userId);
     }
 
-    // Suporte para Collection Group Queries (Buscas globais filtradas)
-    match /{path=**}/employees/{empId} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
+    // --- Suporte para Collection Group Queries (Buscas globais otimizadas) ---
+    // Estrutura esperada: /companies/{cid}/subcolecao/{id}
+    
+    match /companies/{cid}/employees/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
     }
-    match /{path=**}/tasks/{taskId} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
+    match /companies/{cid}/tasks/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
     }
-    match /{path=**}/legalExpertises/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
+    match /companies/{cid}/legalExpertises/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
     }
-    match /{path=**}/reports/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
+    match /companies/{cid}/reports/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
     }
-    match /{path=**}/contracts/{id} {
-      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
+    match /companies/{cid}/contracts/{id} {
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(cid);
+    }
+    match /companies/{cid}/esocial_events_queue/{id} {
+      allow read: if isSuperAdmin() || isClientAdmin(cid);
+    }
+    match /companies/{cid}/access_logs/{id} {
+      allow read: if isSuperAdmin() || isClientAdmin(cid);
     }
   }
 }
