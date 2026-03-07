@@ -16,6 +16,7 @@ import {
   Calculator,
   DollarSign,
   TrendingUp,
+  TrendingDown,
   Brain,
   ArrowUpRight,
   Users as UsersIcon,
@@ -112,7 +113,7 @@ export default function Dashboard() {
                   <h3 className="text-lg font-black text-primary uppercase">Andar 18 (Torre A)</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
-                  <Link href="/medical/nursing-attendance">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
+                  <Link href="/medical/health-management">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
                 </Button>
               </div>
 
@@ -132,7 +133,7 @@ export default function Dashboard() {
                   <CheckCircle2 className="size-4" /> Validar Remanejamento para Solo
                 </Button>
                 <Button variant="outline" asChild className="border-red-200 text-red-600 h-11 px-6 rounded-xl font-black uppercase text-[10px]">
-                  <Link href="/medical/nursing-attendance">Refazer Triagem Agora</Link>
+                  <Link href="/medical/health-management">Refazer Triagem Agora</Link>
                 </Button>
               </div>
             </div>
