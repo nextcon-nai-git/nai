@@ -25,7 +25,9 @@ import {
   Brain,
   TrendingUp,
   ChevronRight,
-  Info
+  Info,
+  Sparkles,
+  Timer
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -61,6 +63,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, addDoc, doc, serverTimestamp, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
+import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { REAL_EMPLOYEES, MOCK_NURSING_ATTENDANCES } from "@/lib/real-data"
 
 export default function HealthManagementUnified() {
@@ -127,7 +130,7 @@ export default function HealthManagementUnified() {
       })
       toast({ title: "Atendimento Registrado" })
       setIsCreateOpen(false)
-      setFormData({ ...formData, employeeId: "", complaint: "", bp_sys: "", bp_dia: "", heart_rate: "", temperature: "", spo2: "", conduct: "observation", medication: "" })
+      setFormData({ employeeId: "", complaint: "", bp_sys: "", bp_dia: "", heart_rate: "", temperature: "", spo2: "", conduct: "observation", medication: "", coren: "" })
     } finally {
       setIsSubmitting(false)
     }
@@ -416,11 +419,5 @@ function StatCard({ label, value, icon: Icon, color, bg }: any) {
         <h3 className={cn("text-2xl font-black leading-none", color)}>{value}</h3>
       </CardContent>
     </Card>
-  )
-}
-
-function Timer(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
   )
 }
