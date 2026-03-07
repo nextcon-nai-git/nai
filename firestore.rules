@@ -7,7 +7,7 @@ service cloud.firestore {
       return request.auth != null; 
     }
     
-    // Checagem otimizada via token (Custom Claims)
+    // Checagem otimizada via token (Custom Claims) injetadas pela Cloud Function
     function isSuperAdmin() { 
       return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN'); 
     }

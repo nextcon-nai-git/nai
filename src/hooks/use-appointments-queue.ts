@@ -28,6 +28,7 @@ export function useAppointmentsQueue() {
   useEffect(() => {
     if (!db) return;
 
+    // Filtra apenas agendamentos do dia atual
     const today = new Date().toISOString().split('T')[0];
     const startOfDay = `${today}T00:00:00.000Z`;
     const endOfDay = `${today}T23:59:59.999Z`;
@@ -47,7 +48,7 @@ export function useAppointmentsQueue() {
           ...doc.data(),
         })) as Appointment[];
 
-        // Ordenação por horário de check-in para quem está "Em Espera"
+        // Prioriza a ordenação por horário de check-in para quem está "Em Espera"
         const sortedData = appointmentsData.sort((a, b) => {
           if (a.status === 'Em Espera' && b.status === 'Em Espera' && a.check_in_at && b.check_in_at) {
             return a.check_in_at.localeCompare(b.check_in_at);

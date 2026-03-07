@@ -1,4 +1,3 @@
-
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const admin = require("firebase-admin");
@@ -7,14 +6,14 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 /**
- * Função para sincronizar Custom Claims do Firebase Auth 
+ * Cloud Function para sincronizar Custom Claims do Firebase Auth 
  * baseadas no documento do usuário no Firestore.
+ * Garante que role e companyId estejam no token para Security Rules eficientes.
  */
 exports.syncUserClaims = onDocumentWritten("users/{userId}", async (event) => {
   const userId = event.params.userId;
-  const snapshot = event.data.after; // Dados após a gravação
+  const snapshot = event.data.after; 
   
-  // Se o documento foi deletado, removemos as claims
   if (!snapshot.exists) {
     await getAuth().setCustomUserClaims(userId, null);
     console.log(`Claims removidas para o usuário ${userId}`);
@@ -25,14 +24,12 @@ exports.syncUserClaims = onDocumentWritten("users/{userId}", async (event) => {
   const userRole = userData.role || 'USER'; 
   const userCompanyId = userData.companyId || null;
 
-  // Montamos o objeto de claims (Limite de 1000 bytes do Firebase)
   const claims = {
     role: userRole,
     companyId: userCompanyId
   };
 
   try {
-    // Injeta as claims no Auth do usuário para validação via Security Rules e Server-side
     await getAuth().setCustomUserClaims(userId, claims);
     console.log(`Claims atualizadas para ${userId}:`, claims);
   } catch (error) {

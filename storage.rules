@@ -6,37 +6,32 @@ service firebase.storage {
     function isSignedIn() { 
       return request.auth != null; 
     }
+    
+    // Busca dados no Firestore para RBAC (Caso Custom Claims ainda não tenham propagado)
     function getUserData() { 
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data; 
     }
     
-    // Funções de Papéis (RBAC)
     function isAdmin() { 
-      let role = getUserData().role;
-      return isSignedIn() && (role == 'SUPER_ADMIN' || role == 'ADMIN'); 
+      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN'); 
     }
     
     function isOwner(clientId) { 
-      let user = getUserData();
-      return isSignedIn() && user.role == 'CLIENT_ADMIN' && user.companyId == clientId; 
+      return isSignedIn() && request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == clientId; 
     }
     
-    // Atualizado para englobar a equipe multidisciplinar de saúde e segurança
     function isHealthProfessional() {
-      let role = getUserData().role;
-      // Se você atualizar seu banco para uma role única, use: return role == 'HEALTH_PROFESSIONAL';
-      // Como o seu banco atual tem várias roles, verificamos se a role está na lista de profissionais:
-      return isSignedIn() && (role in ['DOCTOR', 'PROVIDER', 'ENGINEER', 'HEALTH_PROFESSIONAL']);
+      return isSignedIn() && (request.auth.token.role in ['DOCTOR', 'PROVIDER', 'ENGINEER']);
     }
 
-    // Funções de Segurança de Arquivo (Prevenção de Abuso)
+    // Funções de Segurança de Arquivo (Firewall)
     function isSafeFile() {
-      // Limita a 5MB (5 * 1024 * 1024 bytes) e permite apenas PDF, JPEG e PNG
+      // Limita a 5MB e permite apenas PDF e Imagens (PNG/JPG)
       return request.resource.size < 5 * 1024 * 1024 
           && request.resource.contentType.matches('application/pdf|image/.*');
     }
 
-    // 1. ÁREA PÚBLICA: Leitura livre, Escrita apenas Admins
+    // 1. ÁREA PÚBLICA: Escrita apenas Admins
     match /public/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin() && isSafeFile();
@@ -48,16 +43,14 @@ service firebase.storage {
       allow write: if isAdmin() && isSafeFile();
     }
 
-    // 3. ÁREA DE CLIENTES: Isolamento Lógico (Multi-tenant)
+    // 3. ÁREA DE CLIENTES: Isolamento Multi-tenant
     match /clientes/{clientId}/{allPaths=**} {
-      // Admins acessam tudo.
-      // O cliente acessa apenas a SUA pasta.
-      // O Profissional da Saúde/SST pode ler e gravar (para subir ASOs, PGR, PCMSO, laudos, etc).
+      // Admins e Profissionais de Saúde acessam. O cliente acessa apenas a SUA pasta.
       allow read: if isAdmin() || isOwner(clientId) || isHealthProfessional();
       allow write: if (isAdmin() || isOwner(clientId) || isHealthProfessional()) && isSafeFile();
     }
 
-    // Fallback de Segurança (Bloqueia tudo que não cair nas regras acima)
+    // Fallback de Segurança
     match /{allPaths=**} {
       allow read, write: if false; 
     }
