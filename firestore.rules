@@ -2,25 +2,42 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- Funções de Apoio Baseadas em Custom Claims ---
+    // --- Funções de Apoio Robustas (Híbridas: Token + Firestore Doc) ---
     function isSignedIn() { 
       return request.auth != null; 
     }
     
+    // Obtém dados do perfil em tempo real (cacheado pelo Firestore por requisição)
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
     function isSuperAdmin() { 
-      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN' || request.auth.token.role == 'ENGINEER'); 
+      return isSignedIn() && (
+        request.auth.token.role in ['SUPER_ADMIN', 'ADMIN', 'ENGINEER'] || 
+        profile().role in ['SUPER_ADMIN', 'ADMIN', 'ENGINEER']
+      );
     }
     
     function isClientAdmin(companyId) { 
-      return isSignedIn() && request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId; 
+      return isSignedIn() && (
+        (request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId) ||
+        (profile().role == 'CLIENT_ADMIN' && profile().companyId == companyId)
+      );
     }
     
     function isDoctor() { 
-      return isSignedIn() && request.auth.token.role == 'DOCTOR'; 
+      return isSignedIn() && (
+        request.auth.token.role == 'DOCTOR' || 
+        profile().role == 'DOCTOR'
+      );
     }
     
     function isProvider() {
-      return isSignedIn() && request.auth.token.role == 'PROVIDER';
+      return isSignedIn() && (
+        request.auth.token.role == 'PROVIDER' || 
+        profile().role == 'PROVIDER'
+      );
     }
 
     // --- Regras por Coleção ---
@@ -31,12 +48,11 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
-    // Empresas e Subcoleções (Coração do isolamento Multi-tenant)
+    // Empresas e Subcoleções (Isolamento Multi-tenant)
     match /companies/{companyId} {
       allow read: if isSignedIn(); 
       allow write: if isSuperAdmin() || isClientAdmin(companyId);
       
-      // Subcoleções: employees, tasks, reports, contracts, access_logs, esocial_events_queue
       match /{allSubcollections=**} {
         allow read: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
         allow write: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
@@ -83,7 +99,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, delete: if isSuperAdmin();
       
-      // Permite atualização do próprio perfil, mas bloqueia alteração de cargo/empresa
+      // Bloqueia alteração de cargo/empresa por conta própria
       allow update: if isSuperAdmin() || (
         request.auth.uid == userId && 
         request.resource.data.role == resource.data.role &&
@@ -93,19 +109,19 @@ service cloud.firestore {
 
     // Suporte para Collection Group Queries (Buscas globais filtradas)
     match /{path=**}/employees/{empId} {
-      allow read: if isSignedIn();
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
     }
     match /{path=**}/tasks/{taskId} {
-      allow read: if isSignedIn();
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
     }
     match /{path=**}/legalExpertises/{id} {
-      allow read: if isSignedIn();
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
     }
     match /{path=**}/reports/{id} {
-      allow read: if isSignedIn();
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
     }
     match /{path=**}/contracts/{id} {
-      allow read: if isSignedIn();
+      allow read: if isSuperAdmin() || isDoctor() || isProvider() || isClientAdmin(get(/databases/$(database)/documents/companies/$(path.split('/')[1])).data.id);
     }
   }
 }
