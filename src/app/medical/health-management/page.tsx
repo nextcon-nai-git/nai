@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -137,7 +136,7 @@ const PROFESSIONAL_EVOLUTION = {
     checklist: [
       { id: "t1", label: "Executar aferição de sinais vitais e anamnese inicial.", ref: "Assistencial" },
       { id: "t2", label: "Realizar curativos e cuidados imediatos em intercorrências.", ref: "Primeiros Socorros" },
-      { id: "t3", label: "Manter kit de emergência da Torre A e B prontos p/ uso.", ref: "Campo" },
+      { id: "t3", label: "Manter kit de emergência prontos p/ uso.", ref: "Campo" },
       { id: "t4", label: "Registrar ocorrências no log do prontuário eletrônico.", ref: "Prontuário" }
     ]
   }
