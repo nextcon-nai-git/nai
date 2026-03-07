@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -80,12 +81,10 @@ const NAV_MODULES = [
     icon: HeartPulse,
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
-      { title: "Triagem & Prontuário", icon: Thermometer, href: "/medical/nursing-attendance" },
-      { title: "Ambulatório Obra", icon: Hospital, href: "/medical/ambulatory" },
+      { title: "Gestão de Saúde", icon: HeartPulse, href: "/medical/health-management" },
       { title: "Clínica Digital (ASO)", icon: Stethoscope, href: "/health-control" },
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
-      { title: "Risco Psicossocial", icon: Brain, href: "/psychosocial" },
     ]
   },
   {
