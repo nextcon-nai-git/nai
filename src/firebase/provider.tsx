@@ -3,7 +3,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, IdTokenResult } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
@@ -17,33 +17,31 @@ interface FirebaseProviderProps {
 
 interface UserAuthState {
   user: User | null;
+  role: string | null;
+  companyId: string | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
-export interface FirebaseContextState {
+export interface FirebaseContextState extends UserAuthState {
   areServicesAvailable: boolean;
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null;
   storage: FirebaseStorage | null;
-  user: User | null;
-  isUserLoading: boolean;
-  userError: Error | null;
 }
 
-export interface FirebaseServicesAndUser {
+export interface FirebaseServicesAndUser extends FirebaseContextState {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
   storage: FirebaseStorage;
-  user: User | null;
-  isUserLoading: boolean;
-  userError: Error | null;
 }
 
 export interface UserHookResult {
   user: User | null;
+  role: string | null;
+  companyId: string | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -57,53 +55,71 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
   storage,
 }) => {
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
+  const [authState, setAuthState] = useState<UserAuthState>({
     user: null,
+    role: null,
+    companyId: null,
     isUserLoading: true,
     userError: null,
   });
 
   useEffect(() => {
-    if (!auth) {
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
+    if (!auth || !firestore) {
+      setAuthState(prev => ({ ...prev, isUserLoading: false, userError: new Error("Serviços Firebase não disponíveis.") }));
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null });
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-      },
-      (error) => {
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
-      }
-    );
-    return () => unsubscribe();
-  }, [auth]);
-
-  // Monitoramento de Permissões (Custom Claims) em Tempo Real
-  useEffect(() => {
-    if (!userAuthState.user || !firestore) return;
-
-    const userRef = doc(firestore, "users", userAuthState.user.uid);
-    const unsubscribe = onSnapshot(userRef, async (snapshot) => {
-      if (snapshot.exists()) {
+    // Listener de Autenticação
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
         try {
-          // Força a atualização do token para capturar novas claims (role, companyId)
-          // Isso ignora o cache de 1 hora do Firebase Auth
-          await userAuthState.user?.getIdTokenResult(true);
-          console.log("NAI: Permissões e Claims sincronizadas com o Perfil.");
-        } catch (error) {
-          console.error("NAI: Erro ao atualizar token de segurança:", error);
+          // Busca claims iniciais
+          const tokenResult = await firebaseUser.getIdTokenResult();
+          
+          setAuthState({
+            user: firebaseUser,
+            role: (tokenResult.claims.role as string) || "USER",
+            companyId: (tokenResult.claims.companyId as string) || null,
+            isUserLoading: false,
+            userError: null,
+          });
+
+          // Listener do Documento do Usuário para Sincronização de Claims (Real-time)
+          const userRef = doc(firestore, "users", firebaseUser.uid);
+          const unsubscribeSnapshot = onSnapshot(userRef, async (docSnap) => {
+            if (docSnap.exists()) {
+              try {
+                // Força a atualização do token ignorando o cache de 1 hora
+                const newTokenResult = await firebaseUser.getIdTokenResult(true);
+                setAuthState(prev => ({
+                  ...prev,
+                  role: (newTokenResult.claims.role as string) || "USER",
+                  companyId: (newTokenResult.claims.companyId as string) || null,
+                }));
+                console.log("NAI: Permissões sincronizadas via Token Refresh.");
+              } catch (e) {
+                console.error("NAI: Erro ao forçar refresh de token:", e);
+              }
+            }
+          });
+
+          return () => unsubscribeSnapshot();
+        } catch (error: any) {
+          setAuthState(prev => ({ ...prev, user: firebaseUser, isUserLoading: false, userError: error }));
         }
+      } else {
+        setAuthState({
+          user: null,
+          role: null,
+          companyId: null,
+          isUserLoading: false,
+          userError: null,
+        });
       }
     });
 
-    return () => unsubscribe();
-  }, [userAuthState.user, firestore]);
+    return () => unsubscribeAuth();
+  }, [auth, firestore]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth && storage);
@@ -113,11 +129,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
       storage: servicesAvailable ? storage : null,
-      user: userAuthState.user,
-      isUserLoading: userAuthState.isUserLoading,
-      userError: userAuthState.userError,
+      ...authState
     };
-  }, [firebaseApp, firestore, auth, storage, userAuthState]);
+  }, [firebaseApp, firestore, auth, storage, authState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -129,9 +143,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
-  if (context === undefined) throw new Error('useFirebase must be used within a FirebaseProvider.');
+  if (context === undefined) throw new Error('useFirebase deve ser usado dentro de um FirebaseProvider.');
   if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth || !context.storage) {
-    throw new Error('Firebase core services not available.');
+    throw new Error('Serviços core do Firebase não estão disponíveis.');
   }
   return {
     firebaseApp: context.firebaseApp,
@@ -139,9 +153,11 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     auth: context.auth,
     storage: context.storage,
     user: context.user,
+    role: context.role,
+    companyId: context.companyId,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
-  };
+  } as FirebaseServicesAndUser;
 };
 
 export const useAuth = (): Auth => useFirebase().auth;
@@ -154,6 +170,6 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
 }
 
 export const useUser = (): UserHookResult => {
-  const { user, isUserLoading, userError } = useFirebase();
-  return { user, isUserLoading, userError };
+  const { user, role, companyId, isUserLoading, userError } = useFirebase();
+  return { user, role, companyId, isUserLoading, userError };
 };
