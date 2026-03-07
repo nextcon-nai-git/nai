@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -26,7 +27,8 @@ import {
   Shield,
   XCircle,
   MapPin,
-  CheckCircle2
+  CheckCircle2,
+  Bot
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +39,14 @@ import { doc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import MedicalCopilot from '@/components/medical/medical-copilot'; 
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -263,6 +273,34 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
+
+      {/* Botão Flutuante da IA (Cérebro NAI) */}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button 
+            className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-primary shadow-2xl hover:scale-105 transition-transform duration-300 flex items-center justify-center p-0 group z-50 ring-4 ring-primary/20"
+          >
+            <Bot className="size-8 text-white group-hover:hidden absolute" />
+            <Sparkles className="size-8 text-white hidden group-hover:block absolute animate-pulse" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:max-w-md p-0 border-l-0 bg-slate-50 flex flex-col">
+          <SheetHeader className="p-6 bg-primary text-white rounded-bl-3xl">
+            <SheetTitle className="text-white font-black uppercase tracking-widest flex items-center gap-2 text-sm">
+              <Brain className="size-5" /> 
+              Cérebro NAI • Assistente
+            </SheetTitle>
+            <p className="text-primary-foreground/80 text-xs font-medium">
+              Analise prontuários, consulte CIDs ou gere insights de ROI do FAP em tempo real.
+            </p>
+          </SheetHeader>
+          
+          <div className="flex-1 p-4 overflow-hidden">
+            {/* Aqui entra o nosso componente de Streaming de IA */}
+            <MedicalCopilot pacienteId="contexto_geral_dashboard" />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
