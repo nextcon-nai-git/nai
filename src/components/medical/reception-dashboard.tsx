@@ -6,7 +6,7 @@ import { useAppointmentsQueue } from '@/hooks/use-appointments-queue';
 import { cn } from '@/lib/utils';
 
 export function ReceptionDashboard() {
-  const { data: appointments, loading, error } = useAppointmentsQueue();
+  const { appointments, loading, error } = useAppointmentsQueue();
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const stats = React.useMemo(() => {
@@ -36,23 +36,24 @@ export function ReceptionDashboard() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="size-8 animate-spin text-primary opacity-20" />
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="p-8 bg-red-50 rounded-2xl border border-red-100 text-red-700 font-bold">
-        Falha na sincronização da fila: {error.message}
+        Falha na sincronização: {error.message}
       </div>
     );
   }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Painel da Recepção</h1>
-          <p className="text-muted-foreground font-medium">Gestão de fila e exames ocupacionais em tempo real.</p>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatCard label="Total do Dia" value={stats.total} icon={Users} color="text-slate-600" bg="bg-slate-50" />
         <StatCard label="Aguardando" value={stats.espera} icon={Clock} color="text-amber-600" bg="bg-amber-50" />
@@ -76,52 +77,45 @@ export function ReceptionDashboard() {
         </div>
         
         <div className="overflow-x-auto">
-          {loading ? (
-            <div className="py-20 flex flex-col items-center gap-4">
-              <Loader2 className="size-10 animate-spin text-primary opacity-20" />
-              <p className="text-[10px] font-black uppercase text-slate-400">Sincronizando Fila...</p>
-            </div>
-          ) : (
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b">
-                  <th className="p-6 pl-8">Horário</th>
-                  <th className="p-6">Colaborador</th>
-                  <th className="p-6">Tipo de Exame</th>
-                  <th className="p-6">Status</th>
-                  <th className="p-6 pr-8 text-right">Ações</th>
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b">
+                <th className="p-6 pl-8">Horário</th>
+                <th className="p-6">Colaborador</th>
+                <th className="p-6">Tipo de Exame</th>
+                <th className="p-6">Status</th>
+                <th className="p-6 pr-8 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50 text-sm font-medium">
+              {filteredAppointments.map((apt) => (
+                <tr key={apt.agendamento_id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="p-6 pl-8 font-mono text-xs text-slate-500">
+                    {apt.data_hora ? new Date(apt.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                  </td>
+                  <td className="p-6">
+                    <p className="font-black text-primary uppercase text-xs">{apt.colaborador_nome}</p>
+                  </td>
+                  <td className="p-6">
+                    <span className="text-xs text-slate-600">{apt.tipo}</span>
+                  </td>
+                  <td className="p-6">{getStatusBadge(apt.status)}</td>
+                  <td className="p-6 pr-8 text-right">
+                    <button className="text-primary hover:text-accent font-black uppercase text-[10px] tracking-widest transition-colors">
+                      Ver Ficha
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-sm">
-                {filteredAppointments.map((apt) => (
-                  <tr key={apt.agendamento_id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="p-6 pl-8 font-mono text-xs font-bold text-slate-500">
-                      {apt.data_hora ? new Date(apt.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                    </td>
-                    <td className="p-6">
-                      <p className="font-black text-primary uppercase text-xs">{apt.colaborador_nome}</p>
-                    </td>
-                    <td className="p-6">
-                      <span className="text-xs font-bold text-slate-600">{apt.tipo}</span>
-                    </td>
-                    <td className="p-6">{getStatusBadge(apt.status)}</td>
-                    <td className="p-6 pr-8 text-right">
-                      <button className="text-primary hover:text-accent font-black uppercase text-[10px] tracking-widest transition-colors">
-                        Ver Ficha
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {filteredAppointments.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="py-20 text-center opacity-30 font-black uppercase text-xs tracking-widest">
-                      Nenhum paciente na fila
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+              ))}
+              {filteredAppointments.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center opacity-30 font-black uppercase text-xs tracking-widest">
+                    Nenhum paciente na fila
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

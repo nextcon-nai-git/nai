@@ -1,10 +1,8 @@
 'use server';
 /**
- * @fileOverview Agente NAI Medical Assistant - Agente com Tool Calling.
+ * @fileOverview Agente NAI Medical Assistant - Agente com Tool Calling para suporte clínico.
  * 
  * - medicalAssistant - Função que processa dúvidas médicas consultando dados do sistema.
- * - MedicalAssistantInput - Esquema de entrada (mensagem e ID do paciente).
- * - MedicalAssistantOutput - Resposta textual do agente.
  */
 
 import { ai } from '@/ai/genkit';
@@ -12,18 +10,10 @@ import { z } from 'genkit';
 import { initializeFirebase } from '@/firebase/init';
 import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 
-const MedicalAssistantInputSchema = z.object({
-  mensagemMedico: z.string().describe('A dúvida ou solicitação do médico do trabalho.'),
-  pacienteId: z.string().describe('O ID único do colaborador no sistema.'),
-});
-export type MedicalAssistantInput = z.infer<typeof MedicalAssistantInputSchema>;
-
-export type MedicalAssistantOutput = string;
-
 // --- FERRAMENTAS DO AGENTE ---
 
 /**
- * Ferramenta para buscar códigos CID-10.
+ * Ferramenta para buscar códigos CID-10 baseados em sintomas.
  */
 const consultarCIDTool = ai.defineTool(
   {
@@ -39,7 +29,7 @@ const consultarCIDTool = ai.defineTool(
   },
   async ({ termo }) => {
     const busca = termo.toLowerCase();
-    // Mocks de busca técnica (Em produção, conectaria a uma API de CID)
+    // Simulação de busca técnica (Em produção, conectaria a uma API de CID)
     if (busca.includes('lombar') || busca.includes('costas')) return { codigo: 'M54.5', descricao: 'Dor lombar baixa' };
     if (busca.includes('esforço') || busca.includes('repetitivo')) return { codigo: 'M75.1', descricao: 'Síndrome do manguito rotador' };
     if (busca.includes('tristeza') || busca.includes('ânimo')) return { codigo: 'F33.2', descricao: 'Transtorno depressivo recorrente' };
@@ -49,19 +39,20 @@ const consultarCIDTool = ai.defineTool(
 );
 
 /**
- * Ferramenta para consultar o histórico real no Firestore.
+ * Ferramenta para buscar o histórico real do paciente no Firestore.
  */
 const buscarHistoricoPacienteTool = ai.defineTool(
   {
     name: 'buscarHistoricoPaciente',
-    description: 'Recupera o histórico de ASOs e restrições do paciente no banco de dados.',
+    description: 'Busca o último Atestado de Saúde Ocupacional (ASO) e as restrições do paciente no banco de dados.',
     inputSchema: z.object({
-      pacienteId: z.string(),
+      pacienteId: z.string().describe('O ID único do paciente no sistema.'),
     }),
     outputSchema: z.object({
-      ultimoResultado: z.string(),
-      dataEmissao: z.string(),
-      observacoes: z.string(),
+      encontrado: z.boolean(),
+      ultimoAsoData: z.string().optional(),
+      statusUltimoAso: z.string().optional(),
+      restricoes: z.array(z.string()).optional(),
     }),
   },
   async ({ pacienteId }) => {
@@ -74,21 +65,23 @@ const buscarHistoricoPacienteTool = ai.defineTool(
       limit(1)
     );
     
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      return { 
-        ultimoResultado: 'Nenhum registro anterior', 
-        dataEmissao: '---', 
-        observacoes: 'Paciente sem histórico no sistema.' 
-      };
-    }
+    try {
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        return { encontrado: false };
+      }
 
-    const data = snap.docs[0].data();
-    return {
-      ultimoResultado: data.resultado || 'Apto',
-      dataEmissao: data.data_emissao || '---',
-      observacoes: data.signature_info ? 'Documento assinado digitalmente.' : 'Aguardando formalização.'
-    };
+      const data = snap.docs[0].data();
+      return {
+        encontrado: true,
+        ultimoAsoData: data.data_emissao || '---',
+        statusUltimoAso: data.resultado || 'APTO',
+        restricoes: data.restricoes || []
+      };
+    } catch (error) {
+      console.error("Erro ao buscar no Firestore:", error);
+      return { encontrado: false };
+    }
   }
 );
 
@@ -97,7 +90,10 @@ const buscarHistoricoPacienteTool = ai.defineTool(
 const medicalAssistantFlow = ai.defineFlow(
   {
     name: 'medicalAssistantFlow',
-    inputSchema: MedicalAssistantInputSchema,
+    inputSchema: z.object({
+      mensagemMedico: z.string(),
+      pacienteId: z.string(),
+    }),
     outputSchema: z.string(),
   },
   async (input) => {
@@ -112,7 +108,7 @@ const medicalAssistantFlow = ai.defineFlow(
       
       DIRETRIZES:
       1. Se o médico mencionar sintomas, use 'consultarCID' para sugerir o código.
-      2. Antes de dar um parecer, use 'buscarHistoricoPaciente' para verificar se há inaptidões prévias.
+      2. Antes de dar um parecer, use 'buscarHistoricoPaciente' para verificar se há inaptidões ou restrições prévias.
       3. Seja extremamente profissional, clínico e objetivo.
       4. Sempre mencione que seu parecer deve ser validado pelo médico examinador.`,
       tools: [consultarCIDTool, buscarHistoricoPacienteTool],
@@ -122,9 +118,6 @@ const medicalAssistantFlow = ai.defineFlow(
   }
 );
 
-/**
- * Wrapper para chamada via Server Action ou API.
- */
-export async function medicalAssistant(input: MedicalAssistantInput): Promise<MedicalAssistantOutput> {
+export async function medicalAssistant(input: { mensagemMedico: string; pacienteId: string }): Promise<string> {
   return medicalAssistantFlow(input);
 }

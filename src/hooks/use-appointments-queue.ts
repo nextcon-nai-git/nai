@@ -49,7 +49,7 @@ export function useAppointmentsQueue() {
         })) as Appointment[];
 
         // Prioriza a ordenação por horário de check-in para quem está "Em Espera"
-        const sortedData = appointmentsData.sort((a, b) => {
+        const sortedData = [...appointmentsData].sort((a, b) => {
           if (a.status === 'Em Espera' && b.status === 'Em Espera' && a.check_in_at && b.check_in_at) {
             return a.check_in_at.localeCompare(b.check_in_at);
           }

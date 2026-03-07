@@ -6,32 +6,34 @@ service firebase.storage {
     function isSignedIn() { 
       return request.auth != null; 
     }
-    
-    // Busca dados no Firestore para RBAC (Caso Custom Claims ainda não tenham propagado)
     function getUserData() { 
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data; 
     }
     
+    // Funções de Papéis (RBAC)
     function isAdmin() { 
-      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN'); 
+      let role = getUserData().role;
+      return isSignedIn() && (role == 'SUPER_ADMIN' || role == 'ADMIN'); 
     }
     
     function isOwner(clientId) { 
-      return isSignedIn() && request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == clientId; 
+      let user = getUserData();
+      return isSignedIn() && user.role == 'CLIENT_ADMIN' && user.companyId == clientId; 
     }
     
     function isHealthProfessional() {
-      return isSignedIn() && (request.auth.token.role in ['DOCTOR', 'PROVIDER', 'ENGINEER']);
+      let role = getUserData().role;
+      return isSignedIn() && (role in ['DOCTOR', 'PROVIDER', 'ENGINEER', 'HEALTH_PROFESSIONAL']);
     }
 
     // Funções de Segurança de Arquivo (Firewall)
     function isSafeFile() {
-      // Limita a 5MB e permite apenas PDF e Imagens (PNG/JPG)
+      // Limita a 5MB e permite apenas PDF e Imagens (PNG/JPG/JPEG)
       return request.resource.size < 5 * 1024 * 1024 
           && request.resource.contentType.matches('application/pdf|image/.*');
     }
 
-    // 1. ÁREA PÚBLICA: Escrita apenas Admins
+    // 1. ÁREA PÚBLICA: Leitura livre, Escrita apenas Admins
     match /public/{allPaths=**} {
       allow read: if true;
       allow write: if isAdmin() && isSafeFile();
@@ -45,7 +47,6 @@ service firebase.storage {
 
     // 3. ÁREA DE CLIENTES: Isolamento Multi-tenant
     match /clientes/{clientId}/{allPaths=**} {
-      // Admins e Profissionais de Saúde acessam. O cliente acessa apenas a SUA pasta.
       allow read: if isAdmin() || isOwner(clientId) || isHealthProfessional();
       allow write: if (isAdmin() || isOwner(clientId) || isHealthProfessional()) && isSafeFile();
     }
