@@ -1,9 +1,8 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Funções de Apoio para RBAC e Geofencing
+    // Funções de Apoio para RBAC
     function isAutenticado() {
       return request.auth != null;
     }
@@ -22,48 +21,44 @@ service cloud.firestore {
       return isAutenticado() && data.role == 'CLIENT_ADMIN' && data.companyId == companyId;
     }
 
-    function isServedProvider(companyId) {
-      let data = getUserData();
-      let role = data.role;
-      return isAutenticado() && 
-             (role == 'PROVIDER' || role == 'ENGINEER' || role == 'DOCTOR') && 
-             (data.servedCompanies != null && companyId in data.servedCompanies);
+    function isDoctor(medicoId) {
+      return isAutenticado() && (getUserData().role == 'DOCTOR' && request.auth.uid == medicoId) || isAdmin();
     }
 
-    // Regras para Medicina do Trabalho
-    
-    match /empresas/{empresaId} {
-      allow read: if isAdmin() || isClientAdmin(empresaId) || isServedProvider(empresaId);
-      allow write: if isAdmin();
+    // Bloqueio Total para não autenticados
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    match /colaboradores/{colaboradorId} {
-      allow read: if isAdmin() || isClientAdmin(resource.data.empresa_id) || isServedProvider(resource.data.empresa_id);
-      allow write: if isAdmin() || isClientAdmin(request.resource.data.empresa_id);
-    }
-
-    match /agendamentos/{agendamentoId} {
-      allow read: if isAutenticado();
-      allow write: if isAdmin() || isClientAdmin(request.resource.data.empresa_id) || isServedProvider(request.resource.data.empresa_id);
-    }
-
-    match /atendimentos_aso/{atendimentoId} {
-      allow read: if isAdmin() || isClientAdmin(resource.data.empresa_id) || isServedProvider(resource.data.empresa_id);
-      allow write: if isAdmin() || isServedProvider(request.resource.data.empresa_id);
-    }
-
-    match /clinicas_parceiras/{clinicaId} {
-      allow read: if isAutenticado();
-      allow write: if isAdmin();
-    }
-
-    // Perfis de Usuário
+    // Regras de Perfis de Usuário
     match /users/{userId} {
       allow read: if isAutenticado();
       allow write: if isAdmin() || request.auth.uid == userId;
     }
 
-    // Fallback Administrativo
+    // Coleção de Empresas (Medicina)
+    match /empresas/{empresaId} {
+      allow read, write: if isAdmin() || isClientAdmin(empresaId);
+    }
+
+    // Coleção de Colaboradores
+    match /colaboradores/{colaboradorId} {
+      allow read, write: if isAdmin() || isClientAdmin(resource.data.empresa_id || request.resource.data.empresa_id);
+    }
+
+    // Coleção de Agendamentos (Fila Real-time)
+    match /agendamentos/{agendamentoId} {
+      allow read: if isAutenticado();
+      allow write: if isAdmin() || isClientAdmin(request.resource.data.companyId);
+    }
+
+    // Atendimentos ASO (Privacidade Médica)
+    match /atendimentos_aso/{atendimentoId} {
+      allow read: if isAdmin() || isDoctor(resource.data.medico_id) || isClientAdmin(resource.data.companyId);
+      allow write: if isAdmin() || isDoctor(request.resource.data.medico_id);
+    }
+
+    // Fallback Administrativo (Apenas Super Admins)
     match /{document=**} {
       allow read, write: if isAdmin();
     }
