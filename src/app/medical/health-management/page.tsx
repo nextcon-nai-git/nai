@@ -27,7 +27,13 @@ import {
   ChevronRight,
   Info,
   Sparkles,
-  Timer
+  Timer,
+  PenTool,
+  TrendingDown,
+  Zap,
+  CheckSquare,
+  LayoutGrid,
+  FileCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -59,12 +65,83 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
 import { collection, query, orderBy, addDoc, doc, serverTimestamp, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { REAL_EMPLOYEES, MOCK_NURSING_ATTENDANCES } from "@/lib/real-data"
+import { Progress } from "@/components/ui/progress"
+
+// Definição dos Profissionais e Checklists
+const PROFESSIONAL_EVOLUTION = {
+  medico: {
+    title: "Médico do Trabalho",
+    role: "Coordenação PCMSO (NR-07)",
+    icon: Stethoscope,
+    color: "text-blue-600",
+    bg: "bg-blue-50",
+    checklist: [
+      { id: "m1", label: "Validar ASOs pendentes e emitir pareceres de aptidão.", ref: "NR-07" },
+      { id: "m2", label: "Coordenar investigação de nexo causal em afastamentos B91.", ref: "NR-01" },
+      { id: "m3", label: "Realizar busca ativa de doenças ocupacionais via indicadores.", ref: "Epidemiologia" },
+      { id: "m4", label: "Participar de reunião do comitê de gestão de riscos.", ref: "Estratégico" }
+    ]
+  },
+  fisio: {
+    title: "Fisioterapeuta Ergonomista",
+    role: "Gestão de Ergonomia (NR-17)",
+    icon: Activity,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+    checklist: [
+      { id: "f1", label: "Realizar Blitz Postural nos postos de armação/carpintaria.", ref: "NR-17" },
+      { id: "f2", label: "Atualizar Análise Ergonômica Preliminar (AEP) do setor A.", ref: "GRO" },
+      { id: "f3", label: "Treinar equipe sobre levantamento e transporte de cargas.", ref: "Treinamento" },
+      { id: "f4", label: "Acompanhar retorno ao trabalho de pós-cirúrgicos.", ref: "Reabilitação" }
+    ]
+  },
+  psico: {
+    title: "Psicólogo do Trabalho",
+    role: "Saúde Mental & Clima (NR-01)",
+    icon: Brain,
+    color: "text-purple-600",
+    bg: "bg-purple-50",
+    checklist: [
+      { id: "p1", label: "Realizar plantão de escuta para colaboradores em stress.", ref: "NR-01" },
+      { id: "p2", label: "Aplicar Pulse Survey de satisfação e clima por setor.", ref: "Cultura" },
+      { id: "p3", label: "Mediar conflitos em equipes de alta rotatividade.", ref: "Social" },
+      { id: "p4", label: "Avaliar riscos psicossociais em espaços confinados.", ref: "NR-33" }
+    ]
+  },
+  enfermeiro: {
+    title: "Enfermeiro do Trabalho",
+    role: "Gestão Ambulatorial & SAE",
+    icon: HeartPulse,
+    color: "text-red-600",
+    bg: "bg-red-50",
+    checklist: [
+      { id: "e1", label: "Implementar SAE (Sistematização da Assistência de Enf.).", ref: "COFEN" },
+      { id: "e2", label: "Gerenciar estoque de medicamentos e validade de insumos.", ref: "Logística" },
+      { id: "e3", label: "Auditar registros de triagem realizados pelos técnicos.", ref: "Qualidade" },
+      { id: "e4", label: "Promover campanha mensal de saúde preventiva (SIPAT).", ref: "Educação" }
+    ]
+  },
+  tecnico: {
+    title: "Técnico de Enfermagem",
+    role: "Triagem & Primeiros Socorros",
+    icon: Thermometer,
+    color: "text-orange-600",
+    bg: "bg-orange-50",
+    checklist: [
+      { id: "t1", label: "Executar aferição de sinais vitais e anamnese inicial.", ref: "Assistencial" },
+      { id: "t2", label: "Realizar curativos e cuidados imediatos em intercorrências.", ref: "Primeiros Socorros" },
+      { id: "t3", label: "Manter kit de emergência da Torre A e B prontos p/ uso.", ref: "Campo" },
+      { id: "t4", label: "Registrar ocorrências no log do prontuário eletrônico.", ref: "Prontuário" }
+    ]
+  }
+};
 
 export default function HealthManagementUnified() {
   const { toast } = useToast()
@@ -72,9 +149,11 @@ export default function HealthManagementUnified() {
   const db = useFirestore()
   
   const [activeTab, setActiveTab] = React.useState("attendance")
+  const [activeProfessional, setActiveProfessional] = React.useState<keyof typeof PROFESSIONAL_EVOLUTION>("medico")
   const [isCreateOpen, setIsCreateOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [checklistProgress, setChecklistProgress] = React.useState<Record<string, boolean>>({})
 
   const [formData, setFormData] = React.useState({
     employeeId: "",
@@ -110,6 +189,16 @@ export default function HealthManagementUnified() {
     return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [remoteAttendances])
 
+  const handleToggleCheck = (id: string) => {
+    setChecklistProgress(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const getPercent = (profKey: keyof typeof PROFESSIONAL_EVOLUTION) => {
+    const items = PROFESSIONAL_EVOLUTION[profKey].checklist
+    const checked = items.filter(item => checklistProgress[item.id]).length
+    return Math.round((checked / items.length) * 100)
+  }
+
   // Lógica de Atendimento
   async function handleSaveAttendance() {
     if (!db || !formData.employeeId || !formData.coren) {
@@ -136,15 +225,6 @@ export default function HealthManagementUnified() {
     }
   }
 
-  // Dados da Escala
-  const scale = [
-    { week: "1", role: "Técnico A", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
-    { week: "1", role: "Técnico B", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
-    { week: "2", role: "Técnico A", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
-    { week: "2", role: "Técnico B", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
-  ]
-
-  // Dados Psicossociais
   const sectors = [
     { name: "Operacional (Nativa)", stress: 85, mood: "Crítico", trend: "+12%", color: "bg-red-500", lives: 42 },
     { name: "Engenharia (TimeNow)", stress: 42, mood: "Estável", trend: "-5%", color: "bg-green-500", lives: 18 },
@@ -227,9 +307,12 @@ export default function HealthManagementUnified() {
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full md:w-[750px] grid-cols-3 bg-muted/50 p-1.5 rounded-2xl h-16">
+        <TabsList className="grid w-full md:w-[950px] grid-cols-4 bg-muted/50 p-1.5 rounded-2xl h-16">
           <TabsTrigger value="attendance" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Thermometer className="size-4" /> Atendimento & Triagem
+          </TabsTrigger>
+          <TabsTrigger value="evolution" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-primary">
+            <TrendingUp className="size-4" /> Evolução Profissional
           </TabsTrigger>
           <TabsTrigger value="operation" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <Clock className="size-4" /> Escala & Operação
@@ -299,6 +382,106 @@ export default function HealthManagementUnified() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="evolution" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-1 space-y-3">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-4 mb-4">Selecione o Profissional</p>
+              {(Object.entries(PROFESSIONAL_EVOLUTION) as [keyof typeof PROFESSIONAL_EVOLUTION, any][]).map(([key, prof]) => {
+                const Icon = prof.icon;
+                const isActive = activeProfessional === key;
+                const progress = getPercent(key);
+                
+                return (
+                  <Card 
+                    key={key} 
+                    className={cn(
+                      "cursor-pointer border-none shadow-sm transition-all duration-300 rounded-2xl overflow-hidden",
+                      isActive ? "ring-2 ring-primary bg-white scale-[1.02] shadow-lg" : "bg-slate-50 opacity-60 hover:opacity-100"
+                    )}
+                    onClick={() => setActiveProfessional(key)}
+                  >
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className={cn("p-2.5 rounded-xl", isActive ? "bg-primary text-white" : prof.bg + " " + prof.color)}>
+                        <Icon className="size-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-black text-primary uppercase truncate leading-none">{prof.title}</p>
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="h-1 flex-1 bg-slate-100 rounded-full overflow-hidden mr-3">
+                            <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+                          </div>
+                          <span className="text-[9px] font-black text-primary">{progress}%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+
+            <Card className="lg:col-span-3 card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+              <CardHeader className="bg-primary text-white p-8">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-2xl">
+                      {React.createElement(PROFESSIONAL_EVOLUTION[activeProfessional].icon, { className: "size-8 text-accent" })}
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl font-headline font-black uppercase tracking-tight">
+                        {PROFESSIONAL_EVOLUTION[activeProfessional].title}
+                      </CardTitle>
+                      <CardDescription className="text-white/60 font-bold uppercase text-[10px] tracking-widest mt-1">
+                        {PROFESSIONAL_EVOLUTION[activeProfessional].role}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black uppercase opacity-40">Status do Plantão</p>
+                    <h3 className="text-3xl font-black text-accent">{getPercent(activeProfessional)}%</h3>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="space-y-4">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Protocolo de Evolução Técnica:</p>
+                  {PROFESSIONAL_EVOLUTION[activeProfessional].checklist.map((item: any) => (
+                    <div 
+                      key={item.id} 
+                      className={cn(
+                        "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group",
+                        checklistProgress[item.id] ? "bg-emerald-50 border-emerald-100" : "bg-white border-slate-50 hover:border-primary/10 shadow-sm"
+                      )}
+                      onClick={() => handleToggleCheck(item.id)}
+                    >
+                      <Checkbox 
+                        checked={!!checklistProgress[item.id]} 
+                        onCheckedChange={() => handleToggleCheck(item.id)}
+                        className="size-5 rounded-md border-slate-300"
+                      />
+                      <div className="flex-1">
+                        <p className={cn("text-sm font-bold", checklistProgress[item.id] ? "text-emerald-800" : "text-primary")}>
+                          {item.label}
+                        </p>
+                        <Badge variant="outline" className="text-[8px] font-black border-none bg-slate-100 text-slate-400 mt-1">Ref: {item.ref}</Badge>
+                      </div>
+                      {checklistProgress[item.id] && <CheckCircle2 className="size-5 text-emerald-500" />}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-6 border-t border-dashed flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <p className="text-[10px] text-slate-400 italic font-medium">
+                    "O preenchimento deste checklist alimenta os KPIs de performance tributária da unidade."
+                  </p>
+                  <Button className="h-12 px-8 bg-primary text-white font-black uppercase text-[10px] rounded-xl shadow-xl gap-2">
+                    <Save className="size-4" /> Protocolar Evolução
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
         <TabsContent value="operation" className="mt-8 space-y-6 animate-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="card-shadow border-none bg-white rounded-[2rem] p-8 flex gap-6 items-start">
@@ -317,36 +500,6 @@ export default function HealthManagementUnified() {
               </div>
             </Card>
           </div>
-
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
-            <CardHeader className="bg-slate-50 border-b p-8">
-              <CardTitle className="text-xl font-black text-primary uppercase">Escala Técnica (Modelo Quinzena)</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-slate-50/50">
-                  <TableRow>
-                    <TableHead className="pl-8 text-[9px] font-black uppercase">Semana</TableHead>
-                    <TableHead className="text-[9px] font-black uppercase">Profissional</TableHead>
-                    {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => <TableHead key={d} className="text-[9px] font-black uppercase text-center">{d}</TableHead>)}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scale.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="pl-8 py-5"><Badge variant="secondary" className="font-black text-[10px]">{item.week}</Badge></TableCell>
-                      <TableCell><span className="font-bold text-primary text-xs uppercase">{item.role}</span></TableCell>
-                      {[item.seg, item.ter, item.qua, item.qui, item.sex, item.sab].map((s, idx) => (
-                        <TableCell key={idx} className="text-center">
-                          <Badge className={cn("text-[8px] font-black uppercase border-none h-5", s === 'Trabalha' ? "bg-primary text-white" : "bg-slate-100 text-slate-400")}>{s}</Badge>
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="psychosocial" className="mt-8 space-y-8 animate-in slide-in-from-right-4 duration-500">
@@ -393,11 +546,6 @@ export default function HealthManagementUnified() {
                   </p>
                   <Button className="w-full h-12 bg-accent text-primary font-black uppercase text-[10px] rounded-xl shadow-lg">Solicitar Blitz Ergonômica</Button>
                 </CardContent>
-              </Card>
-              <Card className="card-shadow border-none bg-emerald-50 rounded-[2.5rem] p-8 flex flex-col items-center text-center gap-4">
-                <div className="size-16 bg-white rounded-full flex items-center justify-center text-emerald-600 shadow-sm"><ShieldCheck className="size-8" /></div>
-                <h4 className="text-sm font-black text-primary uppercase">Privacidade Total</h4>
-                <p className="text-[10px] text-primary/60 font-medium italic">"Dados agrupados garantem o anonimato nas pulse surveys semanais."</p>
               </Card>
             </div>
           </div>
