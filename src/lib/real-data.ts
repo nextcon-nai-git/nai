@@ -10,24 +10,24 @@ export const REAL_COMPANIES = [
   { id: "76492701001129", name: "BRITANIA ELETRODOMESTICOS SA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Joinville", state: "SC" },
   { id: "32137571000169", name: "ESCOLA ESSENCIAL DE VIRTUDES LTDA", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION", city: "Curitiba", state: "PR" },
   { id: "14736446001246", name: "CIS CENTRO INTEGRADO EM SAUDE", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Rio Branco do Sul", state: "PR" },
-  { id: "DALL_ATMOSPHERE", name: "DALL EMPREENDIMENTOS", cnpj: "11.306.970/0001-36", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Itajaí", state: "SC" }
+  { id: "DALL_EMP", name: "DALL EMPREENDIMENTOS", cnpj: "11.306.970/0001-36", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Itajaí", state: "SC" }
 ];
 
 export const REAL_EMPLOYEES = [
-  { id: "COL_JOAO_SILVA", name: "JOÃO SILVA", cpf: "123.456.789-00", companyId: "DALL_ATMOSPHERE", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
+  { id: "COL_JOAO_SILVA", name: "JOÃO SILVA", cpf: "123.456.789-00", companyId: "DALL_EMP", unitId: "ATMOSPHERE", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL1334", name: "Amos Vieira De Souza", cpf: "441.932.712-77", companyId: "CLI001", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL1100", name: "Paola Santiago Dalasuana", cpf: "378.454.183-64", companyId: "CLI001", aso_validade: "2026-10-15", aso_espaco_confinado_valido: true, treinamento_nr33_valido: true },
   { id: "COL1268", name: "Ana Paula Conci Oliveira", cpf: "152.928.837-99", companyId: "32137571000169", aso_validade: "2026-08-20" },
   { id: "COL1022", name: "ALEX OLIVEIRA DA COSTA", cpf: "264.950.432-69", companyId: "51633820000151", aso_validade: "2025-01-01" }
 ];
 
-// Histórico de Enfermagem para integrar com os Alertas Preditivos
 export const MOCK_NURSING_ATTENDANCES = [
   {
     id: "NATT_001",
     employeeId: "COL_JOAO_SILVA",
     employeeName: "JOÃO SILVA",
-    companyId: "DALL_ATMOSPHERE",
+    companyId: "DALL_EMP",
+    unitId: "ATMOSPHERE",
     complaint: "Cefaleia intensa e tontura leve.",
     bp_sys: "160",
     bp_dia: "100",
@@ -36,9 +36,9 @@ export const MOCK_NURSING_ATTENDANCES = [
     spo2: "98",
     conduct: "observation",
     medication: "Aguardando estabilização",
-    nurseName: "Téc. Enfermagem Atmosphere",
+    nurseName: "Téc. Enfermagem Unidade",
     coren: "123456-TE/SC",
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // Ontem
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -62,7 +62,7 @@ export const REAL_PROVIDERS = [
 
 export const REAL_CONTRACTS = [
   { id: "CT_NATIVA", companyId: "51633820000151", companyName: "Nativa Empreendimentos", title: "Gestão Full SST", value: 88824.0, status: "Active" },
-  { id: "CT_ATMOSPHERE_DALL", companyId: "DALL_ATMOSPHERE", companyName: "Dall Empreendimentos", title: "Gestão Obra Atmosphere", value: 57100.0, status: "Active" }
+  { id: "CT_DALL", companyId: "DALL_EMP", companyName: "Dall Empreendimentos", title: "Gestão Corporativa + Obras", value: 57100.0, status: "Active" }
 ];
 
 export const REAL_TRAININGS = [

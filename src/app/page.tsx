@@ -109,7 +109,7 @@ export default function Dashboard() {
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE EM OPERAÇÃO</Badge>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE SELECIONADA</Badge>
                   <h3 className="text-lg font-black text-primary uppercase">Posto de Trabalho Elevado</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
@@ -124,7 +124,7 @@ export default function Dashboard() {
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>
-                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI de R$ 315k em passivo trabalhista.</p>
+                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI estimado em passivo trabalhista.</p>
                 </div>
               </div>
 
@@ -185,7 +185,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise cruzada detectou tendência de absenteísmo na unidade principal. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
+                    "A análise cruzada detectou tendência de absenteísmo. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
                   </p>
                 </div>
               </div>

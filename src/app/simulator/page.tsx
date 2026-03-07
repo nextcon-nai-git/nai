@@ -226,38 +226,12 @@ const SIMULATOR_DATA = [
   }
 ];
 
-const ERGO_DATA: Record<string, { title: string; risk: string; action: string }> = {
-  head: { 
-    title: "Cabeça, Pescoço e Audição", 
-    risk: "Ruído excessivo de bate-estacas e postura inadequada olhando para cima (cargas suspensas). Risco alto de PAIR.", 
-    action: "O algoritmo cruza a audiometria do ASO com a dosimetria de ruído do PGR, alertando a troca preventiva de setor." 
-  },
-  back: { 
-    title: "Lombar e Coluna", 
-    risk: "Levantamento de sacos de cimento (50kg). Causa nº 1 de afastamentos previdenciários na construção.", 
-    action: "Módulo de AET mapeia o posto. O sistema bloqueia tarefas pesadas para funcionários recém-retornados do INSS." 
-  },
-  arms: { 
-    title: "Braços e Punhos", 
-    risk: "Movimentos repetitivos de armadores. Gera passivo por LER/DORT ao fim da obra.", 
-    action: "Controle de pausas e ginástica laboral rastreada via sistema. Ficha médica eletrônica comprova a prevenção." 
-  },
-  legs: { 
-    title: "Joelhos e Pernas", 
-    risk: "Trabalho ajoelhado prolongado (pisos) e terrenos acidentados.", 
-    action: "Gestão inteligente de EPIs: Controle automático de validade e reposição de joelheiras aprovadas." 
-  }
-};
-
 const FIXED_PAYROLL = 30000000;
 const FAP_OPTIONS = [1.0, 1.1, 1.2];
 
 export default function ScaleSimulator() {
   const [scaleSlider, setScaleSlider] = React.useState([0]);
   const [fapIndex, setFapIndex] = React.useState([2]); 
-  const [selectedPart, setSelectedPart] = React.useState<string | null>(null);
-
-  const dallLogo = "https://i.ibb.co/gZv2fyXt/logo.png";
 
   const currentData = SIMULATOR_DATA[scaleSlider[0]];
   const currentFap = FAP_OPTIONS[fapIndex[0]];
