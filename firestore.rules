@@ -7,43 +7,75 @@ service cloud.firestore {
       return request.auth != null; 
     }
     
-    // Checagem otimizada via token (Custom Claims) injetadas pela Cloud Function
     function isSuperAdmin() { 
-      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN'); 
+      return isSignedIn() && (request.auth.token.role == 'SUPER_ADMIN' || request.auth.token.role == 'ADMIN' || request.auth.token.role == 'ENGINEER'); 
     }
     
     function isClientAdmin(companyId) { 
       return isSignedIn() && request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId; 
     }
     
-    function isDoctor(medicoId) { 
-      return isSignedIn() && request.auth.token.role == 'DOCTOR' && request.auth.uid == medicoId; 
+    function isDoctor() { 
+      return isSignedIn() && request.auth.token.role == 'DOCTOR'; 
+    }
+    
+    function isProvider() {
+      return isSignedIn() && request.auth.token.role == 'PROVIDER';
     }
 
     // --- Regras por Coleção ---
 
-    // Empresas
-    match /empresas/{empresaId} {
-      allow read, write: if isSuperAdmin() || isClientAdmin(empresaId);
+    // Configurações Globais da NAI (Widget, Pitch de Vendas, etc)
+    match /config_nai_avatar/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
 
-    // Colaboradores
-    match /colaboradores/{colaboradorId} {
-      allow read, delete: if isSuperAdmin() || isClientAdmin(resource.data.empresa_id);
-      allow create, update: if isSuperAdmin() || isClientAdmin(request.resource.data.empresa_id);
+    // Empresas e Subcoleções (Coração do isolamento Multi-tenant)
+    match /companies/{companyId} {
+      allow read: if isSignedIn(); 
+      allow write: if isSuperAdmin() || isClientAdmin(companyId);
+      
+      // Subcoleções: employees, tasks, reports, contracts, access_logs, esocial_events_queue
+      match /{allSubcollections=**} {
+        allow read: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
+        allow write: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
+      }
     }
 
-    // Atendimentos ASO
+    // Atendimentos ASO (Base Clínica)
     match /atendimentos_aso/{atendimentoId} {
-      allow read, delete: if isSuperAdmin() || isDoctor(resource.data.medico_id);
-      allow create, update: if isSuperAdmin() || isDoctor(request.resource.data.medico_id);
+      allow read: if isSuperAdmin() || isDoctor() || isClientAdmin(resource.data.companyId);
+      allow create, update: if isSuperAdmin() || isDoctor();
+      allow delete: if isSuperAdmin();
     }
 
-    // Agendamentos
+    // Agendamentos (Fila de Espera)
     match /agendamentos/{agendamentoId} {
       allow read: if isSignedIn();
-      allow delete: if isSuperAdmin() || isClientAdmin(resource.data.companyId);
-      allow create, update: if isSuperAdmin() || isClientAdmin(request.resource.data.companyId);
+      allow write: if isSignedIn();
+    }
+
+    // Atendimentos de Enfermagem e Triagem
+    match /nursing_attendances/{attendanceId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isDoctor() || isProvider();
+    }
+
+    // Auditoria Médica e Regulação (Super-Junta)
+    match /medical_audit_requests/{requestId} {
+      allow read, write: if isSuperAdmin() || isDoctor();
+    }
+
+    // Telemedicina (Google Meet Links)
+    match /agendamentos_telemedicina/{id} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Feedback da Plataforma
+    match /feedback/{id} {
+      allow read: if isSuperAdmin();
+      allow create: if isSignedIn();
     }
 
     // Perfis de Usuário
@@ -51,12 +83,29 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create, delete: if isSuperAdmin();
       
-      // Impede que o usuário mude seu próprio cargo ou empresa (prevenção de hacking)
+      // Permite atualização do próprio perfil, mas bloqueia alteração de cargo/empresa
       allow update: if isSuperAdmin() || (
         request.auth.uid == userId && 
         request.resource.data.role == resource.data.role &&
         request.resource.data.companyId == resource.data.companyId
       );
+    }
+
+    // Suporte para Collection Group Queries (Buscas globais filtradas)
+    match /{path=**}/employees/{empId} {
+      allow read: if isSignedIn();
+    }
+    match /{path=**}/tasks/{taskId} {
+      allow read: if isSignedIn();
+    }
+    match /{path=**}/legalExpertises/{id} {
+      allow read: if isSignedIn();
+    }
+    match /{path=**}/reports/{id} {
+      allow read: if isSignedIn();
+    }
+    match /{path=**}/contracts/{id} {
+      allow read: if isSignedIn();
     }
   }
 }
