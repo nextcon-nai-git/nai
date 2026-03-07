@@ -2,48 +2,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Funções de Apoio para RBAC
-    function isSignedIn() { return request.auth != null; }
-    function getUserData() { return get(/databases/(default)/documents/users/$(request.auth.uid)).data; }
-    function isSuperAdmin() { return isSignedIn() && (getUserData().role == 'SUPER_ADMIN' || getUserData().role == 'ADMIN'); }
-    function isClientAdmin(companyId) { return isSignedIn() && getUserData().role == 'CLIENT_ADMIN' && getUserData().companyId == companyId; }
-    function isDoctor(medicoId) { return isSignedIn() && getUserData().role == 'DOCTOR' && request.auth.uid == medicoId; }
-
-    // Bloqueio Total por padrão
-    match /{document=**} {
-      allow read, write: if false;
+    // --- Funções de Apoio para RBAC ---
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    
+    // Usando $(database) ao invés de (default) garante compatibilidade caso você crie outros bancos
+    function getUserData() { 
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; 
+    }
+    
+    function isSuperAdmin() { 
+      return isSignedIn() && (getUserData().role == 'SUPER_ADMIN' || getUserData().role == 'ADMIN'); 
+    }
+    
+    function isClientAdmin(companyId) { 
+      return isSignedIn() && getUserData().role == 'CLIENT_ADMIN' && getUserData().companyId == companyId; 
+    }
+    
+    function isDoctor(medicoId) { 
+      return isSignedIn() && getUserData().role == 'DOCTOR' && request.auth.uid == medicoId; 
     }
 
-    // Regra Global para Super Admins
-    match /{document=**} {
-      allow read, write: if isSuperAdmin();
-    }
+    // --- Regras por Coleção ---
 
-    // Empresas: CLIENT_ADMIN restrito à sua própria empresa
+    // Empresas
     match /empresas/{empresaId} {
       allow read, write: if isSuperAdmin() || isClientAdmin(empresaId);
     }
 
-    // Colaboradores: Restrito via ID da empresa no documento
+    // Colaboradores
     match /colaboradores/{colaboradorId} {
-      allow read, write: if isSuperAdmin() || isClientAdmin(resource.data.empresa_id || request.resource.data.empresa_id);
+      allow read, delete: if isSuperAdmin() || isClientAdmin(resource.data.empresa_id);
+      allow create, update: if isSuperAdmin() || isClientAdmin(request.resource.data.empresa_id);
     }
 
-    // Atendimentos ASO: Privacidade Médica (Apenas o médico ou Super Admin)
+    // Atendimentos ASO
     match /atendimentos_aso/{atendimentoId} {
-      allow read, write: if isSuperAdmin() || isDoctor(resource.data.medico_id || request.resource.data.medico_id);
+      allow read, delete: if isSuperAdmin() || isDoctor(resource.data.medico_id);
+      allow create, update: if isSuperAdmin() || isDoctor(request.resource.data.medico_id);
     }
 
-    // Agendamentos: Visibilidade para recepção/médicos
+    // Agendamentos
     match /agendamentos/{agendamentoId} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || isClientAdmin(request.resource.data.companyId);
+      allow delete: if isSuperAdmin() || isClientAdmin(resource.data.companyId);
+      allow create, update: if isSuperAdmin() || isClientAdmin(request.resource.data.companyId);
     }
 
     // Perfis de Usuário
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || request.auth.uid == userId;
+      allow create, delete: if isSuperAdmin();
+      
+      // Proteção contra escalonamento de privilégios:
+      // O usuário pode atualizar o próprio perfil, desde que não mude seu cargo ou sua empresa.
+      allow update: if isSuperAdmin() || (
+        request.auth.uid == userId && 
+        request.resource.data.role == resource.data.role &&
+        request.resource.data.companyId == resource.data.companyId
+      );
     }
   }
 }
