@@ -4,6 +4,7 @@ import * as React from "react";
 import { Send, Loader2, Bot, User, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type Message = {
@@ -36,9 +37,18 @@ export default function MedicalCopilot({ pacienteId, className }: MedicalCopilot
     if (!input.trim() || isLoading) return;
 
     const userContent = input;
+    const userMessageId = Date.now().toString();
+    const aiMessageId = (Date.now() + 1).toString();
+    
     setInput("");
     
-    setMessages((prev) => [...prev, { id: Date.now().toString(), role: "user", content: userContent }]);
+    // Adiciona mensagem do usuário e cria placeholder para a resposta da IA
+    setMessages((prev) => [
+      ...prev, 
+      { id: userMessageId, role: "user", content: userContent },
+      { id: aiMessageId, role: "ai", content: "" }
+    ]);
+    
     setIsLoading(true);
 
     try {
@@ -51,15 +61,31 @@ export default function MedicalCopilot({ pacienteId, className }: MedicalCopilot
         }),
       });
 
-      const data = await response.json();
+      if (!response.ok) throw new Error("Falha na conexão");
 
-      if (data.sucesso) {
-        setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), role: "ai", content: data.resposta }]);
-      } else {
-        throw new Error(data.mensagem);
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("Stream inacessível");
+
+      const decoder = new TextDecoder("utf-8");
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedText += chunk;
+
+        // Atualiza a última mensagem da IA progressivamente
+        setMessages((prev) => 
+          prev.map(msg => msg.id === aiMessageId ? { ...msg, content: accumulatedText } : msg)
+        );
       }
+
     } catch (error) {
-      setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), role: "ai", content: "Desculpe, tive um problema ao acessar a base CID/Histórico agora." }]);
+      setMessages((prev) => 
+        prev.map(msg => msg.id === aiMessageId ? { ...msg, content: "Desculpe, tive um problema ao acessar a base CID/Histórico agora." } : msg)
+      );
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +103,7 @@ export default function MedicalCopilot({ pacienteId, className }: MedicalCopilot
             <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest">IA Diagnostic Support</p>
           </div>
         </div>
-        <Badge variant="outline" className="text-[8px] border-white/20 text-white font-black uppercase">Live Link</Badge>
+        <Badge variant="outline" className="text-[8px] border-white/20 text-white font-black uppercase h-6">Live Stream</Badge>
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 custom-scrollbar">
@@ -95,18 +121,10 @@ export default function MedicalCopilot({ pacienteId, className }: MedicalCopilot
                 ? "bg-primary text-white rounded-tr-none" 
                 : "bg-white border text-slate-700 rounded-tl-none"
             )}>
-              {msg.content}
+              {msg.content || (msg.role === 'ai' && isLoading && <div className="flex gap-1"><div className="size-1 bg-slate-300 rounded-full animate-bounce" /><div className="size-1 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]" /><div className="size-1 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]" /></div>)}
             </div>
           </div>
         ))}
-        {isLoading && (
-          <div className="flex items-center gap-3 text-slate-400">
-            <div className="size-8 rounded-xl bg-white border flex items-center justify-center">
-              <Loader2 size={14} className="animate-spin" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest animate-pulse">Cruzando CID e Histórico...</span>
-          </div>
-        )}
       </div>
 
       <form onSubmit={sendMessage} className="p-4 bg-white border-t flex gap-2 shrink-0">
@@ -123,17 +141,9 @@ export default function MedicalCopilot({ pacienteId, className }: MedicalCopilot
           disabled={isLoading || !input.trim()}
           className="size-12 p-0 bg-primary text-white rounded-xl hover:bg-primary/90 shadow-lg shrink-0"
         >
-          <Send size={18} />
+          {isLoading ? <Loader2 className="size-5 animate-spin" /> : <Send size={18} />}
         </Button>
       </form>
     </div>
-  );
-}
-
-function Badge({ children, variant, className }: any) {
-  return (
-    <span className={cn("px-2 py-0.5 rounded-full border text-[10px]", className)}>
-      {children}
-    </span>
   );
 }

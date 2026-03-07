@@ -15,7 +15,7 @@ import { collection, query, where, orderBy, limit, getDocs } from 'firebase/fire
 /**
  * Ferramenta para buscar códigos CID-10 baseados em sintomas.
  */
-const consultarCIDTool = ai.defineTool(
+export const consultarCIDTool = ai.defineTool(
   {
     name: 'consultarCID',
     description: 'Busca o código CID-10 oficial baseado em sintomas ou diagnóstico descrito.',
@@ -41,7 +41,7 @@ const consultarCIDTool = ai.defineTool(
 /**
  * Ferramenta para buscar o histórico real do paciente no Firestore.
  */
-const buscarHistoricoPacienteTool = ai.defineTool(
+export const buscarHistoricoPacienteTool = ai.defineTool(
   {
     name: 'buscarHistoricoPaciente',
     description: 'Busca o último Atestado de Saúde Ocupacional (ASO) e as restrições do paciente no banco de dados.',
