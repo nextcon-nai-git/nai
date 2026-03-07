@@ -1,21 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 
-/**
- * Interface para os agendamentos da clínica.
- */
 export interface Appointment {
   id: string;
-  colaborador_id: string;
+  agendamento_id?: string;
   colaborador_nome: string;
+  tipo: string;
+  status: 'Agendado' | 'Em Espera' | 'Em Atendimento' | 'Concluído';
   data_hora: string;
   check_in_at?: string;
-  tipo: 'Admissional' | 'Periódico' | 'Demissional' | 'Mudança de Função' | 'Retorno ao Trabalho';
-  status: 'Agendado' | 'Em Espera' | 'Em Atendimento' | 'Concluído';
-  check_in_realizado: boolean;
   companyId: string;
 }
 
@@ -31,18 +27,16 @@ export function useAppointmentsQueue() {
   useEffect(() => {
     if (!db) return;
 
-    // Define intervalo para o dia atual (00:00 às 23:59)
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     const endOfToday = new Date();
     endOfToday.setHours(23, 59, 59, 999);
 
-    // Consulta agendamentos de hoje ordenados por chegada (check_in_at)
     const q = query(
       collection(db, 'agendamentos'),
       where('data_hora', '>=', startOfToday.toISOString()),
       where('data_hora', '<=', endOfToday.toISOString()),
-      orderBy('check_in_at', 'asc')
+      orderBy('data_hora', 'asc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -51,7 +45,15 @@ export function useAppointmentsQueue() {
         appointments.push({ id: doc.id, ...doc.data() } as Appointment);
       });
       
-      setData(appointments);
+      // Ordena em memória por status de chegada para "Em Espera"
+      const sorted = appointments.sort((a, b) => {
+        if (a.status === 'Em Espera' && b.status === 'Em Espera') {
+          return (a.check_in_at || '') > (b.check_in_at || '') ? 1 : -1;
+        }
+        return 0;
+      });
+
+      setData(sorted);
       setLoading(false);
     }, (err) => {
       console.error("Fila Real-time Error:", err);
