@@ -205,11 +205,11 @@ export function AppSidebar() {
                 asChild
                 className="h-12 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white rounded-2xl border border-white/10 group px-4"
               >
-                <a href="https://www.nextconsaude.com.br/nai" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+                <a href="https://nai.nextconsaude.com.br" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
                   <div className="p-1.5 bg-accent rounded-lg">
                     <Globe className="size-3.5 text-white" />
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest">Site Institucional</span>
+                  <span className="text-[11px] font-black uppercase tracking-widest">Portal Oficial</span>
                   <ExternalLink className="size-3 ml-auto opacity-20 group-hover:opacity-100 transition-opacity" />
                 </a>
               </SidebarMenuButton>

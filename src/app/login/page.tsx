@@ -145,6 +145,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-1">E-mail Corporativo</label>
                 <div className="relative group">
+                  <path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                   <Mail className="absolute left-4 top-4 h-4 w-4 text-gray-300 group-focus-within:text-primary transition-colors" />
                   <Input 
                     type="email" 
@@ -197,12 +198,12 @@ export default function LoginPage() {
 
           <div className="text-center pt-6">
             <a 
-              href="https://www.nextconsaude.com.br/nai" 
+              href="https://nai.nextconsaude.com.br" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em] hover:text-primary transition-colors"
             >
-              © 2026 NextCon Inteligência NAI em SST • www.nextconsaude.com.br/nai
+              © 2026 NextCon Inteligência NAI em SST • nai.nextconsaude.com.br
             </a>
           </div>
         </div>

@@ -58,10 +58,10 @@ export default function CloudInfraPage() {
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-1">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Endereço Principal</p>
-                  <h3 className="text-xl font-bold text-primary">www.nextconsaude.com.br/nai</h3>
+                  <h3 className="text-xl font-bold text-primary">nai.nextconsaude.com.br</h3>
                 </div>
                 <Button className="bg-primary text-white font-black uppercase text-[10px] rounded-xl h-12 px-8 shadow-xl" asChild>
-                  <a href="https://www.nextconsaude.com.br/nai" target="_blank" rel="noopener noreferrer">
+                  <a href="https://nai.nextconsaude.com.br" target="_blank" rel="noopener noreferrer">
                     Acessar Produção <ExternalLink className="size-3 ml-2" />
                   </a>
                 </Button>
