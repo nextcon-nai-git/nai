@@ -19,8 +19,8 @@ Para subir este projeto para o seu repositório no GitHub, execute os seguintes 
 git init
 git add .
 git commit -m "Primeiro commit: Estrutura base da Plataforma NAI"
-git branch -M main
 git remote add origin https://github.com/nextcon-dall/nai.git
+git branch -M main
 git push -u origin main
 ```
 
