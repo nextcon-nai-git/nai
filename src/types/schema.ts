@@ -34,6 +34,35 @@ export interface UserProfile {
   certificate_info?: UserCertificateInfo;
 }
 
+export interface Meeting {
+  id: string;
+  doctorId: string;
+  patientId: string;
+  patientName: string;
+  status: 'scheduled' | 'active' | 'ended';
+  startTime: string;
+  endTime?: string;
+  offer?: { sdp: string; type: string };
+  answer?: { sdp: string; type: string };
+  transcript?: string;
+  soapSummary?: SOAPSummary;
+}
+
+export interface SOAPSummary {
+  subjective: string;
+  objective: string;
+  assessment: string;
+  plan: string;
+  cid10: { code: string; description: string }[];
+  alerts: string[];
+}
+
+export interface TelemetryData {
+  heartRate: number;
+  spo2: number;
+  timestamp: any;
+}
+
 export interface Company {
   id: string;
   name: string;
