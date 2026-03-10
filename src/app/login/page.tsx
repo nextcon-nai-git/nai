@@ -32,7 +32,6 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // Facilita o teste inicial
   React.useEffect(() => {
     if (mode === 'ADMIN') setEmail('nextcon@nextconsaude.com.br');
     else setEmail('engenharia@nativaempreendimentos.com.br');
@@ -48,7 +47,6 @@ export default function LoginPage() {
 
       const isAdmin = mode === 'ADMIN';
       
-      // Sincronização com IDs reais da base REAL_COMPANIES para conformidade Multi-tenant
       const nativaId = "51633820000151";
       const timeNowId = "01208413000129";
 
@@ -75,7 +73,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
-      {/* Lado Esquerdo - Branding Dinâmico */}
       <div className={cn(
         "hidden lg:flex lg:w-3/5 flex-col items-center justify-center p-12 relative overflow-hidden transition-colors duration-700",
         mode === 'ADMIN' ? "bg-[#001F3F]" : "bg-primary"
@@ -103,7 +100,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Lado Direito - Formulário */}
       <div className="flex-1 flex items-center justify-center p-8 lg:p-24 bg-gray-50/30">
         <div className="w-full max-w-md space-y-12">
           <div className="space-y-4 text-center lg:text-left">
@@ -118,7 +114,6 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          {/* Seletor de Modo */}
           <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
             <button
               onClick={() => setMode('CLIENT')}
@@ -145,7 +140,6 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] ml-1">E-mail Corporativo</label>
                 <div className="relative group">
-                  <path d="M12 9v4"/><path d="M12 17h.01"/></svg>
                   <Mail className="absolute left-4 top-4 h-4 w-4 text-gray-300 group-focus-within:text-primary transition-colors" />
                   <Input 
                     type="email" 

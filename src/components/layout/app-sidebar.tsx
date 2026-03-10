@@ -197,7 +197,6 @@ export function AppSidebar() {
           )
         })}
 
-        {/* Link Externo para o Site Oficial */}
         <SidebarGroup className="mt-auto py-6">
           <SidebarMenu>
             <SidebarMenuItem>

@@ -43,13 +43,12 @@ export default function TelemedicinePage() {
 
   const [formData, setFormData] = React.useState({
     pacienteEmail: "",
-    medicoEmail: "doutor.nextcon@nextconsaude.com.br", // Default mock
+    medicoEmail: "doutor.nextcon@nextconsaude.com.br",
     data: "",
     hora: "",
     titulo: "Videoconsulta de Acompanhamento"
   })
 
-  // Busca agendamentos com limite de performance
   const appointmentsQuery = useMemoFirebase(() => {
     if (!db) return null
     return query(collection(db, "agendamentos_telemedicina"), orderBy("inicio", "desc"), limit(50))
