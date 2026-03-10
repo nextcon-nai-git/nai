@@ -1,8 +1,7 @@
-
 "use client"
 
 import * as React from "react"
-import { Cloud, Terminal, ShieldCheck, Zap, RefreshCw, ExternalLink, HardDrive, Cpu, Network, Lock } from "lucide-react"
+import { Cloud, Terminal, ShieldCheck, Zap, RefreshCw, ExternalLink, HardDrive, Cpu, Network, Lock, Globe } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -45,6 +44,31 @@ export default function CloudInfraPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden border-2 border-emerald-100/50">
+            <CardHeader className="bg-emerald-50 border-b pb-6">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                  <Globe className="size-5 text-emerald-600" /> Domínio de Produção
+                </CardTitle>
+                <Badge className="bg-emerald-600 text-white font-black uppercase text-[8px] px-2 h-5">Ativo e Estável</Badge>
+              </div>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">Endpoint oficial para clientes e parceiros.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Endereço Principal</p>
+                  <h3 className="text-xl font-bold text-primary">www.nextconsaude.com.br/nai</h3>
+                </div>
+                <Button className="bg-primary text-white font-black uppercase text-[10px] rounded-xl h-12 px-8 shadow-xl" asChild>
+                  <a href="https://www.nextconsaude.com.br/nai" target="_blank" rel="noopener noreferrer">
+                    Acessar Produção <ExternalLink className="size-3 ml-2" />
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b pb-6">
               <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
@@ -68,33 +92,6 @@ export default function CloudInfraPage() {
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="card-shadow border-none bg-white rounded-[2rem] p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-blue-50 rounded-xl">
-                  <HardDrive className="size-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cloud Storage</p>
-                  <h3 className="font-bold text-primary truncate w-40">{firebaseConfig.storageBucket}</h3>
-                </div>
-              </div>
-              <Badge className="bg-emerald-100 text-emerald-700 border-none font-black uppercase text-[8px] px-2 h-5">Ativo (RBC)</Badge>
-            </Card>
-            <Card className="card-shadow border-none bg-white rounded-[2rem] p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-purple-50 rounded-xl">
-                  <Cpu className="size-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compute Region</p>
-                  <h3 className="font-bold text-primary">us-central1</h3>
-                </div>
-              </div>
-              <Badge className="bg-blue-100 text-blue-700 border-none font-black uppercase text-[8px] px-2 h-5">Standard Tier</Badge>
-            </Card>
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -115,7 +112,7 @@ export default function CloudInfraPage() {
                   <p className="text-[9px] font-black uppercase text-white/40 mb-2">App Hosting Status</p>
                   <div className="flex items-center gap-2">
                     <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-                    <p className="text-xs font-bold">PRODUCTION_READY</p>
+                    <p className="text-xs font-bold">STABLE_PRODUCTION</p>
                   </div>
                 </div>
               </div>
@@ -133,7 +130,7 @@ export default function CloudInfraPage() {
             </div>
             <div className="space-y-1">
               <h4 className="text-sm font-black text-primary uppercase">Pipeline CD/CI</h4>
-              <p className="text-xs text-muted-foreground italic">"Monitorando mudanças no repositório para gatilho automático de deploy 2026."</p>
+              <p className="text-xs text-muted-foreground italic">"Monitorando mudanças no repositório para gatilho automático de deploy para o novo domínio."</p>
             </div>
           </Card>
         </div>

@@ -196,9 +196,14 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center pt-6">
-            <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em]">
-              © 2026 NextCon Inteligência NAI em SST • NAI Forensic Engine
-            </p>
+            <a 
+              href="https://www.nextconsaude.com.br/nai" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em] hover:text-primary transition-colors"
+            >
+              © 2026 NextCon Inteligência NAI em SST • www.nextconsaude.com.br/nai
+            </a>
           </div>
         </div>
       </div>
