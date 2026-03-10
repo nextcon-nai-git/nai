@@ -8,13 +8,19 @@ import { enableFirebaseTelemetry } from '@genkit-ai/firebase';
  */
 
 // Habilita o rastreamento e telemetria via Firebase (Genkit 1.x)
-// Proteção contra erro de boot: só ativa se não estiver em ambiente de desenvolvimento local sem credenciais
-if (process.env.NODE_ENV === 'production' || process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+// Proteção robusta: evita falha crítica se o GcpLogger não encontrar credenciais físicas
+const shouldEnableTelemetry = 
+  process.env.NODE_ENV === 'production' || 
+  process.env.GOOGLE_SERVICE_ACCOUNT_JSON || 
+  process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+if (shouldEnableTelemetry) {
   try {
     enableFirebaseTelemetry();
+    console.log("NAI Telemetry: Sistema de monitoramento ativado.");
   } catch (error) {
-    // Silencia o erro para permitir o boot do Next.js sem crash
-    console.warn("NAI Telemetry: Ignorando inicialização do GcpLogger por falta de credenciais físicas.");
+    // Silencia o erro para permitir o boot do Next.js sem crash caso o arquivo de credenciais esteja ausente
+    console.warn("NAI Telemetry: Ignorando inicialização do GcpLogger para evitar crash por falta de arquivo de credenciais. O sistema usará Application Default Credentials (ADC) se disponível.");
   }
 }
 
