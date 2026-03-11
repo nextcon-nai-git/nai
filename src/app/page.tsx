@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -53,6 +52,7 @@ export default function Dashboard() {
   const db = useFirestore();
   const [saudacao, setSaudacao] = React.useState('');
   const [alertResolved, setAlertResolved] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
   
   const [fapValue, setFapValue] = React.useState([0.74]);
   const [payroll, setPayroll] = React.useState(150000);
@@ -70,6 +70,7 @@ export default function Dashboard() {
   }, [profile, loadingProfile]);
 
   React.useEffect(() => {
+    setIsClient(true);
     const hora = new Date().getHours();
     if (hora >= 5 && hora < 12) setSaudacao('Bom dia');
     else if (hora >= 12 && hora < 18) setSaudacao('Boa tarde');
@@ -79,6 +80,8 @@ export default function Dashboard() {
   const potentialSavings = React.useMemo(() => {
     return (payroll * 0.02 * (1 - fapValue[0]) * 12);
   }, [payroll, fapValue]);
+
+  if (!isClient) return null;
 
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
@@ -93,7 +96,7 @@ export default function Dashboard() {
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] ml-4">Cérebro NAI • Inteligência Nextcon 2026</p>
         </div>
         <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl">
-          {isGlobalAdmin ? 'BACKOFFICE ATIVO' : 'CONFORMIDADE CLIENTE'}
+          {isGlobalAdmin ? 'GESTÃO INTERNA ATIVA' : 'CONFORMIDADE CLIENTE'}
         </Badge>
       </div>
 
@@ -111,14 +114,14 @@ export default function Dashboard() {
                 Bloqueio preventivo automático para atividade em altura.
               </p>
               <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
-                "Integração Cross-Data: Hipertensão detectada nos logs de triagem de ontem."
+                "Integração de Dados: Hipertensão detectada nos logs de triagem de ontem."
               </div>
             </div>
             
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE SELECIONADA</Badge>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE EM FOCO</Badge>
                   <h3 className="text-lg font-black text-primary uppercase">Posto de Trabalho Elevado</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
@@ -139,10 +142,10 @@ export default function Dashboard() {
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg">
-                  <CheckCircle2 className="size-4" /> Validar Remanejamento para Solo
+                  <CheckCircle2 className="size-4" /> Validar Remanejamento
                 </Button>
                 <Button variant="outline" asChild className="border-red-200 text-red-600 h-11 px-6 rounded-xl font-black uppercase text-[10px]">
-                  <Link href="/medical/health-management">Refazer Triagem Agora</Link>
+                  <Link href="/medical/health-management">Refazer Triagem</Link>
                 </Button>
               </div>
             </div>
@@ -160,7 +163,7 @@ export default function Dashboard() {
                     <Brain className="size-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-black text-primary uppercase">NAI Strategic Briefing</CardTitle>
+                    <CardTitle className="text-lg font-black text-primary uppercase">Resumo Estratégico NAI</CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Status de Blindagem Técnica e Tributária.</CardDescription>
                   </div>
                 </div>
@@ -170,7 +173,7 @@ export default function Dashboard() {
             <CardContent className="px-8 pb-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Saving FAP Projetado</p>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Economia FAP Projetada</p>
                   <h3 className="text-2xl font-black text-primary">R$ 142.500,00</h3>
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingDown className="size-3 text-emerald-500" />
@@ -236,7 +239,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <Button asChild className="w-full h-12 bg-primary text-white font-black uppercase text-[9px] tracking-widest rounded-xl">
-                <Link href="/analytics">Análise de Performance Completa</Link>
+                <Link href="/analytics">Análise de Performance</Link>
               </Button>
             </CardContent>
           </Card>
@@ -264,7 +267,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between opacity-50">
                   <div className="flex items-center gap-2">
                     <Clock className="size-3 text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Portais Governamentais</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Portais do Governo</span>
                   </div>
                   <span className="text-[9px] font-black text-slate-400">POLLING</span>
                 </div>
@@ -274,30 +277,26 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Botão Flutuante da IA (Cérebro NAI) */}
       <Sheet>
         <SheetTrigger asChild>
           <Button 
-            className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-primary shadow-2xl hover:scale-105 transition-transform duration-300 flex items-center justify-center p-0 group z-50 ring-4 ring-primary/20"
+            className="fixed bottom-8 right-8 h-16 w-16 rounded-full bg-primary shadow-2xl hover:scale-105 transition-transform duration-300 flex items-center justify-center p-0 z-50 ring-4 ring-primary/20"
           >
-            <Bot className="size-8 text-white group-hover:hidden absolute" />
-            <Sparkles className="size-8 text-white hidden group-hover:block absolute animate-pulse" />
+            <Bot className="size-8 text-white" />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-md p-0 border-l-0 bg-slate-50 flex flex-col">
           <SheetHeader className="p-6 bg-primary text-white rounded-bl-3xl">
             <SheetTitle className="text-white font-black uppercase tracking-widest flex items-center gap-2 text-sm">
               <Brain className="size-5" /> 
-              Cérebro NAI • Assistente
+              Assistente NAI
             </SheetTitle>
             <p className="text-primary-foreground/80 text-xs font-medium">
-              Analise prontuários, consulte CIDs ou gere insights de ROI do FAP em tempo real.
+              Analise prontuários e CIDs em tempo real com apoio clínico.
             </p>
           </SheetHeader>
-          
           <div className="flex-1 p-4 overflow-hidden">
-            {/* Aqui entra o nosso componente de Streaming de IA */}
-            <MedicalCopilot pacienteId="contexto_geral_dashboard" />
+            <MedicalCopilot pacienteId="contexto_geral" />
           </div>
         </SheetContent>
       </Sheet>

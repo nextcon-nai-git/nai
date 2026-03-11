@@ -55,7 +55,7 @@ import { cn } from "@/lib/utils"
 
 const NAV_MODULES = [
   {
-    label: "ESTRATEGICO",
+    label: "ESTRATÉGICO",
     icon: ShieldCheck,
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
@@ -78,7 +78,7 @@ const NAV_MODULES = [
     ]
   },
   {
-    label: "SAUDE OCUPACIONAL",
+    label: "SAÚDE OCUPACIONAL",
     icon: HeartPulse,
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
