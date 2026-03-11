@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -52,7 +53,7 @@ export default function LoginPage() {
         const emailName = loggedUser.email?.split('@')[0]
           .split('.')
           .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(' ') || 'Usuário';
+          .join(' ') || 'Gestor';
 
         let role = 'CLIENT_ADMIN';
         if (mode === 'ADMIN') role = 'SUPER_ADMIN';
@@ -63,7 +64,7 @@ export default function LoginPage() {
           email: loggedUser.email,
           name: emailName,
           role: role,
-          companyId: "", // Neutral: companyId is set by admin or during on-boarding
+          companyId: "", // Inicia vazio para seleção manual ou atribuição via admin
           updatedAt: serverTimestamp()
         }, { merge: true });
       }

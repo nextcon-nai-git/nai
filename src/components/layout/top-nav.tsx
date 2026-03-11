@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from 'react';
@@ -45,10 +46,10 @@ export function TopNav() {
 
   const getUnitLabel = () => {
     if (isAdmin) return "Gestão da Rede";
-    // For clients, we try to use their company profile data
+    // Tenta usar o nome da empresa do perfil ou ID
     if (profile?.companyName) return profile.companyName;
-    if (profile?.companyId) return `ID: ${profile.companyId}`;
-    return "NAI Intelligence";
+    if (profile?.companyId) return `Unidade ID: ${profile.companyId}`;
+    return "Acesso Seguro NAI";
   };
 
   const unitLabel = getUnitLabel();
@@ -71,7 +72,7 @@ export function TopNav() {
         <div className="relative group">
           <Search className="absolute left-3 top-2.5 size-4 text-slate-400 group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder={isAdmin ? "Pesquisar em toda a rede..." : "Pesquisar seus dados..."} 
+            placeholder={isAdmin ? "Pesquisar em toda a rede..." : "Pesquisar em seus registros..."} 
             className="pl-10 h-10 bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 transition-all text-sm"
           />
           <div className="absolute right-3 top-2.5">

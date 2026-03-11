@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -103,9 +104,13 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-1">
                   <span>{saudacao}, <span className="text-slate-500">{displayName}</span></span>
-                  {company?.name && (
+                  {company?.name ? (
                     <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
                       Unidade: {company.name}
+                    </span>
+                  ) : profile?.companyId && (
+                    <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
+                      ID Unidade: {profile.companyId}
                     </span>
                   )}
                 </div>
@@ -130,18 +135,18 @@ export default function Dashboard() {
                 <h2 className="text-xl font-black uppercase tracking-tight">Risco Crítico</h2>
               </div>
               <p className="text-sm font-bold text-red-100 leading-tight mb-6">
-                Bloqueio preventivo automático para atividade em altura.
+                Bloqueio preventivo automático para atividade de alto risco.
               </p>
               <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
-                "Integração de Dados: Hipertensão detectada nos logs de triagem de ontem."
+                "Integração NAI: Inconsistência clínica detectada nos logs de triagem recentes."
               </div>
             </div>
             
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">ALERTA OPERACIONAL • UNIDADE EM FOCO</Badge>
-                  <h3 className="text-lg font-black text-primary uppercase">Posto de Trabalho Elevado</h3>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">ALERTA OPERACIONAL • VIGILÂNCIA ATIVA</Badge>
+                  <h3 className="text-lg font-black text-primary uppercase">Restrição de Acesso Técnico</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
                   <Link href="/medical/health-management">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
@@ -151,20 +156,20 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Motivo do Alerta</p>
-                  <p className="text-[11px] font-bold text-primary leading-tight">Spike de PA registrado nas últimas 24h. Risco de síncope em altura.</p>
+                  <p className="text-[11px] font-bold text-primary leading-tight">Variação de sinais vitais detectada. Bloqueio em zona de risco por precaução.</p>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>
-                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Prevenção ativa preserva ROI estimado em passivo trabalhista.</p>
+                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Ação preventiva reduz probabilidade de sinistro e impacto no FAP.</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg">
-                  <CheckCircle2 className="size-4" /> Validar Remanejamento
+                  <CheckCircle2 className="size-4" /> Validar Protocolo
                 </Button>
                 <Button variant="outline" asChild className="border-red-200 text-red-600 h-11 px-6 rounded-xl font-black uppercase text-[10px]">
-                  <Link href="/medical/health-management">Refazer Triagem</Link>
+                  <Link href="/medical/health-management">Acompanhamento</Link>
                 </Button>
               </div>
             </div>
@@ -186,7 +191,7 @@ export default function Dashboard() {
                     <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Status de Blindagem Técnica e Tributária.</CardDescription>
                   </div>
                 </div>
-                <Badge variant="outline" className="bg-emerald-50 border-emerald-100 text-emerald-700 font-black text-[10px] h-8">S-2240 OK</Badge>
+                <Badge variant="outline" className="bg-emerald-50 border-emerald-100 text-emerald-700 font-black text-[10px] h-8">CONFORMIDADE OK</Badge>
               </div>
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-6">
@@ -196,7 +201,7 @@ export default function Dashboard() {
                   <h3 className="text-2xl font-black text-primary">R$ 142.500,00</h3>
                   <div className="flex items-center gap-1 mt-2">
                     <TrendingDown className="size-3 text-emerald-500" />
-                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Efeito da Gestão Ativa</span>
+                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Gestão Ativa de Nexo</span>
                   </div>
                 </div>
                 <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
@@ -204,7 +209,7 @@ export default function Dashboard() {
                   <h3 className="text-2xl font-black text-primary">94.2%</h3>
                   <div className="flex items-center gap-1 mt-2">
                     <CheckCircle2 className="size-3 text-blue-500" />
-                    <span className="text-[9px] font-bold text-blue-600 uppercase">Cronograma de NRs em dia</span>
+                    <span className="text-[9px] font-bold text-blue-600 uppercase">Documentação Sincronizada</span>
                   </div>
                 </div>
               </div>
@@ -216,7 +221,7 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise cruzada detectou tendência de absenteísmo. Recomendamos antecipar a vistoria ergonômica da NR-17 para mitigar o risco de novas liminares."
+                    "A análise cruzada detectou tendências favoráveis na redução de absenteísmo. Continue mantendo a periodicidade dos treinamentos para sustentar o bônus FAP."
                   </p>
                 </div>
               </div>
@@ -224,9 +229,9 @@ export default function Dashboard() {
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard label="Vidas sob Vigilância" value="806" sub="Multitenant Ativo" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
+            <StatCard label="Vidas sob Vigilância" value="806" sub="Base Atualizada" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
             <StatCard label="ASOs Pendentes" value="12" sub="Próximos 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Check-ins Campo" value="142" sub="Logs Georeferenciados" icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
+            <StatCard label="Check-ins Campo" value="142" sub="Logs Ativos" icon={MapPin} color="text-emerald-600" bg="bg-emerald-50" />
           </div>
         </div>
 
@@ -272,7 +277,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="size-3 text-emerald-500" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Ambulatório Digital</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Clínica Digital</span>
                   </div>
                   <span className="text-[9px] font-black text-emerald-600">LIVE</span>
                 </div>
@@ -286,9 +291,9 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between opacity-50">
                   <div className="flex items-center gap-2">
                     <Clock className="size-3 text-slate-400" />
-                    <span className="text-[10px] font-bold text-slate-600 uppercase">Portais do Governo</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Portais Governamentais</span>
                   </div>
-                  <span className="text-[9px] font-black text-slate-400">POLLING</span>
+                  <span className="text-[9px] font-black text-slate-400">IDLE</span>
                 </div>
               </div>
             </CardContent>
