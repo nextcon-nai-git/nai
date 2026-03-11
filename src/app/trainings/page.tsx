@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -85,7 +84,7 @@ export default function TrainingDashboard() {
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent" />
                 </div>
                 <div className="space-y-2">
-                  <Badge className="bg-emerald-100 text-emerald-700 border-none uppercase font-black text-[9px]">Sessão Ativa: NR-18 Nativa</Badge>
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none uppercase font-black text-[9px]">Sessão Ativa: NR-18</Badge>
                   <p className="text-xs text-slate-500 italic">"Geolocalização e Biometria Facial ativas para conformidade NR-01."</p>
                 </div>
               </div>
@@ -101,7 +100,7 @@ export default function TrainingDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <KpiCard label="Alunos Ativos" value={totalStudents} icon={Users} color="text-blue-600" bg="bg-blue-50" />
         <KpiCard label="Horas Presenciais" value={`${completedHours}h`} icon={Clock} color="text-emerald-600" bg="bg-emerald-50" />
-        <KpiCard label="Nativa Empreend." value="40h / 5 Dias" icon={HardHat} color="text-orange-600" bg="bg-orange-50" />
+        <KpiCard label="Capacitação Mensal" value="40h / 5 Dias" icon={HardHat} color="text-orange-600" bg="bg-orange-50" />
         <KpiCard label="Conformidade Digital" value="98%" icon={CheckCircle2} color="text-accent" bg="bg-accent/5" />
       </div>
 
@@ -177,7 +176,7 @@ export default function TrainingDashboard() {
             <CardContent className="p-8 pt-0 space-y-6">
               <div className="p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-md">
                 <p className="text-sm italic leading-relaxed text-white/80">
-                  "O engajamento digital na Nativa subiu 15%. Turmas presenciais com QR Code reduziram o tempo de processamento de certificados em 4 dias."
+                  "O engajamento digital na rede subiu 15%. Turmas presenciais com QR Code reduziram o tempo de processamento de certificados."
                 </p>
               </div>
               <Button className="w-full h-14 bg-accent text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:opacity-90">Analisar Gap de Treinamento</Button>
@@ -186,7 +185,7 @@ export default function TrainingDashboard() {
 
           <Card className="border-none shadow-xl bg-white rounded-[2.5rem] flex flex-col overflow-hidden">
             <CardHeader className="bg-slate-50 border-b p-6">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Alunos Matriculados (Nativa)</CardTitle>
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Alunos Matriculados (Lote Atual)</CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
               <div className="divide-y">
@@ -229,7 +228,7 @@ function KpiCard({ label, value, icon: Icon, color, bg }: any) {
     <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}><Icon className="size-5" /></div>
+          <div className={cn("p-3 rounded-2xl", bg, color)}><Icon className="size-5" /></div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
         <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>

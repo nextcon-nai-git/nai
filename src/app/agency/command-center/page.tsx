@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -28,17 +27,17 @@ interface KanbanAction {
 }
 
 const initialActions: KanbanAction[] = [
-  { id: 1, title: "Atualizar Inventário GES 01", client: "Nextcon SST", category: "PGR", status: "Para Fazer" },
-  { id: 2, title: "Treinamento Direção Defensiva", client: "Nextcon SST", category: "Treinamento", status: "Em Andamento" },
-  { id: 3, title: "Renovação de PCMSO", client: "Transportes Rapidez", category: "Saúde", status: "Para Fazer" },
-  { id: 4, title: "Ata da CIPA Outubro", client: "Logística Express", category: "Gestão", status: "Concluído" },
-  { id: 5, title: "Laudo de Insalubridade", client: "Química Norte", category: "LTCAT", status: "Bloqueado" },
+  { id: 1, title: "Atualizar Inventário GES 01", client: "UNIDADE ALFA", category: "PGR", status: "Para Fazer" },
+  { id: 2, title: "Treinamento Direção Defensiva", client: "UNIDADE BETA", category: "Treinamento", status: "Em Andamento" },
+  { id: 3, title: "Renovação de PCMSO", client: "UNIDADE GAMA", category: "Saúde", status: "Para Fazer" },
+  { id: 4, title: "Ata da CIPA Outubro", client: "UNIDADE DELTA", category: "Gestão", status: "Concluído" },
+  { id: 5, title: "Laudo de Insalubridade", client: "UNIDADE EPSILON", category: "LTCAT", status: "Bloqueado" },
 ]
 
 const redFlags = [
-  { id: 1, type: "PGR Vencendo", client: "Nextcon SST", item: "Unidade Curitiba/PR", deadline: "13/08/2026", status: "Monitorar" },
-  { id: 2, type: "Exame Atrasado", client: "Transportes Rapidez", item: "Audiometria - João S.", deadline: "Há 12 dias", status: "Alerta" },
-  { id: 3, type: "Treinamento NR-35", client: "Construção Forte", item: "Trabalho em Altura", deadline: "Amanhã", status: "Crítico" },
+  { id: 1, type: "PGR Vencendo", client: "UNIDADE ALFA", item: "Setor Operacional", deadline: "13/08/2026", status: "Monitorar" },
+  { id: 2, type: "Exame Atrasado", client: "UNIDADE BETA", item: "Audiometria - Colaborador X", deadline: "Há 12 dias", status: "Alerta" },
+  { id: 3, type: "Treinamento NR-35", client: "UNIDADE ETA", item: "Trabalho em Altura", deadline: "Amanhã", status: "Crítico" },
 ]
 
 export default function AgencyCommandCenter() {
@@ -91,7 +90,7 @@ export default function AgencyCommandCenter() {
         </div>
         <div className="flex gap-3">
           <Badge variant="outline" className="text-primary border-primary px-4 py-1.5 font-bold bg-white shadow-sm">
-            EMPRESA: NXC SST EMPRESARIAL LTDA
+            REDER NEXTCON: GESTÃO ESTRATÉGICA
           </Badge>
         </div>
       </div>

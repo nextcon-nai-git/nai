@@ -77,7 +77,6 @@ export default function EnterpriseOpsHub() {
     return ['PROVIDER', 'ENGINEER', 'DOCTOR'].includes(role);
   }, [profile]);
 
-  // Carrega empresas respeitando o isolamento
   const companiesQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     if (isGlobalAdmin) {
@@ -96,22 +95,18 @@ export default function EnterpriseOpsHub() {
   const tasksQuery = useMemoFirebase(() => {
     if (!db || !profile) return null
     
-    // Admin Global vê tudo
     if (selectedCompanyId === "all" && isGlobalAdmin) {
       return query(collectionGroup(db, "tasks"), orderBy("dueDate", "asc"))
     } 
 
-    // Se uma empresa específica foi selecionada
     if (selectedCompanyId !== "all") {
       return query(collection(db, "companies", selectedCompanyId, "tasks"), orderBy("dueDate", "asc"))
     }
 
-    // Prestador vê tarefas das empresas que ele atende
     if (isProvider && profile.servedCompanies && profile.servedCompanies.length > 0) {
       return query(collectionGroup(db, "tasks"), where("companyId", "in", profile.servedCompanies.slice(0, 10)), orderBy("dueDate", "asc"))
     }
 
-    // Cliente vê apenas as suas
     if (profile.companyId) {
       return query(collection(db, "companies", profile.companyId, "tasks"), orderBy("dueDate", "asc"))
     }
@@ -192,7 +187,7 @@ export default function EnterpriseOpsHub() {
                 <div className="space-y-6 py-8">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Descrição da Vistoria</label>
-                    <Input value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="bg-slate-50 border-none h-14 text-sm font-bold rounded-2xl shadow-inner" placeholder="Ex: Auditoria NR-18 Unidade Curitiba" />
+                    <Input value={taskForm.title} onChange={e => setTaskForm({...taskForm, title: e.target.value})} className="bg-slate-50 border-none h-14 text-sm font-bold rounded-2xl shadow-inner" placeholder="Ex: Auditoria Técnica Unidade X" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Unidade Cliente</label>

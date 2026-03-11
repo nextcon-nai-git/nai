@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useDraggable } from '@dnd-kit/core';
@@ -79,7 +78,8 @@ export function TaskCard({ task }: { task: OpsTask }) {
   const totalChecks = checklist.length;
   const progress = totalChecks > 0 ? (completedChecks / totalChecks) * 100 : 0;
 
-  const isRealCase = ["CLI_NATIVA", "CLI_TIMENOW", "CLI_BRITANIA", "CLI_GULA", "leads", "51633820000151"].includes(task.companyId);
+  // Visual marker for real data vs mocks - made generic
+  const isPriorityCase = task.ai_risk_score !== undefined && task.ai_risk_score > 50;
 
   const handlePromoteToOps = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -104,7 +104,7 @@ export function TaskCard({ task }: { task: OpsTask }) {
         "border-l-[8px]", 
         priorityStyles[task.priority],
         isDragging ? "opacity-50 rotate-2 scale-105 shadow-2xl" : "shadow-sm",
-        isRealCase && "ring-1 ring-primary/5 bg-gradient-to-br from-white to-blue-50/30"
+        isPriorityCase && "ring-1 ring-primary/5 bg-gradient-to-br from-white to-blue-50/30"
       )}
     >
       <div className="flex justify-between items-start mb-4">
@@ -145,21 +145,15 @@ export function TaskCard({ task }: { task: OpsTask }) {
         </span>
       </div>
 
-      {/* Seção de Lead Externo (Metadados do Site) */}
       {(task as any).metadata?.contato_nome && (
         <div className="mb-5 p-3 bg-white/50 rounded-2xl border border-dashed border-emerald-200 space-y-2">
           <p className="text-[8px] font-black uppercase text-emerald-600 flex items-center gap-1">
-            <Sparkles className="size-2.5" /> Lead do Site
+            <Sparkles className="size-2.5" /> Lead Externo
           </p>
           <div className="flex flex-col gap-1">
             <p className="text-[10px] font-bold text-primary flex items-center gap-1.5 uppercase">
               <User className="size-3 text-slate-400" /> {(task as any).metadata.contato_nome}
             </p>
-            {(task as any).metadata.telefone && (
-              <p className="text-[10px] font-bold text-primary flex items-center gap-1.5">
-                <Phone className="size-3 text-slate-400" /> {(task as any).metadata.telefone}
-              </p>
-            )}
           </div>
         </div>
       )}
@@ -199,8 +193,8 @@ export function TaskCard({ task }: { task: OpsTask }) {
         </div>
         
         <div className="flex items-center gap-2">
-          {isRealCase && (
-            <div className="size-8 rounded-2xl bg-accent/10 flex items-center justify-center text-accent" title="Automação NAI Ativa">
+          {isPriorityCase && (
+            <div className="size-8 rounded-2xl bg-accent/10 flex items-center justify-center text-accent" title="Monitoramento Ativo">
               <Sparkles className="size-4" />
             </div>
           )}

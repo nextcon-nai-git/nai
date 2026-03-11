@@ -97,7 +97,7 @@ const NTEP_WORKFLOW_STEPS = [
       { id: "p1_1", label: "Recepção: Validar se > 15 dias ou soma > 15 em 60 dias." },
       { id: "p1_2", label: "Identificação do CID: Verificar se consta informação clínica." },
       { id: "p1_3", label: "Alerta de Risco: CID Ortopédico (M) ou Trauma (S/T) identificado?" },
-      { id: "p1_4", label: "Agendamento Prévio: Marcar consulta com Médico do Trabalho Nextcon." },
+      { id: "p1_4", label: "Agendamento Prévio: Marcar consulta com Médico do Trabalho." },
       { id: "p1_5", label: "Comunicação Imediata: Notificar SESMT e Jurídico/FAP." },
     ]
   },
@@ -108,7 +108,7 @@ const NTEP_WORKFLOW_STEPS = [
     items: [
       { id: "p2_1", label: "Entrevista: Investigar origem (Fim de semana, esporte, trânsito?)." },
       { id: "p2_2", label: "Busca de Evidências: Relatos de quase-acidente, EPIs e AET/PGR." },
-      { id: "p2_3", label: "Relatório de Encaminhamento: Médico emite laudo técnico para o perito." },
+      { id: "p2_3", label: "Relatório de Encaminhamento: Médico emite laudo técnico." },
     ]
   },
   {
@@ -278,7 +278,7 @@ export default function LimboSentinel() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-black uppercase text-slate-400">Nome do Colaborador</FormLabel>
-                          <FormControl><Input placeholder="Ex: JOÃO DA SILVA" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
+                          <FormControl><Input placeholder="Ex: NOME COMPLETO" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -302,7 +302,7 @@ export default function LimboSentinel() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[10px] font-black uppercase text-slate-400">Cargo</FormLabel>
-                            <FormControl><Input placeholder="Ex: ARMADOR" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
+                            <FormControl><Input placeholder="Ex: OPERADOR" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold uppercase" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -395,7 +395,7 @@ export default function LimboSentinel() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-[10px] font-black uppercase text-slate-400">Doença Alegada (Descrição)</FormLabel>
-                          <FormControl><Input placeholder="Ex: Síndrome do Túnel do Carpo" {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
+                          <FormControl><Input placeholder="Descrição clínica..." {...field} className="h-12 bg-slate-50 border-none rounded-xl font-bold" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -624,7 +624,7 @@ export default function LimboSentinel() {
                 <p className="text-[10px] font-bold uppercase text-white/40 tracking-widest">Casos sob Alerta de Nexo</p>
               </div>
               <p className="text-[11px] leading-relaxed italic text-white/60">
-                "O monitoramento preventivo nas fases 1 e 2 do workflow reduz em 74% a aplicação indevida de benefícios B91."
+                "O monitoramento preventivo nas fases 1 e 2 do workflow reduz significativamente a aplicação indevida de benefícios acidentários."
               </p>
             </CardContent>
           </Card>
@@ -636,7 +636,7 @@ export default function LimboSentinel() {
             <div className="space-y-1">
               <h4 className="text-sm font-black text-primary uppercase">Efeito Jurídico</h4>
               <p className="text-xs text-slate-500 font-medium leading-relaxed italic">
-                "Contestações fundamentadas com AET e Ficha de EPI garantem a conversão de espécie B91 para B31 no INSS."
+                "Contestações fundamentadas com laudos técnicos garantem a correta caracterização dos benefícios no INSS."
               </p>
             </div>
           </Card>

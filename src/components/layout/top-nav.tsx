@@ -44,9 +44,9 @@ export function TopNav() {
   const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role);
 
   const getUnitLabel = () => {
-    if (isAdmin) return "Matriz Curitiba";
-    if (profile?.companyId === '51633820000151') return "Matriz Guaratuba";
-    if (profile?.companyId === '01208413000129') return "Matriz Espírito Santo";
+    if (isAdmin) return "Gestão da Rede";
+    // For clients, we try to use their company profile data
+    if (profile?.companyName) return profile.companyName;
     return "Unidade Operacional";
   };
 

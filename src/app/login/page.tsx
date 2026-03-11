@@ -32,7 +32,6 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  // Limpa campos ao trocar de modo para garantir segurança
   React.useEffect(() => {
     setEmail('');
     setPassword('');
@@ -49,7 +48,6 @@ export default function LoginPage() {
       const userRef = doc(db, "users", loggedUser.uid);
       const userSnap = await getDoc(userRef);
 
-      // Se o perfil não existir, cria um baseado no modo selecionado
       if (!userSnap.exists() || !userSnap.data()?.name) {
         const emailName = loggedUser.email?.split('@')[0]
           .split('.')
@@ -63,9 +61,9 @@ export default function LoginPage() {
         await setDoc(userRef, {
           id: loggedUser.uid,
           email: loggedUser.email,
-          name: mode === 'ADMIN' ? "Eng. Felipe Coneglian Della Bianca" : emailName,
+          name: emailName,
           role: role,
-          companyId: mode === 'ADMIN' ? "" : (email.includes('nativa') ? "51633820000151" : "01208413000129"),
+          companyId: "", // Neutral: companyId is set by admin or during on-boarding
           updatedAt: serverTimestamp()
         }, { merge: true });
       }

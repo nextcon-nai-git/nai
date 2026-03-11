@@ -140,7 +140,7 @@ export default function Dashboard() {
             <div className="p-8 lg:flex-1 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
                 <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">JOÃO SILVA • UNIDADE EM FOCO</Badge>
+                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">ALERTA OPERACIONAL • UNIDADE EM FOCO</Badge>
                   <h3 className="text-lg font-black text-primary uppercase">Posto de Trabalho Elevado</h3>
                 </div>
                 <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
@@ -151,7 +151,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Motivo do Alerta</p>
-                  <p className="text-[11px] font-bold text-primary leading-tight">Spike de PA (160/100) registrado há 24h. Risco de síncope em altura.</p>
+                  <p className="text-[11px] font-bold text-primary leading-tight">Spike de PA registrado nas últimas 24h. Risco de síncope em altura.</p>
                 </div>
                 <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
                   <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>

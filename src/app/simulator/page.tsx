@@ -54,35 +54,26 @@ const SIMULATOR_DATA = [
         nr: "NR-18 (A Bíblia da Construção)", 
         items: [
           "PGR específico do canteiro emitido e atualizado?", 
-          "Áreas de vivência (alojamento/refeitório) limpas e higienizadas?", 
-          "Proteções coletivas (bandejas e guarda-corpos) instaladas?",
-          "Sinalização de segurança visível em todas as frentes de obra?"
+          "Áreas de vivência limpas e higienizadas?", 
+          "Proteções coletivas instaladas?",
+          "Sinalização de segurança visível?"
         ], 
         solution: "Checklist digital via App Nextcon com coleta de evidências fotográficas e geolocalização." 
       },
       { 
         nr: "NR-35 (Trabalho em Altura)", 
         items: [
-          "Análise de Risco (APR) preenchida e assinada por todos?", 
-          "Cinto de segurança paraquedista inspecionado e registrado?", 
-          "Linha de vida instalada e certificada por engenheiro?",
-          "Treinamento de 8h realizado para 100% dos executantes?"
+          "Análise de Risco (APR) preenchida e assinada?", 
+          "Cinto de segurança paraquedista inspecionado?", 
+          "Linha de vida instalada e certificada?",
+          "Treinamento de 8h realizado?"
         ], 
-        solution: "Bloqueio inteligente: O sistema impede o check-in do colaborador se o treinamento NR-35 estiver vencido." 
-      },
-      { 
-        nr: "NR-24 (Condições Sanitárias)", 
-        items: [
-          "Número de chuveiros e vasos sanitários atende ao efetivo atual?", 
-          "Refeitório possui local adequado para lavagem de mãos?", 
-          "Vestiários possuem armários individuais com cadeado?"
-        ], 
-        solution: "Dimensionamento automático no sistema baseado no número de vidas importado do RH." 
+        solution: "Bloqueio inteligente: O sistema impede o check-in do colaborador se o treinamento estiver vencido." 
       }
     ]
   },
   {
-    phase: "Fase 2: Média Complexidade (EXPANSÃO PLANEJADA)",
+    phase: "Fase 2: Média Complexidade (EXPANSÃO)",
     lives: "500 vidas",
     color: "text-amber-600",
     bg: "bg-amber-50",
@@ -95,70 +86,25 @@ const SIMULATOR_DATA = [
       { 
         nr: "NR-01 (GRO / PGR)", 
         items: [
-          "Inventário de riscos cruzado com o eSocial S-2240?", 
-          "Plano de ação possui prazos e responsáveis designados?",
+          "Inventário de riscos cruzado com o eSocial?", 
+          "Plano de ação possui prazos e responsáveis?",
           "Identificação de perigos inclui fatores psicossociais?"
         ], 
-        solution: "Dashboard de Gestão de Riscos: Visualização em tempo real das ações pendentes e críticas." 
-      },
-      { 
-        nr: "NR-04 & NR-05 (SESMT e CIPA)", 
-        items: [
-          "Dimensionamento do SESMT atende ao Quadro II da norma?", 
-          "Eleição da CIPA realizada digitalmente com atas registradas?",
-          "Treinamento de assédio realizado para toda a comissão?"
-        ], 
-        solution: "Módulo CIPA Digital: Votação, atas e treinamentos 100% sem papel e auditáveis." 
+        solution: "Dashboard de Gestão de Riscos: Visualização em tempo real das ações pendentes." 
       },
       { 
         nr: "NR-06 (Controle de EPIs)", 
         items: [
-          "Fichas de EPI assinadas digitalmente (sem papel)?", 
+          "Fichas de EPI assinadas digitalmente?", 
           "Controle de validade do CA (Certificado de Aprovação)?",
-          "Reposição periódica baseada na vida útil do equipamento?"
+          "Reposição periódica baseada na vida útil?"
         ], 
         solution: "Quiosque Digital EPI: Assinatura biométrica/foto na entrega, gerando validade jurídica total." 
-      },
-      { 
-        nr: "NR-07 (PCMSO)", 
-        items: [
-          "Cronograma de exames (Admissionais/Periódicos) em dia?", 
-          "Exames complementares (audiometria/visão) realizados?",
-          "ASOs emitidos conforme riscos do PGR (NR-01)?"
-        ], 
-        solution: "Sincronização PGR x PCMSO: Se o PGR muda, o sistema alerta a necessidade de novos exames." 
-      },
-      { 
-        nr: "NR-09 (Exposições Ocupacionais)", 
-        items: [
-          "Medições de ruído (dosimetria) realizadas recentemente?", 
-          "Avaliação quantitativa de poeira (sílica/cimento)?",
-          "Laudo de Higiene Ocupacional assinado por técnico?"
-        ], 
-        solution: "Central de Laudos NAI: Armazenamento e alerta de vencimento de medições ambientais." 
-      },
-      { 
-        nr: "NR-12 (Máquinas e Equipamentos)", 
-        items: [
-          "Betoneiras e serras possuem proteções fixas e móveis?", 
-          "Sensores de segurança testados e funcionando?",
-          "Manutenções preventivas registradas em livro próprio?"
-        ], 
-        solution: "QR Code nas máquinas: Inspeção diária via celular antes de ligar o equipamento." 
-      },
-      { 
-        nr: "NR-10 (Segurança Elétrica)", 
-        items: [
-          "Instalações provisórias possuem DR (Diferencial Residual)?", 
-          "Quadros de força trancados e sinalizados corretamente?",
-          "Eletricistas possuem treinamento NR-10 Básico e SEP?"
-        ], 
-        solution: "Firewall Elétrico: Monitoramento de certificados de treinamento na admissão do eletricista." 
       }
     ]
   },
   {
-    phase: "Fase 3: Alta Complexidade (Mini-Hospital)",
+    phase: "Fase 3: Alta Complexidade (Plena)",
     lives: "800+ vidas",
     color: "text-red-600",
     bg: "bg-red-50",
@@ -168,51 +114,6 @@ const SIMULATOR_DATA = [
     statusCor: "text-red-600",
     subStatus: "Responsabilidade Solidária",
     nrs: [
-      { 
-        nr: "NR-11 (Movimentação de Cargas)", 
-        items: [
-          "Cachorros, eslingas e cabos de aço inspecionados?", 
-          "Operadores de grua possuem ASO específico?",
-          "Plano de Içamento (Rigging) aprovado para cargas pesadas?"
-        ], 
-        solution: "Gestão de Ativos: Controle rigoroso de inspeções de acessórios de içamento." 
-      },
-      { 
-        nr: "NR-33 (Espaços Confinados)", 
-        items: [
-          "Permissão de Entrada e Trabalho (PET) emitida?", 
-          "Vigilante de espaço confinado presente no local?",
-          "Medição de gases realizada antes e durante o acesso?"
-        ], 
-        solution: "Monitoramento de Riscos Críticos: Alerta instantâneo para o SESMT ao abrir uma PET." 
-      },
-      { 
-        nr: "NR-15 & NR-16 (Insalubridade / Periculosidade)", 
-        items: [
-          "Laudos técnicos fundamentam o pagamento de adicionais?", 
-          "Cruzamento de rubricas da folha com eventos eSocial?",
-          "Avaliação de agentes químicos e vibração em dia?"
-        ], 
-        solution: "ROI Tributário: Auditoria NAI para evitar pagamentos indevidos ou multas por omissão." 
-      },
-      { 
-        nr: "NR-17 (Ergonomia)", 
-        items: [
-          "Análise Ergonômica do Trabalho (AET) das funções pesadas?", 
-          "Equipamentos de auxílio para transporte de sacaria?",
-          "Rodízio de atividades para evitar LER/DORT implementado?"
-        ], 
-        solution: "Diagrama de Risco NAI: Identificação visual de postos com alta carga ergonômica." 
-      },
-      { 
-        nr: "NR-23 (Incêndio) & NR-35", 
-        items: [
-          "Brigada de Incêndio formada e treinada conforme carga?", 
-          "Extintores desobstruídos e com validade de carga OK?",
-          "Rotas de fuga sinalizadas e iluminadas?"
-        ], 
-        solution: "Checklist de Segurança Predial: Inspeção mensal automatizada dos itens de combate a incêndio." 
-      },
       { 
         nr: "Gestão de Terceiros (O Maior Passivo)", 
         items: [
@@ -247,7 +148,7 @@ export default function ScaleSimulator() {
         <div>
           <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase leading-none">Simulador de Impacto Financeiro SST</h1>
           <p className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">
-            <Building2 className="size-3" /> Análise de Performance Tributária para o Setor de Construção
+            <Building2 className="size-3" /> Análise de Performance Tributária por Unidade
           </p>
         </div>
         <Badge className="bg-[#090e24] text-[#f59e0b] font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-[#f59e0b]/20 shadow-lg">

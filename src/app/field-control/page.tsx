@@ -55,7 +55,7 @@ const FIELD_PROFESSIONALS = {
     bg: "bg-blue-50",
     checklist: [
       { id: "tst1", label: "Realizar liberação de PT / APR nas frentes de trabalho.", ref: "NR-01 / NR-18" },
-      { id: "tst2", label: "Fiscalizar uso de EPIs e integridade de EPCs (Bandejas/Redes).", ref: "NR-06 / NR-18" },
+      { id: "tst2", label: "Fiscalizar uso de EPIs e integridade de EPCs.", ref: "NR-06 / NR-18" },
       { id: "tst3", label: "Executar DDS (Diálogo Diário de Segurança) com a equipe.", ref: "NR-01" },
       { id: "tst4", label: "Registrar inspeção de equipamentos e ferramentas manuais.", ref: "NR-12" },
       { id: "tst5", label: "Monitorar validade de treinamentos de terceiros em obra.", ref: "Solidária" }
@@ -69,10 +69,10 @@ const FIELD_PROFESSIONALS = {
     bg: "bg-orange-50",
     checklist: [
       { id: "eng1", label: "Elaborar / Revisar Inventário de Riscos do PGR.", ref: "NR-01" },
-      { id: "eng2", label: "Emitir ART (Anotação de Responsabilidade Técnica) de segurança.", ref: "CREA" },
+      { id: "eng2", label: "Emitir ART (Anotação de Responsabilidade Técnica).", ref: "CREA" },
       { id: "eng3", label: "Realizar auditoria de conformidade das NRs na unidade.", ref: "SST 2026" },
-      { id: "eng4", label: "Coordenar treinamentos técnicos especializados (NR-10/33/35).", ref: "Capacitação" },
-      { id: "eng5", label: "Definir medidas de controle de engenharia para riscos críticos.", ref: "EPC" }
+      { id: "eng4", label: "Coordenar treinamentos técnicos especializados.", ref: "Capacitação" },
+      { id: "eng5", label: "Definir medidas de controle de engenharia.", ref: "EPC" }
     ]
   }
 };
@@ -97,13 +97,6 @@ export default function FieldControlOperational() {
     return doc(db, "users", user.uid)
   }, [db, user])
   const { data: profile } = useDoc(profileRef)
-
-  const isGlobalAdmin = React.useMemo(() => {
-    if (!profile) return false;
-    const role = (profile.role || '').toUpperCase();
-    const companyId = profile.companyId;
-    return ['SUPER_ADMIN', 'ENGINEER', 'DOCTOR', 'ADMIN'].includes(role) && (!companyId || companyId === "");
-  }, [profile]);
 
   const accessLogsQuery = useMemoFirebase(() => {
     if (!db || !profile?.companyId) return null
@@ -352,9 +345,9 @@ export default function FieldControlOperational() {
                     <Select value={gatekeeperForm.area} onValueChange={v => setGatekeeperForm({...gatekeeperForm, area: v})}>
                       <SelectTrigger className="h-12 bg-slate-50 border-none rounded-xl font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="caldeira_nr33">Caldeira (Espaço Confinado)</SelectItem>
-                        <SelectItem value="obra_externa_nr35">Obra Externa (Altura)</SelectItem>
-                        <SelectItem value="refeitorio">Refeitório (Área Comum)</SelectItem>
+                        <SelectItem value="caldeira_nr33">Zona Crítica (Espaço Confinado)</SelectItem>
+                        <SelectItem value="obra_externa_nr35">Zona Crítica (Altura)</SelectItem>
+                        <SelectItem value="refeitorio">Área Comum (Refeitório)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -409,7 +402,7 @@ export default function FieldControlOperational() {
                               {log.status === 'authorized' ? "Autorizado" : "Bloqueado"}
                             </Badge>
                             {log.status === 'denied' && (
-                              <p className="text-[9px] text-red-600 italic font-medium leading-tight max-w-[150px]">⚠ {log.reason}</p>
+                              <p className="text-[9px] text-red-600 italic font-medium leading-tight max-w-[150px]">⚠️ {log.reason}</p>
                             )}
                           </div>
                         </TableCell>
