@@ -33,8 +33,11 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   React.useEffect(() => {
-    if (mode === 'ADMIN') setEmail('nextcon@nextconsaude.com.br');
-    else setEmail('engenharia@nativaempreendimentos.com.br');
+    if (mode === 'ADMIN') {
+      setEmail('nextcon@nextconsaude.com.br');
+    } else {
+      setEmail('');
+    }
   }, [mode]);
 
   const handleLogin = async (e: React.FormEvent) => {
