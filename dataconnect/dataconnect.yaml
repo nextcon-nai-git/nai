@@ -1,0 +1,8 @@
+
+specVersion: "v1alpha"
+serviceId: "studio-8439299034-125c7-service"
+location: "us-central1"
+schema:
+  source: "./schema"
+connectorDirs:
+  - "./connector"

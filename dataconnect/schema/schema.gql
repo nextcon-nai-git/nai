@@ -1,0 +1,26 @@
+
+# NEXTCON DATA CONNECT SCHEMA 2026
+# Define a estrutura relacional para dados de auditoria e gestão SST.
+
+type Company @table {
+  id: UUID! @default(expr: "uuid_generate_v4()")
+  name: String!
+  cnpj: String! @unique
+  riskDegree: Int
+  active: Boolean @default(value: true)
+}
+
+type UserProfile @table {
+  id: String! @primaryKey # Corresponde ao Auth UID
+  name: String!
+  role: String!
+  email: String! @unique
+}
+
+type AuditLog @table {
+  id: UUID! @default(expr: "uuid_generate_v4()")
+  userId: String!
+  action: String!
+  timestamp: Timestamp! @default(expr: "request.time")
+  metadata: Any
+}

@@ -1,0 +1,14 @@
+
+# Mutações do Conector NAI
+
+mutation CreateCompany($name: String!, $cnpj: String!, $riskDegree: Int) @auth(level: USER_ADMIN) {
+  company_insert(data: {
+    name: $name,
+    cnpj: $cnpj,
+    riskDegree: $riskDegree
+  })
+}
+
+mutation UpdateUserProfile($id: String!, $name: String!) @auth(level: USER) {
+  userProfile_update(id: $id, data: { name: $name })
+}

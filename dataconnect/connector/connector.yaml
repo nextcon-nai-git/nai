@@ -1,0 +1,6 @@
+
+connectorId: "nai"
+generate:
+  javascriptSdk:
+    outputDir: "../../src/generated/dataconnect"
+    package: "@nextcon/dataconnect"

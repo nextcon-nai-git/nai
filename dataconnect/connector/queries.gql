@@ -1,0 +1,19 @@
+
+# Consultas do Conector NAI
+
+query ListCompanies($limit: Int = 10) @auth(level: USER) {
+  companies(limit: $limit) {
+    id
+    name
+    cnpj
+    riskDegree
+  }
+}
+
+query GetUserProfile($id: String!) @auth(level: USER) {
+  userProfile(id: $id) {
+    name
+    role
+    email
+  }
+}

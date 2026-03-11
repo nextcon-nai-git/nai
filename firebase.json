@@ -13,5 +13,8 @@
   },
   "functions": {
     "source": "functions"
+  },
+  "dataconnect": {
+    "source": "dataconnect"
   }
 }
