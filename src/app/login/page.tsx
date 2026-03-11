@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles, ChevronRight, LayoutDashboard, Globe } from 'lucide-react';
+import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles, ChevronRight, LayoutDashboard, Globe, Stethoscope } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 
-type LoginMode = 'ADMIN' | 'CLIENT';
+type LoginMode = 'ADMIN' | 'CLIENT' | 'PROVIDER';
 
 export default function LoginPage() {
   const [mode, setMode] = React.useState<LoginMode>('CLIENT');
@@ -32,12 +32,10 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
+  // Limpa campos ao trocar de modo para garantir segurança
   React.useEffect(() => {
-    if (mode === 'ADMIN') {
-      setEmail('nextcon@nextconsaude.com.br');
-    } else {
-      setEmail('');
-    }
+    setEmail('');
+    setPassword('');
   }, [mode]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,28 +46,26 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const loggedUser = userCredential.user;
 
-      const isAdmin = mode === 'ADMIN';
-      
-      const nativaId = "51633820000151";
-      const timeNowId = "01208413000129";
-
       const userRef = doc(db, "users", loggedUser.uid);
       const userSnap = await getDoc(userRef);
 
-      // Só define nome padrão se o perfil ainda não existir ou não tiver nome
+      // Se o perfil não existir, cria um baseado no modo selecionado
       if (!userSnap.exists() || !userSnap.data()?.name) {
-        // Extrai um nome amigável do e-mail (ex: joao.silva@empresa.com -> Joao Silva)
         const emailName = loggedUser.email?.split('@')[0]
           .split('.')
           .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(' ') || 'Gestor';
+          .join(' ') || 'Usuário';
+
+        let role = 'CLIENT_ADMIN';
+        if (mode === 'ADMIN') role = 'SUPER_ADMIN';
+        if (mode === 'PROVIDER') role = 'PROVIDER';
 
         await setDoc(userRef, {
           id: loggedUser.uid,
           email: loggedUser.email,
-          name: isAdmin ? "Eng. Felipe Coneglian Della Bianca" : emailName,
-          role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-          companyId: isAdmin ? "" : (email.includes('nativa') ? nativaId : timeNowId),
+          name: mode === 'ADMIN' ? "Eng. Felipe Coneglian Della Bianca" : emailName,
+          role: role,
+          companyId: mode === 'ADMIN' ? "" : (email.includes('nativa') ? "51633820000151" : "01208413000129"),
           updatedAt: serverTimestamp()
         }, { merge: true });
       }
@@ -80,7 +76,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Falha no Acesso',
-        description: 'Credenciais inválidas para este portal.',
+        description: 'Credenciais inválidas para este portal ou modo de acesso.',
       });
     }
   };
@@ -89,7 +85,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
       <div className={cn(
         "hidden lg:flex lg:w-3/5 flex-col items-center justify-center p-12 relative overflow-hidden transition-colors duration-700",
-        mode === 'ADMIN' ? "bg-[#001F3F]" : "bg-primary"
+        mode === 'ADMIN' ? "bg-[#001F3F]" : mode === 'PROVIDER' ? "bg-slate-800" : "bg-primary"
       )}>
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070')] bg-cover bg-center grayscale" />
@@ -101,10 +97,10 @@ export default function LoginPage() {
           </div>
           <div className="space-y-4">
             <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase">
-              {mode === 'ADMIN' ? 'Gestão Interna' : 'Portal Cliente'}
+              {mode === 'ADMIN' ? 'Gestão Interna' : mode === 'PROVIDER' ? 'Portal Parceiro' : 'Portal Cliente'}
             </h2>
             <p className="text-accent text-xl font-bold tracking-[0.4em] uppercase">
-              {mode === 'ADMIN' ? 'Estratégia NAI' : 'Sua Unidade Conectada'}
+              {mode === 'ADMIN' ? 'Estratégia NAI' : mode === 'PROVIDER' ? 'Rede Técnica Credenciada' : 'Sua Unidade Conectada'}
             </p>
           </div>
         </div>
@@ -119,33 +115,42 @@ export default function LoginPage() {
           <div className="space-y-4 text-center lg:text-left">
             <Badge className={cn(
               "px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest border-none shadow-sm mb-4",
-              mode === 'ADMIN' ? "bg-primary text-white" : "bg-accent text-primary"
+              mode === 'ADMIN' ? "bg-primary text-white" : mode === 'PROVIDER' ? "bg-slate-700 text-white" : "bg-accent text-primary"
             )}>
-              {mode === 'ADMIN' ? 'Acesso Restrito Time Nextcon' : 'Acesso Restrito ao Cliente'}
+              {mode === 'ADMIN' ? 'Acesso Restrito Time Nextcon' : mode === 'PROVIDER' ? 'Acesso Profissional de Campo' : 'Acesso Restrito ao Cliente'}
             </Badge>
             <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase leading-none">
               Bem-vindo ao <br /> <span className="text-accent">Portal NAI</span>
             </h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
+          <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-100 rounded-2xl">
             <button
               onClick={() => setMode('CLIENT')}
               className={cn(
-                "flex items-center justify-center gap-3 h-14 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex flex-col items-center justify-center gap-1 h-16 rounded-xl text-[9px] font-black uppercase tracking-tight transition-all",
                 mode === 'CLIENT' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
-              <UserCircle className="size-4" /> Sou Cliente
+              <UserCircle className="size-4" /> Cliente
+            </button>
+            <button
+              onClick={() => setMode('PROVIDER')}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 h-16 rounded-xl text-[9px] font-black uppercase tracking-tight transition-all",
+                mode === 'PROVIDER' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
+              )}
+            >
+              <Stethoscope className="size-4" /> Prestador
             </button>
             <button
               onClick={() => setMode('ADMIN')}
               className={cn(
-                "flex items-center justify-center gap-3 h-14 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex flex-col items-center justify-center gap-1 h-16 rounded-xl text-[9px] font-black uppercase tracking-tight transition-all",
                 mode === 'ADMIN' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
-              <ShieldAlert className="size-4" /> Time Nextcon
+              <ShieldAlert className="size-4" /> Nextcon
             </button>
           </div>
 
@@ -160,7 +165,7 @@ export default function LoginPage() {
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     className="pl-12 h-14 bg-white border-gray-100 rounded-2xl focus-visible:ring-primary/10 font-bold shadow-inner"
-                    placeholder="ex@empresa.com.br"
+                    placeholder="usuario@dominio.com.br"
                     required
                   />
                 </div>
@@ -185,7 +190,7 @@ export default function LoginPage() {
               type="submit" 
               className={cn(
                 "w-full h-16 text-white text-sm font-black uppercase tracking-widest transition-all rounded-2xl shadow-2xl gap-3",
-                mode === 'ADMIN' ? "bg-primary shadow-primary/20" : "bg-accent text-primary shadow-accent/20"
+                mode === 'ADMIN' ? "bg-primary shadow-primary/20" : mode === 'PROVIDER' ? "bg-slate-800 shadow-slate-800/20" : "bg-accent shadow-accent/20"
               )} 
               disabled={loading}
             >
@@ -198,8 +203,8 @@ export default function LoginPage() {
                 </div>
               ) : (
                 <>
-                  {mode === 'ADMIN' ? <ShieldAlert className="size-5" /> : <LayoutDashboard className="size-5" />}
-                  Entrar no {mode === 'ADMIN' ? 'Backoffice' : 'Portal'}
+                  {mode === 'ADMIN' ? <ShieldAlert className="size-5" /> : mode === 'PROVIDER' ? <HeartPulse className="size-5" /> : <LayoutDashboard className="size-5" />}
+                  Entrar no Portal
                 </>
               )}
             </Button>
