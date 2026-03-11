@@ -63,6 +63,12 @@ export default function Dashboard() {
   }, [db, user]);
   const { data: profile, isLoading: loadingProfile } = useDoc(profileRef);
 
+  const companyRef = useMemoFirebase(() => {
+    if (!db || !profile?.companyId) return null;
+    return doc(db, "companies", profile.companyId);
+  }, [db, profile?.companyId]);
+  const { data: company } = useDoc(companyRef);
+
   const isGlobalAdmin = React.useMemo(() => {
     if (loadingProfile || !profile) return false;
     const role = (profile.role || '').toUpperCase();
@@ -83,6 +89,8 @@ export default function Dashboard() {
 
   if (!isClient) return null;
 
+  const displayName = profile?.name || user?.email?.split('@')[0] || 'Gestor';
+
   return (
     <div className="space-y-10 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -90,7 +98,18 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <div className="h-8 w-1.5 rounded-full bg-primary" />
             <h1 className="text-2xl font-black text-primary tracking-tight font-headline uppercase leading-none">
-              {loadingProfile ? <Skeleton className="h-10 w-48" /> : <div>{saudacao}, <span className="text-slate-500">{profile?.name || 'Gestor'}</span></div>}
+              {loadingProfile ? (
+                <Skeleton className="h-10 w-48" />
+              ) : (
+                <div className="flex flex-col gap-1">
+                  <span>{saudacao}, <span className="text-slate-500">{displayName}</span></span>
+                  {company?.name && (
+                    <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
+                      Unidade: {company.name}
+                    </span>
+                  )}
+                </div>
+              )}
             </h1>
           </div>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] ml-4">Cérebro NAI • Inteligência Nextcon 2026</p>
@@ -309,7 +328,7 @@ function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
     <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 transition-transform", bg, color)}><Icon className="size-5" /></div>
+          <div className={cn("p-3 rounded-2xl", bg, color)}><Icon className="size-5" /></div>
           <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
         </div>
         <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>

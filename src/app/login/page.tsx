@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth, useUser, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { NextconLogo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
@@ -54,14 +54,25 @@ export default function LoginPage() {
       const timeNowId = "01208413000129";
 
       const userRef = doc(db, "users", loggedUser.uid);
-      await setDoc(userRef, {
-        id: loggedUser.uid,
-        email: loggedUser.email,
-        name: isAdmin ? "Eng. Felipe Coneglian Della Bianca" : (email.includes('nativa') ? "GESTOR NATIVA" : "GESTOR TIME NOW"),
-        role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
-        companyId: isAdmin ? "" : (email.includes('nativa') ? nativaId : timeNowId),
-        updatedAt: serverTimestamp()
-      }, { merge: true });
+      const userSnap = await getDoc(userRef);
+
+      // Só define nome padrão se o perfil ainda não existir ou não tiver nome
+      if (!userSnap.exists() || !userSnap.data()?.name) {
+        // Extrai um nome amigável do e-mail (ex: joao.silva@empresa.com -> Joao Silva)
+        const emailName = loggedUser.email?.split('@')[0]
+          .split('.')
+          .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ') || 'Gestor';
+
+        await setDoc(userRef, {
+          id: loggedUser.uid,
+          email: loggedUser.email,
+          name: isAdmin ? "Eng. Felipe Coneglian Della Bianca" : emailName,
+          role: isAdmin ? 'SUPER_ADMIN' : 'CLIENT_ADMIN',
+          companyId: isAdmin ? "" : (email.includes('nativa') ? nativaId : timeNowId),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      }
 
       router.push('/');
     } catch (error: any) {
