@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -63,7 +62,6 @@ export default function FinancialModule() {
   const [isAnalyzingFiscal, setIsAnalyzingFiscal] = React.useState(false)
   const [fiscalAiResult, setFiscalFiscalAiResult] = React.useState<any>(null)
   
-  // Estados IBPT
   const [ibptToken, setIbptToken] = React.useState("")
   const [isSavingToken, setIsSavingToken] = React.useState(false)
 
@@ -175,7 +173,7 @@ export default function FinancialModule() {
               <Briefcase className="size-4" /> Contratos
             </TabsTrigger>
             <TabsTrigger value="cashflow" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0">
-              <TrendingUp className="size-4" /> Fluxo
+              <TrendingUp className="size-4" /> Fluxo de Caixa
             </TabsTrigger>
             <TabsTrigger value="fiscal" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest px-6 shrink-0 text-accent">
               <Scale className="size-4" /> Governança 2026

@@ -87,10 +87,10 @@ export default function LoginPage() {
           </div>
           <div className="space-y-4">
             <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase">
-              {mode === 'ADMIN' ? 'Backoffice' : 'Client Hub'}
+              {mode === 'ADMIN' ? 'Gestão Interna' : 'Portal Cliente'}
             </h2>
             <p className="text-accent text-xl font-bold tracking-[0.4em] uppercase">
-              {mode === 'ADMIN' ? 'Gestão Estratégica NAI' : 'Sua Unidade Conectada'}
+              {mode === 'ADMIN' ? 'Estratégia NAI' : 'Sua Unidade Conectada'}
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function LoginPage() {
               "px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest border-none shadow-sm mb-4",
               mode === 'ADMIN' ? "bg-primary text-white" : "bg-accent text-primary"
             )}>
-              {mode === 'ADMIN' ? 'Acesso Restrito Equipe Nextcon' : 'Acesso Restrito ao Cliente'}
+              {mode === 'ADMIN' ? 'Acesso Restrito Time Nextcon' : 'Acesso Restrito ao Cliente'}
             </Badge>
             <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase leading-none">
               Bem-vindo ao <br /> <span className="text-accent">Portal NAI</span>

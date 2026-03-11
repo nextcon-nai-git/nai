@@ -55,7 +55,7 @@ import { cn } from "@/lib/utils"
 
 const NAV_MODULES = [
   {
-    label: "ESTRATÉGICO",
+    label: "ESTRATEGICO",
     icon: ShieldCheck,
     roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
     items: [
@@ -78,7 +78,7 @@ const NAV_MODULES = [
     ]
   },
   {
-    label: "SAÚDE OCUPACIONAL",
+    label: "SAUDE OCUPACIONAL",
     icon: HeartPulse,
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
@@ -145,7 +145,7 @@ export function AppSidebar() {
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
           <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
-            Intelligence 2026
+            Inteligência 2026
           </span>
         </div>
       </SidebarHeader>

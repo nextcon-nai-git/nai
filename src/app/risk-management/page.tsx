@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -30,8 +29,8 @@ import { cn } from "@/lib/utils"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const MOCK_RISKS = [
-  { id: "R1", category: "fisico", hazard: "Ruído Contínuo", intensity: "87 dB(A)", control: "Protetor Auricular Plug", ghe: "Operacional A" },
-  { id: "R2", category: "ergonomico", hazard: "Postura Inadequada", intensity: "N/A", control: "Pausa Ativa / Ginástica", ghe: "Administrativo" },
+  { id: "R1", category: "físico", hazard: "Ruído Contínuo", intensity: "87 dB(A)", control: "Protetor Auricular Plug", ghe: "Operacional A" },
+  { id: "R2", category: "ergonômico", hazard: "Postura Inadequada", intensity: "N/A", control: "Pausa Ativa / Ginástica", ghe: "Administrativo" },
   { id: "R3", category: "acidente", hazard: "Queda de Nível", intensity: "Alta", control: "Cinto 5 Pontos / NR-35", ghe: "Engenharia" },
 ];
 
@@ -109,8 +108,8 @@ export default function RiskInventoryPGR() {
                           <p className="font-black text-xs text-primary uppercase">{risk.hazard}</p>
                           <Badge variant="outline" className={cn(
                             "text-[8px] font-black uppercase border-none px-2 h-4 mt-1",
-                            risk.category === 'fisico' ? 'bg-blue-50 text-blue-600' : 
-                            risk.category === 'ergonomico' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'
+                            risk.category === 'físico' ? 'bg-blue-50 text-blue-600' : 
+                            risk.category === 'ergonômico' ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'
                           )}>
                             {risk.category}
                           </Badge>
