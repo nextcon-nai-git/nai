@@ -83,6 +83,7 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
       { title: "Gestão de Saúde", icon: HeartPulse, href: "/medical/health-management" },
+      { title: "Profissionais Saúde", icon: UserPlus, href: "/medical/health-management" },
       { title: "Clínica Digital (ASO)", icon: Stethoscope, href: "/health-control" },
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
@@ -95,7 +96,7 @@ const NAV_MODULES = [
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Escala Técnica", icon: CalendarDays, href: "/safety/operational-scale" },
-      { title: "Profissionais de Campo", icon: HardHat, href: "/field-control" },
+      { title: "Prestadores Segurança", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
       { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
