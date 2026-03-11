@@ -4,13 +4,13 @@
  */
 
 export const REAL_COMPANIES = [
-  { id: "51633820000151", name: "UNIDADE OPERACIONAL ALFA", cnpj: "51.633.820/0001-51", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Cidade A", state: "PR" },
-  { id: "01208413000129", name: "UNIDADE OPERACIONAL BETA", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING", city: "Cidade B", state: "ES" },
-  { id: "13419654000104", name: "UNIDADE OPERACIONAL GAMA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Cidade C", state: "PR" },
-  { id: "76492701001129", name: "UNIDADE INDUSTRIAL DELTA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Cidade D", state: "SC" },
-  { id: "32137571000169", name: "UNIDADE EDUCACIONAL EPSILON", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION", city: "Cidade E", state: "PR" },
-  { id: "14736446001246", name: "UNIDADE DE SAÚDE ZETA", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Cidade F", state: "PR" },
-  { id: "DALL_EMP", name: "UNIDADE DE CONSTRUÇÃO ETA", cnpj: "11.306.970/0001-36", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Cidade G", state: "SC" }
+  { id: "51633820000151", name: "UNIDADE OPERACIONAL ALFA", cnpj: "51.633.820/0001-51", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Local A", state: "UF" },
+  { id: "01208413000129", name: "UNIDADE OPERACIONAL BETA", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING", city: "Local B", state: "UF" },
+  { id: "13419654000104", name: "UNIDADE OPERACIONAL GAMA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Local C", state: "UF" },
+  { id: "76492701001129", name: "UNIDADE INDUSTRIAL DELTA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Local D", state: "UF" },
+  { id: "32137571000169", name: "UNIDADE EDUCACIONAL EPSILON", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION", city: "Local E", state: "UF" },
+  { id: "14736446001246", name: "UNIDADE DE SAÚDE ZETA", cnpj: "14.736.446/0012-46", active: true, risk_degree: 2, segment: "HEALTH", city: "Local F", state: "UF" },
+  { id: "DALL_EMP", name: "UNIDADE DE CONSTRUÇÃO ETA", cnpj: "11.306.970/0001-36", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Local G", state: "UF" }
 ];
 
 export const REAL_EMPLOYEES = [

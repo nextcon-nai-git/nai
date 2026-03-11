@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -68,7 +67,7 @@ export default function MultidisciplinaryProposalPage() {
       const colRef = collection(db, "companies", "leads", "tasks")
       await addDocumentNonBlocking(colRef, {
         title: "Proposta: Gestão Multidisciplinar In Company",
-        companyName: "Prospect Setor Logístico/Portuário",
+        companyName: "Prospect Operação Estratégica",
         type: 'comercial',
         status: 'to_review',
         priority: 'high',
@@ -77,7 +76,7 @@ export default function MultidisciplinaryProposalPage() {
         metadata: {
           scope: "1 período semanal (4h)",
           specialists: "Médico, Fisio, Psico",
-          city: "Itajaí/SC"
+          city: "Unidade Operacional"
         }
       })
       toast({ title: "Proposta Protocolada", description: "Card comercial gerado no Funil de Vendas." })
@@ -96,7 +95,7 @@ export default function MultidisciplinaryProposalPage() {
             </div>
             <div>
               <h1 className="text-3xl font-black text-primary uppercase font-headline tracking-tight leading-none">Gestão In Company</h1>
-              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Atendimento Multidisciplinar • Itajaí/SC</p>
+              <p className="text-muted-foreground font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Atendimento Multidisciplinar • Unidade Operacional</p>
             </div>
           </div>
         </div>
@@ -119,7 +118,7 @@ export default function MultidisciplinaryProposalPage() {
               <div className="inline-flex p-3 bg-red-50 text-red-600 rounded-2xl"><ShieldCheck className="size-6" /></div>
               <h2 className="text-2xl font-black text-primary uppercase font-headline">O Desafio Atual</h2>
               <p className="text-slate-600 leading-relaxed font-medium">
-                Sabemos que empresas do setor <span className="text-primary font-bold">logístico, portuário e industrial em Itajaí</span> lidam com uma operação de alta intensidade. Isso gera desafios diretos na saúde do trabalhador, impactando indicadores como absenteísmo (faltas por atestados), presenteísmo (queda de produtividade) e o aumento da carga tributária (FAP/RAT) devido a afastamentos.
+                Sabemos que empresas do setor <span className="text-primary font-bold">logístico, portuário e industrial</span> lidam com uma operação de alta intensidade. Isso gera desafios diretos na saúde do trabalhador, impactando indicadores como absenteísmo (faltas por atestados), presenteísmo (queda de produtividade) e o aumento da carga tributária (FAP/RAT) devido a afastamentos.
               </p>
               <div className="p-6 bg-slate-50 rounded-3xl border-l-4 border-primary italic text-primary/70 font-medium">
                 "Nosso objetivo não é apenas cumprir a legislação (NRs), mas atuar de forma estratégica para proteger o principal ativo da sua empresa: as pessoas."

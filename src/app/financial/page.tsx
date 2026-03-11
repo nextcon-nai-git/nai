@@ -96,8 +96,8 @@ export default function FinancialModule() {
     try {
       const result = await analyzeFiscalScenario({
         companySegment: "Serviços de Engenharia e Saúde",
-        location: "Curitiba - PR",
-        monthlyRevenue: 150000
+        location: profile?.companyName || "Unidade Local",
+        monthlyRevenue: totalContractValue || 150000
       })
       setFiscalFiscalAiResult(result)
       toast({ title: "Análise Fiscal Concluída" })
@@ -255,7 +255,7 @@ export default function FinancialModule() {
               </CardHeader>
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Token da Empresa</label>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Token da Empresa</label>
                   <div className="flex gap-2">
                     <Input 
                       placeholder="Insira o Token IBPT..." 

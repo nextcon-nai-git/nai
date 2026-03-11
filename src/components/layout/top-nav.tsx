@@ -47,7 +47,8 @@ export function TopNav() {
     if (isAdmin) return "Gestão da Rede";
     // For clients, we try to use their company profile data
     if (profile?.companyName) return profile.companyName;
-    return "Unidade Operacional";
+    if (profile?.companyId) return `ID: ${profile.companyId}`;
+    return "NAI Intelligence";
   };
 
   const unitLabel = getUnitLabel();
