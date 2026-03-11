@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -36,6 +37,17 @@
         "companyId": { "type": "string" },
         "dueDate": { "type": "string", "format": "date-time" }
       }
+    },
+    "MedicalAppointment": {
+      "title": "Agendamento Médico",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "colaborador_nome": { "type": "string" },
+        "status": { "type": "string" },
+        "tipo": { "type": "string" },
+        "companyId": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -57,6 +69,26 @@
     "/companies/{companyId}/employees/{employeeId}": {
       "schema": "object",
       "description": "Vidas sob vigilância de cada unidade."
+    },
+    "/agendamentos/{id}": {
+      "schema": "#/backend/entities/MedicalAppointment",
+      "description": "Fila de exames admissionais e periódicos."
+    },
+    "/agendamentos_telemedicina/{id}": {
+      "schema": "object",
+      "description": "Agenda de videoconsultas via Google Meet."
+    },
+    "/nursing_attendances/{id}": {
+      "schema": "object",
+      "description": "Registros de triagem e ambulatório operacional."
+    },
+    "/atendimentos_aso/{id}": {
+      "schema": "object",
+      "description": "Histórico de ASOs emitidos e assinados."
+    },
+    "/feedback/{id}": {
+      "schema": "object",
+      "description": "Avaliações de experiência da plataforma."
     }
   }
 }

@@ -1,37 +1,23 @@
+
 "use client"
 
 import * as React from "react"
 import { 
   HeartPulse, 
-  Calendar as CalendarIcon, 
-  Bell, 
-  MessageSquare, 
   Stethoscope, 
-  CheckCircle2,
-  CalendarPlus,
-  Building2,
-  Clock,
-  User,
-  Send,
-  MapPin,
+  CheckCircle2, 
+  Plus, 
+  QrCode, 
+  Zap, 
+  Users, 
+  Search, 
+  Fingerprint,
   Loader2,
-  Plus,
-  QrCode,
-  AlertTriangle,
-  Zap,
-  ChevronRight,
-  ShieldCheck,
-  Timer,
-  Users,
-  UserCheck,
-  TrendingUp,
-  Search,
-  Fingerprint
+  Clock
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -40,19 +26,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useUser, useFirestore, useCollection, useMemoFirebase, useDoc } from "@/firebase"
-import { collection, query, orderBy, addDoc, serverTimestamp, where, doc, updateDoc, limit } from "firebase/firestore"
+import { collection, query, orderBy, doc, limit } from "firebase/firestore"
 import { cn } from "@/lib/utils"
 import { updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
 import { DigitalSignatureDialog } from "@/components/medical/digital-signature-dialog"
@@ -63,13 +40,13 @@ export default function HealthControl() {
   const { user } = useUser()
   const db = useFirestore()
   
-  const [activeTab, setActiveTab] = React.useState("queue")
   const [searchTerm, setSearchTerm] = React.useState("")
-  const [currentTime, setCurrentTime] = React.useState(new Date())
+  const [currentTime, setCurrentTime] = React.useState<Date | null>(null)
   const [isSignDialogOpen, setIsSignDialogOpen] = React.useState(false)
   const [selectedApptForSign, setSelectedApptForSign] = React.useState<any>(null)
 
   React.useEffect(() => {
+    setCurrentTime(new Date())
     const timer = setInterval(() => setCurrentTime(new Date()), 10000)
     return () => clearInterval(timer)
   }, [])
@@ -136,7 +113,7 @@ export default function HealthControl() {
   }
 
   const getWaitTime = (checkInAt: string) => {
-    if (!checkInAt) return 0
+    if (!checkInAt || !currentTime) return 0
     const diff = currentTime.getTime() - new Date(checkInAt).getTime()
     return Math.floor(diff / 60000)
   }
@@ -240,7 +217,7 @@ export default function HealthControl() {
                         )}>
                           {appt.status}
                         </Badge>
-                        {appt.status === 'Em Espera' && (
+                        {appt.status === 'Em Espera' && currentTime && (
                           <div className={cn("flex items-center gap-1.5 text-[10px] font-black", isCritical ? "text-red-600" : "text-slate-400")}>
                             <Clock className="size-3" /> {waitTime} min de espera
                           </div>
@@ -253,10 +230,10 @@ export default function HealthControl() {
                           <Button onClick={() => handleCheckIn(appt)} className="h-10 px-5 bg-primary text-white font-black uppercase text-[9px] rounded-xl shadow-lg">Check-in</Button>
                         )}
                         {appt.status === 'Em Espera' && (
-                          <Button onClick={() => handleStartConsultation(appt)} className="h-10 px-5 bg-blue-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2"><UserCheck className="size-3.5" /> Chamar</Button>
+                          <Button onClick={() => handleStartConsultation(appt)} className="h-10 px-5 bg-blue-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2">Chamar</Button>
                         )}
                         {appt.status === 'Em Atendimento' && (
-                          <Button onClick={() => openSignDialog(appt)} className="h-10 px-5 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2"><Fingerprint className="size-3.5" /> Assinar</Button>
+                          <Button onClick={() => openSignDialog(appt)} className="h-10 px-5 bg-emerald-600 text-white font-black uppercase text-[9px] rounded-xl shadow-lg flex gap-2">Assinar</Button>
                         )}
                         {appt.status === 'Concluído' && (
                           <DownloadAsoButton 

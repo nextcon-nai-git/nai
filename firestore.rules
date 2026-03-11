@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- Funções de Apoio Robustas (Híbridas: Token + Firestore Doc) ---
+    // --- Funções de Apoio Robustas ---
     function isSignedIn() { 
       return request.auth != null; 
     }
@@ -39,48 +39,66 @@ service cloud.firestore {
     function isDoctor() { return hasRole(['DOCTOR', 'SUPER_ADMIN', 'ADMIN']); }
     function isProvider() { return hasRole(['PROVIDER', 'ENGINEER', 'SUPER_ADMIN', 'ADMIN']); }
 
-    // --- Regras Telemedicina (HIPAA/LGPD Compliance) ---
+    // --- Coleções de Atendimento Clínico ---
+    match /agendamentos/{id} {
+      allow read: if isSignedIn();
+      allow write: if isDoctor() || isSuperAdmin();
+    }
+
+    match /agendamentos_telemedicina/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isDoctor() || isSuperAdmin();
+    }
+
+    match /nursing_attendances/{id} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /atendimentos_aso/{atendimentoId} {
+      allow read: if isSignedIn() && (isSuperAdmin() || isDoctor() || isClientAdmin(resource.data.companyId));
+      allow create, update: if isSuperAdmin() || isDoctor();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /orcamentos/{id} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    match /feedback/{id} {
+      allow create: if isSignedIn();
+      allow read: if isSuperAdmin();
+    }
+
     match /meetings/{meetingId} {
       function isMeetingParticipant() {
         let meeting = resource.data;
         return request.auth.uid == meeting.doctorId || request.auth.uid == meeting.patientId;
       }
-      
       allow read, update: if isSignedIn() && (isMeetingParticipant() || isSuperAdmin());
       allow create: if isSignedIn() && isDoctor();
-      
-      match /signaling/{participantId} {
-        allow read, write: if isSignedIn() && (request.auth.uid == participantId || isDoctor() || isSuperAdmin());
-      }
-      
-      match /telemetry/{timestamp} {
-        allow read: if isSignedIn() && (isMeetingParticipant() || isSuperAdmin());
-        allow create: if isSignedIn() && request.auth.uid == resource.data.patientId;
-      }
+      match /signaling/{participantId} { allow read, write: if isSignedIn(); }
+      match /telemetry/{timestamp} { allow read, write: if isSignedIn(); }
     }
 
-    // --- Coleções Padrão ---
-    match /config_nai_avatar/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin();
-    }
-
+    // --- Empresas e Subcoleções ---
     match /companies/{companyId} {
       allow read: if isSignedIn(); 
       allow write: if isSuperAdmin() || isClientAdmin(companyId);
-      
       match /{allSubcollections=**} {
         allow read: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
         allow write: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
       }
     }
 
-    match /atendimentos_aso/{atendimentoId} {
-      allow read: if isSuperAdmin() || isDoctor() || isClientAdmin(resource.data.companyId);
-      allow create, update: if isSuperAdmin() || isDoctor();
-      allow delete: if isSuperAdmin();
+    match /config_nai_avatar/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
 
+    // --- Usuários (Proteção de Perfil) ---
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
