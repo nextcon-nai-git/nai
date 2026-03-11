@@ -18,7 +18,7 @@ type LoginMode = 'ADMIN' | 'CLIENT';
 export default function LoginPage() {
   const [mode, setMode] = React.useState<LoginMode>('CLIENT');
   const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('2025');
+  const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -163,6 +163,7 @@ export default function LoginPage() {
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     className="pl-12 h-14 bg-white border-gray-100 rounded-2xl focus-visible:ring-primary/10 font-bold shadow-inner"
+                    placeholder="Sua senha"
                     required
                   />
                 </div>
