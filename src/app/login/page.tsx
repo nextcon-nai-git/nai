@@ -120,7 +120,7 @@ export default function LoginPage() {
               {mode === 'ADMIN' ? 'Acesso Restrito Time Nextcon' : mode === 'PROVIDER' ? 'Acesso Profissional de Campo' : 'Acesso Restrito ao Cliente'}
             </Badge>
             <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase leading-none">
-              Bem-vindo ao <br /> <span className="text-accent">Portal NAI</span>
+              Bem-vindo ao <br /> <span className="text-accent">NAI - Nextcon AI</span>
             </h1>
           </div>
 
