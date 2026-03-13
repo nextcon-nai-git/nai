@@ -1,4 +1,3 @@
-
 /**
  * NEXTCON PLATFORM - BASE DE DADOS NEUTRA 2026
  * Fonte única de verdade para faturamento, contratos, clientes, prestadores e atendimentos.
@@ -14,7 +13,7 @@ export const REAL_COMPANIES = [
 ];
 
 export const REAL_EMPLOYEES = [
-  { id: "COL_001", name: "COLABORADOR EXEMPLO A", cpf: "123.456.789-00", companyId: "DALL_EMP", unitId: "UNIDADE_01", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
+  { id: "COL_001", name: "COLABORADOR EXEMPLO A", cpf: "123.456.789-00", companyId: "UNIDADE_ALFA", unitId: "UNIDADE_01", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL1334", name: "COLABORADOR EXEMPLO B", cpf: "441.932.712-77", companyId: "CLI001", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL1100", name: "COLABORADOR EXEMPLO C", cpf: "378.454.183-64", companyId: "CLI001", aso_validade: "2026-10-15", aso_espaco_confinado_valido: true, treinamento_nr33_valido: true },
   { id: "COL1268", name: "COLABORADOR EXEMPLO D", cpf: "152.928.837-99", companyId: "32137571000169", aso_validade: "2026-08-20" },
@@ -26,7 +25,7 @@ export const MOCK_NURSING_ATTENDANCES = [
     id: "NATT_001",
     employeeId: "COL_001",
     employeeName: "COLABORADOR EXEMPLO A",
-    companyId: "UNIDADE_01",
+    companyId: "UNIDADE_ALFA",
     unitId: "UNIDADE_01",
     complaint: "Cefaleia intensa e tontura leve.",
     bp_sys: "160",
