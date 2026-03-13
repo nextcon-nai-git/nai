@@ -16,10 +16,8 @@ import {
   ClipboardCheck,
   FileSearch,
   GraduationCap,
-  Monitor,
   HeartPulse,
   Scale,
-  Brain,
   Cloud,
   Database,
   ShoppingCart,
@@ -27,10 +25,8 @@ import {
   Video,
   HardHat,
   Zap,
-  Hospital,
   CalendarDays,
   UserPlus,
-  Thermometer,
   ExternalLink,
   Globe
 } from "lucide-react"
@@ -142,10 +138,10 @@ export function AppSidebar() {
     <Sidebar className="border-r border-sidebar-border bg-gradient-to-b from-[#001F3F] via-[#003366] to-[#001F3F] text-white transition-all duration-700 shadow-2xl">
       <SidebarHeader className="p-10 pb-6">
         <div className="flex flex-col gap-1 group cursor-default">
-          <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105">
+          <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105 uppercase">
             {isAdmin ? 'NAI' : 'NEXTCON'}
           </span>
-          <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80 group-hover:opacity-100 transition-opacity">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80">
             Inteligência 2026
           </span>
         </div>
@@ -164,7 +160,7 @@ export function AppSidebar() {
                 <div className="p-2 bg-white/10 rounded-xl shadow-inner border border-white/5">
                   <ModuleIcon className="size-4 text-slate-400" />
                 </div>
-                <span className="text-slate-400 text-[10px] font-[900] uppercase tracking-[0.15em] sidebar-header-glow leading-none">
+                <span className="text-slate-400 text-[10px] font-[900] uppercase tracking-[0.15em] leading-none">
                   {module.label}
                 </span>
               </SidebarGroupLabel>
@@ -197,25 +193,6 @@ export function AppSidebar() {
             </SidebarGroup>
           )
         })}
-
-        <SidebarGroup className="mt-auto py-6">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                asChild
-                className="h-12 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white rounded-2xl border border-white/10 group px-4"
-              >
-                <a href="https://nai.nextconsaude.com.br" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
-                  <div className="p-1.5 bg-accent rounded-lg">
-                    <Globe className="size-3.5 text-white" />
-                  </div>
-                  <span className="text-[11px] font-black uppercase tracking-widest">Portal Oficial</span>
-                  <ExternalLink className="size-3 ml-auto opacity-20 group-hover:opacity-100 transition-opacity" />
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-xl">

@@ -1,24 +1,24 @@
-# NextCon Intelligence 2026 (NAI)
+# NAI - Nextcon AI | Inteligência 2026
 
-Esta é a plataforma **NextCon Intelligence**, um ecossistema "State-of-the-Art" para gestão estratégica de Saúde, Segurança do Trabalho (SST) e Auditoria Médica.
+Esta é a plataforma **Nextcon Intelligence**, um ecossistema Google-Native para gestão estratégica de Saúde, Segurança do Trabalho (SST) e Auditoria Médica.
 
-## 🚀 Infraestrutura Google-Native
-Acesse o portal oficial hospedado no Google Cloud: [https://nai.nextconsaude.com.br](https://nai.nextconsaude.com.br)
+## 🚀 Infraestrutura Google de Ponta
+Acesse o portal oficial hospedado integralmente no Google Cloud: [https://nai.nextconsaude.com.br](https://nai.nextconsaude.com.br)
 
-## 🛠️ Tecnologias de Ponta
+## 🛠️ Tecnologias Utilizadas
 - **Core**: Next.js 15 (App Router), React 19, TypeScript.
-- **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions, Data Connect).
+- **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions).
 - **Inteligência Artificial**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Tool Calling).
-- **UI/UX**: Tailwind CSS, ShadCN UI, Lucide Icons.
-- **Hospedagem**: Firebase App Hosting / Cloud Run (Google Cloud Platform).
+- **Interface**: Tailwind CSS, ShadCN UI, Lucide Icons.
+- **Hospedagem**: Firebase App Hosting / Cloud Run.
 
-## 🧠 Módulos Implementados
-1. **Cérebro NAI**: Assistente de IA com streaming e suporte clínico (CID-10/Histórico).
-2. **Firewall eSocial**: Validação prévia de eventos S-2220 e S-2240 para evitar multas.
-3. **Super-Junta Médica**: Auditoria assistida por IA com base em jurisprudência do STJ.
-4. **Sentinela do Limbo**: Vigilância ativa de nexo NTEP e afastamentos B91.
-5. **Clínica Digital**: Gestão de fila em tempo real e emissão de ASOs assinados digitalmente.
-6. **Controle de Campo (IoT)**: Simulação de catracas integradas com status de saúde e treinamentos.
+## 🧠 Módulos Estratégicos
+1. **Cérebro NAI**: Assistente de IA para suporte clínico e técnico.
+2. **Firewall eSocial**: Validação de eventos S-2220 e S-2240 para evitar multas.
+3. **Super-Junta Médica**: Auditoria assistida por IA com base jurídica.
+4. **Sentinela do Limbo**: Vigilância ativa de nexo NTEP e afastamentos.
+5. **Clínica Digital**: Gestão de fila e emissão de ASOs com assinatura digital.
+6. **Controle de Campo**: IoT e gestão de prestadores em tempo real.
 
 ---
-© 2026 NextCon Saúde Empresarial • Inteligência NAI em SST.
+© 2026 Nextcon Saúde Empresarial • Inteligência NAI em SST.

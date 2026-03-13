@@ -1,11 +1,7 @@
-# Configurações para gerenciar e configurar um backend do Firebase App Hosting.
-# https://firebase.google.com/docs/app-hosting/configure
-
+# Configurações para o Firebase App Hosting.
 # Nome do ambiente: nai
 
 runConfig:
-  # Memória aumentada para 1Gi para evitar erros de Out of Memory (OOM) no Next.js 15
+  # Memória aumentada para evitar erros de build no Next.js 15
   memory: 1Gi
-  # Aumente este valor se desejar criar automaticamente mais instâncias
-  # em resposta ao aumento do tráfego.
   maxInstances: 1

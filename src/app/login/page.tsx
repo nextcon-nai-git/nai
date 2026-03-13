@@ -1,9 +1,8 @@
-
 'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ShieldAlert, Building2, UserCircle, HeartPulse, Sparkles, ChevronRight, LayoutDashboard, Globe, Stethoscope } from 'lucide-react';
+import { Mail, Lock, Loader2, ShieldAlert, UserCircle, Globe, Stethoscope, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -33,11 +32,6 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  React.useEffect(() => {
-    setEmail('');
-    setPassword('');
-  }, [mode]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -64,7 +58,7 @@ export default function LoginPage() {
           email: loggedUser.email,
           name: emailName,
           role: role,
-          companyId: "", // Inicia vazio para seleção manual ou atribuição via admin
+          companyId: "",
           updatedAt: serverTimestamp()
         }, { merge: true });
       }
@@ -75,7 +69,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Falha no Acesso',
-        description: 'Credenciais inválidas para este portal ou modo de acesso.',
+        description: 'Credenciais inválidas. Verifique os dados e tente novamente.',
       });
     }
   };
@@ -96,7 +90,7 @@ export default function LoginPage() {
           </div>
           <div className="space-y-4">
             <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase">
-              {mode === 'ADMIN' ? 'Gestão Interna' : mode === 'PROVIDER' ? 'Portal Parceiro' : 'Portal Cliente'}
+              {mode === 'ADMIN' ? 'Gestão Interna' : mode === 'PROVIDER' ? 'Portal Prestador' : 'Portal do Cliente'}
             </h2>
             <p className="text-accent text-xl font-bold tracking-[0.4em] uppercase">
               {mode === 'ADMIN' ? 'Estratégia NAI' : mode === 'PROVIDER' ? 'Rede Técnica Credenciada' : 'Sua Unidade Conectada'}
@@ -105,7 +99,7 @@ export default function LoginPage() {
         </div>
         
         <div className="absolute bottom-12 flex items-center gap-4 text-white/30 text-[10px] font-black uppercase tracking-[0.5em]">
-          <Globe className="size-4" /> NextCon Intelligence 2026
+          <Globe className="size-4" /> NAI - Nextcon AI 2026
         </div>
       </div>
 
@@ -116,7 +110,7 @@ export default function LoginPage() {
               "px-4 py-1.5 rounded-full font-black uppercase text-[10px] tracking-widest border-none shadow-sm mb-4",
               mode === 'ADMIN' ? "bg-primary text-white" : mode === 'PROVIDER' ? "bg-slate-700 text-white" : "bg-accent text-primary"
             )}>
-              {mode === 'ADMIN' ? 'Acesso Restrito Time Nextcon' : mode === 'PROVIDER' ? 'Acesso Profissional de Campo' : 'Acesso Restrito ao Cliente'}
+              {mode === 'ADMIN' ? 'Acesso Restrito Nextcon' : mode === 'PROVIDER' ? 'Acesso Profissional de Campo' : 'Acesso Restrito ao Cliente'}
             </Badge>
             <h1 className="text-4xl font-black text-primary font-headline tracking-tight uppercase leading-none">
               Bem-vindo ao <br /> <span className="text-accent">NAI - Nextcon AI</span>
@@ -131,7 +125,7 @@ export default function LoginPage() {
                 mode === 'CLIENT' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
-              <UserCircle className="size-4" /> Cliente
+              <UserCircle className="size-4" /> Sou Cliente
             </button>
             <button
               onClick={() => setMode('PROVIDER')}
@@ -140,7 +134,7 @@ export default function LoginPage() {
                 mode === 'PROVIDER' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
-              <Stethoscope className="size-4" /> Prestador
+              <Stethoscope className="size-4" /> Sou Prestador
             </button>
             <button
               onClick={() => setMode('ADMIN')}
@@ -149,7 +143,7 @@ export default function LoginPage() {
                 mode === 'ADMIN' ? "bg-white text-primary shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
-              <ShieldAlert className="size-4" /> Nextcon
+              <ShieldAlert className="size-4" /> Time Nextcon
             </button>
           </div>
 
@@ -195,9 +189,7 @@ export default function LoginPage() {
             >
               {loading ? (
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-white/20 flex items-center justify-center animate-bounce">
-                    <span className="font-black text-lg">N</span>
-                  </div>
+                  <Loader2 className="size-5 animate-spin" />
                   Autenticando...
                 </div>
               ) : (
@@ -210,14 +202,9 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center pt-6">
-            <a 
-              href="https://nai.nextconsaude.com.br" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em] hover:text-primary transition-colors"
-            >
-              © 2026 NextCon Inteligência NAI em SST • nai.nextconsaude.com.br
-            </a>
+            <p className="text-[9px] font-bold text-gray-300 uppercase tracking-[0.3em]">
+              © 2026 Nextcon Inteligência NAI em SST
+            </p>
           </div>
         </div>
       </div>
