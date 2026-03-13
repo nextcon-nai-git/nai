@@ -2,27 +2,15 @@
 
 Esta é a plataforma **NextCon Intelligence**, um ecossistema "State-of-the-Art" para gestão estratégica de Saúde, Segurança do Trabalho (SST) e Auditoria Médica.
 
-## 🚀 Domínio de Produção
-Acesse o portal oficial em: [https://nai.nextconsaude.com.br](https://nai.nextconsaude.com.br)
+## 🚀 Infraestrutura Google-Native
+Acesse o portal oficial hospedado no Google Cloud: [https://nai.nextconsaude.com.br](https://nai.nextconsaude.com.br)
 
 ## 🛠️ Tecnologias de Ponta
 - **Core**: Next.js 15 (App Router), React 19, TypeScript.
-- **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions).
+- **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions, Data Connect).
 - **Inteligência Artificial**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Tool Calling).
 - **UI/UX**: Tailwind CSS, ShadCN UI, Lucide Icons.
-- **Documentação**: Motor de geração de PDFs dinâmicos (PGR, PCMSO, ASO).
-
-## 📦 Instruções para Versionamento (Git)
-Para subir este projeto para o seu repositório no GitHub, execute os seguintes comandos no seu terminal local:
-
-```bash
-git init
-git add .
-git commit -m "Primeiro commit: Estrutura base da Plataforma NAI"
-git remote add origin https://github.com/nextcon-dall/nai.git
-git branch -M main
-git push -u origin main
-```
+- **Hospedagem**: Firebase App Hosting / Cloud Run (Google Cloud Platform).
 
 ## 🧠 Módulos Implementados
 1. **Cérebro NAI**: Assistente de IA com streaming e suporte clínico (CID-10/Histórico).

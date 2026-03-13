@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { firebaseConfig } from "@/firebase/config"
 
+/**
+ * @fileOverview Gestão de Infraestrutura Cloud - 100% Google Cloud / Firebase.
+ */
+
 export default function CloudInfraPage() {
   const [isSyncing, setIsSyncing] = React.useState(false)
 
@@ -21,15 +25,15 @@ export default function CloudInfraPage() {
     { cmd: "gcloud init", desc: "Inicializa e configura o Google Cloud SDK no seu terminal local." },
     { cmd: "firebase login", desc: "Autentica sua máquina com a conta do Firebase Console." },
     { cmd: "npm run build", desc: "Gera o build otimizado da Nextcon Platform para produção." },
-    { cmd: "firebase deploy", desc: "Envia as regras de segurança e o hosting para a nuvem." },
+    { cmd: "firebase deploy", desc: "Envia as regras de segurança e o hosting para a infraestrutura do Google." },
   ]
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Infraestrutura Cloud</h1>
-          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Painel de controle de implantação e serviços Google Cloud.</p>
+          <h1 className="text-3xl font-headline font-black text-primary tracking-tight uppercase">Infraestrutura Google Cloud</h1>
+          <p className="text-muted-foreground font-medium uppercase text-xs tracking-widest">Painel de controle de implantação e serviços gerenciados pelo Google.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="h-11 px-6 border-primary text-primary font-bold uppercase text-[10px] gap-2" onClick={handleSync} disabled={isSyncing}>
@@ -52,7 +56,7 @@ export default function CloudInfraPage() {
                 </CardTitle>
                 <Badge className="bg-emerald-600 text-white font-black uppercase text-[8px] px-2 h-5">Ativo e Estável</Badge>
               </div>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">Endpoint oficial para clientes e parceiros.</CardDescription>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/60">Endpoint oficial para clientes e parceiros via Google DNS.</CardDescription>
             </CardHeader>
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -72,9 +76,9 @@ export default function CloudInfraPage() {
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b pb-6">
               <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
-                <Terminal className="size-5 text-accent" /> CLI Quick Reference
+                <Terminal className="size-5 text-accent" /> Google Cloud Quick Reference
               </CardTitle>
-              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Comandos essenciais para o time de engenharia de software.</CardDescription>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Comandos essenciais para o gerenciamento via CLI.</CardDescription>
             </CardHeader>
             <CardContent className="p-8">
               <div className="space-y-4">
@@ -99,7 +103,7 @@ export default function CloudInfraPage() {
             <div className="absolute top-0 right-0 p-6 opacity-10"><Cloud className="size-32 text-accent" /></div>
             <CardHeader className="p-0 mb-6">
               <CardTitle className="text-xs font-black uppercase text-accent tracking-[0.2em] flex items-center gap-2">
-                <Lock className="size-4" /> Segurança de Nuvem
+                <Lock className="size-4" /> Segurança de Nuvem Google
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 space-y-6">
@@ -112,13 +116,13 @@ export default function CloudInfraPage() {
                   <p className="text-[9px] font-black uppercase text-white/40 mb-2">App Hosting Status</p>
                   <div className="flex items-center gap-2">
                     <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-                    <p className="text-xs font-bold">STABLE_PRODUCTION</p>
+                    <p className="text-xs font-bold">GOOGLE_STABLE_PROD</p>
                   </div>
                 </div>
               </div>
               <Button className="w-full h-14 bg-accent text-primary font-black uppercase text-[10px] rounded-2xl shadow-xl hover:opacity-90 transition-all" asChild>
                 <a href="https://console.firebase.google.com/" target="_blank">
-                  Ir para o Console <ExternalLink className="size-3 ml-2" />
+                  Console Firebase <ExternalLink className="size-3 ml-2" />
                 </a>
               </Button>
             </CardContent>
@@ -129,8 +133,8 @@ export default function CloudInfraPage() {
               <Network className="size-8 text-primary" />
             </div>
             <div className="space-y-1">
-              <h4 className="text-sm font-black text-primary uppercase">Pipeline CD/CI</h4>
-              <p className="text-xs text-muted-foreground italic">"Monitorando mudanças no repositório para gatilho automático de deploy para o novo domínio."</p>
+              <h4 className="text-sm font-black text-primary uppercase">Engine de Implantação</h4>
+              <p className="text-xs text-muted-foreground italic">"O build é processado integralmente pelo Google Cloud Build para máxima performance."</p>
             </div>
           </Card>
         </div>
