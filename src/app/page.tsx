@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -108,9 +107,9 @@ export default function Dashboard() {
                     <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
                       Unidade: {company.name}
                     </span>
-                  ) : profile?.companyId && (
+                  ) : (
                     <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
-                      ID Unidade: {profile.companyId}
+                      Unidade em Monitoramento
                     </span>
                   )}
                 </div>

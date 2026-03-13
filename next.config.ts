@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '15mb', // Suporte para documentos PDF pesados em base64
+      bodySizeLimit: '15mb',
     },
   },
   images: {

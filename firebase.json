@@ -1,15 +1,12 @@
-
 {
   "hosting": {
-    "public": "out",
+    "public": ".next",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
-      { "source": "**", "run": { "serviceId": "YOUR_FUNCTION_NAME" }}
-    ]
+    "cleanUrls": true
   },
   "functions": {
     "source": "functions"
