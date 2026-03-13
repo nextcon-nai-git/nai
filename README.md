@@ -10,7 +10,15 @@ Acesse o portal oficial hospedado integralmente no Google Cloud: [https://nai.ne
 - **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions).
 - **Inteligência Artificial**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Tool Calling).
 - **Interface**: Tailwind CSS, ShadCN UI, Lucide Icons.
-- **Hospedagem**: Firebase App Hosting / Cloud Run.
+- **Hospedagem**: Firebase App Hosting / Google Cloud Run.
+
+## 🌐 Configuração DNS (Custom Domain)
+Para validar o domínio `nai.nextconsaude.com.br` e habilitar o SSL automático, siga os passos abaixo no seu provedor de DNS:
+
+1. **Hostname**: `_gh-nextcon-sst-e.nai.nextconsaude.com.br`
+2. **Tipo**: `TXT`
+3. **Valor**: `a9925fdf66`
+4. **Nota**: O código de verificação expira em 7 dias. A propagação pode levar até 72 horas.
 
 ## 🧠 Módulos Estratégicos
 1. **Cérebro NAI**: Assistente de IA para suporte clínico e técnico.

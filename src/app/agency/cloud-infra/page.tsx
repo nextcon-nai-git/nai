@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Cloud, Terminal, ShieldCheck, Zap, RefreshCw, ExternalLink, HardDrive, Cpu, Network, Lock, Globe } from "lucide-react"
+import { Cloud, Terminal, ShieldCheck, Zap, RefreshCw, ExternalLink, HardDrive, Cpu, Network, Lock, Globe, Key, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { firebaseConfig } from "@/firebase/config"
 
 /**
  * @fileOverview Gestão de Infraestrutura Cloud - 100% Google Cloud / Firebase.
+ * Inclui documentação de verificação de domínio e DNS.
  */
 
 export default function CloudInfraPage() {
@@ -69,6 +70,48 @@ export default function CloudInfraPage() {
                     Acessar Produção <ExternalLink className="size-3 ml-2" />
                   </a>
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card de Configuração DNS solicitado pelo usuário */}
+          <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden border-2 border-blue-100/50">
+            <CardHeader className="bg-blue-50 border-b pb-6">
+              <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <Key className="size-5 text-blue-600" /> Verificação de Domínio (DNS)
+              </CardTitle>
+              <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-blue-700/60">Configuração obrigatória para validação do certificado SSL Google.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-4">
+                <AlertCircle className="size-5 text-blue-600 shrink-0 mt-1" />
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-primary">Instruções para o Provedor DNS:</p>
+                  <p className="text-[11px] text-slate-600 leading-relaxed italic">
+                    "Crie um registro TXT na sua zona DNS para validar a propriedade do domínio. O Google Cloud verificará este código para emitir o certificado SSL automático."
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase text-slate-400">Hostname / Host</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 p-3 bg-slate-100 rounded-xl text-xs font-mono font-bold text-primary truncate">_gh-nextcon-sst-e.nai.nextconsaude.com.br</code>
+                    <Button variant="ghost" size="sm" className="h-10 text-[9px] font-black uppercase">Copiar</Button>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase text-slate-400">Valor / TXT Value</p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 p-3 bg-slate-100 rounded-xl text-xs font-mono font-bold text-blue-600">a9925fdf66</code>
+                    <Button variant="ghost" size="sm" className="h-10 text-[9px] font-black uppercase">Copiar</Button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Badge variant="outline" className="border-blue-200 text-blue-600 text-[8px] font-bold uppercase">Expira em 7 dias</Badge>
               </div>
             </CardContent>
           </Card>
