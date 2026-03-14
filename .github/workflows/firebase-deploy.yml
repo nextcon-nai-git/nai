@@ -1,0 +1,51 @@
+name: Deploy to Firebase
+
+on:
+  push:
+    branches:
+      - main
+      - production
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyB8PfD-uf4PPceogHMCeW6IsOPALk6aLxo
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: studio-8439299034-125c7.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_APP_ID: 1:1061319966767:web:24cc91d57cf4c831d686da
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: studio-8439299034-125c7.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: 1061319966767
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-HSDR60NWLX
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: live
+
+      - name: Deploy to Firebase Functions (if applicable)
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        continue-on-error: true

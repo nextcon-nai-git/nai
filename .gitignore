@@ -1,45 +1,31 @@
-# Dependências
-node_modules/
-.pnp
+# Dependencies
+node_modules
+/.pnp
 .pnp.js
 
-# Build e Saída
+# Next.js
 .next/
 out/
-build/
-dist/
 
-# Variáveis de Ambiente (Segurança)
+# Environment Variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.*.local
-
-# Chaves de Serviço e Google Cloud
-google-service-account.json
-account.json
-*.pem
 
 # Firebase
 .firebase/
 firebase-debug.log*
 firestore-debug.log*
+pubsub-debug.log*
 ui-debug.log*
+firebase-export*
 
-# Logs e Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.vercel
+# Service Accounts / Keys
+google-service-account.json
+*.pem
 
-# Sistema e IDEs
+# OS Files
 .DS_Store
-.vscode/
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
