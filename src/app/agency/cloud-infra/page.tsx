@@ -74,7 +74,6 @@ export default function CloudInfraPage() {
             </CardContent>
           </Card>
 
-          {/* Card de Configuração DNS solicitado pelo usuário */}
           <Card className="card-shadow border-none bg-white rounded-[2rem] overflow-hidden border-2 border-blue-100/50">
             <CardHeader className="bg-blue-50 border-b pb-6">
               <CardTitle className="text-lg font-black text-primary uppercase flex items-center gap-2">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from 'react';
@@ -46,7 +45,6 @@ export function TopNav() {
 
   const getUnitLabel = () => {
     if (isAdmin) return "Gestão da Rede";
-    // Tenta usar o nome da empresa do perfil ou ID
     if (profile?.companyName) return profile.companyName;
     if (profile?.companyId) return `Unidade ID: ${profile.companyId}`;
     return "Acesso Seguro NAI";

@@ -139,10 +139,10 @@ export function AppSidebar() {
       <SidebarHeader className="p-10 pb-6">
         <div className="flex flex-col gap-1 group cursor-default">
           <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105 uppercase">
-            {isAdmin ? 'NAI' : 'NEXTCON'}
+            NAI
           </span>
           <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80">
-            Inteligência 2026
+            Nextcon AI 2026
           </span>
         </div>
       </SidebarHeader>
