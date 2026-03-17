@@ -1,54 +1,59 @@
+
 'use client';
 
 import * as React from 'react';
 import { useState } from 'react';
-import { Loader2, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
-import { analyzeSafetyReport } from '@/ai/flows/report-analysis-flow';
-import { salvarRelatorioComIA } from '@/lib/report-service';
-import { useFirestore } from '@/firebase';
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { processarRelatorioSST, type AnaliseRiscoOutput } from '@/actions/sst-report-processor';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+interface BotaoSalvarRelatorioProps {
+  relatorioDados: any;
+  onSuccess?: (id: string, analise: AnaliseRiscoOutput) => void;
+}
+
 /**
- * Componente BotaoSalvarRelatorio
- * Gerencia o ciclo de vida de análise via NAI AI e persistência no Firestore.
+ * Botão Inteligente que dispara a Server Action do Next.js 15.
  */
-export function BotaoSalvarRelatorio({ relatorioDados }: { relatorioDados: any }) {
+export function BotaoSalvarRelatorio({ relatorioDados, onSuccess }: BotaoSalvarRelatorioProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const db = useFirestore();
   const { toast } = useToast();
 
-  const handleProcessarESalvar = async () => {
-    if (!relatorioDados) {
-      toast({ variant: "destructive", title: "Dados Ausentes", description: "Não há informações para processar." });
-      return;
-    }
+  const handleProcessar = async () => {
+    if (!relatorioDados) return;
 
     setIsProcessing(true);
+    setIsSuccess(false);
 
     try {
-      // 1. Chama a IA da Nextcon para gerar o parecer técnico
-      const resumoIA = await analyzeSafetyReport(relatorioDados);
-      
-      // 2. Protocoliza o documento na NAI Cloud (Escrita não-bloqueante)
-      await salvarRelatorioComIA(db, relatorioDados, resumoIA);
+      // Chama a mágica: Server Action rodando no Google Cloud
+      const result = await processarRelatorioSST(relatorioDados);
 
-      setIsSuccess(true);
-      toast({
-        title: "Relatório Protocolado",
-        description: "A NAI concluiu a auditoria e salvou o documento com sucesso.",
-      });
+      if (result.sucesso && result.relatorioId && result.analise) {
+        setIsSuccess(true);
+        toast({
+          title: "Relatório Protocolado!",
+          description: "Auditoria via NAI concluída e salva na nuvem.",
+        });
 
-      // Retorna ao estado original após visualização do sucesso
-      setTimeout(() => setIsSuccess(false), 5000);
+        if (onSuccess) {
+          onSuccess(result.relatorioId, result.analise);
+        }
+
+        // Volta ao estado normal após delay
+        setTimeout(() => setIsSuccess(false), 5000);
+      } else {
+        throw new Error(result.erro);
+      }
 
     } catch (error: any) {
-      console.error("NAI Processing Error:", error);
+      console.error("NAI Button Error:", error);
       toast({
         variant: "destructive",
-        title: "Falha na Engine NAI",
-        description: "Ocorreu um erro ao processar a auditoria inteligente.",
+        title: "Erro no Processamento",
+        description: error.message || "A NAI encontrou uma instabilidade momentânea.",
       });
     } finally {
       setIsProcessing(false);
@@ -57,30 +62,30 @@ export function BotaoSalvarRelatorio({ relatorioDados }: { relatorioDados: any }
 
   return (
     <button
-      onClick={handleProcessarESalvar}
+      onClick={handleProcessar}
       disabled={isProcessing || isSuccess}
       className={cn(
-        "flex items-center justify-center gap-3 px-8 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl transition-all duration-500 active:scale-95",
+        "w-full flex items-center justify-center gap-3 px-8 h-16 rounded-2xl font-black uppercase text-xs tracking-widest text-white shadow-2xl transition-all duration-500 active:scale-95",
         isSuccess
-          ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20"
+          ? "bg-emerald-600 shadow-emerald-600/20"
           : "bg-primary hover:bg-primary/90 shadow-primary/20",
         (isProcessing || isSuccess) && "opacity-90 cursor-default"
       )}
     >
       {isProcessing ? (
         <>
-          <Loader2 className="w-5 h-5 animate-spin text-accent" />
-          Auditando com NAI AI...
+          <Loader2 className="w-6 h-6 animate-spin text-accent" />
+          Neural Engine Processando...
         </>
       ) : isSuccess ? (
         <>
-          <CheckCircle2 className="w-5 h-5 text-accent animate-in zoom-in" />
-          Relatório Salvo!
+          <CheckCircle2 className="w-6 h-6 text-accent animate-in zoom-in" />
+          Protocolo Realizado com Sucesso
         </>
       ) : (
         <>
-          <Sparkles className="w-5 h-5 text-accent" />
-          Processar Relatório com IA
+          <Sparkles className="w-6 h-6 text-accent" />
+          Ativar Auditoria via NAI IA
         </>
       )}
     </button>

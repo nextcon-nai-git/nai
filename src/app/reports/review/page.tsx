@@ -16,17 +16,28 @@ import {
   Zap,
   Target,
   GraduationCap,
-  ChevronRight
+  ChevronRight,
+  Brain,
+  Sparkles,
+  ShieldPlus
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { type AnaliseRiscoOutput } from '@/actions/sst-report-processor';
 
 export default function PaginaRelatorio() {
   const data = relatorioMock.relatorio_visita_tecnica;
   const header = data.cabecalho;
+  const [analiseIA, setAnaliseIA] = React.useState<AnaliseRiscoOutput | null>(null);
+  const [protocoloId, setProtocoloId] = React.useState<string | null>(null);
+
+  const handleSucessoIA = (id: string, analise: AnaliseRiscoOutput) => {
+    setProtocoloId(id);
+    setAnaliseIA(analise);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
@@ -47,9 +58,42 @@ export default function PaginaRelatorio() {
         </Badge>
       </header>
 
+      {/* Resultado da IA - Aparece após o processamento via Server Action */}
+      {analiseIA && (
+        <Card className="border-none bg-emerald-50 ring-2 ring-emerald-200 rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 duration-500 shadow-2xl">
+          <div className="flex flex-col lg:flex-row">
+            <div className="p-8 lg:w-1/3 bg-emerald-600 text-white flex flex-col justify-center">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-white/20 rounded-xl">
+                  <ShieldCheck className="size-6 text-white" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tight">Parecer NAI</h2>
+              </div>
+              <p className="text-sm font-bold text-emerald-100 mb-2">Protocolo: {protocoloId}</p>
+              <Badge className="bg-white text-emerald-700 font-black uppercase text-[10px] w-fit">Risco: {analiseIA.nivel_risco_geral}</Badge>
+            </div>
+            <div className="p-8 lg:flex-1 space-y-4">
+              <h3 className="text-lg font-black text-primary uppercase flex items-center gap-2">
+                <Brain className="size-5 text-emerald-600" /> Resumo Executivo
+              </h3>
+              <p className="text-sm font-medium text-slate-600 leading-relaxed italic">"{analiseIA.resumo_executivo}"</p>
+              <div className="space-y-2 pt-4">
+                <p className="text-[10px] font-black uppercase text-slate-400">Ações Críticas Priorizadas:</p>
+                <div className="flex flex-wrap gap-2">
+                  {analiseIA.acoes_imediatas_recomendadas.map((acao, i) => (
+                    <Badge key={i} variant="outline" className="bg-white border-emerald-200 text-emerald-700 text-[9px] font-bold py-1.5 px-3">
+                      {acao}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Cabeçalho da Empresa */}
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
             <CardHeader className="bg-primary/5 border-b p-8">
               <div className="flex items-center gap-4">
@@ -88,90 +132,32 @@ export default function PaginaRelatorio() {
             </CardContent>
           </Card>
 
-          {/* Objetivos */}
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8">
-            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4 flex items-center gap-2">
-              <Target className="size-3 text-primary" /> Objetivos da Visita
-            </h3>
-            <div className="space-y-3">
-              {data.objetivos_visita.map((obj: string, i: number) => (
-                <div key={i} className="flex gap-3 items-start p-4 bg-slate-50 rounded-2xl">
-                  <div className="size-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-black shrink-0">{i+1}</div>
-                  <p className="text-xs font-medium text-slate-600 leading-relaxed">{obj}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
           {/* Não Conformidades */}
           <div className="space-y-4">
             <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1 flex items-center gap-2">
-              <AlertTriangle className="size-3 text-red-500" /> Principais Não Conformidades
+              <AlertTriangle className="size-3 text-red-500" /> Pontos Identificados na Obra
             </h3>
             <div className="grid grid-cols-1 gap-3">
               {data.nao_conformidades.map((inspecao: any, i: number) => (
-                <div key={i} className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm hover:border-primary/10 transition-all group">
-                  <div className="flex justify-between items-start mb-3">
+                <div key={i} className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm hover:border-primary/10 transition-all">
+                  <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "p-2.5 rounded-xl",
-                        inspecao.prioridade === 'Alta' ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+                        "p-2 rounded-xl text-white",
+                        inspecao.prioridade === 'Alta' ? "bg-red-600" : "bg-emerald-600"
                       )}>
-                        {inspecao.prioridade === 'Alta' ? <AlertTriangle className="size-5" /> : <CheckCircle2 className="size-5" />}
+                        <AlertTriangle className="size-4" />
                       </div>
                       <div>
                         <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/10 text-primary/60 mb-1">NR-{inspecao.nr_relacionada}</Badge>
                         <h4 className="text-sm font-black text-primary uppercase leading-tight">{inspecao.descricao}</h4>
                       </div>
                     </div>
-                    <Badge className={cn(
-                      "text-[8px] font-black uppercase border-none px-3 h-6",
-                      inspecao.prioridade === 'Alta' ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
-                    )}>
-                      Prio: {inspecao.prioridade}
-                    </Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-dashed">
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Consequência de Risco</p>
-                      <p className="text-[11px] font-bold text-red-700">{inspecao.consequencia}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-black text-slate-400 uppercase">Recomendação NAI</p>
-                      <p className="text-[11px] font-medium text-slate-600 italic">"{inspecao.recomendacoes}"</p>
-                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Resumo de Treinamentos */}
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8">
-            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-6 flex items-center gap-2">
-              <GraduationCap className="size-4 text-primary" /> Cronograma de Treinamentos 2026
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <p className="text-[9px] font-black text-primary uppercase bg-primary/5 p-2 rounded-lg text-center">Treinamentos Críticos</p>
-                {data.treinamentos.criticos.map((trn: any, i: number) => (
-                  <div key={i} className="flex justify-between items-center text-xs border-b border-slate-50 pb-2">
-                    <span className="font-bold text-slate-600">{trn.nome}</span>
-                    <Badge variant="outline" className="text-[8px] font-black text-slate-400">{trn.validade}</Badge>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-4">
-                <p className="text-[9px] font-black text-accent uppercase bg-accent/5 p-2 rounded-lg text-center">Específicos por Função</p>
-                {data.treinamentos.especificos.map((trn: any, i: number) => (
-                  <div key={i} className="flex justify-between items-center text-xs border-b border-slate-50 pb-2">
-                    <span className="font-bold text-slate-600">{trn.nome}</span>
-                    <Badge variant="outline" className="text-[8px] font-black text-slate-400">Anual</Badge>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Sidebar de Ação */}
@@ -183,54 +169,28 @@ export default function PaginaRelatorio() {
                 <div className="p-2 bg-accent rounded-xl text-primary shadow-lg shadow-accent/20">
                   <Zap className="size-5" />
                 </div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-accent">Auditoria Inteligente</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-accent">Protocolo NAI Cloud</h3>
               </div>
               
               <div className="space-y-4">
                 <p className="text-xs text-white/60 leading-relaxed font-medium">
-                  Ao protocolar, a NAI analisará os dados da <strong>{header.empresa_atendida}</strong>, gerando:
+                  Este processamento utiliza a <strong className="text-white">Server Action</strong> do Next.js 15 para analisar e salvar o relatório simultaneamente.
                 </p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-accent">
-                    <CheckCircle2 className="size-3" /> Parecer Técnico Executivo
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-accent">
-                    <CheckCircle2 className="size-3" /> Matriz de Adequação NR-12
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-accent">
-                    <CheckCircle2 className="size-3" /> Histórico Multi-tenant
-                  </div>
-                </div>
               </div>
 
               <div className="pt-6 border-t border-white/10">
-                <BotaoSalvarRelatorio relatorioDados={relatorioMock} />
+                <BotaoSalvarRelatorio relatorioDados={relatorioMock} onSuccess={handleSucessoIA} />
               </div>
-            </div>
-          </Card>
-
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-primary/5 rounded-lg text-primary"><Info className="size-4" /></div>
-              <h4 className="text-sm font-black text-primary uppercase tracking-tight">Próximos Passos</h4>
-            </div>
-            <div className="space-y-4">
-              {data.proximos_passos.map((step: string, i: number) => (
-                <div key={i} className="flex gap-3 items-start group">
-                  <span className="text-[10px] font-black text-slate-300 group-hover:text-primary transition-colors">{i+1}.</span>
-                  <p className="text-[11px] font-medium text-slate-500 leading-tight italic">"{step}"</p>
-                </div>
-              ))}
             </div>
           </Card>
 
           <Card className="card-shadow border-none bg-blue-50 border border-blue-100 rounded-[2.5rem] p-8 flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><ShieldCheck className="size-4" /></div>
+              <div className="p-2 bg-primary rounded-lg text-white shadow-sm"><ShieldPlus className="size-4" /></div>
               <h4 className="text-sm font-black text-primary uppercase">Selo de Auditoria</h4>
             </div>
             <p className="text-[10px] text-primary/70 leading-relaxed font-bold italic uppercase tracking-tighter">
-              "NAI Forensic Engine: Validado em conformidade com as atualizações de 2026 das Normas Regulamentadoras."
+              "NAI Forensic Engine: Validado em conformidade com as atualizações de 2026."
             </p>
           </Card>
         </div>
