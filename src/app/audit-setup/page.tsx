@@ -71,14 +71,14 @@ export default function AuditSetupPage() {
       const naiRef = doc(db, "config_nai_avatar", "pitch_vendas_padrao");
       batch.set(naiRef, {
         avatar: {
-          saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria Médica. Como posso ajudar seu negócio hoje?"
+          saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria. Como posso ajudar seu negócio hoje?"
         },
         pilares_venda: [
-          { ordem: 1, titulo: "Saúde: A Super-Junta Jurídica", resumo: "Proteção contra liminares de alto custo (TEA/Autismo)." },
-          { ordem: 2, titulo: "Financeiro: Glosa Reversa", resumo: "Bloqueio de cobranças indevidas hospitalares." },
-          { ordem: 3, titulo: "SST 2026: Firewall Físico", resumo: "Integração com catracas e bloqueio de multas eSocial." }
+          { ordem: 1, titulo: "Gestão de PGR e PCMSO", resumo: "Elaboração e controle de programas conforme NR-01 e NR-07." },
+          { ordem: 2, titulo: "Auditoria eSocial", resumo: "Validação de eventos S-2210, S-2220 e S-2240." },
+          { ordem: 3, titulo: "Consultoria em NRs", resumo: "Suporte técnico especializado em todas as Normas Regulamentadoras." }
         ],
-        cta_final: "A Nextcon é sobre gestão de risco. Blinde sua operação agora.",
+        cta_final: "A Nextcon é sobre gestão de conformidade. Blinde sua operação agora.",
         updatedAt: now
       }, { merge: true });
       setProgress(75)

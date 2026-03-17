@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from "react";
-import { ShieldPlus, CircleDollarSign, HardHat, Sparkles, ChevronRight, Zap, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
+import { ShieldPlus, CircleDollarSign, HardHat, Sparkles, ChevronRight, Zap, Loader2, MessageSquare, ShieldCheck, ClipboardCheck, Zap as ZapIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -14,32 +14,32 @@ const PITCH_DATA = {
   avatar: { 
     nome: "NAI", 
     titulo: "Inteligência Nextcon", 
-    saudacao_inicial: "Olá. Eu sou a NAI. Enquanto você cota seu orçamento, saiba: você não está contratando apenas um software, mas um escudo jurídico e financeiro." 
+    saudacao_inicial: "Olá. Eu sou a NAI. Enquanto você cota seu orçamento, saiba: você não está contratando apenas um software, mas um parceiro de inteligência em conformidade SST." 
   },
   pilares_venda: [
     {
       ordem: 1,
-      icone: ShieldPlus,
-      titulo: "Saúde: A Super-Junta Jurídica",
-      resumo: "Proteção contra liminares de alto custo (TEA/Autismo).",
-      texto_completo: "Diferente de uma auditoria comum, eu aciono instantaneamente uma 'Super-Junta Multidisciplinar' e anexo automaticamente a jurisprudência do STJ (Tema 1069) para dar base legal à sua decisão."
+      icone: ClipboardCheck,
+      titulo: "Gestão de PGR e PCMSO",
+      resumo: "Elaboração e controle de programas conforme NR-01 e NR-07.",
+      texto_completo: "Minha inteligência permite mapear riscos em tempo real e sugerir protocolos médicos precisos, garantindo que o PGR e o PCMSO da sua empresa estejam sempre atualizados e tecnicamente sólidos."
     },
     {
       ordem: 2,
-      icone: CircleDollarSign,
-      titulo: "Financeiro: Glosa Reversa",
-      resumo: "Bloqueio de cobranças indevidas hospitalares.",
-      texto_completo: "Eu cruzo o que foi autorizado na junta médica com o que o hospital cobrou. Se autorizamos material similar e cobraram o original, eu realizo a 'Glosa Reversa' automaticamente."
+      icone: ZapIcon,
+      titulo: "Auditoria eSocial",
+      resumo: "Validação de eventos S-2210, S-2220 e S-2240.",
+      texto_completo: "Eu atuo como um firewall antes de qualquer envio. Verifico a consistência dos dados do eSocial para evitar multas por inconsistências entre o ambiente de trabalho e o monitoramento de saúde."
     },
     {
       ordem: 3,
       icone: HardHat,
-      titulo: "SST 2026: Firewall Físico",
-      resumo: "Integração com catracas e bloqueio de multas eSocial.",
-      texto_completo: "Eu impeço o envio de eventos S-2240 se o LTCAT estiver vencido. E mais: travo a catraca da sua fábrica se o ASO do funcionário vencer hoje."
+      titulo: "Consultoria em NRs",
+      resumo: "Suporte técnico especializado em todas as Normas Regulamentadoras.",
+      texto_completo: "Tenho acesso imediato a toda a legislação de SST vigente em 2026. Posso tirar dúvidas técnicas sobre qualquer NR e sugerir medidas de controle de engenharia ou administrativas."
     }
   ],
-  cta_final: "A Nextcon é sobre gestão de risco. Blinde sua operação agora."
+  cta_final: "A Nextcon é sobre gestão de conformidade. Blinde sua operação agora."
 };
 
 export function NaiSalesPitch() {
