@@ -9,7 +9,7 @@ service cloud.firestore {
     }
     
     function isSystemAdminEmail() {
-      return request.auth.token.email in ['nextcon@nextconsaude.com.br', 'admin@nextcon.com.br', 'felipe.bianca@prestador.nai.com.br'];
+      return request.auth.token.email in ['nextcon@nextconsaude.com.br', 'admin@nextcon.com.br'];
     }
 
     function profile() {
@@ -26,88 +26,39 @@ service cloud.firestore {
     function isSuperAdmin() { 
       return hasRole(['SUPER_ADMIN', 'ADMIN', 'ENGINEER']);
     }
-    
-    function isClientAdmin(companyId) { 
-      let p = profile();
-      return isSignedIn() && (
-        (request.auth.token.role == 'CLIENT_ADMIN' && request.auth.token.companyId == companyId) ||
-        (p != null && p.role == 'CLIENT_ADMIN' && p.companyId == companyId) ||
-        isSuperAdmin()
-      );
-    }
-    
-    function isDoctor() { return hasRole(['DOCTOR', 'SUPER_ADMIN', 'ADMIN']); }
-    function isProvider() { return hasRole(['PROVIDER', 'ENGINEER', 'SUPER_ADMIN', 'ADMIN']); }
 
-    // --- Coleções de Atendimento Clínico ---
-    match /agendamentos/{id} {
-      allow read: if isSignedIn();
-      allow write: if isDoctor() || isSuperAdmin();
-    }
-
-    match /agendamentos_telemedicina/{id} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isDoctor() || isSuperAdmin();
-    }
-
-    match /nursing_attendances/{id} {
+    // --- Coleções de Atendimento e Relatórios ---
+    match /relatorios_sst/{reportId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update, delete: if isSuperAdmin();
     }
 
+    match /agendamentos/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || hasRole(['DOCTOR']);
+    }
+
     match /atendimentos_aso/{atendimentoId} {
-      allow read: if isSignedIn() && (isSuperAdmin() || isDoctor() || isClientAdmin(resource.data.companyId));
-      allow create, update: if isSuperAdmin() || isDoctor();
+      allow read: if isSignedIn();
+      allow create, update: if isSuperAdmin() || hasRole(['DOCTOR']);
       allow delete: if isSuperAdmin();
-    }
-
-    match /orcamentos/{id} {
-      allow read, write: if isSuperAdmin();
-    }
-
-    match /feedback/{id} {
-      allow create: if isSignedIn();
-      allow read: if isSuperAdmin();
-    }
-
-    match /meetings/{meetingId} {
-      function isMeetingParticipant() {
-        let meeting = resource.data;
-        return request.auth.uid == meeting.doctorId || request.auth.uid == meeting.patientId;
-      }
-      allow read, update: if isSignedIn() && (isMeetingParticipant() || isSuperAdmin());
-      allow create: if isSignedIn() && isDoctor();
-      match /signaling/{participantId} { allow read, write: if isSignedIn(); }
-      match /telemetry/{timestamp} { allow read, write: if isSignedIn(); }
     }
 
     // --- Empresas e Subcoleções ---
     match /companies/{companyId} {
       allow read: if isSignedIn(); 
-      allow write: if isSuperAdmin() || isClientAdmin(companyId);
+      allow write: if isSuperAdmin();
       match /{allSubcollections=**} {
-        allow read: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
-        allow write: if isSuperAdmin() || isClientAdmin(companyId) || isDoctor() || isProvider();
+        allow read, write: if isSuperAdmin() || (isSignedIn() && profile().companyId == companyId);
       }
     }
 
-    match /config_nai_avatar/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin();
-    }
-
-    // --- Usuários (Proteção de Perfil) ---
+    // --- Usuários ---
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
-      allow delete: if isSuperAdmin();
-      allow update: if isSuperAdmin() || (
-        request.auth.uid == userId 
-        && request.resource.data.role == resource.data.role 
-        && request.resource.data.companyId == resource.data.companyId
-      );
+      allow update: if isSuperAdmin() || (request.auth.uid == userId);
     }
   }
 }

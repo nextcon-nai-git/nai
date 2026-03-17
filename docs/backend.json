@@ -38,15 +38,15 @@
         "dueDate": { "type": "string", "format": "date-time" }
       }
     },
-    "MedicalAppointment": {
-      "title": "Agendamento Médico",
+    "TechnicalReport": {
+      "title": "Relatório Técnico SST",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "colaborador_nome": { "type": "string" },
+        "dados_visita": { "type": "object" },
+        "analise_inteligente": { "type": "string" },
         "status": { "type": "string" },
-        "tipo": { "type": "string" },
-        "companyId": { "type": "string" }
+        "criado_em": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -66,29 +66,13 @@
       "schema": "#/backend/entities/OpsTask",
       "description": "Fila de tarefas e propostas comerciais."
     },
-    "/companies/{companyId}/employees/{employeeId}": {
-      "schema": "object",
-      "description": "Vidas sob vigilância de cada unidade."
-    },
-    "/agendamentos/{id}": {
-      "schema": "#/backend/entities/MedicalAppointment",
-      "description": "Fila de exames admissionais e periódicos."
-    },
-    "/agendamentos_telemedicina/{id}": {
-      "schema": "object",
-      "description": "Agenda de videoconsultas via Google Meet."
-    },
-    "/nursing_attendances/{id}": {
-      "schema": "object",
-      "description": "Registros de triagem e ambulatório operacional."
+    "/relatorios_sst/{reportId}": {
+      "schema": "#/backend/entities/TechnicalReport",
+      "description": "Relatórios de visitas técnicas com análise de IA."
     },
     "/atendimentos_aso/{id}": {
       "schema": "object",
       "description": "Histórico de ASOs emitidos e assinados."
-    },
-    "/feedback/{id}": {
-      "schema": "object",
-      "description": "Avaliações de experiência da plataforma."
     }
   }
 }
