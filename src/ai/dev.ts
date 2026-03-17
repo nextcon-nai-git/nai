@@ -1,6 +1,11 @@
 import { config } from 'dotenv';
 config();
 
+/**
+ * Ponto de entrada do Genkit Developer UI.
+ * Registra todos os motores de inteligência da Plataforma NAI.
+ */
+
 import '@/ai/flows/generate-soap-summary-flow.ts';
 import '@/ai/flows/risk-mitigation-plan-generator.ts';
 import '@/ai/flows/ntep-contestation-generator.ts';
