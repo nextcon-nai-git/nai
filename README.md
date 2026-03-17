@@ -7,10 +7,11 @@ Acesse o portal oficial hospedado integralmente no Google Cloud: [https://nai.ne
 
 ## 🛠️ Tecnologias Utilizadas
 - **Core**: Next.js 15 (App Router), React 19, TypeScript.
-- **Backend as a Service**: Firebase (Firestore, Auth, Storage, Cloud Functions).
+- **Compute**: Google Cloud Run (Serverless Container).
+- **Registry**: Artifact Registry (cloud-run-source-deploy).
+- **Backend as a Service**: Firebase (Firestore, Auth, Storage).
 - **Inteligência Artificial**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Tool Calling).
 - **Interface**: Tailwind CSS, ShadCN UI, Lucide Icons.
-- **Hospedagem**: Firebase App Hosting / Google Cloud Run.
 
 ## 🌐 Configuração DNS (Custom Domain)
 Para validar o domínio `nai.nextconsaude.com.br` e habilitar o SSL automático, siga os passos abaixo no seu provedor de DNS:
