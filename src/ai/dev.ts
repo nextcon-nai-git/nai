@@ -1,4 +1,3 @@
-
 import { config } from 'dotenv';
 config();
 
@@ -24,3 +23,4 @@ import '@/ai/flows/extract-medical-certificate-flow.ts';
 import '@/ai/flows/suggest-exams-flow.ts';
 import '@/ai/flows/medical-assistant-flow.ts';
 import '@/ai/flows/pgr-data-architect-flow.ts';
+import '@/ai/flows/voice-response-flow.ts';
