@@ -73,6 +73,14 @@
     "/atendimentos_aso/{id}": {
       "schema": "object",
       "description": "Histórico de ASOs emitidos e assinados."
+    },
+    "/config_nai_avatar/{docId}": {
+      "schema": "object",
+      "description": "Configurações de roteiro e pitch da NAI."
+    },
+    "/nursing_attendances/{id}": {
+      "schema": "object",
+      "description": "Registros de triagem e atendimentos de enfermagem."
     }
   }
 }
