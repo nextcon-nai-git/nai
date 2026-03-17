@@ -9,6 +9,10 @@ import { AppSidebar } from '@/components/layout/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { NaiFloatingWidget } from '@/components/commercial/nai-floating-widget';
 
+/**
+ * @fileOverview Gatekeeper de Autenticação da Plataforma NAI.
+ * Garante que a aplicação sempre inicie com o login para usuários não autenticados.
+ */
 export function AppContent({ children }: { children: React.ReactNode }) {
   const { user, isUserLoading } = useUser();
   const pathname = usePathname();
@@ -21,29 +25,31 @@ export function AppContent({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Lógica de Redirecionamento Estrito
   React.useEffect(() => {
     if (mounted && !isUserLoading && !user && !isLoginPage) {
       router.replace('/login');
     }
   }, [user, isUserLoading, isLoginPage, router, mounted]);
 
+  // 1. Splash Screen durante a verificação de sessão ou montagem
   if (!mounted || (isUserLoading && !isLoginPage)) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-primary z-[9999] overflow-hidden">
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#001F3F] z-[9999] overflow-hidden">
         <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--accent)_0%,_transparent_70%)]" />
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_#334155_0%,_transparent_70%)]" />
         </div>
 
         <div className="relative animate-in zoom-in duration-500">
           <div className="size-24 rounded-[2.5rem] bg-[#090e24] flex items-center justify-center text-white font-black text-5xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-bounce border-2 border-white/10">
             N
           </div>
-          <div className="absolute -inset-4 bg-accent/20 blur-2xl rounded-full -z-10 animate-pulse" />
+          <div className="absolute -inset-4 bg-slate-500/20 blur-2xl rounded-full -z-10 animate-pulse" />
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-accent" />
+            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
             <span className="text-xs font-black text-white/60 uppercase tracking-[0.4em]">NextCon Intelligence</span>
           </div>
           <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Sincronizando protocolos de elite 2026...</p>
@@ -52,12 +58,12 @@ export function AppContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isLoginPage) {
+  // 2. Renderiza apenas a tela de login se não autenticado
+  if (isLoginPage || !user) {
     return <div className="min-h-screen w-full bg-white">{children}</div>;
   }
 
-  if (!user) return null;
-
+  // 3. Renderiza a Shell da aplicação para usuários autenticados
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full bg-background overflow-hidden relative">
