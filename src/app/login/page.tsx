@@ -34,6 +34,17 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Regra de Ouro: nextcon@nextconsaude.com.br deve usar o modo ADMIN
+    if (email.toLowerCase() === 'nextcon@nextconsaude.com.br' && mode !== 'ADMIN') {
+      toast({
+        variant: 'destructive',
+        title: 'Modo Incorreto',
+        description: 'E-mails corporativos Nextcon devem acessar via guia "Time Nextcon".',
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -43,6 +54,7 @@ export default function LoginPage() {
       const userRef = doc(db, "users", loggedUser.uid);
       const userSnap = await getDoc(userRef);
 
+      // Sincroniza Perfil no Firestore
       if (!userSnap.exists() || !userSnap.data()?.name) {
         const emailName = loggedUser.email?.split('@')[0]
           .split('.')
@@ -50,8 +62,13 @@ export default function LoginPage() {
           .join(' ') || 'Gestor';
 
         let role = 'CLIENT_ADMIN';
-        if (mode === 'ADMIN') role = 'SUPER_ADMIN';
-        if (mode === 'PROVIDER') role = 'PROVIDER';
+        if (email.toLowerCase() === 'nextcon@nextconsaude.com.br') {
+          role = 'SUPER_ADMIN'; // Força Super Admin para o e-mail oficial
+        } else if (mode === 'ADMIN') {
+          role = 'SUPER_ADMIN';
+        } else if (mode === 'PROVIDER') {
+          role = 'PROVIDER';
+        }
 
         await setDoc(userRef, {
           id: loggedUser.uid,
@@ -89,7 +106,7 @@ export default function LoginPage() {
             <NextconLogo className="h-32 w-auto text-white" />
           </div>
           <div className="space-y-4">
-            <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase">
+            <h2 className="text-6xl font-black text-white font-headline tracking-tighter leading-none uppercase text-center w-full">
               NAI - Nextcon AI
             </h2>
             <p className="text-accent text-xl font-bold tracking-[0.4em] uppercase">
@@ -158,7 +175,7 @@ export default function LoginPage() {
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     className="pl-12 h-14 bg-white border-gray-100 rounded-2xl focus-visible:ring-primary/10 font-bold shadow-inner"
-                    placeholder="usuario@dominio.com.br"
+                    placeholder="usuario@nextconsaude.com.br"
                     required
                   />
                 </div>

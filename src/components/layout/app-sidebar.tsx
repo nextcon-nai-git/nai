@@ -51,9 +51,10 @@ import { cn } from "@/lib/utils"
 
 const NAV_MODULES = [
   {
-    label: "ESTRATÉGICO",
+    label: "TIME NEXTCON (ESTRATÉGICO)",
     icon: ShieldCheck,
-    roles: ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'],
+    isRestricted: true, // Apenas para nextcon@nextconsaude.com.br
+    roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Cérebro NAI", icon: Zap, href: "/" },
       { title: "BI & Analytics", icon: BarChart3, href: "/analytics" },
@@ -62,8 +63,9 @@ const NAV_MODULES = [
     ]
   },
   {
-    label: "COMERCIAL & FINANCEIRO",
+    label: "TIME NEXTCON (COMERCIAL)",
     icon: DollarSign,
+    isRestricted: true,
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Gerador de Propostas", icon: ShoppingCart, href: "/comercial" },
@@ -79,7 +81,6 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PROVIDER', 'CLIENT_ADMIN'],
     items: [
       { title: "Gestão de Saúde", icon: HeartPulse, href: "/medical/health-management" },
-      { title: "Profissionais Saúde", icon: UserPlus, href: "/medical/health-management" },
       { title: "Clínica Digital (ASO)", icon: Stethoscope, href: "/health-control" },
       { title: "Telemedicina Meet", icon: Video, href: "/telemedicine" },
       { title: "Validador Forense", icon: FileSearch, href: "/medical-certificates" },
@@ -99,8 +100,9 @@ const NAV_MODULES = [
     ]
   },
   {
-    label: "ADMINISTRAÇÃO",
+    label: "GOVERNANÇA NAI",
     icon: Database,
+    isRestricted: true,
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Quadro de Vidas", icon: Users, href: "/employees" },
@@ -131,7 +133,8 @@ export function AppSidebar() {
   }
 
   const role = (profile?.role || 'CLIENT_ADMIN').toUpperCase()
-  const isAdmin = ['SUPER_ADMIN', 'ADMIN'].includes(role)
+  const userEmail = (profile?.email || user?.email || '').toLowerCase()
+  const isTimeNextcon = userEmail === 'nextcon@nextconsaude.com.br'
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   
   return (
@@ -149,7 +152,11 @@ export function AppSidebar() {
       
       <SidebarContent className="px-6 pb-10 scrollbar-thin">
         {NAV_MODULES.map((module) => {
-          const hasModuleAccess = module.roles.includes(role);
+          // Filtro Rigoroso: nextcon@nextconsaude.com.br vê os módulos restritos.
+          // Outros papéis não vêem módulos restritos, mesmo se forem ADMIN genérico.
+          if (module.isRestricted && !isTimeNextcon) return null;
+          
+          const hasModuleAccess = module.roles.includes(role) || isTimeNextcon;
           if (!hasModuleAccess) return null;
 
           const ModuleIcon = module.icon;
