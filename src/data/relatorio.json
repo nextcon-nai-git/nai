@@ -1,0 +1,35 @@
+
+{
+  "relatorio_visita_tecnica": {
+    "empresa": "NATIVA EMPREENDIMENTOS",
+    "cnpj": "51.633.820/0001-51",
+    "unidade": "Edifício Laguna",
+    "data_visita": "2026-01-20",
+    "consultor": "Lucas Nextcon",
+    "inspecoes": [
+      {
+        "setor": "Carpintaria",
+        "equipamento": "Serra Circular de Bancada",
+        "status": "Não Conforme",
+        "descricao": "Disco exposto sem coifa de proteção e ausência de cutelo divisor.",
+        "risco": "Amputação",
+        "prioridade": "Alta"
+      },
+      {
+        "setor": "Laje 4º Pavimento",
+        "item": "Proteção Coletiva",
+        "status": "Não Conforme",
+        "descricao": "Ausência de linha de vida complementar e parapeitos provisórios.",
+        "risco": "Queda de altura",
+        "prioridade": "Alta"
+      },
+      {
+        "setor": "Área de Vivência",
+        "item": "Higienização",
+        "status": "Conforme",
+        "descricao": "Instalações sanitárias e refeitório em boas condições de uso.",
+        "prioridade": "Baixa"
+      }
+    ]
+  }
+}
