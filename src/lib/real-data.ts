@@ -1,7 +1,7 @@
 /**
  * NEXTCON PLATFORM - BASE DE DADOS REAL 2026
  * Fonte única de verdade para faturamento, contratos, clientes, prestadores e atendimentos.
- * Integração Oficial: COCEL (COMPANHIA CAMPOLARGUENSE DE ENERGIA)
+ * Integração Oficial: COCEL e NATIVA EMPREENDIMENTOS
  */
 
 export const REAL_COMPANIES = [
@@ -16,6 +16,17 @@ export const REAL_COMPANIES = [
     state: "PR",
     address: "Rua Rui Barbosa, 520"
   },
+  { 
+    id: "NATIVA_51", 
+    name: "NATIVA EMPREENDIMENTOS", 
+    cnpj: "51.633.820/0001-51", 
+    active: true, 
+    risk_degree: 3, 
+    segment: "CONSTRUCTION", 
+    city: "Guaratuba", 
+    state: "PR",
+    address: "Avenida Dr João Cândido, 755 - Edifício Laguna"
+  },
   { id: "UN_BETA_01", name: "UNIDADE OPERACIONAL BETA", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING", city: "Local", state: "UF" },
   { id: "UN_GAMA_13", name: "UNIDADE OPERACIONAL GAMA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Local", state: "UF" },
   { id: "UN_DELTA_76", name: "UNIDADE INDUSTRIAL DELTA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Local", state: "UF" },
@@ -23,6 +34,7 @@ export const REAL_COMPANIES = [
 ];
 
 export const REAL_EMPLOYEES = [
+  { id: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", companyId: "NATIVA_51", jobRole: "Engenheiro Civil", status: "active" },
   { id: "COL_COCEL_01", name: "RAFAEL ROGISKI (DIRETOR)", cpf: "000.000.000-00", companyId: "COCEL_75", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL_COCEL_02", name: "OPERADOR DE REDE COCEL", cpf: "111.222.333-44", companyId: "COCEL_75", aso_validade: "2026-08-15", aso_altura_valido: true, treinamento_nr35_valido: true },
   { id: "COL_002", name: "COLABORADOR EXEMPLO B", cpf: "441.932.712-77", companyId: "UN_BETA_01", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
@@ -89,6 +101,15 @@ export const REAL_HIERARCHICAL_DATA = [
     colaboradores: [
       { id_colaborador: "COL_COCEL_01", name: "RAFAEL ROGISKI", cpf: "000.000.000-00", cargo: "DIRETOR PRESIDENTE" },
       { id_colaborador: "COL_COCEL_02", name: "OPERADOR DE REDE", cpf: "111.222.333-44", cargo: "ELETRICISTA" }
+    ]
+  },
+  {
+    id_cliente: "NATIVA_51",
+    nome_fantasia: "NATIVA",
+    razao_social: "NATIVA EMPREENDIMENTOS",
+    total_vidas: 85,
+    colaboradores: [
+      { id_colaborador: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", cargo: "ENGENHEIRO CIVIL" }
     ]
   }
 ];
