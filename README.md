@@ -21,6 +21,9 @@ Para validar o domínio `nai.nextconsaude.com.br` e habilitar o SSL automático,
 3. **Valor**: `a9925fdf66`
 4. **Nota**: O código de verificação expira em 7 dias. A propagação pode levar até 72 horas.
 
+## 📦 Repositório Oficial
+- **GitHub**: [https://github.com/nextconsst/studio-8439299034](https://github.com/nextconsst/studio-8439299034)
+
 ## 🧠 Módulos Estratégicos
 1. **Cérebro NAI**: Assistente de IA para suporte clínico e técnico.
 2. **Firewall eSocial**: Validação de eventos S-2220 e S-2240 para evitar multas.

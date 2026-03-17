@@ -5,7 +5,6 @@ import { Cloud, Terminal, ShieldCheck, Zap, RefreshCw, ExternalLink, HardDrive, 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { firebaseConfig } from "@/firebase/config"
 
 /**
  * @fileOverview Gestão de Infraestrutura Cloud - 100% Google Cloud / Firebase.
