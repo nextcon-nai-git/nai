@@ -7,30 +7,30 @@ Acesse o portal oficial hospedado integralmente no Google Cloud: [https://nai.ne
 
 ## 🛠️ Tecnologias Utilizadas
 - **Core**: Next.js 15 (App Router), React 19, TypeScript.
-- **Compute**: Google Cloud Run (Serverless Container).
-- **Registry**: Artifact Registry (cloud-run-source-deploy).
-- **Backend as a Service**: Firebase (Firestore, Auth, Storage).
-- **Inteligência Artificial**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Tool Calling).
+- **Compute**: Google Cloud Run / Firebase App Hosting.
+- **AI**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Voice TTS).
 - **Interface**: Tailwind CSS, ShadCN UI, Lucide Icons.
 
-## 🌐 Configuração DNS (Custom Domain)
-Para validar o domínio `nai.nextconsaude.com.br` e habilitar o SSL automático, siga os passos abaixo no seu provedor de DNS:
+## 📦 Repositório e Deploy
+Para realizar o commit inicial e o deploy:
 
-1. **Hostname**: `_gh-nextcon-sst-e.nai.nextconsaude.com.br`
-2. **Tipo**: `TXT`
-3. **Valor**: `a9925fdf66`
-4. **Nota**: O código de verificação expira em 7 dias. A propagação pode levar até 72 horas.
+```bash
+# Inicialize e conecte ao GitHub
+git init
+git remote add origin https://github.com/nextconsst/studio-8439299034.git
+git branch -M main
+git add .
+git commit -m "Initial commit: NAI Platform Setup"
+git push -u origin main
 
-## 📦 Repositório Oficial
-- **GitHub**: [https://github.com/nextconsst/studio-8439299034](https://github.com/nextconsst/studio-8439299034)
+# Deploy de Infraestrutura
+npm run infra:deploy
+```
 
-## 🧠 Módulos Estratégicos
-1. **Cérebro NAI**: Assistente de IA para suporte clínico e técnico.
-2. **Firewall eSocial**: Validação de eventos S-2220 e S-2240 para evitar multas.
-3. **Super-Junta Médica**: Auditoria assistida por IA com base jurídica.
-4. **Sentinela do Limbo**: Vigilância ativa de nexo NTEP e afastamentos.
-5. **Clínica Digital**: Gestão de fila e emissão de ASOs com assinatura digital.
-6. **Controle de Campo**: IoT e gestão de prestadores em tempo real.
+## 🌐 Configuração DNS
+Para validar o domínio `nai.nextconsaude.com.br`, adicione o registro TXT no seu DNS:
+- **Hostname**: `_gh-nextcon-sst-e.nai.nextconsaude.com.br`
+- **Valor**: `a9925fdf66`
 
 ---
 © 2026 Nextcon Saúde Empresarial • Inteligência NAI em SST.

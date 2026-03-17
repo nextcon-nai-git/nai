@@ -1,4 +1,3 @@
-
 {
   "placeholderImages": [
     {
@@ -20,10 +19,10 @@
       "imageHint": "medical occupational"
     },
     {
-      "id": "dall-logo-thumb",
-      "description": "Dall Empreendimentos logo for slider thumb",
-      "imageUrl": "https://i.ibb.co/gZv2fyXt/logo.png",
-      "imageHint": "construction logo"
+      "id": "avatar-nai",
+      "description": "NAI AI Assistant Avatar",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/logo%2FAvatar%20Nextcon%20NAI.png?alt=media",
+      "imageHint": "ai avatar"
     }
   ]
 }

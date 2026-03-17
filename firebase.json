@@ -10,10 +10,10 @@
       "region": "us-central1"
     }
   },
-  "functions": {
-    "source": "functions"
+  "firestore": {
+    "rules": "firestore.rules"
   },
-  "dataconnect": {
-    "source": "dataconnect"
+  "storage": {
+    "rules": "storage.rules"
   }
 }
