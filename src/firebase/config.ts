@@ -1,3 +1,7 @@
+/**
+ * Configuração central do Firebase para a Plataforma NAI.
+ * Prioriza variáveis de ambiente para segurança em produção e CI/CD.
+ */
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyB8PfD-uf4PPceogHMCeW6IsOPALk6aLxo",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "studio-8439299034-125c7.firebaseapp.com",
