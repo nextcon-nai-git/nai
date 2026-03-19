@@ -14,39 +14,15 @@
       },
       "required": ["id", "name", "role", "email"]
     },
-    "Company": {
-      "title": "Empresa Cliente",
+    "PgrAiAnalysis": {
+      "title": "Análise Neural de PGR",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string" },
-        "cnpj": { "type": "string" },
-        "risk_degree": { "type": "number" },
-        "active": { "type": "boolean" }
-      },
-      "required": ["name", "cnpj"]
-    },
-    "OpsTask": {
-      "title": "Tarefa Operacional / Comercial",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "status": { "type": "string" },
-        "type": { "type": "string" },
-        "companyId": { "type": "string" },
-        "dueDate": { "type": "string", "format": "date-time" }
-      }
-    },
-    "TechnicalReport": {
-      "title": "Relatório Técnico SST",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "dados_visita": { "type": "object" },
-        "analise_inteligente": { "type": "string" },
-        "status": { "type": "string" },
-        "criado_em": { "type": "string", "format": "date-time" }
+        "caminhoStoragePdf": { "type": "string" },
+        "estado": { "type": "string" },
+        "resultadoIA": { "type": "object" },
+        "dataConclusao": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -58,29 +34,13 @@
       "schema": "#/backend/entities/UserProfile",
       "description": "Perfis de acesso e permissões RBAC."
     },
-    "/companies/{companyId}": {
-      "schema": "#/backend/entities/Company",
-      "description": "Base de empresas clientes."
-    },
-    "/companies/{companyId}/tasks/{taskId}": {
-      "schema": "#/backend/entities/OpsTask",
-      "description": "Fila de tarefas e propostas comerciais."
+    "/analisesPGR/{docId}": {
+      "schema": "#/backend/entities/PgrAiAnalysis",
+      "description": "Pedidos de análise de PGR processados em background pela NAI."
     },
     "/relatorios_sst/{reportId}": {
-      "schema": "#/backend/entities/TechnicalReport",
+      "schema": "object",
       "description": "Relatórios de visitas técnicas com análise de IA."
-    },
-    "/atendimentos_aso/{id}": {
-      "schema": "object",
-      "description": "Histórico de ASOs emitidos e assinados."
-    },
-    "/config_nai_avatar/{docId}": {
-      "schema": "object",
-      "description": "Configurações de roteiro e pitch da NAI."
-    },
-    "/nursing_attendances/{id}": {
-      "schema": "object",
-      "description": "Registros de triagem e atendimentos de enfermagem."
     }
   }
 }

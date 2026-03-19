@@ -27,6 +27,13 @@ service cloud.firestore {
       return hasRole(['SUPER_ADMIN', 'ADMIN', 'ENGINEER']);
     }
 
+    // --- Motor de Análise PGR (IA) ---
+    match /analisesPGR/{docId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSuperAdmin();
+    }
+
     // --- Coleções de Atendimento e Relatórios ---
     match /relatorios_sst/{reportId} {
       allow read: if isSignedIn();

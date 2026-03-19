@@ -1,9 +1,8 @@
-
 'use client';
 
 import * as React from 'react';
 import { useState } from 'react';
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { processarRelatorioSST, type AnaliseRiscoOutput } from '@/actions/sst-report-processor';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -14,7 +13,7 @@ interface BotaoSalvarRelatorioProps {
 }
 
 /**
- * Botão Inteligente que dispara a Server Action do Next.js 15.
+ * Botão Inteligente que dispara a Server Action do Next.js 15 para auditoria neural.
  */
 export function BotaoSalvarRelatorio({ relatorioDados, onSuccess }: BotaoSalvarRelatorioProps) {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -28,32 +27,32 @@ export function BotaoSalvarRelatorio({ relatorioDados, onSuccess }: BotaoSalvarR
     setIsSuccess(false);
 
     try {
-      // Chama a mágica: Server Action rodando no Google Cloud
+      // Chama a Server Action rodando no Google Cloud
       const result = await processarRelatorioSST(relatorioDados);
 
       if (result.sucesso && result.relatorioId && result.analise) {
         setIsSuccess(true);
         toast({
-          title: "Relatório Protocolado!",
-          description: "Auditoria via NAI concluída e salva na nuvem.",
+          title: "Auditoria Concluída!",
+          description: "Relatório analisado pela NAI e protocolado no Firestore.",
         });
 
         if (onSuccess) {
           onSuccess(result.relatorioId, result.analise);
         }
 
-        // Volta ao estado normal após delay
+        // Reseta o estado de sucesso após 5 segundos
         setTimeout(() => setIsSuccess(false), 5000);
       } else {
         throw new Error(result.erro);
       }
 
     } catch (error: any) {
-      console.error("NAI Button Error:", error);
+      console.error("NAI Action Error:", error);
       toast({
         variant: "destructive",
         title: "Erro no Processamento",
-        description: error.message || "A NAI encontrou uma instabilidade momentânea.",
+        description: error.message || "A NAI encontrou uma instabilidade no motor de análise.",
       });
     } finally {
       setIsProcessing(false);
@@ -75,7 +74,7 @@ export function BotaoSalvarRelatorio({ relatorioDados, onSuccess }: BotaoSalvarR
       {isProcessing ? (
         <>
           <Loader2 className="w-6 h-6 animate-spin text-accent" />
-          Neural Engine Processando...
+          NAI Neural Processing...
         </>
       ) : isSuccess ? (
         <>
@@ -85,7 +84,7 @@ export function BotaoSalvarRelatorio({ relatorioDados, onSuccess }: BotaoSalvarR
       ) : (
         <>
           <Sparkles className="w-6 h-6 text-accent" />
-          Ativar Auditoria via NAI IA
+          Finalizar Auditoria via NAI
         </>
       )}
     </button>
