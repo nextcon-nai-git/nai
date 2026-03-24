@@ -1,99 +1,48 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // --- Funções de Apoio Robustas ---
-    function isSignedIn() { 
-      return request.auth != null; 
-    }
+    function isSignedIn() { return request.auth != null; }
+    function isNextconOfficial() { return request.auth.token.email == 'nextcon@nextconsaude.com.br'; }
     
-    function isSystemAdminEmail() {
-      return request.auth.token.email in ['nextcon@nextconsaude.com.br', 'admin@nextcon.com.br'];
-    }
-
     function profile() {
       return exists(/databases/$(database)/documents/users/$(request.auth.uid))
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
         : null;
     }
-    
-    function hasRole(roles) {
-      let userRole = request.auth.token.role != null ? request.auth.token.role : (profile() != null ? profile().role : 'USER');
-      return userRole in roles || isSystemAdminEmail();
-    }
 
-    function isSuperAdmin() { 
-      return hasRole(['SUPER_ADMIN', 'ADMIN', 'ENGINEER']);
-    }
-
-    // --- Motor de Análise PGR (IA) ---
-    match /analisesPGR/{docId} {
+    match /config_nai_avatar/{docId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isSuperAdmin();
+      allow write: if isNextconOfficial();
     }
 
-    // --- Coleções de Atendimento e Relatórios ---
     match /relatorios_sst/{reportId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
-      allow update, delete: if isSuperAdmin();
+      allow update, delete: if isNextconOfficial();
     }
 
-    match /agendamentos/{id} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin() || hasRole(['DOCTOR']);
+    match /analisesPGR/{docId} {
+      allow read, create: if isSignedIn();
+      allow update, delete: if isNextconOfficial();
     }
 
-    match /atendimentos_aso/{atendimentoId} {
-      allow read: if isSignedIn();
-      allow create, update: if isSuperAdmin() || hasRole(['DOCTOR']);
-      allow delete: if isSuperAdmin();
-    }
-
-    match /nursing_attendances/{id} {
-      allow read: if isSignedIn();
-      allow create: if hasRole(['DOCTOR', 'PROVIDER', 'SUPER_ADMIN', 'ADMIN']);
-      allow update, delete: if isSuperAdmin();
-    }
-
-    match /agendamentos_telemedicina/{id} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isSuperAdmin();
-    }
-
-    // --- Configurações e Inteligência NAI ---
-    match /config_nai_avatar/{docId} {
-      allow read: if isSignedIn();
-      allow write: if isSuperAdmin();
-    }
-
-    match /feedback/{id} {
-      allow read: if isSuperAdmin();
-      allow create: if isSignedIn();
-    }
-
-    match /orcamentos/{id} {
-      allow read: if isSuperAdmin();
-      allow create: if isSignedIn();
-    }
-
-    // --- Empresas e Subcoleções ---
     match /companies/{companyId} {
-      allow read: if isSignedIn(); 
-      allow write: if isSuperAdmin();
+      allow read: if isSignedIn();
+      allow write: if isNextconOfficial();
       match /{allSubcollections=**} {
-        allow read, write: if isSuperAdmin() || (isSignedIn() && profile().companyId == companyId);
+        allow read, write: if isNextconOfficial() || (isSignedIn() && profile().companyId == companyId);
       }
     }
 
-    // --- Usuários ---
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
-      allow update: if isSuperAdmin() || (request.auth.uid == userId);
+      allow write: if isSignedIn() && (request.auth.uid == userId || isNextconOfficial());
+    }
+    
+    match /{allSubcollections=**} {
+      allow read: if isSignedIn();
+      allow write: if isNextconOfficial();
     }
   }
 }

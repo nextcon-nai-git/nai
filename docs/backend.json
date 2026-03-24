@@ -1,46 +1,39 @@
-
 {
   "entities": {
     "UserProfile": {
-      "title": "UserProfile",
-      "type": "object",
+      "description": "Perfis de acesso RBAC (SUPER_ADMIN, ENGINEER, DOCTOR, PROVIDER, CLIENT_ADMIN).",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "role": { "type": "string", "enum": ["SUPER_ADMIN", "CLIENT_ADMIN", "ENGINEER", "DOCTOR", "PROVIDER"] },
-        "email": { "type": "string" },
-        "companyId": { "type": "string" },
-        "servedCompanies": { "type": "array", "items": { "type": "string" } }
-      },
-      "required": ["id", "name", "role", "email"]
+        "servedCompanies": "Array de IDs para geofencing de fornecedores.",
+        "certificate_info": "Metadados de certificado A1/ICP-Brasil."
+      }
+    },
+    "Company": {
+      "description": "Unidades operacionais isoladas por multi-tenancy.",
+      "properties": {
+        "fiscal_config": "Token IBPT e configurações tributárias 2026.",
+        "risk_degree": "Grau de risco 1-4 conforme CNAE."
+      }
+    },
+    "TechnicalReport": {
+      "path": "/relatorios_sst/{id}",
+      "description": "Relatórios de visitas técnicas com análise neural Gemini."
     },
     "PgrAiAnalysis": {
-      "title": "Análise Neural de PGR",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "caminhoStoragePdf": { "type": "string" },
-        "estado": { "type": "string" },
-        "resultadoIA": { "type": "object" },
-        "dataConclusao": { "type": "string", "format": "date-time" }
-      }
+      "path": "/analisesPGR/{id}",
+      "description": "Processamento de PDFs de PGR via Cloud Functions v2."
+    },
+    "AccessLog": {
+      "path": "/companies/{id}/access_logs",
+      "description": "Logs de catraca IoT e biometria facial."
     }
   },
-  "auth": {
-    "providers": ["password"]
-  },
-  "firestore": {
-    "/users/{userId}": {
-      "schema": "#/backend/entities/UserProfile",
-      "description": "Perfis de acesso e permissões RBAC."
-    },
-    "/analisesPGR/{docId}": {
-      "schema": "#/backend/entities/PgrAiAnalysis",
-      "description": "Pedidos de análise de PGR processados em background pela NAI."
-    },
-    "/relatorios_sst/{reportId}": {
-      "schema": "object",
-      "description": "Relatórios de visitas técnicas com análise de IA."
-    }
+  "firestore_structure": {
+    "/users/{userId}": "Profiles",
+    "/companies/{companyId}": "Root Clients",
+    "/companies/{id}/employees": "Subcollection: Workers",
+    "/companies/{id}/tasks": "Subcollection: Kanban Operations",
+    "/companies/{id}/reports": "Subcollection: Doc Repository",
+    "/atendimentos_aso": "Collection: Medical Issues",
+    "/agendamentos_telemedicina": "Collection: Meet API Registry"
   }
 }

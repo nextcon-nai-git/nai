@@ -26,19 +26,26 @@ export const REAL_COMPANIES = [
     city: "Guaratuba", 
     state: "PR",
     address: "Avenida Dr João Cândido, 755 - Edifício Laguna"
-  },
-  { id: "UN_BETA_01", name: "UNIDADE OPERACIONAL BETA", cnpj: "01.208.413/0001-29", active: true, risk_degree: 3, segment: "ENGINEERING", city: "Local", state: "UF" },
-  { id: "UN_GAMA_13", name: "UNIDADE OPERACIONAL GAMA", cnpj: "13.419.654/0001-04", active: true, risk_degree: 3, segment: "CONSTRUCTION", city: "Local", state: "UF" },
-  { id: "UN_DELTA_76", name: "UNIDADE INDUSTRIAL DELTA", cnpj: "76.492.701/0011-29", active: true, risk_degree: 3, segment: "INDUSTRY", city: "Local", state: "UF" },
-  { id: "UN_EPSILON_32", name: "UNIDADE EDUCACIONAL EPSILON", cnpj: "32.137.571/0001-69", active: true, risk_degree: 1, segment: "EDUCATION", city: "Local", state: "UF" }
+  }
+];
+
+export const REAL_CONTRACTS = [
+  { 
+    id: "CT_COCEL_2026", 
+    companyId: "COCEL_75", 
+    companyName: "COCEL - DISTRIBUIÇÃO DE ENERGIA", 
+    title: "Termo Aditivo: Gestão SST & eSocial", 
+    value: 12794.07, 
+    status: "Active",
+    annualValue: 153528.84,
+    notes: "Ajuste via IPCA 4,4414% - Vigência 24 meses"
+  }
 ];
 
 export const REAL_EMPLOYEES = [
   { id: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", companyId: "NATIVA_51", jobRole: "Engenheiro Civil", status: "active" },
-  { id: "COL_COCEL_01", name: "RAFAEL ROGISKI (DIRETOR)", cpf: "000.000.000-00", companyId: "COCEL_75", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
-  { id: "COL_COCEL_02", name: "OPERADOR DE REDE COCEL", cpf: "111.222.333-44", companyId: "COCEL_75", aso_validade: "2026-08-15", aso_altura_valido: true, treinamento_nr35_valido: true },
-  { id: "COL_002", name: "COLABORADOR EXEMPLO B", cpf: "441.932.712-77", companyId: "UN_BETA_01", aso_validade: "2026-12-31", aso_altura_valido: true, treinamento_nr35_valido: true },
-  { id: "COL_003", name: "COLABORADOR EXEMPLO C", cpf: "378.454.183-64", companyId: "UN_GAMA_13", aso_validade: "2026-10-15", aso_espaco_confinado_valido: true, treinamento_nr33_valido: true }
+  { id: "COL_COCEL_01", name: "RAFAEL ROGISKI (DIRETOR)", cpf: "000.000.000-00", companyId: "COCEL_75", jobRole: "Presidente", status: "active" },
+  { id: "COL_COCEL_02", name: "OPERADOR DE REDE COCEL", cpf: "111.222.333-44", companyId: "COCEL_75", jobRole: "Eletricista", status: "active" }
 ];
 
 export const MOCK_NURSING_ATTENDANCES = [
@@ -61,37 +68,6 @@ export const MOCK_NURSING_ATTENDANCES = [
   }
 ];
 
-export const REAL_CONTRACTS = [
-  { 
-    id: "CT_COCEL_2026", 
-    companyId: "COCEL_75", 
-    companyName: "COCEL - DISTRIBUIÇÃO DE ENERGIA", 
-    title: "Termo Aditivo: Gestão SST & eSocial", 
-    value: 12794.07, 
-    status: "Active",
-    annualValue: 153528.84,
-    notes: "Ajuste via IPCA 4,4414% - Vigência 24 meses"
-  },
-  { id: "CT_02", companyId: "UN_BETA_01", companyName: "UNIDADE OPERACIONAL BETA", title: "Gestão Técnica", value: 57100.0, status: "Active" }
-];
-
-export const REAL_TRAININGS = [
-  {
-    id: "TRN_COCEL_01",
-    title: "Capacitação NR-10 (Segurança em Elétrica)",
-    companyId: "COCEL_75",
-    companyName: "COCEL",
-    nrs: ["NR-10", "SEP"],
-    startDate: "2026-02-15",
-    endDate: "2026-02-20",
-    totalHours: 40,
-    status: "in_progress",
-    students: [
-      { id: "COL_COCEL_02", name: "OPERADOR DE REDE COCEL", status: "present" }
-    ]
-  }
-];
-
 export const REAL_HIERARCHICAL_DATA = [
   {
     id_cliente: "COCEL_75",
@@ -99,17 +75,16 @@ export const REAL_HIERARCHICAL_DATA = [
     razao_social: "COMPANHIA CAMPOLARGUENSE DE ENERGIA",
     total_vidas: 142,
     colaboradores: [
-      { id_colaborador: "COL_COCEL_01", name: "RAFAEL ROGISKI", cpf: "000.000.000-00", cargo: "DIRETOR PRESIDENTE" },
-      { id_colaborador: "COL_COCEL_02", name: "OPERADOR DE REDE", cpf: "111.222.333-44", cargo: "ELETRICISTA" }
+      { id_colaborador: "COL_COCEL_01", name: "RAFAEL ROGISKI", cpf: "000.000.000-00", jobTitle: "DIRETOR" }
     ]
   },
   {
     id_cliente: "NATIVA_51",
     nome_fantasia: "NATIVA",
     razao_social: "NATIVA EMPREENDIMENTOS",
-    total_vidas: 85,
+    total_vidas: 664,
     colaboradores: [
-      { id_colaborador: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", cargo: "ENGENHEIRO CIVIL" }
+      { id_colaborador: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", jobTitle: "ENGENHEIRO" }
     ]
   }
 ];

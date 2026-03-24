@@ -16,7 +16,9 @@ import {
   CheckCircle2,
   Bot,
   Shield,
-  Building2
+  Building2,
+  Activity,
+  FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +42,6 @@ export default function Dashboard() {
   const { user } = useUser();
   const db = useFirestore();
   const [saudacao, setSaudacao] = React.useState('');
-  const [alertResolved, setAlertResolved] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
   
   const [fapValue, setFapValue] = React.useState([0.74]);
@@ -93,7 +94,7 @@ export default function Dashboard() {
                 <div className="flex flex-col gap-1">
                   <span>{saudacao}, <span className="text-slate-500">{displayName}</span></span>
                   <span className="text-xs font-bold text-slate-400 normal-case tracking-normal">
-                    Unidade: {company?.name || 'Monitoramento Ativo'}
+                    {isGlobalAdmin ? 'Gestão Estratégica da Rede' : `Unidade: ${company?.name || 'Monitoramento Ativo'}`}
                   </span>
                 </div>
               )}
@@ -102,62 +103,31 @@ export default function Dashboard() {
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.3em] ml-4">Cérebro NAI • Inteligência Nextcon 2026</p>
         </div>
         <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest px-5 h-11 border-none shadow-xl">
-          {isGlobalAdmin ? 'GESTÃO ESTRATÉGICA ATIVA' : 'CONFORMIDADE DA UNIDADE'}
+          {isGlobalAdmin ? 'INTELIGÊNCIA CORPORATIVA' : 'CONFORMIDADE DA UNIDADE'}
         </Badge>
       </div>
 
-      {!alertResolved && (
-        <Card className="border-none bg-red-50 ring-2 ring-red-200 rounded-[2.5rem] overflow-hidden animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-red-200/20">
-          <div className="flex flex-col lg:flex-row">
-            <div className="p-8 lg:w-1/3 bg-red-600 text-white flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
-                  <ShieldAlert className="size-6 text-white animate-pulse" />
-                </div>
-                <h2 className="text-xl font-black uppercase tracking-tight">Risco Crítico</h2>
-              </div>
-              <p className="text-sm font-bold text-red-100 leading-tight mb-6">
-                Bloqueio preventivo detectado na zona de operação.
-              </p>
-              <div className="p-4 bg-black/10 rounded-2xl border border-white/10 italic text-[10px] font-medium">
-                "Integração NAI: Inconsistência técnica detectada em tempo real."
-              </div>
-            </div>
-            
-            <div className="p-8 lg:flex-1 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-red-100 pb-4">
-                <div>
-                  <Badge className="bg-red-100 text-red-700 border-none text-[8px] font-black uppercase tracking-widest mb-2">ALERTA OPERACIONAL</Badge>
-                  <h3 className="text-lg font-black text-primary uppercase">Restrição de Acesso Técnico</h3>
-                </div>
-                <Button variant="ghost" asChild className="h-8 text-[10px] font-black text-primary hover:bg-red-100">
-                  <Link href="/medical/health-management">Ver Prontuário <ChevronRight className="size-3 ml-1" /></Link>
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-                  <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Motivo do Alerta</p>
-                  <p className="text-[11px] font-bold text-primary leading-tight">Variação de conformidade detectada. Bloqueio por segurança ativa.</p>
-                </div>
-                <div className="p-4 bg-white rounded-2xl border border-red-100 shadow-sm">
-                  <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Impacto Financeiro</p>
-                  <p className="text-[11px] font-bold text-emerald-600 leading-tight">Ação preventiva reduz multas eSocial e preserva o bônus FAP.</p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button onClick={() => setAlertResolved(true)} className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] h-11 px-6 rounded-xl gap-2 shadow-lg">
-                  <CheckCircle2 className="size-4" /> Validar Protocolo
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          {/* Alerta de Caso Real: Nativa */}
+          <Card className="border-none bg-blue-50 ring-2 ring-blue-100 rounded-[2.5rem] overflow-hidden shadow-xl">
+            <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-5">
+                <div className="p-4 bg-primary text-white rounded-3xl shadow-lg">
+                  <FileText className="size-8 text-accent" />
+                </div>
+                <div>
+                  <Badge className="bg-primary text-white text-[8px] font-black uppercase mb-2">Relatório Disponível</Badge>
+                  <h3 className="text-lg font-black text-primary uppercase">Nativa Empreendimentos</h3>
+                  <p className="text-xs text-slate-500 font-medium">Auditoria de Campo Laguna & Mônaco finalizada.</p>
+                </div>
+              </div>
+              <Button asChild className="bg-primary text-white font-black uppercase text-[10px] h-12 px-8 rounded-xl shadow-lg">
+                <Link href="/reports/technical-visit/nativa">Abrir Dossiê</Link>
+              </Button>
+            </div>
+          </Card>
+
           <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
             <CardHeader className="pb-4 px-8 pt-8">
               <div className="flex items-center justify-between">
@@ -166,7 +136,7 @@ export default function Dashboard() {
                     <Brain className="size-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-black text-primary uppercase">Resumo Estratégico NAI</CardTitle>
+                    <CardTitle className="text-lg font-black text-primary uppercase">Resumo Operacional NAI</CardTitle>
                     <CardDescription className="text-[10px] font-bold uppercase text-slate-400">Status de Blindagem Técnica e Tributária.</CardDescription>
                   </div>
                 </div>
@@ -176,19 +146,19 @@ export default function Dashboard() {
             <CardContent className="px-8 pb-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Economia FAP Projetada</p>
-                  <h3 className="text-2xl font-black text-primary">R$ 142.500,00</h3>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Contrato COCEL Aditivo</p>
+                  <h3 className="text-2xl font-black text-primary">R$ 12.794,07</h3>
                   <div className="flex items-center gap-1 mt-2">
-                    <TrendingDown className="size-3 text-emerald-500" />
-                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Gestão Ativa de Nexo</span>
+                    <CheckCircle2 className="size-3 text-emerald-500" />
+                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Gestão SST & eSocial Ativa</span>
                   </div>
                 </div>
                 <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Eficiência Operacional</p>
-                  <h3 className="text-2xl font-black text-primary">94.2%</h3>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Vigilância Total</p>
+                  <h3 className="text-2xl font-black text-primary">806 Vidas</h3>
                   <div className="flex items-center gap-1 mt-2">
-                    <CheckCircle2 className="size-3 text-blue-500" />
-                    <span className="text-[9px] font-bold text-blue-600 uppercase">Documentação Sincronizada</span>
+                    <Activity className="size-3 text-blue-500" />
+                    <span className="text-[9px] font-bold text-blue-600 uppercase">Sincronização 100% OK</span>
                   </div>
                 </div>
               </div>
@@ -200,18 +170,12 @@ export default function Dashboard() {
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
                   <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "A análise cruzada detectou tendências favoráveis na redução de absenteísmo. Mantenha os treinamentos em dia para sustentar o bônus tributário."
+                    "O aditivo contratual da COCEL e a auditoria da Nativa demonstram a maturidade da rede. Mantenha os protocolos do eSocial S-2240 sincronizados para sustentar o bônus FAP."
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard label="Vidas sob Vigilância" value="806" sub="Base Sincronizada" icon={UsersIcon} color="text-blue-600" bg="bg-blue-50" />
-            <StatCard label="ASOs Pendentes" value="12" sub="Próximos 30 dias" icon={HeartPulse} color="text-red-600" bg="bg-red-50" />
-            <StatCard label="Check-ins Campo" value="142" sub="Logs Ativos" icon={Zap} color="text-emerald-600" bg="bg-emerald-50" />
-          </div>
         </div>
 
         <div className="space-y-8">
@@ -233,7 +197,7 @@ export default function Dashboard() {
                 <Slider value={fapValue} onValueChange={setFapValue} max={2} min={0.5} step={0.01} className="py-4" />
               </div>
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
-                <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Economia Anual Est.</p>
+                <p className="text-[10px] font-black uppercase text-slate-400 mb-2">Economia Anual Est.</p>
                 <div className="flex items-center gap-2">
                   <h3 className="text-2xl font-black font-headline tracking-tighter text-primary">
                     {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -269,21 +233,5 @@ export default function Dashboard() {
         </SheetContent>
       </Sheet>
     </div>
-  );
-}
-
-function StatCard({ label, value, sub, icon: Icon, color, bg }: any) {
-  return (
-    <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={cn("p-3 rounded-2xl", bg, color)}><Icon className="size-5" /></div>
-          <Badge variant="outline" className="text-[8px] font-black uppercase text-slate-300">Live</Badge>
-        </div>
-        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest mb-1">{label}</p>
-        <h3 className="text-2xl font-black text-primary leading-none mb-1">{value}</h3>
-        <p className="text-[8px] font-bold text-slate-400 uppercase">{sub}</p>
-      </CardContent>
-    </Card>
   );
 }

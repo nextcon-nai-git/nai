@@ -1,11 +1,9 @@
+
 "use client"
 
 import * as React from "react"
 import { 
-  LayoutDashboard, 
-  Stethoscope, 
   CheckSquare, 
-  Users, 
   LogOut,
   BarChart3,
   SearchCheck,
@@ -27,8 +25,8 @@ import {
   Zap,
   CalendarDays,
   UserPlus,
-  ExternalLink,
-  Globe
+  Users,
+  Stethoscope
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -53,7 +51,7 @@ const NAV_MODULES = [
   {
     label: "TIME NEXTCON (ESTRATÉGICO)",
     icon: ShieldCheck,
-    isRestricted: true, // Apenas para nextcon@nextconsaude.com.br
+    isRestricted: true,
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Cérebro NAI", icon: Zap, href: "/" },
@@ -69,8 +67,6 @@ const NAV_MODULES = [
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { title: "Gerador de Propostas", icon: ShoppingCart, href: "/comercial" },
-      { title: "Proposta Construção", icon: HardHat, href: "/comercial/construction-proposal" },
-      { title: "Atendimento In Company", icon: UserPlus, href: "/comercial/multidisciplinary-proposal" },
       { title: "ERP Financeiro", icon: Database, href: "/financial" },
       { title: "ROI & Perícias", icon: Gavel, href: "/legal-financial" },
     ]
@@ -93,22 +89,9 @@ const NAV_MODULES = [
     items: [
       { title: "Cards Operação", icon: CheckSquare, href: "/action-plans" },
       { title: "Escala Técnica", icon: CalendarDays, href: "/safety/operational-scale" },
-      { title: "Prestadores Segurança", icon: HardHat, href: "/field-control" },
       { title: "Inventário PGR", icon: ClipboardCheck, href: "/risk-management" },
       { title: "Sentinela (NTEP)", icon: ShieldAlert, href: "/absenteeism" },
       { title: "Treinamentos NRs", icon: GraduationCap, href: "/trainings" },
-    ]
-  },
-  {
-    label: "GOVERNANÇA NAI",
-    icon: Database,
-    isRestricted: true,
-    roles: ['SUPER_ADMIN', 'ADMIN'],
-    items: [
-      { title: "Quadro de Vidas", icon: Users, href: "/employees" },
-      { title: "Central NAIGED", icon: ClipboardCheck, href: "/checklists" },
-      { title: "Infra Cloud NAI", icon: Cloud, href: "/agency/cloud-infra" },
-      { title: "Carga de Dados", icon: Database, href: "/data-import" },
     ]
   }
 ]
@@ -138,80 +121,48 @@ export function AppSidebar() {
   const userName = profile?.name || user?.email?.split('@')[0] || "Usuário"
   
   return (
-    <Sidebar className="border-r border-sidebar-border bg-gradient-to-b from-[#001F3F] via-[#003366] to-[#001F3F] text-white transition-all duration-700 shadow-2xl">
-      <SidebarHeader className="p-10 pb-6">
-        <div className="flex flex-col gap-1 group cursor-default">
-          <span className="text-4xl font-black tracking-tighter leading-none sidebar-header-glow transition-all duration-500 group-hover:scale-105 uppercase">
-            NAI
-          </span>
-          <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-80">
-            Nextcon AI 2026
-          </span>
-        </div>
+    <Sidebar className="border-r border-sidebar-border bg-[#001F3F] text-white">
+      <SidebarHeader className="p-8 pb-4">
+        <span className="text-3xl font-black tracking-tighter uppercase">NAI</span>
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nextcon AI 2026</span>
       </SidebarHeader>
       
-      <SidebarContent className="px-6 pb-10 scrollbar-thin">
+      <SidebarContent className="px-4">
         {NAV_MODULES.map((module) => {
-          // Filtro Rigoroso: nextcon@nextconsaude.com.br vê os módulos restritos.
-          // Outros papéis não vêem módulos restritos, mesmo se forem ADMIN genérico.
           if (module.isRestricted && !isTimeNextcon) return null;
           
-          const hasModuleAccess = module.roles.includes(role) || isTimeNextcon;
-          if (!hasModuleAccess) return null;
-
-          const ModuleIcon = module.icon;
-
           return (
-            <SidebarGroup key={module.label} className="py-6 first:pt-2">
-              <SidebarGroupLabel className="flex items-center gap-3 px-4 h-auto mb-4 pointer-events-none">
-                <div className="p-2 bg-white/10 rounded-xl shadow-inner border border-white/5">
-                  <ModuleIcon className="size-4 text-slate-400" />
-                </div>
-                <span className="text-slate-400 text-[10px] font-[900] uppercase tracking-[0.15em] leading-none">
-                  {module.label}
-                </span>
+            <SidebarGroup key={module.label}>
+              <SidebarGroupLabel className="text-slate-500 text-[9px] font-black uppercase tracking-widest mb-2 px-4">
+                {module.label}
               </SidebarGroupLabel>
-              <SidebarMenu className="space-y-1 ml-2">
-                {module.items.map((item) => {
-                  const isActive = pathname === item.href
-                  const Icon = item.icon
-
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive}
-                        className={cn(
-                          "h-10 px-4 rounded-xl transition-all duration-300 group",
-                          isActive 
-                            ? "bg-white/10 text-white font-bold border-l-4 border-slate-400" 
-                            : "text-white/50 hover:bg-white/5 hover:text-white"
-                        )}
-                      >
-                        <Link href={item.href} className="flex items-center gap-3">
-                          <Icon className={cn("size-4 shrink-0", isActive ? "text-slate-400" : "text-white/20")} />
-                          <span className="text-[12px] tracking-tight">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
+              <SidebarMenu>
+                {module.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={pathname === item.href} className="hover:bg-white/5 rounded-xl px-4 h-10">
+                      <Link href={item.href} className="flex items-center gap-3">
+                        <item.icon className="size-4 opacity-40" />
+                        <span className="text-xs font-medium">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroup>
           )
         })}
       </SidebarContent>
 
-      <SidebarFooter className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-xl">
-        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
-          <div className="size-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center font-black text-white text-xs shadow-xl">
-            {userName.substring(0, 2).toUpperCase()}
+      <SidebarFooter className="p-6 border-t border-white/5">
+        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
+          <div className="size-8 rounded-lg bg-accent text-primary flex items-center justify-center font-black text-xs uppercase">
+            {userName.substring(0, 2)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-black truncate uppercase tracking-tight text-white">{userName}</p>
-            <p className="text-[8px] text-slate-400 uppercase font-black tracking-widest">{role.replace('_', ' ')}</p>
+            <p className="text-[10px] font-black truncate uppercase">{userName}</p>
+            <p className="text-[8px] text-slate-400 uppercase">{role}</p>
           </div>
-          <button onClick={handleLogout} className="p-2 text-white/20 hover:text-red-400 transition-all">
+          <button onClick={handleLogout} className="p-1 hover:text-red-400 transition-colors">
             <LogOut className="size-4" />
           </button>
         </div>
