@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth, useUser, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -32,12 +32,26 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     
+    const isMasterEmail = email.toLowerCase() === 'nextcon@nextconsaude.com.br';
+    
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const loggedUser = userCredential.user;
+      let loggedUser;
+      try {
+        // Tenta o login normal
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        loggedUser = userCredential.user;
+      } catch (signInError: any) {
+        // Se falhar e for o e-mail mestre, tenta criar a conta (Auto-provisionamento para o protótipo)
+        if (isMasterEmail && (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential')) {
+          const createCredential = await createUserWithEmailAndPassword(auth, email, password);
+          loggedUser = createCredential.user;
+        } else {
+          throw signInError;
+        }
+      }
 
-      // Se for o e-mail oficial, garante o papel de SUPER_ADMIN
-      if (email.toLowerCase() === 'nextcon@nextconsaude.com.br') {
+      // Se for o e-mail oficial, garante o papel de SUPER_ADMIN no Firestore
+      if (isMasterEmail) {
         const userRef = doc(db, "users", loggedUser.uid);
         await setDoc(userRef, {
           id: loggedUser.uid,
@@ -51,6 +65,7 @@ export default function LoginPage() {
       router.push('/');
     } catch (error: any) {
       setLoading(false);
+      console.error("Login Error:", error);
       toast({
         variant: 'destructive',
         title: 'Falha no Acesso',
@@ -95,6 +110,12 @@ export default function LoginPage() {
 
         <div className="pt-6 border-t flex items-center justify-center gap-4 text-[9px] font-black text-slate-300 uppercase tracking-widest">
           <Globe className="size-3" /> NAI Cloud Infrastructure
+        </div>
+
+        <div className="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+          <p className="text-[10px] font-bold text-blue-700 uppercase">Acesso Mestre Prototipagem:</p>
+          <p className="text-[10px] text-blue-600 mt-1">E-mail: nextcon@nextconsaude.com.br</p>
+          <p className="text-[10px] text-blue-600">Senha Sugerida: <span className="font-black">nextcon2026</span></p>
         </div>
       </div>
     </div>

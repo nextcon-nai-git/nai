@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -74,10 +73,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       if (firebaseUser) {
         try {
           const tokenResult = await firebaseUser.getIdTokenResult();
+          const isMasterEmail = firebaseUser.email?.toLowerCase() === 'nextcon@nextconsaude.com.br';
           
           setAuthState({
             user: firebaseUser,
-            role: (tokenResult.claims.role as string) || "USER",
+            role: (tokenResult.claims.role as string) || (isMasterEmail ? "SUPER_ADMIN" : "USER"),
             companyId: (tokenResult.claims.companyId as string) || null,
             isUserLoading: false,
             userError: null,
@@ -89,11 +89,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             async (docSnap) => {
               if (docSnap.exists()) {
                 try {
+                  const data = docSnap.data();
                   const newTokenResult = await firebaseUser.getIdTokenResult(true);
                   setAuthState(prev => ({
                     ...prev,
-                    role: (newTokenResult.claims.role as string) || "USER",
-                    companyId: (newTokenResult.claims.companyId as string) || null,
+                    role: (newTokenResult.claims.role as string) || data.role || (isMasterEmail ? "SUPER_ADMIN" : "USER"),
+                    companyId: (newTokenResult.claims.companyId as string) || data.companyId || null,
                   }));
                 } catch (e) {
                   // Silencia falha de refresh silenciosa
