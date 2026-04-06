@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Loader2, ShieldAlert, Globe } from 'lucide-react';
+import { Lock, Loader2, ShieldAlert, Globe, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth, useFirestore } from '@/firebase';
@@ -23,25 +23,24 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     
-    const isMasterEmail = email.toLowerCase() === 'nextcon@nextconsaude.com.br';
+    const targetEmail = email.toLowerCase().trim();
+    const isMasterEmail = targetEmail === 'nextcon@nextconsaude.com.br';
     
     try {
       let loggedUser = null;
 
       try {
         // 1. Tenta o login convencional
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, targetEmail, password);
         loggedUser = userCredential.user;
       } catch (signInError: any) {
-        // 2. Se for o email mestre e a falha for credencial inválida/não encontrado
-        // Tentamos o auto-provisionamento para o protótipo
-        if (isMasterEmail && (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential')) {
+        // 2. Se for o email mestre e falhar, tentamos criar a conta silenciosamente
+        if (isMasterEmail) {
           try {
-            const createCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const createCredential = await createUserWithEmailAndPassword(auth, targetEmail, password);
             loggedUser = createCredential.user;
-            toast({ title: "Bem-vindo à NAI", description: "Conta mestre provisionada com sucesso." });
           } catch (createError: any) {
-            // Se falhar a criação por email já em uso, o erro de senha estava no passo 1
+            // Se o erro for "email já em uso", significa que a senha do passo 1 estava errada
             if (createError.code === 'auth/email-already-in-use') {
               throw new Error("Senha incorreta para o perfil mestre.");
             }
@@ -64,13 +63,16 @@ export default function LoginPage() {
         }, { merge: true });
       }
 
+      toast({ title: "Acesso Autorizado", description: "Bem-vindo à plataforma NAI." });
       router.push('/');
+      
     } catch (error: any) {
       setLoading(false);
+      console.error("Login Error:", error.message);
       toast({
         variant: 'destructive',
-        title: 'Acesso Negado',
-        description: 'Credenciais inválidas. Verifique o e-mail e senha da Nextcon.',
+        title: 'Falha no Acesso',
+        description: error.message.includes('password') ? 'Senha incorreta.' : 'Verifique suas credenciais Nextcon.',
       });
     }
   };
@@ -79,7 +81,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#001F3F] p-6">
       <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-[3rem] shadow-2xl animate-in zoom-in-95 duration-500">
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-black text-primary uppercase tracking-tighter">NAI</h1>
+          <div className="size-16 rounded-[1.5rem] bg-primary mx-auto flex items-center justify-center text-white font-black text-3xl shadow-xl border-2 border-white/10 mb-4">N</div>
+          <h1 className="text-4xl font-black text-primary uppercase tracking-tighter">NAI</h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Inteligência em SST 2026</p>
         </div>
 
@@ -104,7 +107,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" disabled={loading} className="w-full h-16 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl gap-3">
-            {loading ? <Loader2 className="animate-spin" /> : <ShieldAlert className="size-5 text-accent" />}
+            {loading ? <Loader2 className="animate-spin" /> : <Zap className="size-5 text-accent" />}
             Entrar no Portal
           </Button>
         </form>
@@ -114,10 +117,10 @@ export default function LoginPage() {
             <Globe className="size-3" /> NAI Cloud Infrastructure
           </div>
           
-          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center w-full">
-            <p className="text-[10px] font-bold text-blue-700 uppercase">Acesso Mestre:</p>
-            <p className="text-[10px] text-blue-600 mt-1">nextcon@nextconsaude.com.br</p>
-            <p className="text-[10px] text-blue-600">Senha: <span className="font-black">nextcon2026</span></p>
+          <div className="p-5 bg-blue-50 rounded-[2rem] border border-blue-100 text-center w-full">
+            <p className="text-[10px] font-black text-blue-700 uppercase mb-1">Acesso Mestre:</p>
+            <p className="text-xs font-bold text-blue-600">nextcon@nextconsaude.com.br</p>
+            <p className="text-xs font-medium text-blue-500 mt-1 italic">Senha: nextcon2026</p>
           </div>
         </div>
       </div>
