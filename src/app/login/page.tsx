@@ -2,31 +2,22 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2, ShieldAlert, UserCircle, Globe } from 'lucide-react';
+import { Lock, Loader2, ShieldAlert, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { useAuth, useUser, useFirestore } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-  const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-
-  React.useEffect(() => {
-    if (user && !isUserLoading) {
-      router.push('/');
-    }
-  }, [user, isUserLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,21 +26,24 @@ export default function LoginPage() {
     const isMasterEmail = email.toLowerCase() === 'nextcon@nextconsaude.com.br';
     
     try {
-      let loggedUser;
+      let loggedUser = null;
+
       try {
-        // Tenta o login normal
+        // 1. Tenta o login convencional
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         loggedUser = userCredential.user;
       } catch (signInError: any) {
-        // Se falhar e for o e-mail mestre, tenta criar a conta (Auto-provisionamento para o protótipo)
+        // 2. Se for o email mestre e a falha for credencial inválida/não encontrado
+        // Tentamos o auto-provisionamento para o protótipo
         if (isMasterEmail && (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential')) {
           try {
             const createCredential = await createUserWithEmailAndPassword(auth, email, password);
             loggedUser = createCredential.user;
+            toast({ title: "Bem-vindo à NAI", description: "Conta mestre provisionada com sucesso." });
           } catch (createError: any) {
-            // Se o erro for 'email-already-in-use', significa que a falha de login foi senha incorreta
+            // Se falhar a criação por email já em uso, o erro de senha estava no passo 1
             if (createError.code === 'auth/email-already-in-use') {
-              throw signInError;
+              throw new Error("Senha incorreta para o perfil mestre.");
             }
             throw createError;
           }
@@ -58,7 +52,7 @@ export default function LoginPage() {
         }
       }
 
-      // Se for o e-mail oficial, garante o papel de SUPER_ADMIN no Firestore
+      // 3. Garante o Perfil SUPER_ADMIN no Firestore para o email oficial
       if (isMasterEmail && loggedUser) {
         const userRef = doc(db, "users", loggedUser.uid);
         await setDoc(userRef, {
@@ -73,11 +67,10 @@ export default function LoginPage() {
       router.push('/');
     } catch (error: any) {
       setLoading(false);
-      console.error("Login Error:", error);
       toast({
         variant: 'destructive',
-        title: 'Falha no Acesso',
-        description: 'Verifique suas credenciais Nextcon.',
+        title: 'Acesso Negado',
+        description: 'Credenciais inválidas. Verifique o e-mail e senha da Nextcon.',
       });
     }
   };
@@ -97,7 +90,7 @@ export default function LoginPage() {
               <Input 
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 className="h-14 bg-slate-50 border-none rounded-2xl font-bold px-6 shadow-inner" 
-                placeholder="ex: nextcon@nextconsaude.com.br" required
+                placeholder="ex: seu@email.com.br" required
               />
             </div>
             <div className="space-y-1">
@@ -116,14 +109,16 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="pt-6 border-t flex items-center justify-center gap-4 text-[9px] font-black text-slate-300 uppercase tracking-widest">
-          <Globe className="size-3" /> NAI Cloud Infrastructure
-        </div>
-
-        <div className="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
-          <p className="text-[10px] font-bold text-blue-700 uppercase">Acesso Mestre Prototipagem:</p>
-          <p className="text-[10px] text-blue-600 mt-1">E-mail: nextcon@nextconsaude.com.br</p>
-          <p className="text-[10px] text-blue-600">Senha Sugerida: <span className="font-black">nextcon2026</span></p>
+        <div className="pt-6 border-t flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2 text-[9px] font-black text-slate-300 uppercase tracking-widest">
+            <Globe className="size-3" /> NAI Cloud Infrastructure
+          </div>
+          
+          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center w-full">
+            <p className="text-[10px] font-bold text-blue-700 uppercase">Acesso Mestre:</p>
+            <p className="text-[10px] text-blue-600 mt-1">nextcon@nextconsaude.com.br</p>
+            <p className="text-[10px] text-blue-600">Senha: <span className="font-black">nextcon2026</span></p>
+          </div>
         </div>
       </div>
     </div>
