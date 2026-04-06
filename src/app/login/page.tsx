@@ -43,15 +43,23 @@ export default function LoginPage() {
       } catch (signInError: any) {
         // Se falhar e for o e-mail mestre, tenta criar a conta (Auto-provisionamento para o protótipo)
         if (isMasterEmail && (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential')) {
-          const createCredential = await createUserWithEmailAndPassword(auth, email, password);
-          loggedUser = createCredential.user;
+          try {
+            const createCredential = await createUserWithEmailAndPassword(auth, email, password);
+            loggedUser = createCredential.user;
+          } catch (createError: any) {
+            // Se o erro for 'email-already-in-use', significa que a falha de login foi senha incorreta
+            if (createError.code === 'auth/email-already-in-use') {
+              throw signInError;
+            }
+            throw createError;
+          }
         } else {
           throw signInError;
         }
       }
 
       // Se for o e-mail oficial, garante o papel de SUPER_ADMIN no Firestore
-      if (isMasterEmail) {
+      if (isMasterEmail && loggedUser) {
         const userRef = doc(db, "users", loggedUser.uid);
         await setDoc(userRef, {
           id: loggedUser.uid,
