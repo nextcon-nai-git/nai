@@ -1,0 +1,25 @@
+src/app/audit-setup/page.tsx(13,26): error TS2305: Module '"@/lib/real-data"' has no exported member 'REAL_PROVIDERS'.
+src/app/audit-setup/page.tsx(47,31): error TS7006: Parameter 'provider' implicitly has an 'any' type.
+src/app/audit-setup/page.tsx(52,20): error TS2339: Property 'lat' does not exist on type '{ id: string; name: string; cnpj: string; active: boolean; risk_degree: number; segment: string; city: string; state: string; address: string; }'.
+src/app/audit-setup/page.tsx(52,35): error TS2339: Property 'lng' does not exist on type '{ id: string; name: string; cnpj: string; active: boolean; risk_degree: number; segment: string; city: string; state: string; address: string; }'.
+src/app/data-import/page.tsx(10,42): error TS2305: Module '"@/lib/real-data"' has no exported member 'REAL_EXAMS_HISTORY'.
+src/app/data-import/page.tsx(10,62): error TS2305: Module '"@/lib/real-data"' has no exported member 'DRE_2025_HISTORY'.
+src/app/data-import/page.tsx(10,96): error TS2305: Module '"@/lib/real-data"' has no exported member 'REAL_PROVIDERS'.
+src/app/reports/technical-visit/nativa/page.tsx(262,26): error TS2304: Cannot find name 'XCircle'.
+src/app/reports/technical-visit/nativa/page.tsx(266,34): error TS2322: Type '"ghost"' is not assignable to type '"secondary" | "destructive" | "default" | "outline" | null | undefined'.
+src/app/trainings/page.tsx(48,10): error TS2305: Module '"@/lib/real-data"' has no exported member 'REAL_TRAININGS'.
+src/app/trainings/page.tsx(59,43): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/app/trainings/page.tsx(59,48): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+src/app/trainings/page.tsx(60,44): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/app/trainings/page.tsx(60,49): error TS7006: Parameter 'curr' implicitly has an 'any' type.
+src/app/trainings/page.tsx(120,31): error TS7006: Parameter 'trn' implicitly has an 'any' type.
+src/app/trainings/page.tsx(154,36): error TS7006: Parameter 'nr' implicitly has an 'any' type.
+src/app/trainings/page.tsx(192,45): error TS7006: Parameter 'student' implicitly has an 'any' type.
+src/components/AiStorageAssistant.tsx(118,16): error TS2304: Cannot find name 'Badge'.
+src/components/AiStorageAssistant.tsx(118,124): error TS2304: Cannot find name 'Badge'.
+src/components/telemedicine/clinical-sidebar.tsx(142,14): error TS2304: Cannot find name 'Button'.
+src/components/telemedicine/clinical-sidebar.tsx(144,15): error TS2304: Cannot find name 'Button'.
+src/components/ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+src/components/ui/calendar.tsx(57,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(60,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/firebase/firestore/use-collection.tsx(13,41): error TS2459: Module '"@/firebase/errors"' declares 'SecurityRuleContext' locally, but it is not exported.

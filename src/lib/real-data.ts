@@ -14,7 +14,9 @@ export const REAL_COMPANIES = [
     segment: "ENERGY", 
     city: "Campo Largo", 
     state: "PR",
-    address: "Rua Rui Barbosa, 520"
+    address: "Rua Rui Barbosa, 520",
+    lat: -25.4601,
+    lng: -49.2312
   },
   { 
     id: "NATIVA_51", 
@@ -25,7 +27,9 @@ export const REAL_COMPANIES = [
     segment: "CONSTRUCTION", 
     city: "Guaratuba", 
     state: "PR",
-    address: "Avenida Dr João Cândido, 755 - Edifício Laguna"
+    address: "Avenida Dr João Cândido, 755 - Edifício Laguna",
+    lat: -25.8821,
+    lng: -48.5721
   }
 ];
 
@@ -87,4 +91,21 @@ export const REAL_HIERARCHICAL_DATA = [
       { id_colaborador: "COL_NATIVA_01", name: "CASSIO VINICIUS", cpf: "000.000.000-00", jobTitle: "ENGENHEIRO" }
     ]
   }
+];
+
+export const REAL_PROVIDERS = [
+  { id: "PROV_01", name: "Laboratório Saúde", lat: -25.4284, lng: -49.2733 },
+  { id: "PROV_02", name: "Clínica Ocupacional", lat: -25.4601, lng: -49.2312 }
+];
+
+export const REAL_EXAMS_HISTORY = [
+  { id: "EXM_01", type: "ASO", date: "2025-01-10", employee: "COL_COCEL_01" }
+];
+
+export const DRE_2025_HISTORY = [
+  { month: "Jan", revenue: 15000, expenses: 5000 }
+];
+
+export const REAL_TRAININGS = [
+  { id: "TRN_01", title: "NR 10 - Básico", hours: 40, students: ["COL_COCEL_02"], completions: 1 }
 ];

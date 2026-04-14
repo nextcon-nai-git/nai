@@ -13,7 +13,8 @@ import {
   Search, 
   Fingerprint,
   Loader2,
-  Clock
+  Clock,
+  ShieldCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -157,7 +158,7 @@ export default function HealthControl() {
         <CardHeader className="bg-slate-50 border-b py-6 px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <CardTitle className="text-lg font-black text-primary uppercase">Painel de Atendimento</CardTitle>
-            <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Fluxo: Triagem > Médico > Assinatura.</CardDescription>
+            <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Controle de Fluxo: Triagem &gt; Médico &gt; Assinatura.</CardDescription>
           </div>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-2.5 size-4 text-slate-300" />

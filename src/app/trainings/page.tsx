@@ -56,8 +56,8 @@ export default function TrainingDashboard() {
   const [showQr, setShowQr] = React.useState(false)
 
   const trainings = REAL_TRAININGS;
-  const totalStudents = trainings.reduce((acc, curr) => acc + curr.students.length, 0);
-  const completedHours = trainings.reduce((acc, curr) => acc + (curr.status === 'completed' ? curr.totalHours : 0), 0);
+  const totalStudents = trainings.reduce((acc: number, curr: any) => acc + curr.students.length, 0);
+  const completedHours = trainings.reduce((acc: number, curr: any) => acc + (curr.status === 'completed' ? curr.totalHours : 0), 0);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -117,7 +117,7 @@ export default function TrainingDashboard() {
           </CardHeader>
           <CardContent className="p-8">
             <div className="space-y-10">
-              {trainings.map((trn) => (
+              {trainings.map((trn: any) => (
                 <div key={trn.id} className="space-y-5">
                   <div className="flex justify-between items-end">
                     <div>
@@ -151,7 +151,7 @@ export default function TrainingDashboard() {
                   
                   <div className="flex items-center justify-between pt-2 border-t border-dashed">
                     <div className="flex gap-2">
-                      {trn.nrs.map(nr => (
+                      {trn.nrs.map((nr: string) => (
                         <Badge key={nr} variant="secondary" className="text-[8px] font-black uppercase bg-primary/5 text-primary border-none">{nr}</Badge>
                       ))}
                     </div>
@@ -189,7 +189,7 @@ export default function TrainingDashboard() {
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
               <div className="divide-y">
-                {trainings[0].students.map((student) => (
+                {trainings[0].students.map((student: any) => (
                   <div key={student.id} className="p-5 hover:bg-slate-50 transition-all flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">

@@ -44,7 +44,7 @@ export default function AuditSetupPage() {
 
       // 2. Provisionar Prestadores com Geofencing (Raio 50km)
       setStatus("Calculando Raio de 50km para Fornecedores...")
-      REAL_PROVIDERS.forEach((provider) => {
+      REAL_PROVIDERS.forEach((provider: any) => {
         const servedCompanies = REAL_COMPANIES
           .filter(comp => {
             const distance = calculateDistance(

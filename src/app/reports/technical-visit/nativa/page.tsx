@@ -21,7 +21,8 @@ import {
   Zap,
   PenTool,
   Printer,
-  Download
+  Download,
+  XCircle
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -263,7 +264,7 @@ export default function NativaTechnicalVisitReport() {
                         <div>
                           <p className="text-xs font-bold text-primary">{f.item}</p>
                           <p className="text-[10px] text-slate-500 leading-tight">{f.desc}</p>
-                          <Badge variant="ghost" className="text-[8px] p-0 font-mono text-red-400 uppercase">Ref: {f.ref}</Badge>
+                          <Badge variant="secondary" className="text-[8px] p-0 font-mono text-red-400 uppercase bg-transparent hover:bg-transparent">Ref: {f.ref}</Badge>
                         </div>
                       </div>
                     ))}
