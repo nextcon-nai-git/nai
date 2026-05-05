@@ -22,11 +22,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { LineChart, Line, ResponsiveContainer, YAxis, XAxis, Tooltip as ChartTooltip } from 'recharts';
 
+interface PatientData {
+  name?: string;
+}
+
+interface Telemetry {
+  heartRate?: number;
+  spo2?: number;
+}
+
+interface SoapSummary {
+  subjective?: string;
+  cid10?: Array<{ code: string }>;
+}
+
 interface ClinicalSidebarProps {
-  patientData: any;
-  telemetry: any[];
+  patientData: PatientData;
+  telemetry: Telemetry[];
   transcript: string;
-  soapSummary?: any;
+  soapSummary?: SoapSummary;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -49,7 +63,7 @@ export function ClinicalSidebar({ patientData, telemetry, transcript, soapSummar
           <CardHeader className="bg-primary text-white p-6 shrink-0">
             <div className="flex items-center gap-4">
               <div className="size-14 rounded-2xl bg-white/10 flex items-center justify-center text-2xl font-black border border-white/20">
-                {patientData.name?.substring(0, 2).toUpperCase()}
+                {(patientData.name || '').substring(0, 2).toUpperCase()}
               </div>
               <div>
                 <CardTitle className="text-xl font-headline font-black uppercase">{patientData.name}</CardTitle>
@@ -114,12 +128,12 @@ export function ClinicalSidebar({ patientData, telemetry, transcript, soapSummar
                 <div className="bg-primary/5 border border-primary/10 p-5 rounded-[2rem] space-y-4">
                   <div className="space-y-1">
                     <p className="text-[8px] font-black text-primary uppercase">Subjetivo (IA)</p>
-                    <p className="text-[11px] text-slate-600 italic leading-relaxed">"{soapSummary?.subjective || 'IA processando diálogo...'}"</p>
+                    <p className="text-[11px] text-slate-600 italic leading-relaxed">" {soapSummary?.subjective || 'IA processando diálogo...'}"</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[8px] font-black text-primary uppercase">Sugestão CID-10</p>
                     <div className="flex flex-wrap gap-1">
-                      {soapSummary?.cid10?.map((c: any) => (
+                      {(soapSummary?.cid10 || []).map((c: any) => (
                         <Badge key={c.code} variant="outline" className="text-[8px] font-black border-primary/20">{c.code}</Badge>
                       ))}
                     </div>

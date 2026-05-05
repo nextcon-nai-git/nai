@@ -14,6 +14,13 @@ import { REAL_COMPANIES, REAL_PROVIDERS } from "@/lib/real-data"
 import { calculateDistance } from "@/lib/utils"
 import Link from "next/link"
 
+interface Provider {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 export default function AuditSetupPage() {
   const { toast } = useToast()
   const db = useFirestore()
@@ -44,12 +51,12 @@ export default function AuditSetupPage() {
 
       // 2. Provisionar Prestadores com Geofencing (Raio 50km)
       setStatus("Calculando Raio de 50km para Fornecedores...")
-      REAL_PROVIDERS.forEach((provider: any) => {
+      REAL_PROVIDERS.forEach((provider: Provider) => {
         const servedCompanies = REAL_COMPANIES
           .filter(comp => {
             const distance = calculateDistance(
-              provider.lat || 0, provider.lng || 0,
-              comp.lat || 0, comp.lng || 0
+              provider.lat, provider.lng,
+              comp.lat, comp.lng
             );
             return distance <= 50;
           })
@@ -71,7 +78,7 @@ export default function AuditSetupPage() {
       const naiRef = doc(db, "config_nai_avatar", "pitch_vendas_padrao");
       batch.set(naiRef, {
         avatar: {
-          saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria. Como posso ajudar seu negócio hoje?"
+          saudacao_inicial: "Olá! Sou a NAI, a Inteligência Artificial da Nextcon. Estou aqui para ajudar você a blindar sua empresa com as melhores práticas de SST e Auditoria. Como posso aju[...]"
         },
         pilares_venda: [
           { ordem: 1, titulo: "Gestão de PGR e PCMSO", resumo: "Elaboração e controle de programas conforme NR-01 e NR-07." },

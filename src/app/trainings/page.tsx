@@ -48,6 +48,26 @@ import { collection, query, orderBy } from "firebase/firestore"
 import { REAL_TRAININGS } from "@/lib/real-data"
 import { cn } from "@/lib/utils"
 
+interface Training {
+  id: string;
+  title: string;
+  hours?: number;
+  totalHours?: number;
+  students: any[];
+  completions?: number;
+  status?: string;
+  companyName?: string;
+  nrs?: string[];
+}
+
+interface KpiCardProps {
+  label: string;
+  value: string | number;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  bg: string;
+}
+
 export default function TrainingDashboard() {
   const { toast } = useToast()
   const { user } = useUser()
@@ -55,9 +75,9 @@ export default function TrainingDashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [showQr, setShowQr] = React.useState(false)
 
-  const trainings = REAL_TRAININGS;
-  const totalStudents = trainings.reduce((acc: number, curr: any) => acc + curr.students.length, 0);
-  const completedHours = trainings.reduce((acc: number, curr: any) => acc + (curr.status === 'completed' ? curr.totalHours : 0), 0);
+  const trainings: Training[] = REAL_TRAININGS;
+  const totalStudents = trainings.reduce((acc: number, curr: Training) => acc + (curr.students?.length || 0), 0);
+  const completedHours = trainings.reduce((acc: number, curr: Training) => acc + (curr.status === 'completed' ? curr.totalHours || 0 : 0), 0);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -117,21 +137,21 @@ export default function TrainingDashboard() {
           </CardHeader>
           <CardContent className="p-8">
             <div className="space-y-10">
-              {trainings.map((trn: any) => (
+              {trainings.map((trn: Training) => (
                 <div key={trn.id} className="space-y-5">
                   <div className="flex justify-between items-end">
                     <div>
                       <h3 className="font-black text-primary uppercase text-sm tracking-tight">{trn.title}</h3>
                       <div className="flex items-center gap-3 mt-1">
                         <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                          <Building2 className="size-3" /> {trn.companyName}
+                          <Building2 className="size-3" /> {trn.companyName || 'N/A'}
                         </p>
                         <Badge variant="outline" className="text-[8px] font-black border-accent/20 text-accent">EM CURSO</Badge>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-[9px] font-black text-slate-400 uppercase">Carga Horária</p>
-                      <p className="text-sm font-black text-primary">{trn.totalHours}h Totais</p>
+                      <p className="text-sm font-black text-primary">{trn.totalHours || trn.hours || 0}h Totais</p>
                     </div>
                   </div>
                   
@@ -151,7 +171,7 @@ export default function TrainingDashboard() {
                   
                   <div className="flex items-center justify-between pt-2 border-t border-dashed">
                     <div className="flex gap-2">
-                      {trn.nrs.map((nr: string) => (
+                      {(trn.nrs || []).map((nr: string) => (
                         <Badge key={nr} variant="secondary" className="text-[8px] font-black uppercase bg-primary/5 text-primary border-none">{nr}</Badge>
                       ))}
                     </div>
@@ -189,11 +209,11 @@ export default function TrainingDashboard() {
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto max-h-[400px]">
               <div className="divide-y">
-                {trainings[0].students.map((student: any) => (
+                {(trainings[0]?.students || []).map((student: any) => (
                   <div key={student.id} className="p-5 hover:bg-slate-50 transition-all flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs shadow-inner">
-                        {student.name.substring(0, 2)}
+                        {(student.name || '').substring(0, 2)}
                       </div>
                       <div>
                         <p className="text-xs font-bold text-primary uppercase">{student.name}</p>
@@ -223,7 +243,7 @@ export default function TrainingDashboard() {
   )
 }
 
-function KpiCard({ label, value, icon: Icon, color, bg }: any) {
+function KpiCard({ label, value, icon: Icon, color, bg }: KpiCardProps) {
   return (
     <Card className="border-none shadow-sm bg-white rounded-3xl group hover:ring-2 ring-primary/5 transition-all overflow-hidden">
       <CardContent className="p-6">

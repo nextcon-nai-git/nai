@@ -12,6 +12,17 @@ import { ref, uploadString } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+interface StorageResult {
+  sucesso: boolean;
+  mensagem: string;
+  dados?: {
+    caminhoStorage: string;
+    placeholderContent: string;
+    docType: string;
+    nomeEmpresa: string;
+  };
+}
+
 /**
  * @fileOverview Assistente de Pastas NAI - Versão Hierarquia de Elite
  */
@@ -30,7 +41,7 @@ export default function AiStorageAssistant() {
     setLoading(true);
     setResultado(null);
 
-    const res = await executarComandoStorage(comando);
+    const res: StorageResult = await executarComandoStorage(comando);
 
     if (res.sucesso && res.dados) {
       try {
