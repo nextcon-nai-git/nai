@@ -26,6 +26,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
 
 /**
  * @fileOverview Gestão de Escala Técnica TST
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils"
  */
 
 export default function SafetyOperationalScale() {
+  const { toast } = useToast();
   const scale = [
     { week: "1", role: "TST A", seg: "Trabalha", ter: "Folga", qua: "Trabalha", qui: "Folga", sex: "Trabalha", sab: "Folga" },
     { week: "1", role: "TST B", seg: "Folga", ter: "Trabalha", qua: "Folga", qui: "Trabalha", sex: "Folga", sab: "Trabalha" },
@@ -51,10 +53,10 @@ export default function SafetyOperationalScale() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2">
+          <Button onClick={() => toast({ title: "Relatório de Vistoria", description: "Gerando PDF com evidências fotográficas de campo..." })} variant="outline" className="h-11 px-6 border-primary text-primary font-black uppercase text-[10px] gap-2">
             <FileCheck className="size-4" /> Relatório de Vistoria
           </Button>
-          <Button className="gradient-nextcon text-white h-11 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">
+          <Button onClick={() => toast({ title: "Nova PET/APR", description: "Iniciando formulário de Permissão de Trabalho..." })} className="gradient-nextcon text-white h-11 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">
             <Plus className="size-4" /> Abrir PET/APR
           </Button>
         </div>

@@ -140,7 +140,7 @@ export default function FinancialModule() {
           <Button variant="outline" className="gap-2 border-primary text-primary h-11 px-6 rounded-xl font-bold uppercase text-[10px]" onClick={() => setActiveTab("config")}>
             <Settings2 className="size-4" /> Configurar Fiscal
           </Button>
-          <Button className="bg-accent text-primary hover:bg-accent/90 gap-2 h-11 px-6 shadow-lg font-black uppercase text-[10px] tracking-widest rounded-xl">
+          <Button onClick={() => toast({ title: "Lançamento Avulso", description: "Iniciando formulário de lançamento financeiro..." })} className="bg-accent text-primary hover:bg-accent/90 gap-2 h-11 px-6 shadow-lg font-black uppercase text-[10px] tracking-widest rounded-xl">
             <Plus className="size-4" /> Lançar Avulso
           </Button>
         </div>
@@ -191,7 +191,7 @@ export default function FinancialModule() {
                 <CardTitle className="text-lg font-black text-primary uppercase">Faturamento Global</CardTitle>
                 <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Status dos contratos vigentes.</CardDescription>
               </div>
-              <Button variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase border-primary/10">Faturar Lote</Button>
+              <Button onClick={() => toast({ title: "Faturamento em Lote", description: "Processando notas fiscais da rede via integração API..." })} variant="outline" size="sm" className="h-10 text-[9px] font-black uppercase border-primary/10">Faturar Lote</Button>
             </CardHeader>
             <CardContent className="p-0">
               {loadingContracts ? (
@@ -303,7 +303,7 @@ export default function FinancialModule() {
                   <p className="text-xs font-bold text-primary uppercase">Arraste a tabela IBPT aqui</p>
                   <p className="text-[10px] text-slate-400">Suporta formato .CSV oficial</p>
                 </div>
-                <Button variant="ghost" className="text-[10px] font-black uppercase text-primary border border-primary/10 h-10 px-6 rounded-xl">Selecionar Arquivo</Button>
+                <Button onClick={() => toast({ title: "Importação IBPT", description: "Selecione o arquivo .csv exportado do De Olho no Imposto." })} variant="ghost" className="text-[10px] font-black uppercase text-primary border border-primary/10 h-10 px-6 rounded-xl">Selecionar Arquivo</Button>
               </CardContent>
             </Card>
           </div>

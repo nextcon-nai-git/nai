@@ -111,7 +111,7 @@ export default function TrainingDashboard() {
               <Button onClick={() => setShowQr(false)} className="w-full h-14 bg-primary text-white font-black uppercase text-xs rounded-2xl">Fechar Painel</Button>
             </DialogContent>
           </Dialog>
-          <Button className="bg-primary text-white gap-2 h-11 px-6 shadow-lg font-bold uppercase text-[10px]">
+          <Button onClick={() => toast({ title: "Novo Treinamento", description: "Painel de agendamento de treinamentos em desenvolvimento." })} className="bg-primary text-white gap-2 h-11 px-6 shadow-lg font-bold uppercase text-[10px]">
             <Plus className="size-4" /> Novo Treinamento
           </Button>
         </div>
@@ -175,7 +175,7 @@ export default function TrainingDashboard() {
                         <Badge key={nr} variant="secondary" className="text-[8px] font-black uppercase bg-primary/5 text-primary border-none">{nr}</Badge>
                       ))}
                     </div>
-                    <Button variant="ghost" size="sm" className="h-8 text-[9px] font-black uppercase gap-2">
+                    <Button onClick={() => toast({ title: "Lista de Presença", description: "Visualização detalhada da turma em desenvolvimento." })} variant="ghost" size="sm" className="h-8 text-[9px] font-black uppercase gap-2">
                       Ver Lista <ChevronRight className="size-3" />
                     </Button>
                   </div>
@@ -199,7 +199,7 @@ export default function TrainingDashboard() {
                   "O engajamento digital na rede subiu 15%. Turmas presenciais com QR Code reduziram o tempo de processamento de certificados."
                 </p>
               </div>
-              <Button className="w-full h-14 bg-accent text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:opacity-90">Analisar Gap de Treinamento</Button>
+              <Button onClick={() => toast({ title: "Análise de Gap", description: "O Cérebro NAI está processando a matriz de competências..." })} className="w-full h-14 bg-accent text-primary font-black uppercase text-[10px] rounded-xl shadow-xl hover:opacity-90">Analisar Gap de Treinamento</Button>
             </CardContent>
           </Card>
 
@@ -232,7 +232,7 @@ export default function TrainingDashboard() {
               </div>
             </CardContent>
             <div className="p-6 bg-slate-50 border-t">
-              <Button className="w-full h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg gap-2">
+              <Button onClick={() => toast({ title: "Certificação em Lote", description: "Gerando certificados assinados digitalmente (NR-01)..." })} className="w-full h-12 bg-primary text-white font-black uppercase text-[10px] tracking-widest rounded-xl shadow-lg gap-2">
                 <FileText className="size-4 text-accent" /> Gerar Certificados (Lote)
               </Button>
             </div>

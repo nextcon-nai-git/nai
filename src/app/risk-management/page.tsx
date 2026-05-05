@@ -62,10 +62,10 @@ export default function RiskInventoryPGR() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2 border-primary text-primary h-11 font-black uppercase text-[10px] tracking-widest">
+          <Button onClick={() => toast({ title: "Exportar Inventário", description: "Gerando arquivo XLS do PGR em conformidade com a NR-01..." })} variant="outline" className="gap-2 border-primary text-primary h-11 font-black uppercase text-[10px] tracking-widest">
             <FileDown className="size-4" /> Exportar Inventário
           </Button>
-          <Button className="gradient-nextcon text-white gap-2 h-11 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg">
+          <Button onClick={() => toast({ title: "Novo Risco", description: "Painel de identificação de perigos e riscos em desenvolvimento." })} className="gradient-nextcon text-white gap-2 h-11 px-6 font-black uppercase text-[10px] tracking-widest shadow-lg">
             <Plus className="size-4" /> Novo Risco
           </Button>
         </div>

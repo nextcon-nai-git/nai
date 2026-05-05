@@ -37,6 +37,86 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import MedicalCopilot from '@/components/medical/medical-copilot'; 
+import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
+
+function TypewriterText({ text, delay = 10 }: { text: string, delay?: number }) {
+  const [displayedText, setDisplayedText] = React.useState("");
+  
+  React.useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        // Usa a versão em callback de setDisplayedText para evitar problemas de dependência
+        setDisplayedText(text.substring(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, delay);
+    return () => clearInterval(interval);
+  }, [text, delay]);
+
+  return <span>{displayedText}</span>;
+}
+
+const GlassTooltip = ({ active, payload, isCurrency = false }: any) => {
+  if (active && payload && payload.length) {
+    const val = payload[0].value;
+    const formattedVal = isCurrency 
+      ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      : Math.floor(val).toLocaleString('pt-BR');
+    
+    return (
+      <div className="bg-slate-900/80 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+        <p className="text-white font-bold text-xs">{formattedVal}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+function Sparkline({ data, color = "#10b981", dataKey = "value", isCurrency = false }: { data: any[], color?: string, dataKey?: string, isCurrency?: boolean }) {
+  const id = React.useId();
+  return (
+    <div className="absolute inset-0 z-0 opacity-40">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`color-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+              <stop offset="95%" stopColor={color} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <Tooltip content={<GlassTooltip isCurrency={isCurrency} />} cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 2 }} />
+          <Area type="monotone" dataKey={dataKey} stroke={color} fillOpacity={1} fill={`url(#color-${id})`} strokeWidth={2} isAnimationActive={true} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function AnimatedCounter({ value, prefix = "", suffix = "", isCurrency = false }: { value: number, prefix?: string, suffix?: string, isCurrency?: boolean }) {
+  const [count, setCount] = React.useState(0);
+  React.useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 2000;
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(easeProgress * value);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }, [value]);
+
+  if (isCurrency) {
+    return <span className="tabular-nums">{prefix}{count.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}{suffix}</span>;
+  }
+  return <span className="tabular-nums">{prefix}{Math.floor(count).toLocaleString('pt-BR')}{suffix}</span>;
+}
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -77,6 +157,25 @@ export default function Dashboard() {
     return (payroll * 0.02 * (1 - fapValue[0]) * 12);
   }, [payroll, fapValue]);
 
+  const mockDataCocel = React.useMemo(() => [
+    { value: 10000 }, { value: 10500 }, { value: 11000 }, { value: 10800 }, { value: 11500 }, { value: 12794.07 }
+  ], []);
+
+  const mockDataVigilancia = React.useMemo(() => [
+    { value: 700 }, { value: 720 }, { value: 750 }, { value: 740 }, { value: 790 }, { value: 806 }
+  ], []);
+
+  const roiData = React.useMemo(() => {
+    return [
+      { value: potentialSavings * 0.4 },
+      { value: potentialSavings * 0.5 },
+      { value: potentialSavings * 0.7 },
+      { value: potentialSavings * 0.8 },
+      { value: potentialSavings * 0.95 },
+      { value: potentialSavings }
+    ];
+  }, [potentialSavings]);
+
   if (!isClient) return null;
 
   const displayName = profile?.name || 'Gestor';
@@ -110,7 +209,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Alerta de Caso Real: Nativa */}
-          <Card className="border-none bg-blue-50 ring-2 ring-blue-100 rounded-[2.5rem] overflow-hidden shadow-xl">
+          <Card className="border-none bg-blue-50 ring-2 ring-blue-100 rounded-[2.5rem] overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 fill-mode-both hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/20 transition-all">
             <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex items-center gap-5">
                 <div className="p-4 bg-primary text-white rounded-3xl shadow-lg">
@@ -128,7 +227,7 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden group animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both hover:-translate-y-1 hover:shadow-2xl transition-all">
             <CardHeader className="pb-4 px-8 pt-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -145,32 +244,38 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Contrato COCEL Aditivo</p>
-                  <h3 className="text-2xl font-black text-primary">R$ 12.794,07</h3>
-                  <div className="flex items-center gap-1 mt-2">
-                    <CheckCircle2 className="size-3 text-emerald-500" />
-                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Gestão SST & eSocial Ativa</span>
+                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center relative overflow-hidden group">
+                  <Sparkline data={mockDataCocel} color="#10b981" isCurrency={true} />
+                  <div className="relative z-10 pointer-events-none group-hover:pointer-events-auto">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Contrato COCEL Aditivo</p>
+                    <h3 className="text-2xl font-black text-primary"><AnimatedCounter value={12794.07} isCurrency /></h3>
+                    <div className="flex items-center gap-1 mt-2">
+                      <CheckCircle2 className="size-3 text-emerald-500" />
+                      <span className="text-[9px] font-bold text-emerald-600 uppercase">Gestão SST & eSocial Ativa</span>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Vigilância Total</p>
-                  <h3 className="text-2xl font-black text-primary">806 Vidas</h3>
-                  <div className="flex items-center gap-1 mt-2">
-                    <Activity className="size-3 text-blue-500" />
-                    <span className="text-[9px] font-bold text-blue-600 uppercase">Sincronização 100% OK</span>
+                <div className="bg-slate-50 p-6 rounded-3xl border shadow-inner flex flex-col justify-center relative overflow-hidden group">
+                  <Sparkline data={mockDataVigilancia} color="#3b82f6" />
+                  <div className="relative z-10 pointer-events-none group-hover:pointer-events-auto">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Vigilância Total</p>
+                    <h3 className="text-2xl font-black text-primary"><AnimatedCounter value={806} suffix=" Vidas" /></h3>
+                    <div className="flex items-center gap-1 mt-2">
+                      <Activity className="size-3 text-blue-500" />
+                      <span className="text-[9px] font-bold text-blue-600 uppercase">Sincronização 100% OK</span>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-slate-900 p-6 rounded-[2rem] text-white relative overflow-hidden group">
+              <div className="bg-slate-900/95 backdrop-blur-xl border border-white/10 p-6 rounded-[2rem] text-white relative overflow-hidden group shadow-[0_0_40px_rgba(30,136,229,0.15)] ring-1 ring-white/5">
                 <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-1000"><Shield className="size-32 text-white" /></div>
                 <div className="relative z-10 space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2 flex items-center gap-2">
                     <Zap className="size-3 fill-current text-primary" /> Insight Preditivo NAI
                   </p>
-                  <p className="text-sm italic font-medium leading-relaxed text-slate-300">
-                    "O aditivo contratual da COCEL e a auditoria da Nativa demonstram a maturidade da rede. Mantenha os protocolos do eSocial S-2240 sincronizados para sustentar o bônus FAP."
+                  <p className="text-sm italic font-medium leading-relaxed text-slate-300 min-h-[60px]">
+                    <TypewriterText text='"O aditivo contratual da COCEL e a auditoria da Nativa demonstram a maturidade da rede. Mantenha os protocolos do eSocial S-2240 sincronizados para sustentar o bônus FAP."' delay={15} />
                   </p>
                 </div>
               </div>
@@ -179,7 +284,7 @@ export default function Dashboard() {
         </div>
 
         <div className="space-y-8">
-          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both hover:-translate-y-1 hover:shadow-2xl transition-all">
             <CardHeader className="bg-primary/5 pb-6 p-8 border-b">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary text-white rounded-xl shadow-lg">
@@ -196,13 +301,16 @@ export default function Dashboard() {
                 </div>
                 <Slider value={fapValue} onValueChange={setFapValue} max={2} min={0.5} step={0.01} className="py-4" />
               </div>
-              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner">
-                <p className="text-[10px] font-black uppercase text-slate-400 mb-2">Economia Anual Est.</p>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-2xl font-black font-headline tracking-tighter text-primary">
-                    {Math.abs(potentialSavings).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </h3>
-                  <ArrowUpRight className="size-5 text-primary" />
+              <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 shadow-inner relative overflow-hidden group">
+                <Sparkline data={roiData} color={potentialSavings > 0 ? "#10b981" : "#ef4444"} isCurrency={true} />
+                <div className="relative z-10 pointer-events-none group-hover:pointer-events-auto">
+                  <p className="text-[10px] font-black uppercase text-slate-400 mb-2">Economia Anual Est.</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className={cn("text-2xl font-black font-headline tracking-tighter transition-all", potentialSavings > 0 ? "text-emerald-600 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "text-red-500")}>
+                      <AnimatedCounter value={Math.abs(potentialSavings)} isCurrency />
+                    </h3>
+                    {potentialSavings > 0 ? <ArrowUpRight className="size-5 text-emerald-500" /> : <TrendingDown className="size-5 text-red-500" />}
+                  </div>
                 </div>
               </div>
               <Button asChild className="w-full h-12 bg-primary text-white font-black uppercase text-[9px] tracking-widest rounded-xl">

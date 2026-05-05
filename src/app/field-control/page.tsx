@@ -121,7 +121,7 @@ export default function FieldControlOperational() {
     
     try {
       const emp = REAL_EMPLOYEES.find(e => e.id === gatekeeperForm.employeeId)
-      let bloqueios = []
+      const bloqueios = []
 
       if (gatekeeperForm.area === "caldeira_nr33") {
         const hasAso = Math.random() > 0.3

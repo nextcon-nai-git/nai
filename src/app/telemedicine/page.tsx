@@ -64,9 +64,14 @@ export default function TelemedicinePage() {
 
     setIsSubmitting(true)
     try {
-      const inicio = `${formData.data}T${formData.hora}:00-03:00`
-      const fimData = new Date(new Date(`${formData.data}T${formData.hora}:00`).getTime() + 30 * 60000)
-      const fim = fimData.toISOString().split('.')[0] + "-03:00"
+      const localDateTime = new Date(`${formData.data}T${formData.hora}:00`);
+      const inicio = `${formData.data}T${formData.hora}:00-03:00`;
+      
+      const fimData = new Date(localDateTime.getTime() + 30 * 60000);
+      // Constructing fim string manually to avoid UTC conversion issues
+      const fimHours = String(fimData.getHours()).padStart(2, '0');
+      const fimMinutes = String(fimData.getMinutes()).padStart(2, '0');
+      const fim = `${formData.data}T${fimHours}:${fimMinutes}:00-03:00`;
 
       const result = await agendarConsultaMeet({
         pacienteEmail: formData.pacienteEmail,

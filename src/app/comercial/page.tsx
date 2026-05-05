@@ -51,6 +51,7 @@ export default function ComercialPortal() {
   const [activeTab, setActiveTab] = React.useState("ai")
   const [selectedServices, setSelectedServices] = React.useState<Record<string, number>>({})
   const [isSaving, setIsSaving] = React.useState(false)
+  const [isSeeding, setIsSeeding] = React.useState(false)
 
   // Estados para o Radar PNCP
   const [licitacoes, setLicitacoes] = React.useState<any[]>([])
@@ -87,6 +88,12 @@ export default function ComercialPortal() {
     if (!allTasks) return []
     return allTasks.filter(t => ['to_review', 'sent', 'approved', 'implementation'].includes(t.status))
   }, [allTasks])
+
+  const companiesQuery = useMemoFirebase(() => {
+    if (!db) return null
+    return query(collection(db, "companies"), orderBy("name", "asc"))
+  }, [db])
+  const { data: companies, isLoading: loadingCompanies } = useCollection<any>(companiesQuery)
 
   const handleUpdateQty = (serviceId: string, delta: number) => {
     setSelectedServices(prev => {
@@ -169,6 +176,52 @@ export default function ComercialPortal() {
     }
   }
 
+  async function handleSeedData() {
+    if (!db) return
+    setIsSeeding(true)
+    try {
+      const clients = [
+        { name: "Alpha Tech", scope: "Alocação de TST (PJ) em SJP/PR, SL/MA e Natal/RN.", activities: "Inspeções, Atividades Críticas, EPIs/EPCs, DDS, NRs.", regime: "2 dias/localidade (8h/dia)", type: "comercial", status: "implementation", value: 15000 },
+        { name: "Britânia / Philco (Manaus/AM)", scope: "Consultoria Ergonomia e Fisioterapia do Trabalho (4 CNPJs).", activities: "AETs, Treinamentos Posturais, Cinesio-funcionais, Luximetry.", type: "comercial", status: "approved", value: 25000 },
+        { name: "Time Now (ArcelorMittal)", scope: "Documentos Técnicos SST (25 colaboradores, 6 GHEs).", activities: "LTCAT, AEP, LTIP (Elétrica).", type: "comercial", status: "implementation", value: 8500 },
+        { name: "Time Now (Braskem)", scope: "Serviços SST Plantas PVC e UCS.", activities: "LTCAT, Dosimetrias, AEPs, PCA, PPR, Fit Tests.", type: "comercial", status: "implementation", value: 12000 },
+        { name: "Lvalle", scope: "Serviços de TST.", type: "comercial", status: "approved", value: 5000 },
+        { name: "Midea", scope: "Alocação de TST (Faturamento via NF específica).", type: "comercial", status: "approved", value: 7000 },
+        { name: "Roofservice", scope: "Alocação de TST (11 dias, Seg-Sab) - Início Jan 20, 2026.", type: "comercial", status: "implementation", value: 4500 },
+        { name: "BRDE", scope: "Serviços Médicos (Médico do Trabalho) - 2 profissionais.", type: "comercial", status: "approved", value: 18000 },
+        { name: "Noxi", scope: "Execução de Laudos e Alocação de TST.", type: "comercial", status: "approved", value: 6000 },
+        { name: "Nativa Empreendimentos", scope: "Engenharia e Treinamentos de CIPA.", type: "comercial", status: "implementation", value: 9000 },
+        { name: "EP Teixeira (Esquina da Gulla)", scope: "Mensalidade recorrente e Visitas Técnicas.", type: "comercial", status: "approved", value: 1200 }
+      ]
+
+      for (const client of clients) {
+        const taskId = client.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+        const colRef = collection(db, "companies", "leads", "tasks")
+        await addDocumentNonBlocking(colRef, {
+          id: taskId,
+          title: client.name,
+          companyId: "leads",
+          companyName: client.name,
+          type: client.type as any,
+          status: client.status as any,
+          priority: "high",
+          dueDate: new Date(2026, 5, 1).toISOString(),
+          createdAt: new Date().toISOString(),
+          totalValue: client.value,
+          checklist: [
+            { id: '1', text: client.scope, checked: true, mandatory: true },
+            { id: '2', text: client.activities || "Execução do escopo acordado", checked: false, mandatory: true }
+          ]
+        })
+      }
+      toast({ title: "Dados Inseridos!", description: "Os clientes reais agora estão no funil comercial." })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Erro na Migração" })
+    } finally {
+      setIsSeeding(false)
+    }
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -178,7 +231,15 @@ export default function ComercialPortal() {
             <Sparkles className="size-3 text-accent" /> Gestão de Oportunidades e Vendas SST 2026.
           </p>
         </div>
-        <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-white/10">MÓDULO VENDAS</Badge>
+        <div className="flex gap-2">
+          {isGlobalAdmin && (
+            <Button onClick={handleSeedData} disabled={isSeeding} variant="outline" className="h-10 border-accent text-accent hover:bg-accent hover:text-primary font-black uppercase text-[9px] px-4 rounded-xl">
+              {isSeeding ? <Loader2 className="size-3 animate-spin mr-2" /> : <Zap className="size-3 mr-2" />}
+              Importar Clientes Reais
+            </Button>
+          )}
+          <Badge className="bg-primary text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border border-white/10">MÓDULO VENDAS</Badge>
+        </div>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -191,6 +252,9 @@ export default function ComercialPortal() {
           </TabsTrigger>
           <TabsTrigger value="cards" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest">
             <LayoutGrid className="size-4" /> Funil de Vendas
+          </TabsTrigger>
+          <TabsTrigger value="clients" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+            <Building2 className="size-4" /> Clientes na Base
           </TabsTrigger>
           <TabsTrigger value="radar" className="rounded-xl gap-2 text-[10px] font-black uppercase tracking-widest text-accent">
             <Globe className="size-4" /> Radar PNCP
@@ -285,6 +349,57 @@ export default function ComercialPortal() {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="clients" className="mt-8 animate-in fade-in zoom-in-95">
+          <Card className="card-shadow border-none bg-white rounded-[2.5rem] overflow-hidden">
+            <CardHeader className="bg-emerald-50 border-b p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="space-y-2">
+                <CardTitle className="text-2xl font-headline font-black text-emerald-900 uppercase tracking-tight flex items-center gap-3">
+                  <Building2 className="size-6 text-emerald-600" />
+                  Carteira de Clientes Ativos
+                </CardTitle>
+                <CardDescription className="text-sm font-medium text-emerald-700/70">
+                  Todas as empresas prospectadas e ativas cadastradas no sistema.
+                </CardDescription>
+              </div>
+              <Badge className="bg-emerald-600 text-white font-black uppercase text-[10px] tracking-widest h-10 px-4 border-none">
+                {companies?.length || 0} Empresas
+              </Badge>
+            </CardHeader>
+            <CardContent className="p-8">
+              {loadingCompanies ? (
+                <div className="flex flex-col items-center justify-center gap-6 py-24">
+                  <Loader2 className="size-12 animate-spin text-emerald-600 opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600/40">Sincronizando Banco de Dados...</p>
+                </div>
+              ) : companies && companies.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {companies.map((company) => (
+                    <div key={company.id} className="p-5 bg-slate-50 border rounded-2xl flex justify-between items-center group hover:border-emerald-500 hover:shadow-md transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="size-10 bg-white border rounded-xl flex items-center justify-center shrink-0">
+                          <Building2 className="size-5 text-slate-400 group-hover:text-emerald-500" />
+                        </div>
+                        <div>
+                          <p className="font-black text-sm text-slate-800 uppercase leading-tight line-clamp-1" title={company.name}>{company.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">{company.id}</p>
+                        </div>
+                      </div>
+                      {company.active && (
+                        <div className="size-3 bg-emerald-500 rounded-full shrink-0 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 opacity-20 flex flex-col items-center gap-4">
+                  <Building2 className="size-16" />
+                  <p className="font-black uppercase text-xs tracking-widest">Nenhuma empresa encontrada</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="radar" className="mt-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">

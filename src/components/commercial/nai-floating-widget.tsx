@@ -17,7 +17,7 @@ import { doc } from "firebase/firestore";
  * Agora consome diretamente do Firestore para evitar falhas em rotas de API server-side.
  */
 
-const NAI_AVATAR_URL = "https://firebasestorage.googleapis.com/v0/b/studio-8439299034-125c7.firebasestorage.app/o/logo%2FAvatar%20Nextcon%20NAI.png?alt=media";
+const NAI_AVATAR_URL = "/nai-avatar.png";
 
 // Fallback robusto caso o Firestore ainda não tenha sido semeado
 const DEFAULT_PITCH = {
@@ -46,6 +46,8 @@ const DEFAULT_PITCH = {
 
 export function NaiFloatingWidget() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [isHovering, setIsHovering] = React.useState(false);
   const db = useFirestore();
 
   const pitchRef = useMemoFirebase(() => {
@@ -60,6 +62,29 @@ export function NaiFloatingWidget() {
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
+    if (!isOpen && buttonRef.current) {
+      // Reset transform when opening
+      buttonRef.current.style.transform = 'translate(0, 0)';
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!buttonRef.current || isOpen) return;
+    const { left, top, width, height } = buttonRef.current.getBoundingClientRect();
+    const x = e.clientX - left - width / 2;
+    const y = e.clientY - top - height / 2;
+    // Puxar o botão em direção ao cursor
+    buttonRef.current.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    if (!buttonRef.current) return;
+    buttonRef.current.style.transform = 'translate(0, 0)';
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
   };
 
   return (
@@ -140,10 +165,18 @@ export function NaiFloatingWidget() {
 
       {/* Botão Flutuante humanizado com avatar NAI */}
       <button 
+        ref={buttonRef}
         onClick={handleToggle}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        onMouseEnter={handleMouseEnter}
+        style={{
+          transition: isHovering ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        }}
         className={cn(
-          "h-16 px-8 rounded-full shadow-2xl transition-all duration-500 flex items-center gap-3 hover:scale-105 active:scale-95 group overflow-hidden border-2 border-white/20",
-          isOpen ? "bg-primary text-white" : "gradient-nextcon text-white ring-4 ring-accent/10"
+          "h-16 px-8 rounded-full shadow-2xl flex items-center gap-3 active:scale-95 group overflow-hidden border-2 border-white/20 will-change-transform",
+          isOpen ? "bg-primary text-white" : "gradient-nextcon text-white ring-4 ring-accent/20 shadow-[0_0_30px_rgba(56,189,248,0.5)] hover:shadow-[0_0_40px_rgba(56,189,248,0.8)]",
+          !isOpen && !isHovering && "animate-[pulse_3s_ease-in-out_infinite]"
         )}
       >
         <div className="relative size-10 rounded-full overflow-hidden border-2 border-white/20 bg-[#090e24] flex items-center justify-center shrink-0">

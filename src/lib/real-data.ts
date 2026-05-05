@@ -109,3 +109,41 @@ export const DRE_2025_HISTORY = [
 export const REAL_TRAININGS = [
   { id: "TRN_01", title: "NR 10 - Básico", hours: 40, students: ["COL_COCEL_02"], completions: 1 }
 ];
+
+export const REAL_PATIENTS = [
+  {
+    id: "PAC_MARIA_01",
+    name: "Dona Maria",
+    cpf: "111.222.333-44",
+    clinicalData: {
+      idade: 72,
+      sexo: "F",
+      peso: 82,
+      altura: 1.55, // IMC ~ 34.1 (Obesidade I)
+      glicemia_jejum: 135,
+      hba1c: 7.2, // Diabetes
+      pas: 145,
+      pad: 92, // HAS
+      das28_score: 4.5, // Reumatologia Atividade Moderada
+      katz_score: 4, // Dependência moderada
+      phq9: [1, 2, 1, 2, 0, 1, 1, 2, 0], // Soma = 10
+      asa_score: 3
+    }
+  },
+  {
+    id: "PAC_ANA_02",
+    name: "Ana Carolina",
+    cpf: "555.666.777-88",
+    clinicalData: {
+      idade: 28,
+      sexo: "F",
+      peso: 65,
+      altura: 1.68, // IMC ~ 23 (Normal)
+      idade_gestacional_semanas: 22, // 2o Tri
+      fatores_risco_gestacional: ["Hipertensão Gestacional", "Histórico de Pré-eclâmpsia"], // Alto Risco
+      pas: 135,
+      pad: 85, // Pré HAS
+      gad7: [2, 2, 3, 2, 1, 1, 0] // Soma = 11 (Ansiedade)
+    }
+  }
+];
