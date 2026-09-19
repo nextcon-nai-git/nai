@@ -25,6 +25,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 firebase-debug.log*
+*.log
 
 # local env files
 .env*.local
@@ -55,8 +56,16 @@ next-env.d.ts
 .agents/
 skills-lock.json
 
-# lint errors and temp files
+# temp / generated / inspection files
 lint_errors.txt
 ts_errors.txt
 ts_errors_ascii.txt
+*.tmp
 .modified
+NAI 2
+project*.zip
+*.zip
+
+# local platform build artifacts
+android/
+ios/
