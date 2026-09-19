@@ -6,7 +6,7 @@
     "node": "20"
   },
   "scripts": {
-    "dev": "next dev --turbopack -p 9002",
+    "dev": "next dev --turbopack -p 3000",
     "dev:3000": "next dev --turbopack -p 3000",
     "dev:9002": "next dev --turbopack -p 9002",
     "dev:8080": "next dev --turbopack -p 8080",
