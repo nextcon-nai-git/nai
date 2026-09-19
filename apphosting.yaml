@@ -1,7 +1,13 @@
-# Configurações para o Firebase App Hosting.
-# Nome do ambiente: nai
+# Configurações do Firebase App Hosting
+# NextCon Intelligence (NAI)
 
 runConfig:
-  # Memória aumentada para evitar erros de build no Next.js 15
   memory: 1Gi
-  maxInstances: 1
+  maxInstances: 5
+  concurrency: 80
+
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "studio-8439299034-125c7"
+  - variable: GEMINI_API_KEY
+    secret: geminiApiKey

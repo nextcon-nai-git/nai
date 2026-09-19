@@ -1,14 +1,17 @@
 {
   "hosting": {
+    "site": "studio-8439299034-125c7",
     "source": ".",
+    "frameworksBackend": {
+      "region": "us-central1",
+      "memory": "1GiB",
+      "cpu": 1
+    },
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"

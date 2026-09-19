@@ -1,14 +1,15 @@
 # NAI - Nextcon Intelligence
 
-Este repositório contém a base do produto NAI, uma plataforma de inteligência aplicada para gestão de saúde, segurança e engenharia de processo em ambientes corporativos.
+Este repositório consolida a base do produto NAI com a stack de entrega mobile e lançamento institucional da versão enterprise.
 
 ## Objetivo
 
 A plataforma foi concebida para:
-- centralizar dados de saúde e SST
+- centralizar dados de saúde, SST e gestão documental
 - apoiar avaliação, acompanhamento e auditoria médica
 - automatizar triagem documental e análise operacional
 - aplicar regras de acesso por empresa, perfil e papel
+- operar de forma híbrida web + mobile nativo via Capacitor
 
 ## Stack principal
 
@@ -18,6 +19,7 @@ A plataforma foi concebida para:
 - Firebase / Google Cloud
 - Genkit + Gemini
 - Firestore e Storage
+- Capacitor 7 para iOS e Android
 
 ## Regras de uso
 
@@ -35,9 +37,15 @@ npm run test:run
 npm run build
 ```
 
-## Implantação
+## Mobile / Capacitor
 
-A implantação deve ocorrer por pipeline gerenciado e com aprovação para produção.
+```bash
+npm run cap:sync
+npm run cap:open:ios
+npm run cap:open:android
+```
+
+## Implantação
 
 ```bash
 npm run infra:rules
