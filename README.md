@@ -1,41 +1,53 @@
-# NAI - Nextcon AI | Inteligência 2026
+# NAI - Nextcon Intelligence
 
-Esta é a plataforma **Nextcon Intelligence**, um ecossistema Google-Native para gestão estratégica de Saúde, Segurança do Trabalho (SST) e Auditoria Médica.
+Este repositório contém a base do produto NAI, uma plataforma de inteligência aplicada para gestão de saúde, segurança e engenharia de processo em ambientes corporativos.
 
-## 🚀 Infraestrutura Google de Ponta
-Acesse o portal oficial hospedado integralmente no Google Cloud: [https://nai.nextconsaude.com.br](https://nai.nextconsaude.com.br)
+## Objetivo
 
-## 🛠️ Tecnologias e Motores Ativos
-- **Core**: Next.js 15 (App Router), React 19, TypeScript.
-- **AI Engine**: Genkit 1.x + Gemini 2.0 Flash (Streaming, Voice TTS).
-- **Backend**: Firebase Firestore (Multi-tenant), Cloud Functions v2 (ESM), Storage (Hierarquia de Elite).
-- **Security**: RBAC rigoroso, Firewall eSocial, Validação Forense de Atestados.
+A plataforma foi concebida para:
+- centralizar dados de saúde e SST
+- apoiar avaliação, acompanhamento e auditoria médica
+- automatizar triagem documental e análise operacional
+- aplicar regras de acesso por empresa, perfil e papel
 
-## 📈 Dados Reais Integrados (Benchmark 2026)
-- **COCEL**: Gestão ativa de contrato aditivo (R$ 12.794,07 mensais).
-- **Nativa Empreendimentos**: Auditoria de campo em unidades Laguna e Mônaco (NR-12 e NR-18).
-- **Vigilância**: 806 vidas monitoradas em tempo real.
+## Stack principal
 
-## 📦 Repositório e Deploy
-Para realizar o commit e o deploy oficial:
+- Next.js 15
+- React 19
+- TypeScript
+- Firebase / Google Cloud
+- Genkit + Gemini
+- Firestore e Storage
+
+## Regras de uso
+
+- Este repositório deve ser usado apenas para desenvolvimento, homologação e documentação interna.
+- Dados reais de clientes, documentos sensíveis e credenciais não devem ser publicados em repositórios públicos.
+- Os ambientes de produção devem usar autenticação, rede privada e segredos próprios, com acesso restrito.
+
+## Desenvolvimento
 
 ```bash
-# Inicialize e conecte ao GitHub
-git init
-git remote add origin https://github.com/nextconsst/studio-8439299034.git
-git branch -M main
-git add .
-git commit -m "NAI Platform: Intelligence 2026 Setup"
-git push -u origin main
+npm install
+npm run lint
+npm run typecheck
+npm run test:run
+npm run build
+```
 
-# Deploy de Infraestrutura
+## Implantação
+
+A implantação deve ocorrer por pipeline gerenciado e com aprovação para produção.
+
+```bash
+npm run infra:rules
 npm run infra:deploy
 ```
 
-## 🌐 Configuração DNS
-Para validar o domínio `nai.nextconsaude.com.br`, adicione o registro TXT no seu DNS:
-- **Hostname**: `_gh-nextcon-sst-e.nai.nextconsaude.com.br`
-- **Valor**: `a9925fdf66`
+## Segurança
 
----
-© 2026 Nextcon Saúde Empresarial • Inteligência NAI em SST.
+Consulte `SECURITY.md` para política de vulnerabilidades e boas práticas.
+
+## Aviso
+
+Este projeto trata de dados sensíveis e exige controles de acesso, auditoria, retenção e governança adequados antes de uso em produção com dados reais.

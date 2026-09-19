@@ -1,14 +1,67 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    function isSignedIn() { return request.auth != null; }
-    function isNextconOfficial() { return request.auth.token.email == 'nextcon@nextconsaude.com.br'; }
-    
-    function profile() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserProfile() {
+      return isSignedIn()
         ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data
         : null;
+    }
+
+    function isNextconOfficial() {
+      let profile = getUserProfile();
+      return isSignedIn() && profile != null && profile.role in ['SUPER_ADMIN', 'ADMIN', 'OPERATIONS'];
+    }
+
+    function belongsToCompany(companyId) {
+      let profile = getUserProfile();
+      return isSignedIn() && profile != null && profile.companyId == companyId;
+    }
+
+    function isCompanyAdmin(companyId) {
+      let profile = getUserProfile();
+      return isSignedIn() && profile != null && profile.companyId == companyId && profile.role in ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'];
+    }
+
+    function isHealthProfessionalForCompany(companyId) {
+      let profile = getUserProfile();
+      return isSignedIn() && profile != null && profile.companyId == companyId && profile.role in ['DOCTOR', 'HEALTH_PROFESSIONAL', 'PROVIDER', 'ENGINEER'];
+    }
+
+    match /companies/{companyId} {
+      allow read: if isSignedIn() && belongsToCompany(companyId);
+      allow write: if isCompanyAdmin(companyId);
+    }
+
+    match /companies/{companyId}/{document=**} {
+      allow read: if isSignedIn() && (belongsToCompany(companyId) || isNextconOfficial());
+      allow create, update, delete: if isCompanyAdmin(companyId) || isNextconOfficial();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isNextconOfficial() || belongsToCompany(resource.data.companyId));
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update, delete: if isSignedIn() && (request.auth.uid == userId || isNextconOfficial() || isCompanyAdmin(resource.data.companyId));
+    }
+
+    match /documents/{documentId} {
+      allow read: if isSignedIn() && (
+        isNextconOfficial() ||
+        belongsToCompany(resource.data.companyId) ||
+        isHealthProfessionalForCompany(resource.data.companyId)
+      );
+      allow create: if isSignedIn() && (
+        isNextconOfficial() ||
+        isCompanyAdmin(request.resource.data.companyId) ||
+        isHealthProfessionalForCompany(request.resource.data.companyId)
+      );
+      allow update, delete: if isSignedIn() && (
+        isNextconOfficial() ||
+        isCompanyAdmin(resource.data.companyId)
+      );
     }
 
     match /config_nai_avatar/{docId} {
@@ -23,31 +76,33 @@ service cloud.firestore {
     }
 
     match /relatorios_sst/{reportId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isNextconOfficial();
+      allow read: if isSignedIn() && (
+        isNextconOfficial() ||
+        belongsToCompany(resource.data.companyId)
+      );
+      allow create: if isSignedIn() && (
+        isNextconOfficial() ||
+        isCompanyAdmin(request.resource.data.companyId) ||
+        isHealthProfessionalForCompany(request.resource.data.companyId)
+      );
+      allow update, delete: if isSignedIn() && (isNextconOfficial() || isCompanyAdmin(resource.data.companyId));
     }
 
     match /analisesPGR/{docId} {
-      allow read, create: if isSignedIn();
-      allow update, delete: if isNextconOfficial();
+      allow read: if isSignedIn() && (
+        isNextconOfficial() ||
+        belongsToCompany(resource.data.companyId)
+      );
+      allow create: if isSignedIn() && (
+        isNextconOfficial() ||
+        isCompanyAdmin(request.resource.data.companyId) ||
+        isHealthProfessionalForCompany(request.resource.data.companyId)
+      );
+      allow update, delete: if isSignedIn() && (isNextconOfficial() || isCompanyAdmin(resource.data.companyId));
     }
 
-    match /companies/{companyId} {
-      allow read: if isSignedIn();
-      allow write: if isNextconOfficial();
-      match /{allSubcollections=**} {
-        allow read, write: if isNextconOfficial() || (isSignedIn() && profile().companyId == companyId);
-      }
-    }
-
-    match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && (request.auth.uid == userId || isNextconOfficial());
-    }
-    
-    match /{allSubcollections=**} {
-      allow read: if isSignedIn();
+    match /{document=**} {
+      allow read: if isSignedIn() && isNextconOfficial();
       allow write: if isNextconOfficial();
     }
   }

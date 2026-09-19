@@ -1,59 +1,57 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    
-    // Funções de Apoio (Autenticação e Dados do Usuário)
-    function isSignedIn() { 
-      return request.auth != null; 
+    function isSignedIn() {
+      return request.auth != null;
     }
-    function getUserData() { 
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data; 
+
+    function getUserData() {
+      return isSignedIn()
+        ? firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data
+        : null;
     }
-    
-    // Funções de Papéis (RBAC)
-    function isAdmin() { 
-      let role = getUserData().role;
-      return isSignedIn() && (role == 'SUPER_ADMIN' || role == 'ADMIN'); 
-    }
-    
-    function isOwner(clientId) { 
+
+    function isNextconOfficial() {
       let user = getUserData();
-      return isSignedIn() && user.role == 'CLIENT_ADMIN' && user.companyId == clientId; 
-    }
-    
-    function isHealthProfessional() {
-      let role = getUserData().role;
-      return isSignedIn() && (role in ['DOCTOR', 'PROVIDER', 'ENGINEER', 'HEALTH_PROFESSIONAL']);
+      return isSignedIn() && user != null && user.role in ['SUPER_ADMIN', 'ADMIN', 'OPERATIONS'];
     }
 
-    // Funções de Segurança de Arquivo (Firewall)
+    function belongsToCompany(companyId) {
+      let user = getUserData();
+      return isSignedIn() && user != null && user.companyId == companyId;
+    }
+
+    function isCompanyAdmin(companyId) {
+      let user = getUserData();
+      return isSignedIn() && user != null && user.companyId == companyId && user.role in ['SUPER_ADMIN', 'ADMIN', 'CLIENT_ADMIN'];
+    }
+
+    function isHealthProfessionalForCompany(companyId) {
+      let user = getUserData();
+      return isSignedIn() && user != null && user.companyId == companyId && user.role in ['DOCTOR', 'HEALTH_PROFESSIONAL', 'PROVIDER', 'ENGINEER'];
+    }
+
     function isSafeFile() {
-      // Limita a 5MB e permite apenas PDF e Imagens (PNG/JPG/JPEG)
-      return request.resource.size < 5 * 1024 * 1024 
-          && request.resource.contentType.matches('application/pdf|image/.*');
+      return request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('application/pdf|image/.*');
     }
 
-    // 1. ÁREA PÚBLICA: Leitura livre, Escrita apenas Admins
-    match /public/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && isSafeFile();
+    match /clientes/{companyId}/{allPaths=**} {
+      allow read: if isSignedIn() && (isNextconOfficial() || belongsToCompany(companyId) || isHealthProfessionalForCompany(companyId));
+      allow write: if isSignedIn() && (isNextconOfficial() || isCompanyAdmin(companyId) || isHealthProfessionalForCompany(companyId)) && isSafeFile();
     }
 
-    // 2. INTERNOS NEXTCON: Acesso exclusivo equipe interna
     match /internos_nextcon/{allPaths=**} {
-      allow read: if isAdmin();
-      allow write: if isAdmin() && isSafeFile();
+      allow read: if isNextconOfficial();
+      allow write: if isNextconOfficial() && isSafeFile();
     }
 
-    // 3. ÁREA DE CLIENTES: Isolamento Multi-tenant
-    match /clientes/{clientId}/{allPaths=**} {
-      allow read: if isAdmin() || isOwner(clientId) || isHealthProfessional();
-      allow write: if (isAdmin() || isOwner(clientId) || isHealthProfessional()) && isSafeFile();
+    match /public/{allPaths=**} {
+      allow read, write: if false;
     }
 
-    // Fallback de Segurança
     match /{allPaths=**} {
-      allow read, write: if false; 
+      allow read, write: if false;
     }
   }
 }
